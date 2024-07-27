@@ -1,8 +1,11 @@
 #pragma once
 
-#include "radon_transformer.hpp"
-
 #include <cassert>
+#include <span>
+
+#include "zest/zernike_expansion.hpp"
+#include "zest/real_sh_expansion.hpp"
+#include "zest/sh_glq_transformer.hpp"
 
 #define RESTRICT(P) P __restrict__
 
@@ -40,23 +43,6 @@ constexpr void fmadd(
     fmadd(a.data(), b.data(), c.data(), size);
 }
 
-template <typename FuncType>
-void evaluate_legendre_expansion_grid(
-    LegendreArrayRecursion& leg_recursion, zest::MDSpan<const double, 2> coeffs, FuncType&& grid_point_generator, std::span<double> out)
-{
-    assert(leg_recursion.size() == coeffs.extents().back());
-    assert(leg_recursion.size() == out.size());
-    leg_recursion.init(grid_point_generator);
-    std::ranges::fill(out, 0.0);
-    for (std::size_t l = 0; l < coeffs.extents().front(); ++l)
-        fmadd(out, coeffs[l], leg_recursion.next());
-}
-
-void apply_legendre_shift(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> expansion, 
-    zest::TriangleSpan<const double, zest::TriangleLayout> shifted_leg_coeff, 
-    SHExpansionCollectionSpan<std::array<double, 2>> out);
-
 template <zest::zt::ZernikeNorm NORM>
 constexpr double geg_rec_coeff(std::size_t n)
 {
@@ -76,7 +62,7 @@ class ZonalGLQTransformer
 public:
     using GridLayout = GridLayoutType;
 
-    static constexpr SHNorm sh_norm = SH_NORM;
+    static constexpr zest::st::SHNorm sh_norm = SH_NORM;
 
     ZonalGLQTransformer() = default;
     explicit ZonalGLQTransformer(std::size_t order):
@@ -99,6 +85,7 @@ public:
 
         m_glq_nodes.resize(zest::gl::PackedLayout::size(GridLayout::lat_size(order)));
         m_glq_weights.resize(zest::gl::PackedLayout::size(GridLayout::lat_size(order)));
+        m_leg_grid.resize(order*GridLayout::lat_size(order));
         zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::COS>(
                 m_glq_nodes, m_glq_weights, GridLayout::lat_size(order) & 1);
         
@@ -107,6 +94,8 @@ public:
             const double z = m_glq_nodes[i];
             legendre_recursion(std::span(m_leg_grid.data() + i*order, order), z);
         }
+
+        m_order = order;
     }
 
     void forward_transform(
@@ -132,13 +121,13 @@ public:
             std::ranges::fill(m_longitudinal_average, 0.0);
             for (std::size_t i = 0; i < values.shape()[lon_axis]; ++i)
             {
-                zest::MDSpan<double, 1> values_i = values[i];
+                zest::MDSpan<const double, 1> values_i = values[i];
                 for (std::size_t j = 0; j < values.shape()[lat_axis]; ++j)
                     m_longitudinal_average[j] += values_i[j];
             }
         }
 
-        constexpr double sh_normalization = normalization<SH_NORM>();
+        constexpr double sh_normalization = zest::st::normalization<SH_NORM>();
         const double prefactor = sh_normalization*(2.0*std::numbers::pi)/double(values.shape()[lon_axis]);
 
         for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)
@@ -149,10 +138,9 @@ public:
         std::ranges::fill(expansion, 0.0);
         for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)
         {
+            std::span leg(m_leg_grid.data() + i*m_order, m_order);
             for (std::size_t l = 0; l < min_order; ++l)
-            {
-                expansion[l] += m_glq_weights[i]*m_leg_grid(i, l);
-            }
+                expansion[l] += m_glq_weights[i]*leg[l];
         }
     }
 

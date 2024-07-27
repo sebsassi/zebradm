@@ -12,6 +12,8 @@
 #include "linalg.hpp"
 #include "multi_span.hpp"
 #include "legendre.hpp"
+#include "affine_legendre_integral.hpp"
+#include "radon_util.hpp"
 
 template <typename ElementType>
 using SHExpansionSpan = zest::st::RealSHExpansionSpan<ElementType, zest::st::SHNorm::GEO, zest::st::SHPhase::NONE>;
@@ -25,8 +27,7 @@ public:
     RadonTransformer() = default;
 
     void resize(
-        std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order,
-        std::size_t min_speeds_size);
+        std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order);
 
     /*
     Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
@@ -115,46 +116,24 @@ private:
         return {geg_order, top_order};
     }
 
-    MultiSuperSpan<zest::st::SphereGLQGridSpan<const double>, 2> vmin_contribution_grids(
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> geg_zernike_exp, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order);
-
-    zest::st::SphereGLQGridSpan<double> 
-    combine_vmin_boost_contributions(
-        SuperSpan<zest::st::SphereGLQGridSpan<const double>> vmin_cont, 
-        const Vector<double, 3>& boost, std::size_t top_order);
-
-    double angle_integral(
-        SHExpansionSpan<std::array<double, 2>> radon_coeffs,
-        double min_speed, double boost_speed, const Vector<double, 3>& boost);
-
-    zest::TriangleSpan<double, zest::TriangleLayout> evaluate_aff_leg_ylm_integrals(double min_speed, double boost_speed);
-    void evaluate_ylm_integrals(double lower_limit, double upper_limit);
+    TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
+        double min_speed, double boost_speed, std::size_t geg_order, std::size_t resp_order);
 
     zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
     zest::zt::ZernikeExpansionOrthoGeo m_rotated_geg_zernike_exp;
+    std::vector<double> m_rotated_geg_zernike_grids;
+
     zest::st::RealSHExpansionGeo m_rotated_response_exp;
-    std::vector<double> m_rotated_exp;
-    std::vector<double> m_geg_zernike_grids;
-    std::vector<Vector<double, 3>> m_direction_grid;
-    std::vector<double> m_aff_legendre_buffer;
-    std::vector<std::array<double, 2>> m_vmin_boost_sep_buffer;
-    std::vector<double> m_vmin_part_grid_buffer;
-    std::vector<double> m_aff_leg_ylm_integrals;
-    std::vector<double> m_ylm_integrals;
-    std::vector<double> m_lower_legendre_integrals;
-
-    zest::st::RealSHExpansionGeo m_radon_coeffs;
-    zest::st::RealSHExpansionGeo m_response_expansion;
-
-    zest::st::SphereGLQGrid<double> m_rotated_grid;
     zest::st::SphereGLQGrid<double> m_rotated_response_grid;
 
-    zest::st::SphereGLQGridPoints<> m_grid_points;
+    zest::st::SphereGLQGrid<double> m_rotated_grid;
+    std::vector<double> m_rotated_exp;
+
+    std::vector<double> m_aff_leg_ylm_integrals;
+
+    detail::ZonalGLQTransformer<zest::st::SHNorm::GEO> m_zonal_transformer;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
     zest::Rotor m_rotor;
 
-    AffineLegendreRecursion m_aff_leg_recursion;
     AffineLegendreIntegralRecursion m_aff_leg_int_rec;
-    LegendreArrayRecursion m_leg_recursion;
-    LegendreIntegralRecursion m_integral_recursion;
 };

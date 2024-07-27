@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstdio>
 
+#include "array_arithmetic.hpp"
+
 constexpr bool is_close(double a, double b, double tol)
 {
     return std::fabs(a - b) < tol;

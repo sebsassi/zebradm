@@ -10,7 +10,7 @@ endif()
 
 add_library(zebradm
     src/radon_transformer.cpp src/legendre.cpp src/affine_legendre.cpp
-    src/radon_integrator.cpp src/radon_util.cpp
+    src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp
 )
 
 add_subdirectory(external/cubage)

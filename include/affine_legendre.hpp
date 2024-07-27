@@ -55,31 +55,3 @@ private:
     std::vector<double> m_d;
     std::size_t m_max_order;
 };
-
-class AffineLegendreIntegralRecursion
-{
-    AffineLegendreIntegralRecursion() = default;
-    explicit AffineLegendreIntegralRecursion(std::size_t max_order);
-
-    /*
-    Expand the number of cached recursion coefficients up to `max_order`.
-    */
-    void expand(std::size_t max_order);
-
-    /*
-    Evaluate recursion of Legendre polynomials with affine transformed argument `y = shift + scale*x`.
-    */
-    void integrals(
-        zest::TriangleSpan<double, zest::TriangleLayout> expansion, double shift, double scale);
-
-private:
-    LegendreIntegralRecursion m_leg_int_rec;
-    std::vector<double> m_extra_triangle;
-    std::vector<double> m_leg_int_top;
-    std::vector<double> m_leg_int_bot;
-    std::vector<double> m_a;
-    std::vector<double> m_b;
-    std::vector<double> m_c;
-    std::vector<double> m_d;
-    std::size_t m_max_order;
-};

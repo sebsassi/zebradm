@@ -66,7 +66,7 @@ bool test_radoon_transformer_is_correct_for_constant_dist()
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
             {
-                std::printf("%f ", reference(i, j));
+                std::printf("%.16e ", reference(i, j));
             }
             std::printf("\n");
         }
@@ -76,7 +76,7 @@ bool test_radoon_transformer_is_correct_for_constant_dist()
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
             {
-                std::printf("%f ", test(i, j));
+                std::printf("%.16e ", test(i, j));
             }
             std::printf("\n");
         }
@@ -138,7 +138,7 @@ void test_radon_transformer_is_accurate_for_shm()
     zest::MDSpan<double, 2> shm_test(
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    constexpr std::size_t order = 20;
+    constexpr std::size_t order = 100;
     zest::zt::ZernikeExpansionOrthoGeo distribution
         = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
                 shm_dist, 1.0, order);
@@ -151,7 +151,7 @@ void test_radon_transformer_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_reference(i, j));
+            std::printf("%.16e ", shm_reference(i, j));
         }
         std::printf("\n");
     }
@@ -161,7 +161,17 @@ void test_radon_transformer_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_test(i, j));
+            std::printf("%.16e ", shm_test(i, j));
+        }
+        std::printf("\n");
+    }
+
+    std::printf("\nrelative error\n");
+    for (std::size_t i = 0; i < boosts.size(); ++i)
+    {
+        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        {
+            std::printf("%.16e ", 1.0 - shm_test(i, j)/shm_reference(i, j));
         }
         std::printf("\n");
     }

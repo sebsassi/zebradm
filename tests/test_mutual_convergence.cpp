@@ -51,12 +51,22 @@ void test_mutual_convergence(FuncType&& f)
         }
         std::printf("\n");
     }
+
+    std::printf("\nrelative error\n");
+    for (std::size_t i = 0; i < boosts.size(); ++i)
+    {
+        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        {
+            std::printf("%.16e ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
+        }
+        std::printf("\n");
+    }
 }
 
 int main()
 {
-    constexpr double disp = 0.4;
     test_mutual_convergence([&](const Vector<double, 3>& v){
+        constexpr double disp = 0.4;
         const double speed = length(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);

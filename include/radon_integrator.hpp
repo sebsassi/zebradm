@@ -8,8 +8,8 @@
 #include "linalg.hpp"
 #include "align_z.hpp"
 
-#include "hypercube_integrator.hpp"
 #include "array_arithmetic.hpp"
+#include "hypercube_integrator.hpp"
 
 #include "zest/md_span.hpp"
 
