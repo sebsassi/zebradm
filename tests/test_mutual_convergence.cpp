@@ -1,6 +1,20 @@
 #include "radon_integrator.hpp"
 #include "radon_transformer.hpp"
 
+double quadratic_form(
+    const std::array<std::array<double, 3>, 3>& arr,
+    const std::array<double, 3>& vec)
+{
+    double res = 0.0;
+    for (std::size_t i = 0; i < 3; ++i)
+    {
+        for (std::size_t j = 0; j < 3; ++j)
+            res += vec[i]*arr[i][j]*vec[j];
+    }
+
+    return res;
+}
+
 template <typename FuncType>
 void test_mutual_convergence(FuncType&& f)
 {
@@ -61,14 +75,25 @@ void test_mutual_convergence(FuncType&& f)
         }
         std::printf("\n");
     }
+    std::printf("\n");
 }
 
 int main()
 {
-    test_mutual_convergence([&](const Vector<double, 3>& v){
+    test_mutual_convergence([](const Vector<double, 3>& v){
         constexpr double disp = 0.4;
         const double speed = length(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);
+    });
+
+    test_mutual_convergence([](const Vector<double, 3>& v)
+    {
+        constexpr std::array<std::array<double, 3>, 3> sigma = {
+            std::array<double, 3>{3.0, 1.4, 0.5},
+            std::array<double, 3>{1.4, 0.3, 2.1},
+            std::array<double, 3>{0.5, 2.1, 1.7}
+        };
+        return std::exp(-0.5*quadratic_form(sigma, v));
     });
 }

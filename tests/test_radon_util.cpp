@@ -20,7 +20,7 @@ bool test_gegenbauer_recursion_accepts_order(std::size_t order)
 {
     zest::zt::ZernikeExpansionOrthoGeo in(order);
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
-    detail::apply_gegenbauer_recursion(in, out);
+    detail::apply_gegenbauer_reduction(in, out);
     return true;
 }
 
@@ -113,7 +113,7 @@ bool test_gegenbauer_recursion_is_correct_to_order_5()
 
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
 
-    detail::apply_gegenbauer_recursion(in, out);
+    detail::apply_gegenbauer_reduction(in, out);
 
     constexpr double tol = 1.0e-13;
 

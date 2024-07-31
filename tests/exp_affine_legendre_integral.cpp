@@ -9,7 +9,7 @@ void exp_affine_legendre_integral_recursion_stability(
     constexpr std::size_t order = 100;
     constexpr std::size_t extra_extent = 0;
 
-    AffineLegendreIntegralRecursion recursion(order, extra_extent);
+    AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
         TrapezoidSpan<double>::Layout::size(order, extra_extent));

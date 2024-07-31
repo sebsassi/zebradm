@@ -4,8 +4,8 @@
 
 #include "linalg.hpp"
 
-constexpr Matrix<double, 3, 3> rotation_matrix_align_z(
-    const Vector<double, 3>& unit_vec)
+[[nodiscard]] constexpr Matrix<double, 3, 3> rotation_matrix_align_z(
+    const Vector<double, 3>& unit_vec) noexcept
 {
     Matrix<double, 3, 3> matrix;
     const double u_xx = unit_vec[0]*unit_vec[0];
@@ -38,8 +38,8 @@ constexpr Matrix<double, 3, 3> rotation_matrix_align_z(
     return matrix;
 }
 
-constexpr Matrix<double, 3, 3> rotation_matrix_align_z_transp(
-    const Vector<double, 3>& unit_vec)
+[[nodiscard]] constexpr Matrix<double, 3, 3> rotation_matrix_align_z_transp(
+    const Vector<double, 3>& unit_vec) noexcept
 {
     Matrix<double, 3, 3> matrix;
     const double u_xx = unit_vec[0]*unit_vec[0];

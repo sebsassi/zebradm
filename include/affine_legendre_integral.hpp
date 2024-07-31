@@ -97,12 +97,14 @@ private:
     std::size_t m_extra_extent;
 };
 
-class AffineLegendreIntegralRecursion
+class AffineLegendreIntegrals
 {
 public:
-    AffineLegendreIntegralRecursion() = default;
-    AffineLegendreIntegralRecursion(
+    AffineLegendreIntegrals() = default;
+    AffineLegendreIntegrals(
         std::size_t max_order, std::size_t max_extra_extent);
+    
+    [[nodiscard]] std::size_t order() const noexcept { return m_order; }
 
     void resize(std::size_t max_order, std::size_t max_extra_extent);
 
@@ -110,8 +112,6 @@ public:
         TrapezoidSpan<double> integrals, double shift, double scale);
 
 private:
-    static constexpr std::size_t max_forward_order = 0; 
-
     void integrals_full_interval(
         TrapezoidSpan<double> integrals, double shift, double scale);
     
@@ -121,25 +121,18 @@ private:
     void integrals_full_dual_interval(
         TrapezoidSpan<double> integrals, double shift, double scale);
     
-    void integrals_partial_interval_forward(
-        TrapezoidSpan<double> integrals, double shift, double scale);
-    
-    void integrals_partial_interval_backward(
-        TrapezoidSpan<double> integrals, double shift, double scale);
-    
     void first_step(
-        double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<double, 2> legendre, TrapezoidSpan<double> integrals);
+        double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
 
     void glq_step(
-        double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<double, 2> legendre, TrapezoidSpan<double> integrals);
+        double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
 
     void forward_recursion_step(
-        double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<double, 2> legendre, TrapezoidSpan<double> integrals);
+        double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
     
     void backward_recursion_step(
-        double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals);
+        double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals) noexcept;
 
-    std::vector<double> m_extra_triangle;
     std::vector<double> m_leg_int_top;
     std::vector<double> m_leg_int_bot;
     LegendreIntegralRecursion m_leg_int_rec;

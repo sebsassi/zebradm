@@ -1,11 +1,19 @@
 #include "radon_util.hpp"
 
-namespace detail
+namespace util
 {
 
-void apply_gegenbauer_recursion(
+/**
+    @brief Apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to a Zernike expansion.
+
+    @param in input Zernike expansion `f_{nlm}`
+    @param out output Zernike expansion `g_{nlm}`
+
+    @note This transformation appears in the evaluation of the Zernike based Radon transform, where it reduces an expression `f_{nlm}(1 - x^2)C^{3/2}_n(x)` to the form `g_{nlm}P_n(x)` with `g_{nlm}` given as above.
+*/
+void apply_gegenbauer_reduction(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>>::zernike_norm;
 

@@ -9,7 +9,8 @@ template <typename T, std::size_t N, std::size_t M>
 using Matrix = std::array<std::array<T, M>, N>;
 
 template <typename T, std::size_t N>
-T dot(const Vector<T, N>& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr T
+dot(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     T res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -18,13 +19,14 @@ T dot(const Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-T length(const Vector<T, N>& a)
+[[nodiscard]] constexpr T length(const Vector<T, N>& a) noexcept
 {
     return std::sqrt(dot(a, a));
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator+(const Vector<T, N>& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator+(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -33,7 +35,8 @@ Vector<T, N> operator+(const Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator-(const Vector<T, N>& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator-(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -42,7 +45,8 @@ Vector<T, N> operator-(const Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator*(const Vector<T, N>& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator*(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -51,7 +55,8 @@ Vector<T, N> operator*(const Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator/(const Vector<T, N>& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator/(const Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -60,7 +65,8 @@ Vector<T, N> operator/(const Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator+=(Vector<T, N>& a, const Vector<T, N>& b)
+constexpr Vector<T, N>&
+operator+=(Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] += b[i];
@@ -68,7 +74,8 @@ Vector<T, N>& operator+=(Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator-=(Vector<T, N>& a, const Vector<T, N>& b)
+constexpr Vector<T, N>&
+operator-=(Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] -= b[i];
@@ -76,7 +83,8 @@ Vector<T, N>& operator-=(Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator*=(Vector<T, N>& a, const Vector<T, N>& b)
+constexpr Vector<T, N>&
+operator*=(Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] *= b[i];
@@ -84,7 +92,8 @@ Vector<T, N>& operator*=(Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator/=(Vector<T, N>& a, const Vector<T, N>& b)
+constexpr Vector<T, N>&
+operator/=(Vector<T, N>& a, const Vector<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] /= b[i];
@@ -92,7 +101,8 @@ Vector<T, N>& operator/=(Vector<T, N>& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator+(const T& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator+(const T& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -101,7 +111,8 @@ Vector<T, N> operator+(const T& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator-(const T& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator-(const T& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -110,7 +121,8 @@ Vector<T, N> operator-(const T& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator*(const T& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator*(const T& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -119,7 +131,8 @@ Vector<T, N> operator*(const T& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator/(const T& a, const Vector<T, N>& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator/(const T& a, const Vector<T, N>& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -128,7 +141,8 @@ Vector<T, N> operator/(const T& a, const Vector<T, N>& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator+(const Vector<T, N>& a, const T& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator+(const Vector<T, N>& a, const T& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -137,7 +151,8 @@ Vector<T, N> operator+(const Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator-(const Vector<T, N>& a, const T& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator-(const Vector<T, N>& a, const T& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -146,7 +161,8 @@ Vector<T, N> operator-(const Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator*(const Vector<T, N>& a, const T& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator*(const Vector<T, N>& a, const T& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -155,7 +171,8 @@ Vector<T, N> operator*(const Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> operator/(const Vector<T, N>& a, const T& b)
+[[nodiscard]] constexpr Vector<T, N>
+operator/(const Vector<T, N>& a, const T& b) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -164,7 +181,7 @@ Vector<T, N> operator/(const Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator+=(Vector<T, N>& a, const T& b)
+constexpr Vector<T, N>& operator+=(Vector<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] += b;
@@ -172,7 +189,7 @@ Vector<T, N>& operator+=(Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator-=(Vector<T, N>& a, const T& b)
+constexpr Vector<T, N>& operator-=(Vector<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] -= b;
@@ -180,7 +197,7 @@ Vector<T, N>& operator-=(Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator*=(Vector<T, N>& a, const T& b)
+constexpr Vector<T, N>& operator*=(Vector<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] *= b;
@@ -188,7 +205,7 @@ Vector<T, N>& operator*=(Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N>& operator/=(Vector<T, N>& a, const T& b)
+constexpr Vector<T, N>& operator/=(Vector<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] /= b;
@@ -196,7 +213,8 @@ Vector<T, N>& operator/=(Vector<T, N>& a, const T& b)
 }
 
 template <typename T, std::size_t N, std::size_t M>
-Vector<T, N> matmul(const Matrix<T, N, M>& mat, const Vector<T, M>& vec)
+[[nodiscard]] constexpr Vector<T, N>
+matmul(const Matrix<T, N, M>& mat, const Vector<T, M>& vec) noexcept
 {
     Vector<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
@@ -206,7 +224,7 @@ Vector<T, N> matmul(const Matrix<T, N, M>& mat, const Vector<T, M>& vec)
 }
 
 template <typename T, std::size_t N>
-Vector<T, N> normalize(const Vector<T, N>& a)
+[[nodiscard]] constexpr Vector<T, N> normalize(const Vector<T, N>& a) noexcept
 {
     const T norm = length(a);
     if (norm == T{}) return Vector<T, N>{};

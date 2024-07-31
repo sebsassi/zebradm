@@ -1,0 +1,240 @@
+#include "zebra_parallel_angle_integrator.hpp"
+
+#include <omp.h>
+
+#include "coordinates/coordinate_functions.hpp"
+
+#include "radon_util.hpp"
+
+namespace zebra
+{
+namespace parallel
+{
+
+IsotropicAngleIntegrator::IsotropicAngleIntegrator(
+    std::size_t num_threads):
+    m_contexts(num_threads), m_num_threads(num_threads) {}
+
+IsotropicAngleIntegrator::IsotropicAngleIntegrator(
+    std::size_t dist_order, std::size_t num_threads):
+    m_wigner_d_pi2(dist_order + 2), m_geg_zernike_exp(dist_order + 2), m_rotated_geg_zernike_exp(num_threads*zernike_exp_size(dist_order + 2)),
+    m_contexts(num_threads), m_dist_order(dist_order), m_num_threads(num_threads)
+{
+    for (auto& context : m_contexts)
+        context = {
+            zest::Rotor(),
+            detail::IsotropicAngleIntegratorCore(dist_order + 2)
+        };
+}
+
+void IsotropicAngleIntegrator::resize(std::size_t dist_order)
+{
+    if (m_dist_order == dist_order) return;
+    const std::size_t geg_order = dist_order + 2;
+    m_wigner_d_pi2.expand(geg_order);
+    m_geg_zernike_exp.resize(geg_order);
+
+    m_rotated_geg_zernike_exp.resize(m_num_threads*zernike_exp_size(geg_order));
+    for (auto& context : m_contexts)
+        context.integrator.resize(geg_order);
+    m_dist_order = dist_order;
+}
+
+void IsotropicAngleIntegrator::integrate(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_lmax = std::numeric_limits<std::size_t>::max())
+{
+    const std::size_t dist_order = distribution.order();
+    resize(dist_order);
+    const std::size_t geg_order = dist_order + 2;
+
+    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+
+    #pragma omp parallel for num_threads(m_num_threads)
+    for (std::size_t i = 0; i < boosts.size(); ++i)
+        integrate(omp_get_thread_num(), boosts[i], min_speeds, out[i]);
+}
+
+void IsotropicAngleIntegrator::integrate(
+    std::size_t thread_id, const Vector<double, 3>& boost,
+    std::span<const double> min_speeds, std::span<double> out)
+{
+    const auto& [boost_speed, boost_colat, boost_az]
+        = coordinates::cartesian_to_spherical_phys(boost);
+
+    const Vector<double, 3> euler_angles = {
+        0.0, -boost_colat, std::numbers::pi - boost_az
+    };
+
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> 
+    rotated_geg_zernike_exp = accesss_rotated_geg_zernike_exp(thread_id);
+
+    std::ranges::copy(
+        m_geg_zernike_exp.flatten(),
+        rotated_geg_zernike_exp.flatten().begin());
+
+    zest::Rotor& rotor = m_contexts[thread_id].rotor;
+    for (std::size_t n = 0; n < m_geg_zernike_exp.order(); ++n)
+        rotor.rotate(
+                rotated_geg_zernike_exp[n], m_wigner_d_pi2, euler_angles);
+
+    detail::IsotropicAngleIntegratorCore& integrator
+        = m_contexts[thread_id].integrator;
+    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    {
+        out[i] = integrator.integrate(
+                rotated_geg_zernike_exp, boost_speed, min_speeds[i]);
+    }
+}
+
+zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
+IsotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
+    std::size_t thread_id) noexcept
+{
+    const std::size_t geg_order = m_dist_order + 2;
+    const std::size_t size = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(geg_order);
+
+    return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>(m_rotated_geg_zernike_exp.data() + thread_id*size, geg_order);
+}
+
+AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
+    std::size_t num_teams, std::size_t threads_per_team):
+    m_rotors(num_teams), m_integrators(num_teams*threads_per_team),
+    m_num_teams(num_teams), m_threads_per_team(threads_per_team) {}
+
+AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
+    std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order, 
+    std::size_t num_teams, std::size_t threads_per_team):
+    m_wigner_d_pi2(std::max(dist_order + 2, resp_order)),
+    m_rotors(num_teams),
+    m_geg_zernike_exp(dist_order + 2),
+    m_rotated_geg_zernike_exp(num_teams*zernike_exp_size(dist_order + 2)),
+    m_rotated_geg_zernike_grids(
+        num_teams*(dist_order + 2)*sh_grid_size(std::min(dist_order + 2 + resp_order, trunc_order))),
+    m_integrators(num_teams*threads_per_team),
+    m_dist_order(dist_order),
+    m_resp_order(resp_order),
+    m_trunc_order(trunc_order),
+    m_num_teams(num_teams),
+    m_threads_per_team(threads_per_team)
+{
+    for (auto& rotor : m_rotors)
+        rotor = zest::Rotor(dist_order + 2);
+    
+    for (auto& integrator : m_integrators)
+        integrator = detail::AnisotropicAngleIntegratorCore(
+                dist_order + 2, resp_order,
+                std::max(dist_order + 2, resp_order));
+}
+
+void AnisotropicAngleIntegrator::resize(
+    std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order)
+{
+    const std::size_t geg_order = dist_order + 2;
+    if (dist_order != m_dist_order || resp_order != m_resp_order)
+        m_wigner_d_pi2.expand(std::max(geg_order, resp_order));
+    
+    if (dist_order != m_dist_order)
+    {
+        m_geg_zernike_exp.resize(geg_order);
+        m_rotated_geg_zernike_exp.resize(
+                m_num_teams*zernike_exp_size(geg_order));
+        for (auto& rotor : m_rotors)
+            rotor.expand(geg_order);
+    }
+
+    if (dist_order != m_dist_order || resp_order != m_resp_order || trunc_order != m_trunc_order)
+    {
+        const std::size_t top_order
+            = std::min(geg_order + resp_order, trunc_order);
+        m_rotated_geg_zernike_grids.resize(
+                m_num_teams*geg_order*sh_grid_size(top_order));
+        for (auto& integrator : m_integrators)
+            integrator.resize(geg_order, resp_order, top_order);
+    }
+
+    m_dist_order = dist_order;
+    m_resp_order = resp_order;
+    m_trunc_order = trunc_order;
+}
+
+void AnisotropicAngleIntegrator::integrate(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionCollectionSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max())
+{
+    const std::size_t dist_order = distribution.order();
+    const std::size_t resp_order = response[0].order();
+    resize(dist_order, resp_order, trunc_order);
+    const std::size_t geg_order = dist_order + 2;
+    const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
+
+    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+
+    #pragma omp teams num_teams(m_num_teams)
+    {
+        #pragma omp distribute
+        for (std::size_t i = 0; i < boosts.size(); ++i)
+        {
+            using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
+
+            const auto& [boost_speed, boost_colat, boost_az]
+                = coordinates::cartesian_to_spherical_phys(boosts[i]);
+
+            const Vector<double, 3> euler_angles = {
+                0.0, -boost_colat, std::numbers::pi - boost_az
+            };
+
+            const std::size_t team_id = omp_get_team_num();
+            const std::size_t team_ind = m_threads_per_team*team_id;
+            SuperSpan<zest::st::SphereGLQGridSpan<double>>
+            rotated_geg_zernike_grids
+                = accesss_rotated_geg_zernike_exp_grids(team_id);
+
+            for (std::size_t n = 0; n < geg_order; ++n)
+            {
+                ZernikeSpan::SubSpan rotated_geg_zernike_exp
+                    = accesss_rotated_geg_zernike_exp(team_id, n + 1);
+                std::ranges::copy(m_geg_zernike_exp[n].flatten(), m_rotated_geg_zernike_exp.begin());
+                m_integrators[team_ind].rotor().rotate(
+                        rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+                m_integrators[team_ind].glq_transformer().backward_transform(
+                        rotated_geg_zernike_exp, rotated_geg_zernike_grids[n]);
+            }
+
+            #pragma omp parallel for num_threads(m_threads_per_team)
+            for (std::size_t j = 0; j < min_speeds.size(); ++j)
+            {
+                const std::size_t thread_ind
+                    = team_ind + omp_get_thread_num();
+                out(i, j) = m_integrators[thread_ind].integrate(
+                        rotated_geg_zernike_grids, response[j], era[i], boosts[i], 
+                        min_speeds[j], m_wigner_d_pi2);
+            }
+        }
+    }
+}
+
+zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::SubSpan
+AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
+    std::size_t team_id, std::size_t order) noexcept
+{
+    const std::size_t geg_order = m_dist_order + 2;
+    const std::size_t size = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(geg_order);
+
+    return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::SubSpan(m_rotated_geg_zernike_exp.data() + team_id*size, order);
+}
+
+SuperSpan<zest::st::SphereGLQGridSpan<double>>
+AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp_grids(
+    std::size_t team_id)
+{
+    const std::size_t geg_order = m_dist_order + 2;
+    const std::size_t top_order = std::min(
+            geg_order + m_resp_order, m_trunc_order);
+
+    const std::size_t grid_size = sh_grid_size(top_order);
+    const std::size_t size = geg_order*grid_size;
+
+    return SuperSpan<zest::st::SphereGLQGridSpan<double>>(m_rotated_geg_zernike_grids.data() + team_id*size, {geg_order}, grid_size);
+}
+
+} // namespace parallel
+} // namespace zebra

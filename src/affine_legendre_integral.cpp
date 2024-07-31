@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "radon_util.hpp"
+
 #include "zest/triangle_layout.hpp"
 #include "zest/gauss_legendre.hpp"
 
@@ -28,9 +30,8 @@ struct ExtraTriangleLayout
 };
 
 
-AffineLegendreIntegralRecursion::AffineLegendreIntegralRecursion(
+AffineLegendreIntegrals::AffineLegendreIntegrals(
     std::size_t order, std::size_t extra_extent):
-    m_extra_triangle(ExtraTriangleLayout::size(2*(order - std::min(1UL, order)))),
     m_leg_int_top(2*order - std::min(1UL, order) + extra_extent),
     m_leg_int_bot(2*order - std::min(1UL, order) + extra_extent),
     m_leg_int_rec(2*order - std::min(1UL, order) + extra_extent),
@@ -44,7 +45,7 @@ AffineLegendreIntegralRecursion::AffineLegendreIntegralRecursion(
             m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
 }
 
-void AffineLegendreIntegralRecursion::resize(
+void AffineLegendreIntegrals::resize(
     std::size_t order, std::size_t extra_extent)
 {
     const std::size_t forward_order = order;
@@ -63,16 +64,11 @@ void AffineLegendreIntegralRecursion::resize(
                 m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
     }
 
-    if (order != m_order)
-    {
-        m_extra_triangle.resize(ExtraTriangleLayout::size(2*(forward_order - std::min(1UL, forward_order))));
-    }
-
     m_order = order;
     m_extra_extent = extra_extent;
 }
 
-void AffineLegendreIntegralRecursion::integrals(
+void AffineLegendreIntegrals::integrals(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     if (integrals.order() == 0) return;
@@ -91,7 +87,7 @@ void AffineLegendreIntegralRecursion::integrals(
 
 // Operates in the region where `shift + scale <= 1`
 // In this region the integrals are zero for `n < l`
-void AffineLegendreIntegralRecursion::integrals_full_interval(
+void AffineLegendreIntegrals::integrals_full_interval(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     assert(shift + scale <= 1.0);
@@ -102,33 +98,38 @@ void AffineLegendreIntegralRecursion::integrals_full_interval(
     integrals(1, 1) = (2.0/3.0)*scale;
     for (std::size_t n = 2; n < integrals.order(); ++n)
     {
+        const double inv_n = 1.0/double(n);
+        const double a = double(2*n - 1)*inv_n;
+        const double b = double(n - 1)*inv_n;
+
+        std::span<double> integrals_n = integrals[n];
+        std::span<const double> integrals_nm1 = integrals[n - 1];
+        std::span<const double> integrals_nm2 = integrals[n - 2];
+
         // Boundary condition: `integrals(n, l) == 0` for `l < 0`
-        integrals(n, 0)
-            = (double(2*n - 1)/double(n))*shift*integrals(n - 1, 0)
-            - (double(n - 1)/double(n))*integrals(n - 2, 0)
-            + (double(2*n - 1)/double(n))*scale*integrals(n - 1, 1);
+        integrals_n[0] = a*(shift*integrals_nm1[0] + scale*integrals_nm1[1])
+                - b*integrals_nm2[0];
+        
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
+            const double inv_twolp1 = 1.0/double(2*l + 1);
             // Full recursion
-            integrals(n, l)
-                = (double(2*n - 1)/double(n))*shift*integrals(n - 1, l)
-                - (double(n - 1)/double(n))*integrals(n - 2, l)
-                + (double(2*n - 1)/double(n))*(double(l + 1)/double(2*l + 1))*scale*integrals(n - 1, l + 1)
-                + (double(2*n - 1)/double(n))*(double(l)/double(2*l + 1))*scale*integrals(n - 1, l - 1);
+            integrals_n[l] = a*shift*integrals_nm1[l] - b*integrals_nm2[l]
+                    + a*scale*inv_twolp1*(double(l + 1)*integrals_nm1[l + 1]
+                        + double(l)*integrals_nm1[l - 1]);
         }
 
         // Boundary condition: `integrals(n, l) == 0` for `n < l`
-        integrals(n, n - 1)
-            = (double(2*n - 1)/double(n))*shift*integrals(n - 1, n - 1)
-            + (double(n - 1)/double(n))*scale*integrals(n - 1, n - 2);
-        integrals(n, n)
-            = (double(2*n - 1)/double(2*n + 1))*scale*integrals(n - 1, n - 1);
+        integrals_n[n - 1]
+            = a*shift*integrals_nm1[n - 1] + b*scale*integrals_nm1[n - 2];
+        integrals_n[n]
+            = (double(2*n - 1)/double(2*n + 1))*scale*integrals_nm1[n - 1];
     }
 }
 
 // Operates in the region where `shift + 1 < scale`
 // In this region the integrals are zero for `l < n`
-void AffineLegendreIntegralRecursion::integrals_full_dual_interval(
+void AffineLegendreIntegrals::integrals_full_dual_interval(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     assert(shift + 1.0 < scale);
@@ -155,7 +156,9 @@ void AffineLegendreIntegralRecursion::integrals_full_dual_interval(
         for (std::size_t n = 1; n < integrals.order(); ++n)
         {
             // Boundary condition: `integrals(n, l) == 0` for `l < n`
-            integrals(n, n + 1) = (double(2*n + 1)/double(n + 1))*new_shift*integrals(n, n) + (double(n)/double(n + 1))*new_scale*integrals(n - 1, n);
+            integrals(n, n + 1)
+                = (double(2*n + 1)/double(n + 1))*new_shift*integrals(n, n)
+                    + (double(n)/double(n + 1))*new_scale*integrals(n - 1, n);
         }
     }
 
@@ -181,7 +184,11 @@ void AffineLegendreIntegralRecursion::integrals_full_dual_interval(
         {
             // Full recursion
             const std::size_t l = n + k;
-            integrals(n, l) = (double(2*l - 1)/double(l))*new_shift*integrals(n, l - 1) - (double(l - 1)/double(l))*integrals(n, l - 2) + (double(2*l - 1)/double(l))*(double(n + 1)/double(2*n + 1))*new_scale*integrals(n + 1, l - 1) + (double(2*l - 1)/double(l))*(double(n)/double(2*n + 1))*new_scale*integrals(n - 1, l - 1);
+            integrals(n, l)
+                = (double(2*l - 1)/double(l))*new_shift*integrals(n, l - 1)
+                    - (double(l - 1)/double(l))*integrals(n, l - 2)
+                    + (double(2*l - 1)/double(l))*(double(n + 1)/double(2*n + 1))*new_scale*integrals(n + 1, l - 1)
+                    + (double(2*l - 1)/double(l))*(double(n)/double(2*n + 1))*new_scale*integrals(n - 1, l - 1);
         }
 
         // Elements at the `n == nmax` boundary are computed via direct integration
@@ -193,182 +200,8 @@ void AffineLegendreIntegralRecursion::integrals_full_dual_interval(
     }
 }
 
-void AffineLegendreIntegralRecursion::integrals_partial_interval_forward(
-    TrapezoidSpan<double> integrals, double shift, double scale)
-{
-    const std::size_t order = std::min(integrals.order(), max_forward_order);
-    if (order == 0) return;
-
-    m_leg_int_rec.legendre_integral(m_leg_int_top, (1.0 - shift)/scale);
-
-    if (scale > shift + 1.0)
-        m_leg_int_rec.legendre_integral(m_leg_int_bot, -(1.0 + shift)/scale);
-    else
-        std::ranges::fill(m_leg_int_bot, 0.0);
-
-    for (std::size_t l = 0; l < integrals.extra_extent() + 1; ++l)
-        integrals(0, l) = m_leg_int_top[l] - m_leg_int_bot[l];
-
-    if (order == 1) return;
-
-    const std::size_t llimit
-        = 2*order - 1 + integrals.extra_extent();
-
-    zest::TriangleSpan<double, ExtraTriangleLayout> extra_triangle(m_extra_triangle.data(), 2*(order - 1));
-
-    extra_triangle(0, 0)
-        = m_leg_int_top[llimit - 1] - m_leg_int_bot[llimit - 1];
-    extra_triangle(1, 0)
-        = m_leg_int_top[llimit - 2] - m_leg_int_bot[llimit - 2];
-
-    for (std::size_t k = 2; k < extra_triangle.order(); ++k)
-    {
-        extra_triangle(k, 0)
-            = m_leg_int_top[llimit - 1 - k] - m_leg_int_bot[llimit - 1 - k];
-        
-        std::size_t l = llimit - k;
-        extra_triangle(k, 1) = shift*extra_triangle(k - 1, 0)
-            + (double(l + 1)/double(2*l + 1))*scale*extra_triangle(k - 2, 0)
-            + (double(l)/double(2*l + 1))*scale*extra_triangle(k, 0);
-        
-        for (std::size_t j = 2; j < 1 + k/2; ++j)
-        {   
-            std::size_t n = j;
-            std::size_t l = llimit - 1 - k + j;
-            extra_triangle(k, j)
-                = (double(2*n - 1)/double(n))*shift*extra_triangle(k - 1, j - 1)
-                - (double(n - 1)/double(n))*extra_triangle(k - 2, j - 2)
-                + (double(2*n - 1)/double(n))*(double(l + 1)/double(2*l + 1))*scale*extra_triangle(k - 2, j - 1)
-                + (double(2*n - 1)/double(n))*(double(l)/double(2*l + 1))*scale*extra_triangle(k, j - 1);
-        }
-    }
-
-    if (integrals.extra_extent() == 0)
-        integrals(1, 0) = shift*integrals(0, 0)
-            + scale*extra_triangle(extra_triangle.order() - 1, 0);
-    else
-        integrals(1, 0) = shift*integrals(0, 0) + scale*integrals(0, 1);
-
-    const std::size_t extent = integrals.extra_extent() + 2;
-    const std::size_t inner_extent = extent - 2;
-
-    for (std::size_t l = 1; l < inner_extent; ++l)
-    {
-        integrals(1, l)
-            = shift*integrals(0, l)
-                + (double(l + 1)/double(2*l + 1))*scale*integrals(0, l + 1)
-                + (double(l)/double(2*l + 1))*scale*integrals(0, l - 1);
-    }
-
-    if (inner_extent > 0)
-    {
-        integrals(1, inner_extent)
-            = shift*integrals(0, inner_extent)
-                + (double(inner_extent + 1)/double(2*inner_extent + 1))*scale*extra_triangle(extra_triangle.order() - 1, 0)
-                + (double(inner_extent)/double(2*inner_extent + 1))*scale*integrals(0, inner_extent - 1);
-    }
-        
-    integrals(1, inner_extent + 1)
-        = shift*extra_triangle(extra_triangle.order() - 1, 0)
-            + (double(inner_extent + 2)/double(2*inner_extent + 3))*scale*extra_triangle(extra_triangle.order() - 2, 0)
-            + (double(inner_extent + 1)/double(2*inner_extent + 3))*scale*integrals(0, inner_extent);
-    
-    for (std::size_t n = 2; n < order; ++n)
-    {
-        const std::size_t extent = n + integrals.extra_extent() + 1;
-        const std::size_t inner_extent = extent - 2;
-
-        integrals(n, 0)
-            = (double(2*n - 1)/double(n))*shift*integrals(n - 1, 0)
-                - (double(n - 1)/double(n))*integrals(n - 2, 0)
-                + (double(2*n - 1)/double(n))*scale*integrals(n - 1, 1);
-
-        for (std::size_t l = 1; l < inner_extent; ++l)
-        {
-            integrals(n, l)
-                = (double(2*n - 1)/double(n))*shift*integrals(n - 1, l)
-                    - (double(n - 1)/double(n))*integrals(n - 2, l)
-                    + (double(2*n - 1)/double(n))*(double(l + 1)/double(2*l + 1))*scale*integrals(n - 1, l + 1)
-                    + (double(2*n - 1)/double(n))*(double(l)/double(2*l + 1))*scale*integrals(n - 1, l - 1);
-        }
-
-        if (inner_extent > 0)
-        {
-            integrals(n, inner_extent)
-                = (double(2*n - 1)/double(n))*shift*integrals(n - 1, inner_extent)
-                    - (double(n - 1)/double(n))*extra_triangle(extra_triangle.order() - 1, n - 2)
-                    + (double(2*n - 1)/double(n))*(double(inner_extent + 1)/double(2*inner_extent + 1))*scale*extra_triangle(extra_triangle.order() - 1, n - 1)
-                    + (double(2*n - 1)/double(n))*(double(inner_extent)/double(2*inner_extent + 1))*scale*integrals(n - 1, inner_extent - 1);
-        }
-        
-        integrals(n, inner_extent + 1)
-            = (double(2*n - 1)/double(n))*shift*extra_triangle(extra_triangle.order() - 1, n - 1)
-                - (double(n - 1)/double(n))*extra_triangle(extra_triangle.order() - 2, n - 2)
-                + (double(2*n - 1)/double(n))*(double(inner_extent + 2)/double(2*inner_extent + 3))*scale*extra_triangle(extra_triangle.order() - 2, n - 1)
-                + (double(2*n - 1)/double(n))*(double(inner_extent + 1)/double(2*inner_extent + 3))*scale*integrals(n - 1, inner_extent);
-    }
-}
-
-void AffineLegendreIntegralRecursion::integrals_partial_interval_backward(
-    TrapezoidSpan<double> integrals, double shift, double scale)
-{
-    if constexpr (max_forward_order == 0)
-        if (integrals.order() == 0) return;
-
-    const double zmin = std::max(-1.0, -(1.0 + shift)/scale);
-    const double zmax = (1.0 - shift)/scale;
-    const double a = 0.5*(zmax - zmin);
-    const double b = 0.5*(zmin + zmax);
-
-    for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
-        m_nodes[i] = a*m_glq_nodes[i] + b;
-
-    m_affine_legendre.init([&](std::span<double> x){
-        for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
-            x[i] = shift + scale*m_nodes[i];
-    });
-    m_affine_legendre.iterate(integrals.order() - 1);
-
-    const std::size_t last_extent
-        = integrals.order() + integrals.extra_extent();
-    zest::MDSpan<double, 2> legendre(
-            m_legendre.data(), {last_extent, m_glq_weights.size()});
-    legendre_recursion_vec(legendre, m_nodes);
-
-    for (std::size_t l = 0; l < last_extent; ++l)
-    {
-        double res = 0.0;
-        for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-            res += m_glq_weights[i]*m_affine_legendre.current()[i]*legendre(l, i);
-        integrals(integrals.order() - 1, l) = a*res;
-    }
-
-    if constexpr (max_forward_order < 1)
-        if (integrals.order() == 1) return;
-
-    for (std::size_t l = 0; l < last_extent - 1; ++l)
-    {
-        double res = 0.0;
-        for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-            res += m_glq_weights[i]*m_affine_legendre.prev()[i]*legendre(l, i);
-        integrals(integrals.order() - 2, l) = a*res;
-    }
-
-    for (std::size_t n = integrals.order() - 1; n >= max_forward_order + 2; --n)
-    {
-        for (std::size_t l = 0; l < n + integrals.extra_extent() - 1; ++l)
-        {
-            integrals(n - 2, l)
-                = (double(2*n - 1)/double(n - 1))*shift*integrals(n - 1, l)
-                    - (double(n)/double(n - 1))*integrals(n, l)
-                    + (double(2*n - 1)/double(n - 1))*(double(l + 1)/double(2*l + 1))*scale*integrals(n - 1, l + 1)
-                    + (double(2*n - 1)/double(n - 1))*(double(l)/double(2*l + 1))*scale*integrals(n - 1, l - 1);
-        }
-    }
-}
-
 // Operates in the region where `1 - shift < scale < 1 + shift`
-void AffineLegendreIntegralRecursion::integrals_partial_interval(
+void AffineLegendreIntegrals::integrals_partial_interval(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     /*
@@ -416,8 +249,7 @@ void AffineLegendreIntegralRecursion::integrals_partial_interval(
     const double half_width = 0.5*(zmax - zmin);
     const double mid_point = 0.5*(zmin + zmax);
 
-    for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
-        m_nodes[i] = half_width*m_glq_nodes[i] + mid_point;
+    detail::fmadd(m_nodes, mid_point, half_width, m_glq_nodes);
 
     const std::size_t last_extent
         = integrals.order() + integrals.extra_extent();
@@ -426,19 +258,20 @@ void AffineLegendreIntegralRecursion::integrals_partial_interval(
     legendre_recursion_vec(weighted_legendre, m_nodes);
     for (std::size_t l = 0; l < weighted_legendre.extents()[0]; ++l)
     {
-        for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-            weighted_legendre(l, i) *= m_glq_weights[i];
+        zest::MDSpan<double, 1> legendre_l = weighted_legendre[l];
+        detail::mul(legendre_l, m_glq_weights);
     }
 
     m_affine_legendre.init([&](std::span<double> x){
-        for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
-            x[i] = shift + scale*m_nodes[i];
+        detail::fmadd(x, shift, scale, m_nodes);
     });
 
     // Integrals for `n == 0` row.
     m_leg_int_rec.legendre_integral(m_leg_int_top, (1.0 - shift)/scale);
+
+    std::span<double> integrals_0 = integrals[0];
     for (std::size_t l = 0; l < integrals.extra_extent() + 1; ++l)
-        integrals(0, l) = m_leg_int_top[l];
+        integrals_0[l] = m_leg_int_top[l];
     
     if (integrals.order() == 1) return;
 
@@ -537,74 +370,118 @@ void AffineLegendreIntegralRecursion::integrals_partial_interval(
     }
 }
 
-void AffineLegendreIntegralRecursion::first_step(
-    double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<double, 2> weighted_legendre, TrapezoidSpan<double> integrals)
+[[nodiscard]] double
+inner_product(std::span<const double> a, std::span<const double> b) noexcept
+{
+    assert(a.size() == b.size());
+    const std::size_t size = a.size();
+    std::array<double, 3> partial_res{};
+
+    for (std::size_t i = 0; i < size; i += 4)
+    {
+        partial_res[0] += a[i + 0]*b[i + 0];
+        partial_res[1] += a[i + 1]*b[i + 1];
+        partial_res[2] += a[i + 2]*b[i + 2];
+        partial_res[3] += a[i + 3]*b[i + 3];
+    }
+
+    switch (size & 3)
+    {
+        case 1:
+            partial_res[0] += a[size - 1]*b[size - 1];
+            break;
+        case 2:
+            partial_res[0] += a[size - 2]*b[size - 2];
+            partial_res[1] += a[size - 1]*b[size - 1];
+            break;
+        case 3:
+            partial_res[0] += a[size - 3]*b[size - 3];
+            partial_res[1] += a[size - 2]*b[size - 2];
+            partial_res[2] += a[size - 1]*b[size - 1];
+            break;
+    }
+
+    return (partial_res[0] + partial_res[2]) + (partial_res[1] + partial_res[3]);
+}
+
+void AffineLegendreIntegrals::first_step(
+    double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t lmax = integrals.extra_extent() + 1;
-    integrals(1, 0) = -inv_scale*m_leg_int_bot[1];
+    std::span<double> integrals_1 = integrals[1];
+    std::span<const double> integrals_0 = integrals[0];
+    integrals_1[0] = -inv_scale*m_leg_int_bot[1];
     for (std::size_t l = 1; l < lmax - 1; ++l)
     {
-        integrals(1, l) = shift*integrals(0, l)
-                + (double(l + 1)/double(2*l + 1))*scale*integrals(0, l + 1)
-                + (double(l)/double(2*l + 1))*scale*integrals(0, l - 1);
+        const double inv_twolp1 = 1.0/double(2*l + 1);
+        integrals_1[l] = shift*integrals_0[l]
+                + scale*inv_twolp1*(double(l + 1)*integrals_0[l + 1]
+                    + double(l)*integrals_0[l - 1]);
     }
-    double res = 0.0;
-    for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-        res += affine_legendre[i]*weighted_legendre(lmax - 1, i);
-    integrals(1, lmax - 1) = half_width*res;
-    res = 0.0;
-    for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-        res += affine_legendre[i]*weighted_legendre(lmax, i);
-    integrals(1, lmax) = half_width*res;
+    
+    integrals_1[lmax - 1] = half_width*inner_product(
+            affine_legendre, weighted_legendre[lmax - 1]);
+    integrals_1[lmax] = half_width*inner_product(
+            affine_legendre, weighted_legendre[lmax]);
 }
 
-void AffineLegendreIntegralRecursion::glq_step(
-    double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<double, 2> weighted_legendre, TrapezoidSpan<double> integrals)
+// Compute a row using Gauss-Legendre quadrature
+void AffineLegendreIntegrals::glq_step(
+    double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t extent = integrals.extra_extent() + n + 1;
-    integrals(n, 0) = -inv_scale*m_leg_int_bot[n];
+    std::span<double> integrals_n = integrals[n];
+    integrals_n[0] = -inv_scale*m_leg_int_bot[n];
     for (std::size_t l = 1; l < extent; ++l)
-    {
-        double res = 0.0;
-        for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-            res += affine_legendre[i]*weighted_legendre(l, i);
-        integrals(n, l) = half_width*res;
-    }
+        integrals_n[l] = half_width*inner_product(
+                affine_legendre, weighted_legendre[l]);
 }
 
-void AffineLegendreIntegralRecursion::forward_recursion_step(
-    double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<double, 2> weighted_legendre, TrapezoidSpan<double> integrals)
+// Compute a row using forward recursion
+void AffineLegendreIntegrals::forward_recursion_step(
+    double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t lmax = integrals.extra_extent() + n;
+    std::span<double> integrals_n = integrals[n];
+    std::span<const double> integrals_nm1 = integrals[n - 1];
+    std::span<const double> integrals_nm2 = integrals[n - 2];
     integrals(n, 0) = -inv_scale*m_leg_int_bot[n];
+
+    const double inv_n = 1.0/double(n);
+    const double an = double(2*n - 1)*inv_n;
+    const double bn = double(n - 1)*inv_n;
     for (std::size_t l = 1; l < lmax - 1; ++l)
     {
-        integrals(n, l) = (double(2*n - 1)/double(n))*shift*integrals(n - 1, l)
-                - (double(n - 1)/double(n))*integrals(n - 2, l)
-                + (double(2*n - 1)/double(n))*(double(l + 1)/double(2*l + 1))*scale*integrals(n - 1, l + 1)
-                + (double(2*n - 1)/double(n))*(double(l)/double(2*l + 1))*scale*integrals(n - 1, l - 1);
+        const double inv_twolp1 = 1.0/double(2*l + 1);
+        integrals_n[l] = an*shift*integrals_nm1[l] - bn*integrals_nm2[l]
+                + scale*an*inv_twolp1*(double(l + 1)*integrals_nm1[l + 1]
+                    + double(l)*integrals_nm1[l - 1]);
     }
-    double res = 0.0;
-    for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-        res += affine_legendre[i]*weighted_legendre(lmax - 1, i);
-    integrals(n, lmax - 1) = half_width*res;
-    res = 0.0;
-    for (std::size_t i = 0; i < m_glq_weights.size(); ++i)
-        res += affine_legendre[i]*weighted_legendre(lmax, i);
-    integrals(n, lmax) = half_width*res;
+    
+    integrals_n[lmax - 1] = half_width*inner_product(
+            affine_legendre, weighted_legendre[lmax - 1]);
+    integrals_n[lmax] = half_width*inner_product(
+            affine_legendre, weighted_legendre[lmax]);
 }
 
-void AffineLegendreIntegralRecursion::backward_recursion_step(
-    double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals)
+// Compute a row using backward recursion
+void AffineLegendreIntegrals::backward_recursion_step(
+    double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t extent = integrals.extra_extent() + n + 1;
-    integrals(n, 0) = -inv_scale*m_leg_int_bot[n];
+    std::span<double> integrals_n = integrals[n];
+    std::span<const double> integraps_np1 = integrals[n + 1];
+    std::span<const double> integrals_np2 = integrals[n + 2];
+    integrals_n[0] = -inv_scale*m_leg_int_bot[n];
+
+    const double inv_np1 = 1.0/double(n + 1);
+    const double anp1 = double(2*n + 3)*inv_np1;
+    const double bnp1 = double(n + 2)*inv_np1;
     for (std::size_t l = 1; l < extent; ++l)
     {
-        integrals(n, l)
-            = (double(2*n + 3)/double(n + 1))*shift*integrals(n + 1, l)
-                - (double(n + 2)/double(n + 1))*integrals(n + 2, l)
-                + (double(2*n + 3)/double(n + 1))*(double(l + 1)/double(2*l + 1))*scale*integrals(n + 1, l + 1)
-                + (double(2*n + 3)/double(n + 1))*(double(l)/double(2*l + 1))*scale*integrals(n + 1, l - 1);
+        const double inv_twolp1 = 1.0/double(2*l + 1);
+        integrals_n[l] = anp1*shift*integraps_np1[l] - bnp1*integrals_np2[l]
+                + scale*anp1*inv_twolp1*(double(l + 1)*integraps_np1[l + 1]
+                    + double(l)*integraps_np1[l - 1]);
     }
 }

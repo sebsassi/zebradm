@@ -12,7 +12,7 @@ constexpr bool is_close(double a, double b, double tol)
 
 bool test_affine_legendre_integral_recursion_takes_zero_size_span()
 {
-    AffineLegendreIntegralRecursion recursion(0, 0);
+    AffineLegendreIntegrals recursion(0, 0);
     recursion.integrals(TrapezoidSpan<double>{}, 0.0, 1.0);
 
     return true;
@@ -64,7 +64,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
         = b*(a221 + b*(a222 + b*(a223 + b*(a224 + b*a225))))
         - a*(a221 + a*(a222 + a*(a223 + a*(a224 + a*a225))));
 
-    AffineLegendreIntegralRecursion recursion(order, extra_extent);
+    AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
         TrapezoidSpan<double>::Layout::size(order, extra_extent));
@@ -121,7 +121,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     const double A30 = (0.5*((5.0/4.0)*d*d - (3.0/2.0))*d*d - 0.5*((5.0/4.0)*c*c - (3.0/2.0))*c*c)/scale;
     const double A40 = (0.125*((7.0*d*d - 10.0)*d*d + 3.0)*d - 0.125*((7.0*c*c - 10.0)*c*c + 3.0)*c)/scale;
 
-    AffineLegendreIntegralRecursion recursion(order, extra_extent);
+    AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
         TrapezoidSpan<double>::Layout::size(order, extra_extent));
@@ -212,7 +212,7 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     TrapezoidSpan<double> test_integrals(
             test_integral_buffer.data(), order, extra_extent);
     
-    AffineLegendreIntegralRecursion recursion(order, extra_extent);
+    AffineLegendreIntegrals recursion(order, extra_extent);
     recursion.integrals(test_integrals, shift, scale);
 
     constexpr double tol = 1.0e-13;
