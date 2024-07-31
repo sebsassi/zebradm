@@ -1,4 +1,4 @@
-#include "radon_transformer.hpp"
+#include "zebra_angle_integrator.hpp"
 
 #include <cassert>
 
@@ -13,7 +13,7 @@
     return std::max(std::fabs(a[0] - b[0]), std::fabs(a[1] - b[1])) < tol;
 }
 
-bool test_radoon_transformer_is_correct_for_constant_dist()
+bool test_angle_integrator_is_correct_for_constant_dist()
 {
     std::vector<Vector<double, 3>> boosts = {
         {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
@@ -48,8 +48,8 @@ bool test_radoon_transformer_is_correct_for_constant_dist()
     zest::MDSpan<double, 2> test(
             test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    RadonTransformer{}.angle_integrated_transform(
-            distribution, boosts, min_speeds, 1000, test);
+    zebra::IsotropicAngleIntegrator(order).integrate(
+            distribution, boosts, min_speeds, test);
     
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -103,7 +103,7 @@ double angle_integrated_radon_shm(
     return (2.0*std::numbers::pi)*prefactor*(0.5*sqrt_pi*disp_speed*erf_part - exp_prefactor*std::exp(-inv_disp*inv_disp));
 }
 
-void test_radon_transformer_is_accurate_for_shm()
+bool test_angle_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
     auto shm_dist = [&](const Vector<double, 3>& velocity){
@@ -143,42 +143,56 @@ void test_radon_transformer_is_accurate_for_shm()
         = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
                 shm_dist, 1.0, order);
 
-    RadonTransformer{}.angle_integrated_transform(
-            distribution, boosts, min_speeds, 1000, shm_test);
+    zebra::IsotropicAngleIntegrator(order).integrate(
+            distribution, boosts, min_speeds, shm_test);
 
-    std::printf("reference\n");
+    constexpr double tol = 1.0e-13;
+
+    bool success = true;
     for (std::size_t i = 0; i < boosts.size(); ++i)
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
-        {
-            std::printf("%.16e ", shm_reference(i, j));
-        }
-        std::printf("\n");
+            is_close(shm_test(i, j)/shm_reference(i, j), 1.0, tol);
     }
 
-    std::printf("\ntest\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    if (!success)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        std::printf("reference\n");
+        for (std::size_t i = 0; i < boosts.size(); ++i)
         {
-            std::printf("%.16e ", shm_test(i, j));
+            for (std::size_t j = 0; j < min_speeds.size(); ++j)
+            {
+                std::printf("%.16e ", shm_reference(i, j));
+            }
+            std::printf("\n");
         }
-        std::printf("\n");
+
+        std::printf("\ntest\n");
+        for (std::size_t i = 0; i < boosts.size(); ++i)
+        {
+            for (std::size_t j = 0; j < min_speeds.size(); ++j)
+            {
+                std::printf("%.16e ", shm_test(i, j));
+            }
+            std::printf("\n");
+        }
+
+        std::printf("\nrelative error\n");
+        for (std::size_t i = 0; i < boosts.size(); ++i)
+        {
+            for (std::size_t j = 0; j < min_speeds.size(); ++j)
+            {
+                std::printf("%.16e ", 1.0 - shm_test(i, j)/shm_reference(i, j));
+            }
+            std::printf("\n");
+        }
     }
 
-    std::printf("\nrelative error\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
-    {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
-        {
-            std::printf("%.16e ", 1.0 - shm_test(i, j)/shm_reference(i, j));
-        }
-        std::printf("\n");
-    }
+    return success;
 }
 
 int main()
 {
-    assert(test_radoon_transformer_is_correct_for_constant_dist());
-    test_radon_transformer_is_accurate_for_shm();
+    assert(test_angle_integrator_is_correct_for_constant_dist());
+    assert(test_angle_integrator_is_accurate_for_shm());
 }

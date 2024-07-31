@@ -11,7 +11,12 @@ IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
     std::size_t geg_order):
     m_aff_leg_integrals(geg_order, 0),
     m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, 0)),
-    m_ylm_integral_norms(geg_order) {}
+    m_ylm_integral_norms(geg_order)
+{
+    for (std::size_t l = 0; l  < geg_order; ++l)
+        m_ylm_integral_norms[l]
+            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
+}
 
 void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
 {
@@ -20,6 +25,9 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
     m_aff_leg_ylm_integrals.resize(
             TrapezoidLayout::size(geg_order, 0));
     m_ylm_integral_norms.resize(geg_order);
+    for (std::size_t l = 0; l  < geg_order; ++l)
+        m_ylm_integral_norms[l]
+            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
 double IsotropicAngleIntegratorCore::integrate(
@@ -30,7 +38,7 @@ double IsotropicAngleIntegratorCore::integrate(
 
     TrapezoidSpan<double>
     aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
-            min_speed, boost_speed, rotated_geg_zernike_exp.order(), 0);
+            min_speed, boost_speed, rotated_geg_zernike_exp.order());
     
     double res = 0;
     for (std::size_t n = 0; n < rotated_geg_zernike_exp.order(); ++n)
@@ -46,17 +54,16 @@ double IsotropicAngleIntegratorCore::integrate(
 
 TrapezoidSpan<double> 
 IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
-    double min_speed, double boost_speed, std::size_t geg_order, std::size_t resp_order)
+    double min_speed, double boost_speed, std::size_t geg_order)
 {
-    const std::size_t extra_extent = resp_order - std::min(1UL, resp_order);
     TrapezoidSpan<double> integrals(
-            m_aff_leg_ylm_integrals.data(), geg_order, extra_extent);
+            m_aff_leg_ylm_integrals.data(), geg_order, 0);
     m_aff_leg_integrals.integrals(integrals, min_speed, boost_speed);
     
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         auto integrals_n = integrals[n];
-        for (std::size_t l = 0; l <= n + extra_extent; ++l)
+        for (std::size_t l = 0; l <= n; ++l)
             integrals_n[l] *= m_ylm_integral_norms[l];
     }
 
@@ -65,7 +72,12 @@ IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
 
 AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order):
-    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), m_aff_leg_integrals(geg_order, resp_order), m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, resp_order)), m_ylm_integral_norms(geg_order), m_zonal_transformer(top_order), m_rotated_grid(top_order), m_rotated_exp(top_order) {}
+    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), m_aff_leg_integrals(geg_order, resp_order), m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, resp_order)), m_ylm_integral_norms(geg_order), m_zonal_transformer(top_order), m_rotated_grid(top_order), m_rotated_exp(top_order)
+{
+    for (std::size_t l = 0; l  < geg_order; ++l)
+        m_ylm_integral_norms[l]
+            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
+}
 
 void AnisotropicAngleIntegratorCore::resize(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order)
@@ -79,6 +91,9 @@ void AnisotropicAngleIntegratorCore::resize(
     m_aff_leg_ylm_integrals.resize(
             TrapezoidLayout::size(geg_order, resp_order));
     m_ylm_integral_norms.resize(geg_order);
+    for (std::size_t l = 0; l  < geg_order; ++l)
+        m_ylm_integral_norms[l]
+            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 
     m_zonal_transformer.resize(top_order);
     m_rotated_grid.resize(top_order);

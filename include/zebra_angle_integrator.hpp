@@ -29,12 +29,9 @@ public:
         @param boosts array of velocity boost vectors.
         @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
-        @param trunc_lmax maximum expansion order considered. See notes.
-
-        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_lmax` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_lmax = std::numeric_limits<std::size_t>::max());
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out);
     
     /**
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
@@ -43,15 +40,12 @@ public:
         @param boost velocity boost vector.
         @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
-        @param trunc_lmax maximum expansion order considered. See notes.
-
-        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_lmax` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out, std::size_t trunc_lmax = std::numeric_limits<std::size_t>::max());
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out);
     
 private:
-    void IsotropicAngleIntegrator::integrate(
+    void integrate(
         const Vector<double, 3>& boost, std::span<const double> min_speeds,
         std::span<double> out);
 
@@ -90,11 +84,11 @@ public:
         @param response spherical harmonic expansions of response at `min_speeds`.
         @param era Earth rotation angles.
         @param out output values.
-        @param trunc_lmax maximum expansion order considered. See notes.
+        @param trunc_order maximum expansion order considered. See notes.
 
         @note This function assumes that the expansions in `distribution` and `response` have been defined in coordinate systems whose z-axes are aligned, and only differ by the angles expressed in `era`.
 
-        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_lmax` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
+        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
         DistributionSpan distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, ResponseSpan response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
@@ -108,11 +102,11 @@ public:
         @param response spherical harmonic expansions of response at `min_speeds`.
         @param era Earth rotation angles.
         @param out output values.
-        @param trunc_lmax maximum expansion order considered. See notes.
+        @param trunc_order maximum expansion order considered. See notes.
 
         @note This function assumes that the expansions in `distribution` and `response` have been defined in coordinate systems whose z-axes are aligned, and only differ by the angles expressed in `era`.
 
-        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_lmax` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
+        @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
         DistributionSpan distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, ResponseSpan response, double era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());

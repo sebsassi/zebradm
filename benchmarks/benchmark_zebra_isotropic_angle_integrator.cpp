@@ -1,10 +1,10 @@
 #include <random>
 #include <fstream>
 
-#include "radon_transformer.hpp"
+#include "zebra_angle_integrator.hpp"
 #include "nanobench.h"
 
-void benchmark_radon_transformer_without_response(
+void benchmark_zebra_isotropic_angle_integrator(
     ankerl::nanobench::Bench& bench, const char* name, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds, std::size_t order)
 {
     std::mt19937 gen;
@@ -29,16 +29,17 @@ void benchmark_radon_transformer_without_response(
     for (std::size_t i = 0; i < num_min_speeds; ++i)
         min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
 
-    std::vector<double> out;
+    std::vector<double> out_buffer(num_boosts*num_min_speeds);
+    zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    RadonTransformer transformer{};
+    zebra::IsotropicAngleIntegrator integrator(order);
     bench.run(name, [&](){
-        transformer.angle_integrated_transform(
-                distribution, boosts, min_speeds, 1000, out);
+        integrator.integrate(
+                distribution, boosts, min_speeds, out);
     });
 }
 
-int main(int argc, char** argv)
+int main([[maybe_unused]] int argc, char** argv)
 {
     ankerl::nanobench::Bench bench{};
     bench.performanceCounters(true);
@@ -48,20 +49,19 @@ int main(int argc, char** argv)
     const std::size_t num_boosts = atoi(argv[2]);
     const std::size_t num_min_speeds = atoi(argv[3]);
 
-    std::vector<std::size_t> order_vec = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,250,300};
+    std::vector<std::size_t> order_vec = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
 
-    char title[128];
-    bench.title("RadonTransformer::angle_integrated_transform");
+    bench.title("zebra::IsotropicAngleIntegrator::integrate");
     for (const auto& order : order_vec)
     {
         char name[32] = {};
         std::sprintf(name, "%lu", order);
-        benchmark_radon_transformer_without_response(
+        benchmark_zebra_isotropic_angle_integrator(
                 bench, name, boost_len, num_boosts, num_min_speeds, order);
     }
 
     char fname[128] = {};
-    std::sprintf(fname, "radon_transformer_without_response_bench_%.2f_%lu_%lu.json", boost_len, num_boosts, num_min_speeds);
+    std::sprintf(fname, "zebra_isotropic_angle_integrator_bench_%.2f_%lu_%lu.json", boost_len, num_boosts, num_min_speeds);
 
     std::ofstream output{};
     output.open(fname);

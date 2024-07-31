@@ -249,7 +249,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     const double half_width = 0.5*(zmax - zmin);
     const double mid_point = 0.5*(zmin + zmax);
 
-    detail::fmadd(m_nodes, mid_point, half_width, m_glq_nodes);
+    util::fmadd(m_nodes, mid_point, half_width, m_glq_nodes);
 
     const std::size_t last_extent
         = integrals.order() + integrals.extra_extent();
@@ -259,11 +259,11 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     for (std::size_t l = 0; l < weighted_legendre.extents()[0]; ++l)
     {
         zest::MDSpan<double, 1> legendre_l = weighted_legendre[l];
-        detail::mul(legendre_l, m_glq_weights);
+        util::mul(legendre_l, m_glq_weights);
     }
 
     m_affine_legendre.init([&](std::span<double> x){
-        detail::fmadd(x, shift, scale, m_nodes);
+        util::fmadd(x, shift, scale, m_nodes);
     });
 
     // Integrals for `n == 0` row.
@@ -375,9 +375,10 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
 {
     assert(a.size() == b.size());
     const std::size_t size = a.size();
-    std::array<double, 3> partial_res{};
+    std::array<double, 4> partial_res{};
 
-    for (std::size_t i = 0; i < size; i += 4)
+    const std::size_t remainder = size & 3;
+    for (std::size_t i = 0; i < size - remainder; i += 4)
     {
         partial_res[0] += a[i + 0]*b[i + 0];
         partial_res[1] += a[i + 1]*b[i + 1];
@@ -385,7 +386,7 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
         partial_res[3] += a[i + 3]*b[i + 3];
     }
 
-    switch (size & 3)
+    switch (remainder)
     {
         case 1:
             partial_res[0] += a[size - 1]*b[size - 1];

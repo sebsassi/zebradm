@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_library(zebradm
-    src/radon_transformer.cpp src/legendre.cpp src/affine_legendre.cpp
+    src/zebra_angle_integrator_core.cpp src/zebra_angle_integrator.cpp src/zebra_parallel_angle_integrator.cpp src/legendre.cpp src/affine_legendre.cpp
     src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp
 )
 
@@ -30,6 +30,11 @@ target_compile_options(zebradm
 )
 
 target_compile_features(zebradm PUBLIC cxx_std_20)
+
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 target_link_libraries(zebradm PUBLIC cubage zest)
 

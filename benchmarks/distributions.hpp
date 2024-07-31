@@ -2,6 +2,8 @@
 #include <cmath>
 #include <numbers>
 
+using Distribution = double(*)(double, double, double);
+
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,
     const std::array<double, 3>& vec)

@@ -28,7 +28,7 @@ create_test(test_legendre_recursion)
 create_test(test_affine_legendre)
 create_test(test_affine_legendre_integral)
 create_test(test_radon_util)
-create_test(test_radon_transformer)
+create_test(test_zebra_isotropic_angle_integrator)
 create_test(test_mutual_convergence)
 
 create_experiment(exp_affine_legendre_integral)

@@ -20,7 +20,7 @@ bool test_gegenbauer_recursion_accepts_order(std::size_t order)
 {
     zest::zt::ZernikeExpansionOrthoGeo in(order);
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
-    detail::apply_gegenbauer_reduction(in, out);
+    util::apply_gegenbauer_reduction(in, out);
     return true;
 }
 
@@ -53,56 +53,56 @@ bool test_gegenbauer_recursion_is_correct_to_order_5()
     in(4,4,4) = {22.0, -22.0};
 
     zest::zt::ZernikeExpansionOrthoGeo out_ref(order + 2);
-    out_ref(0,0,0) = detail::geg_rec_coeff<NORM>(0)*in(0,0,0);
-    out_ref(1,1,0) = detail::geg_rec_coeff<NORM>(1)*in(1,1,0);
-    out_ref(1,1,1) = detail::geg_rec_coeff<NORM>(1)*in(1,1,1);
-    out_ref(2,0,0) = detail::geg_rec_coeff<NORM>(2)*in(2,0,0)
-                        - detail::geg_rec_coeff<NORM>(0)*in(0,0,0);
-    out_ref(2,2,0) = detail::geg_rec_coeff<NORM>(2)*in(2,2,0);
-    out_ref(2,2,1) = detail::geg_rec_coeff<NORM>(2)*in(2,2,1);
-    out_ref(2,2,2) = detail::geg_rec_coeff<NORM>(2)*in(2,2,2);
-    out_ref(3,1,0) = detail::geg_rec_coeff<NORM>(3)*in(3,1,0)
-                        - detail::geg_rec_coeff<NORM>(1)*in(1,1,0);
-    out_ref(3,1,1) = detail::geg_rec_coeff<NORM>(3)*in(3,1,1)
-                        - detail::geg_rec_coeff<NORM>(1)*in(1,1,1);
-    out_ref(3,3,0) = detail::geg_rec_coeff<NORM>(3)*in(3,3,0);
-    out_ref(3,3,1) = detail::geg_rec_coeff<NORM>(3)*in(3,3,1);
-    out_ref(3,3,2) = detail::geg_rec_coeff<NORM>(3)*in(3,3,2);
-    out_ref(3,3,3) = detail::geg_rec_coeff<NORM>(3)*in(3,3,3);
-    out_ref(4,0,0) = detail::geg_rec_coeff<NORM>(4)*in(4,0,0)
-                        - detail::geg_rec_coeff<NORM>(2)*in(2,0,0);
-    out_ref(4,2,0) = detail::geg_rec_coeff<NORM>(4)*in(4,2,0)
-                        - detail::geg_rec_coeff<NORM>(2)*in(2,2,0);
-    out_ref(4,2,1) = detail::geg_rec_coeff<NORM>(4)*in(4,2,1)
-                        - detail::geg_rec_coeff<NORM>(2)*in(2,2,1);
-    out_ref(4,2,2) = detail::geg_rec_coeff<NORM>(4)*in(4,2,2)
-                        - detail::geg_rec_coeff<NORM>(2)*in(2,2,2);
-    out_ref(4,4,0) = detail::geg_rec_coeff<NORM>(4)*in(4,4,0);
-    out_ref(4,4,1) = detail::geg_rec_coeff<NORM>(4)*in(4,4,1);
-    out_ref(4,4,2) = detail::geg_rec_coeff<NORM>(4)*in(4,4,2);
-    out_ref(4,4,3) = detail::geg_rec_coeff<NORM>(4)*in(4,4,3);
-    out_ref(4,4,4) = detail::geg_rec_coeff<NORM>(4)*in(4,4,4);
-    out_ref(5,1,0) = -detail::geg_rec_coeff<NORM>(3)*in(3,1,0);
-    out_ref(5,1,1) = -detail::geg_rec_coeff<NORM>(3)*in(3,1,1);
-    out_ref(5,3,0) = -detail::geg_rec_coeff<NORM>(3)*in(3,3,0);
-    out_ref(5,3,1) = -detail::geg_rec_coeff<NORM>(3)*in(3,3,1);
-    out_ref(5,3,2) = -detail::geg_rec_coeff<NORM>(3)*in(3,3,2);
-    out_ref(5,3,3) = -detail::geg_rec_coeff<NORM>(3)*in(3,3,3);
+    out_ref(0,0,0) = util::geg_rec_coeff<NORM>(0)*in(0,0,0);
+    out_ref(1,1,0) = util::geg_rec_coeff<NORM>(1)*in(1,1,0);
+    out_ref(1,1,1) = util::geg_rec_coeff<NORM>(1)*in(1,1,1);
+    out_ref(2,0,0) = util::geg_rec_coeff<NORM>(2)*in(2,0,0)
+                        - util::geg_rec_coeff<NORM>(0)*in(0,0,0);
+    out_ref(2,2,0) = util::geg_rec_coeff<NORM>(2)*in(2,2,0);
+    out_ref(2,2,1) = util::geg_rec_coeff<NORM>(2)*in(2,2,1);
+    out_ref(2,2,2) = util::geg_rec_coeff<NORM>(2)*in(2,2,2);
+    out_ref(3,1,0) = util::geg_rec_coeff<NORM>(3)*in(3,1,0)
+                        - util::geg_rec_coeff<NORM>(1)*in(1,1,0);
+    out_ref(3,1,1) = util::geg_rec_coeff<NORM>(3)*in(3,1,1)
+                        - util::geg_rec_coeff<NORM>(1)*in(1,1,1);
+    out_ref(3,3,0) = util::geg_rec_coeff<NORM>(3)*in(3,3,0);
+    out_ref(3,3,1) = util::geg_rec_coeff<NORM>(3)*in(3,3,1);
+    out_ref(3,3,2) = util::geg_rec_coeff<NORM>(3)*in(3,3,2);
+    out_ref(3,3,3) = util::geg_rec_coeff<NORM>(3)*in(3,3,3);
+    out_ref(4,0,0) = util::geg_rec_coeff<NORM>(4)*in(4,0,0)
+                        - util::geg_rec_coeff<NORM>(2)*in(2,0,0);
+    out_ref(4,2,0) = util::geg_rec_coeff<NORM>(4)*in(4,2,0)
+                        - util::geg_rec_coeff<NORM>(2)*in(2,2,0);
+    out_ref(4,2,1) = util::geg_rec_coeff<NORM>(4)*in(4,2,1)
+                        - util::geg_rec_coeff<NORM>(2)*in(2,2,1);
+    out_ref(4,2,2) = util::geg_rec_coeff<NORM>(4)*in(4,2,2)
+                        - util::geg_rec_coeff<NORM>(2)*in(2,2,2);
+    out_ref(4,4,0) = util::geg_rec_coeff<NORM>(4)*in(4,4,0);
+    out_ref(4,4,1) = util::geg_rec_coeff<NORM>(4)*in(4,4,1);
+    out_ref(4,4,2) = util::geg_rec_coeff<NORM>(4)*in(4,4,2);
+    out_ref(4,4,3) = util::geg_rec_coeff<NORM>(4)*in(4,4,3);
+    out_ref(4,4,4) = util::geg_rec_coeff<NORM>(4)*in(4,4,4);
+    out_ref(5,1,0) = -util::geg_rec_coeff<NORM>(3)*in(3,1,0);
+    out_ref(5,1,1) = -util::geg_rec_coeff<NORM>(3)*in(3,1,1);
+    out_ref(5,3,0) = -util::geg_rec_coeff<NORM>(3)*in(3,3,0);
+    out_ref(5,3,1) = -util::geg_rec_coeff<NORM>(3)*in(3,3,1);
+    out_ref(5,3,2) = -util::geg_rec_coeff<NORM>(3)*in(3,3,2);
+    out_ref(5,3,3) = -util::geg_rec_coeff<NORM>(3)*in(3,3,3);
     out_ref(5,5,0) = {0.0, 0.0};
     out_ref(5,5,1) = {0.0, 0.0};
     out_ref(5,5,2) = {0.0, 0.0};
     out_ref(5,5,3) = {0.0, 0.0};
     out_ref(5,5,4) = {0.0, 0.0};
     out_ref(5,5,5) = {0.0, 0.0};
-    out_ref(6,0,0) = -detail::geg_rec_coeff<NORM>(4)*in(4,0,0);
-    out_ref(6,2,0) = -detail::geg_rec_coeff<NORM>(4)*in(4,2,0);
-    out_ref(6,2,1) = -detail::geg_rec_coeff<NORM>(4)*in(4,2,1);
-    out_ref(6,2,2) = -detail::geg_rec_coeff<NORM>(4)*in(4,2,2);
-    out_ref(6,4,0) = -detail::geg_rec_coeff<NORM>(4)*in(4,4,0);
-    out_ref(6,4,1) = -detail::geg_rec_coeff<NORM>(4)*in(4,4,1);
-    out_ref(6,4,2) = -detail::geg_rec_coeff<NORM>(4)*in(4,4,2);
-    out_ref(6,4,3) = -detail::geg_rec_coeff<NORM>(4)*in(4,4,3);
-    out_ref(6,4,4) = -detail::geg_rec_coeff<NORM>(4)*in(4,4,4);
+    out_ref(6,0,0) = -util::geg_rec_coeff<NORM>(4)*in(4,0,0);
+    out_ref(6,2,0) = -util::geg_rec_coeff<NORM>(4)*in(4,2,0);
+    out_ref(6,2,1) = -util::geg_rec_coeff<NORM>(4)*in(4,2,1);
+    out_ref(6,2,2) = -util::geg_rec_coeff<NORM>(4)*in(4,2,2);
+    out_ref(6,4,0) = -util::geg_rec_coeff<NORM>(4)*in(4,4,0);
+    out_ref(6,4,1) = -util::geg_rec_coeff<NORM>(4)*in(4,4,1);
+    out_ref(6,4,2) = -util::geg_rec_coeff<NORM>(4)*in(4,4,2);
+    out_ref(6,4,3) = -util::geg_rec_coeff<NORM>(4)*in(4,4,3);
+    out_ref(6,4,4) = -util::geg_rec_coeff<NORM>(4)*in(4,4,4);
     out_ref(6,6,0) = {0.0, 0.0};
     out_ref(6,6,1) = {0.0, 0.0};
     out_ref(6,6,2) = {0.0, 0.0};
@@ -113,7 +113,7 @@ bool test_gegenbauer_recursion_is_correct_to_order_5()
 
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
 
-    detail::apply_gegenbauer_reduction(in, out);
+    util::apply_gegenbauer_reduction(in, out);
 
     constexpr double tol = 1.0e-13;
 

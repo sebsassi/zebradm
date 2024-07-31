@@ -29,27 +29,19 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_lmax = std::numeric_limits<std::size_t>::max())
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
-    const std::size_t dist_order = distribution.order();
-    resize(dist_order);
-    const std::size_t geg_order = dist_order + 2;
-
+    resize(distribution.order());
     util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-
     for (std::size_t i = 0; i < boosts.size(); ++i)
         integrate(boosts[i], min_speeds, out[i]);
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out, std::size_t trunc_lmax = std::numeric_limits<std::size_t>::max())
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out)
 {
-    const std::size_t dist_order = distribution.order();
-    resize(dist_order);
-    const std::size_t geg_order = dist_order + 2;
-
+    resize(distribution.order());
     util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-
     integrate(boost, min_speeds, out);
 }
 
@@ -117,7 +109,7 @@ void AnisotropicAngleIntegrator::integrate(
     DistributionSpan distribution, std::span<const Vector<double, 3>> boosts, 
     std::span<const double> min_speeds, ResponseSpan response,
     std::span<const double> era, zest::MDSpan<double, 2> out,
-    std::size_t trunc_order = std::numeric_limits<std::size_t>::max())
+    std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -137,7 +129,7 @@ void AnisotropicAngleIntegrator::integrate(
     DistributionSpan distribution, const Vector<double, 3>& boost, 
     std::span<const double> min_speeds, ResponseSpan response, double era, 
     zest::MDSpan<double, 2> out,
-    std::size_t trunc_order = std::numeric_limits<std::size_t>::max())
+    std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();

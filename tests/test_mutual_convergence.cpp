@@ -1,5 +1,5 @@
 #include "radon_integrator.hpp"
-#include "radon_transformer.hpp"
+#include "zebra_angle_integrator.hpp"
 
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,
@@ -43,8 +43,8 @@ void test_mutual_convergence(FuncType&& f)
         = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
                 f, 1.0, order);
 
-    RadonTransformer{}.angle_integrated_transform(
-            distribution, boosts, min_speeds, 1000, transformer_test);
+    zebra::IsotropicAngleIntegrator(order).integrate(
+            distribution, boosts, min_speeds, transformer_test);
 
     std::printf("integrator\n");
     for (std::size_t i = 0; i < boosts.size(); ++i)

@@ -102,11 +102,11 @@ class AffineLegendreIntegrals
 public:
     AffineLegendreIntegrals() = default;
     AffineLegendreIntegrals(
-        std::size_t max_order, std::size_t max_extra_extent);
+        std::size_t order, std::size_t extra_extent);
     
     [[nodiscard]] std::size_t order() const noexcept { return m_order; }
 
-    void resize(std::size_t max_order, std::size_t max_extra_extent);
+    void resize(std::size_t order, std::size_t extra_extent);
 
     void integrals(
         TrapezoidSpan<double> integrals, double shift, double scale);

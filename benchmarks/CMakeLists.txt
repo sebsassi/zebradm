@@ -7,9 +7,26 @@ macro(create_nanobench BENCHNAME)
     )
     target_compile_options(${BENCHNAME}.bench
         PRIVATE
-            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3;-mavx2;-mfma>
+            $<$<CONFIG:Release>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3;-mavx2;-mfma>
     )
     target_link_libraries(${BENCHNAME}.bench zebradm)
 endmacro()
 
-create_nanobench(benchmark_radon_transformer_without_response)
+create_nanobench(benchmark_zebra_isotropic_angle_integrator)
+create_nanobench(benchmark_zebra_parallel_isotropic_angle_integrator)
+
+macro(create_other_bench BENCHNAME)
+    add_executable(${BENCHNAME}.out
+        ${BENCHNAME}.cpp
+    )
+    target_include_directories(${BENCHNAME}.out
+        PRIVATE ${PROJECT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+    target_compile_options(${BENCHNAME}.out
+        PRIVATE
+            $<$<CONFIG:Release>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3;-mavx2;-mfma>
+    )
+    target_link_libraries(${BENCHNAME}.out zebradm)
+endmacro()
+
+create_other_bench(zebra_angle_integrator_error)
