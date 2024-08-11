@@ -14,6 +14,7 @@ endmacro()
 
 create_nanobench(benchmark_zebra_isotropic_angle_integrator)
 create_nanobench(benchmark_zebra_parallel_isotropic_angle_integrator)
+create_nanobench(benchmark_radon_angle_integrator)
 
 macro(create_other_bench BENCHNAME)
     add_executable(${BENCHNAME}.out

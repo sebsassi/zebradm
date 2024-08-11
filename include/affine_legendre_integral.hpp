@@ -36,6 +36,7 @@ public:
     using element_type = ElementType;
     using value_type = std::remove_cv_t<ElementType>;
     using size_type = std::size_t;
+    using ConstView = TrapezoidSpan<const element_type>;
 
     static constexpr std::size_t size(
         std::size_t order, std::size_t extra_extent) noexcept
@@ -43,9 +44,9 @@ public:
         return Layout::size(order, extra_extent);
     }
 
-    constexpr TrapezoidSpan() = default;
+    constexpr TrapezoidSpan() noexcept = default;
     constexpr TrapezoidSpan(
-        element_type* data, std::size_t order, std::size_t extra_extent):
+        element_type* data, std::size_t order, std::size_t extra_extent) noexcept:
         m_span(data, Layout::size(order, extra_extent)), m_order(order), m_extra_extent(extra_extent) {}
 
     [[nodiscard]] constexpr std::size_t
@@ -65,10 +66,9 @@ public:
         return m_span;
     }
 
-    [[nodiscard]] constexpr
-    operator TrapezoidSpan<const element_type>() const noexcept
+    [[nodiscard]] constexpr operator ConstView() const noexcept
     {
-        return TrapezoidSpan<const element_type>(m_span, m_order, m_extra_extent);
+        return *reinterpret_cast<ConstView*>(this);
     }
 
     [[nodiscard]] constexpr std::span<element_type>

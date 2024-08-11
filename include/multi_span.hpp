@@ -3,7 +3,7 @@
 #include <cstddef>
 
 template <std::size_t M, typename T>
-auto last(T a)
+auto last(T a) noexcept
 {
     std::array<typename std::remove_cvref<T>::type::value_type, M> res{};
     for (std::size_t i = 0; i < M; ++i)
@@ -12,7 +12,7 @@ auto last(T a)
 }
 
 template <typename T>
-auto prod(T a)
+auto prod(T a) noexcept
 {
     auto res = a[0];
     for (std::size_t i = 1; i < a.size(); ++i)
@@ -46,10 +46,10 @@ class MultiSuperSpan
 public:
     using element_type = typename SubspanType::element_type;
     MultiSuperSpan(
-        element_type* data, const std::array<std::size_t, NDIM>& lengths, std::size_t subspan_size_param):
+        element_type* data, const std::array<std::size_t, NDIM>& lengths, std::size_t subspan_size_param) noexcept:
         m_span(data, prod(lengths)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(lengths) {}
     MultiSuperSpan(
-        std::span<element_type> span, const std::array<std::size_t, NDIM>& lengths, std::size_t subspan_size_param):
+        std::span<element_type> span, const std::array<std::size_t, NDIM>& lengths, std::size_t subspan_size_param) noexcept:
         m_span(span.begin(), prod(lengths)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(lengths) {}
     
     [[nodiscard]] std::size_t size() const noexcept

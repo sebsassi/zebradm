@@ -13,87 +13,93 @@
 
 #include "zest/md_span.hpp"
 
-class RadonIntegrator
+namespace integrate
+{
+
+class RadonAngleIntegrator
 {
 public:
-    RadonIntegrator() = default;
+    RadonAngleIntegrator() = default;
 
-    /*
-    Parameters:
-    `distribution`: velocity distribution. See notes for details.
-    `response`: response function. See notes for details.
-    `boosts`: negative average velocity of the distribution. See notes for units.
-    `min_speeds`: smallest allowed speed. See notes for units.
-    `abserr`: maximum absolute error demanded from integration.
-    `relerr`: maximum relative error demanded from integration.
+    /**
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
-    Notes:
+        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
 
-    This function expects velocity units such that the distribution is zero for speeds above 1.0.
+        @param distribution velocity distribution; see notes for details
+        @param boosts negative average velocity of the distribution; see notes for units
+        @param min_speeds smallest allowed speed. See notes for units
+        @param abserr desired absolute error passed to integrator
+        @param relerr desired relative error passed to integrator
 
-    `distribution` and `boosts` are defined in the same coordinates.
+        @note This function expects velocity units such that the distribution is zero for speeds above 1.0.
+
+        @note `distribution` and `boosts` are defined in the same coordinates.
     */
     template <typename Dist>
     void integrate(
-        Dist&& distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out)
+        Dist&& distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
                 out(i, j) = integrate(
-                        distribution, boosts[i], min_speeds[j], abserr, relerr);
+                        distribution, boosts[i], min_speeds[j], abserr, relerr, 
+                        max_subdiv);
         }
     }
 
-    /*
-    Parameters:
-    `distribution`: velocity distribution. See notes for details.
-    `response`: response function. See notes for details.
-    `boosts`: negative average velocities of the distribution. See notes for units.
-    `min_speeds`: smallest allowed speeds. See notes for units.
-    `eras`: Earth rotation angles.
-    `abserr`: maximum absolute error demanded from integration.
-    `relerr`: maximum relative error demanded from integration.
+    /**
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-    Notes:
+        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Resp callable accepting three `double`s and returning `double`
 
-    This function expects velocity units such that the distribution is zero for speeds above 1.0.
+        @param distribution velocity distribution; see notes for details
+        @param response response function; see notes for details
+        @param boosts negative average velocities of the distribution; see notes for units
+        @param min_speeds smallest allowed speeds; ee notes for units
+        @param eras Earth rotation angles
+        @param abserr desired absolute error passed to integrator
+        @param relerr desired relative error passed to integrator
 
-    The function `response` has parameters min_speed, azimuth, and colatitude. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `response` coordinate system to the x-axis of the `distribution` coordinate system.
+        @note This function expects velocity units such that the distribution is zero for speeds above 1.0.
 
-    `distribution` and `boosts` are defined in the same coordinates.
+        @note The function `response` has parameters min_speed, azimuth, and colatitude. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `response` coordinate system to the x-axis of the `distribution` coordinate system.
+
+        @note `distribution` and `boosts` are defined in the same coordinates.
     */
     template <typename Dist, typename Resp>
     void integrate(
-        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras, double abserr, double relerr, zest::MDSpan<double, 2> out)
+        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
                 out(i, j) = integrate(
                         distribution, response, boosts[i], min_speeds[j],
-                        eras[i], abserr, relerr);
+                        eras[i], abserr, relerr, max_subdiv);
         }
     }
     
-    /*
-    Parameters:
-    `distribution`: velocity distribution. See notes for details.
-    `response`: response function. See notes for details.
-    `boost`: negative average velocity of the distribution. See notes for units.
-    `min_speed`: smallest allowed speed. See notes for units.
-    `abserr`: maximum absolute error demanded from integration.
-    `relerr`: maximum relative error demanded from integration.
+    /**
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
-    Notes:
+        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
 
-    This function expects velocity units such that the distribution is zero for speeds above 1.0.
+        @param distribution velocity distribution; see notes for details
+        @param boost negative average velocity of the distribution; see notes for units
+        @param min_speed smallest allowed speed; see notes for units
+        @param abserr desired absolute error passed to integrator
+        @param relerr desired relative error passed to integrator
 
-    `distribution` and `boost` are defined in the same coordinates.
+        @note This function expects velocity units such that the distribution is zero for speeds above 1.0.
+
+        @note `distribution` and `boost` are defined in the same coordinates.
     */
     template <typename Dist>
     [[nodiscard]] double integrate(
-        Dist&& distribution, const Vector<double, 3>& boost, double min_speed, double abserr, double relerr)
+        Dist&& distribution, const Vector<double, 3>& boost, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed > 1.0 + boost_speed) return 0.0;
@@ -123,30 +129,32 @@ public:
             {1.0 + boost_speed, 2.0*std::numbers::pi, 1.0}
         };
         return (2.0*std::numbers::pi)*isotropic_integrator.integrate(
-                integrand, limits, abserr, relerr).val;
+                integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
     
-    /*
-    Parameters:
-    `distribution`: velocity distribution. See notes for details.
-    `response`: response function. See notes for details.
-    `boost`: negative average velocity of the distribution. See notes for units.
-    `min_speed`: smallest allowed speed. See notes for units.
-    `era`: Earth rotation angle.
-    `abserr`: maximum absolute error demanded from integration.
-    `relerr`: maximum relative error demanded from integration.
+    /**
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-    Notes:
+        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Resp callable accepting three `double`s and returning `double`
 
-    This function expects velocity units such that the distribution is zero for speeds above 1.0.
+        @param distribution velocity distribution; see notes for details
+        @param response response function; see notes for details
+        @param boost negative average velocity of the distribution; see notes for units
+        @param min_speed smallest allowed speed; see notes for units
+        @param era Earth rotation angle
+        @param abserr desired absolute error passed to integrator
+        @param relerr desired relative error passed to integrator
 
-    The function `response` has parameters min_speed, azimuth, and colatitude. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `response` coordinate system to the x-axis of the `distribution` coordinate system.
+        @note This function expects velocity units such that the distribution is zero for speeds above 1.0.
 
-    `distribution` and `boost` are defined in the same coordinates.
+        @note The function `response` has parameters min_speed, azimuth, and colatitude. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `response` coordinate system to the x-axis of the `distribution` coordinate system.
+
+        @note `distribution` and `boost` are defined in the same coordinates.
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] double integrate(
-        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double min_speed, double era, double abserr, double relerr)
+        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double min_speed, double era, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return 0.0;
@@ -186,7 +194,7 @@ public:
             const double resp = response(min_speed, azimuth_resp, colat_resp);
 
             return resp*velocity_integral(
-                    distribution, boost, min_speed, recoil_dir_dist, abserr, relerr);
+                    distribution, boost, min_speed, recoil_dir_dist, abserr, relerr, max_subdiv);
         };
 
         const double zmin = std::max(-(1.0 + min_speed)/boost_speed, -1.0);
@@ -195,7 +203,7 @@ public:
             {0.0, zmin}, {2.0*std::numbers::pi, zmax}
         };
         return angle_integrator.integrate(
-                integrand, limits, abserr, relerr).val;
+                integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
 
 private:
@@ -203,7 +211,7 @@ private:
     double velocity_integral(
         Dist&& distribution, const Vector<double, 3>& boost_dist,
         double min_speed, const Vector<double, 3>& recoil_dir_dist,
-        double abserr, double relerr)
+        double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
             = min_speed + dot(boost_dist, recoil_dir_dist);
@@ -232,7 +240,7 @@ private:
             {w, 0.0}, {1.0, 2.0*std::numbers::pi}
         };
         return velocity_integrator.integrate(
-                integrand, limits, abserr, relerr).val;
+                integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
 
     using Integrator2D = cubage::HypercubeIntegrator<std::array<double, 2>, double>;
@@ -241,3 +249,5 @@ private:
     Integrator2D velocity_integrator;
     Integrator2D angle_integrator;
 };
+
+}

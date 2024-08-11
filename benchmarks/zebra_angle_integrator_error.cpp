@@ -8,7 +8,7 @@
 #include "distributions.hpp"
 
 void angle_integrator_error(
-    std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, zest::MDSpan<double, 2> reference, Distribution dist, const char* name, std::size_t order, bool relative_error)
+    std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, zest::MDSpan<double, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool relative_error)
 {
     zest::zt::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerOrthoGeo(order).transform(
@@ -46,7 +46,7 @@ void angle_integrator_error(
 }
 
 void angle_integrator_errors(
-    Distribution dist, const char* name, bool relative_error)
+    DistributionSpherical dist, const char* name, bool relative_error)
 {
     constexpr std::size_t reference_order = 200;
 

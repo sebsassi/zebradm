@@ -31,7 +31,7 @@ void test_mutual_convergence(FuncType&& f)
     zest::MDSpan<double, 2> integrator_test(
             integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    RadonIntegrator integrator{};
+    integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(f, boosts, min_speeds, 0.0, 1.0e-9, integrator_test);
 
     std::vector<double> transformer_test_buffer(boosts.size()*min_speeds.size());

@@ -23,7 +23,7 @@ macro(create_experiment EXPNAME)
     target_link_libraries(${EXPNAME}.exp zebradm)
 endmacro()
 
-create_test(test_radon_integrator)
+create_test(test_radon_angle_integrator)
 create_test(test_legendre_recursion)
 create_test(test_affine_legendre)
 create_test(test_affine_legendre_integral)

@@ -50,7 +50,7 @@ void test_radon_integrator_is_accurate_for_shm()
     zest::MDSpan<double, 2> shm_test(
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    RadonIntegrator integrator{};
+    integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(shm_dist, boosts, min_speeds, 0.0, 1.0e-9, shm_test);
 
     std::printf("reference\n");
@@ -113,7 +113,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     zest::MDSpan<double, 2> shm_test(
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    RadonIntegrator integrator{};
+    integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
             shm_dist, resp, boosts, min_speeds, eras, 0.0, 1.0e-9, shm_test);
 

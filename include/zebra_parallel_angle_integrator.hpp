@@ -30,7 +30,7 @@ public:
     void resize(std::size_t dist_order);
 
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
         @param distribution Zernike expansion of the distribution.
         @param boosts array of velocity boost vectors.
@@ -100,7 +100,7 @@ public:
         std::size_t trunc_order);
 
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
         @param boosts array of velocity boost vectors.

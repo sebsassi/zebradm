@@ -7,7 +7,7 @@ namespace cubage
 {
 
 template <typename T>
-concept VectorValued = requires (T a, T b)
+concept VectorValued = requires (T& a, T b)
 {
     a += b;
     a -= b;
@@ -30,6 +30,22 @@ concept ArrayLike = requires (T x, std::size_t i)
 {
     std::tuple_size<T>::value;
     x[i];
+};
+
+template <typename ValueType, typename StatusType>
+struct Result
+{
+    using value_type = ValueType;
+    using status_type = StatusType;
+
+    value_type value;
+    status_type status;
+};
+
+enum class Status
+{
+    SUCCESS,
+    MAX_SUBDIV
 };
 
 template <typename T>

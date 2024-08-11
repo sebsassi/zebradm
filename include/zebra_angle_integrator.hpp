@@ -23,7 +23,7 @@ public:
     void resize(std::size_t dist_order);
 
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
         @param distribution Zernike expansion of the distribution.
         @param boosts array of velocity boost vectors.
@@ -34,7 +34,7 @@ public:
         zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out);
     
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
         @param distribution Zernike expansion of the distribution.
         @param boost velocity boost vector.
@@ -76,7 +76,7 @@ public:
         std::size_t trunc_order);
 
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
         @param boosts array of velocity boost vectors.
@@ -94,7 +94,7 @@ public:
         DistributionSpan distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, ResponseSpan response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
     /**
-        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, expressed in terms of its Zernike expansion, combined with an angle-dependent response.
+        @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
         @param boost velocity boost vector.
