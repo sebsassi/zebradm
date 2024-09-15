@@ -3,8 +3,8 @@
 namespace cubage
 {
 
-template <typename T>
-concept arithmetic = std::is_arithmetic<T>::value;
+template <typename FieldType>
+concept arithmetic = std::is_arithmetic<FieldType>::value;
 
 template <std::floating_point T, std::size_t Count, std::size_t Dim>
 constexpr auto& orthonormalize(std::array<std::array<T, Dim>, Count>& basis)

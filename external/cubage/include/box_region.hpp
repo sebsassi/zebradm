@@ -12,37 +12,37 @@
 namespace cubage
 {
 
-template <typename T>
-    requires ArrayLike<T> && FloatingPointVectorOperable<T>
+template <typename FieldType>
+    requires ArrayLike<FieldType> && FloatingPointVectorOperable<FieldType>
 struct Box
 {
-    using value_type = typename T::value_type;
-    T xmin;
-    T xmax;
+    using value_type = typename FieldType::value_type;
+    FieldType xmin;
+    FieldType xmax;
 
-    [[nodiscard]] constexpr T side_lengths() const noexcept
+    [[nodiscard]] constexpr FieldType side_lengths() const noexcept
     {
         return xmax - xmin;
     }
 
     [[nodiscard]] constexpr value_type volume() const noexcept
     {
-        T lengths = side_lengths();
+        FieldType lengths = side_lengths();
         return std::accumulate(
                 lengths.begin(), lengths.end(), 1.0,
                 std::multiplies<value_type>());
     }
 
-    [[nodiscard]] constexpr T center() const noexcept
+    [[nodiscard]] constexpr FieldType center() const noexcept
     {
         return 0.5*(xmax + xmin);
     }
 
-    [[nodiscard]] constexpr std::pair<T, T>
+    [[nodiscard]] constexpr std::pair<FieldType, FieldType>
     subdivide(std::size_t subdiv_axis) const noexcept
     {
-        T xmax_first = xmax;
-        T xmin_second = xmin;
+        FieldType xmax_first = xmax;
+        FieldType xmin_second = xmin;
 
         const auto mid = 0.5*(xmin[subdiv_axis] + xmax[subdiv_axis]);
         xmax_first[subdiv_axis] = mid;
@@ -52,11 +52,11 @@ struct Box
     }
 };
 
-template <typename T>
+template <typename FieldType>
 concept BoxIntegratorSignature
-= requires (typename T::CodomainType (*f)(typename T::DomainType), typename T::Limits limits)
+= requires (typename FieldType::CodomainType (*f)(typename FieldType::DomainType), typename FieldType::Limits limits)
 {
-    { T::integrate(f, limits) } -> std::same_as<std::pair<IntegralResult<typename T::CodomainType>, std::size_t>>;
+    { FieldType::integrate(f, limits) } -> std::same_as<std::pair<IntegralResult<typename FieldType::CodomainType>, std::size_t>>;
 };
     
 

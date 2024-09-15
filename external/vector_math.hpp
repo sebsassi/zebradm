@@ -4,31 +4,31 @@
 #include <concepts>
 #include <array>
 
-template <typename T>
-concept arithmetic = std::is_arithmetic<T>::value;
+template <typename FieldType>
+concept arithmetic = std::is_arithmetic<FieldType>::value;
 
-template <std::floating_point T, std::size_t N>
-constexpr std::array<T, N>& normalize(std::array<T, N>& a)
+template <std::floating_point FieldType, std::size_t N>
+constexpr std::array<FieldType, N>& normalize(std::array<FieldType, N>& a)
 {
-    T inv_length = 1.0/length(a);
+    FieldType inv_length = 1.0/length(a);
     for (auto& element : a)
         element *= inv_length;
     return a;
 }
 
-template <std::floating_point T, std::size_t N>
-constexpr std::array<T, N> project_along_unitv(
-    const std::array<T, N>& a, const std::array<T, N>& uvec)
+template <std::floating_point FieldType, std::size_t N>
+constexpr std::array<FieldType, N> project_along_unitv(
+    const std::array<FieldType, N>& a, const std::array<FieldType, N>& uvec)
 {
-    const T proj = dot(a, uvec);
-    std::array<T, N> res = uvec;
+    const FieldType proj = dot(a, uvec);
+    std::array<FieldType, N> res = uvec;
     for (auto& element : res)
         element *= proj;
     return res;
 }
 
-template <std::floating_point T, std::size_t Count, std::size_t Dim>
-constexpr auto& orthonormalize(std::array<std::array<T, Dim>, Count>& basis)
+template <std::floating_point FieldType, std::size_t Count, std::size_t Dim>
+constexpr auto& orthonormalize(std::array<std::array<FieldType, Dim>, Count>& basis)
 {
     for (std::size_t i = 0; i < Count - 1; ++i)
     {
@@ -40,36 +40,36 @@ constexpr auto& orthonormalize(std::array<std::array<T, Dim>, Count>& basis)
     return basis;
 }
 
-template <arithmetic T, std::size_t N>
-constexpr T dot(const std::array<T, N>& a, const std::array<T, N>& b)
+template <arithmetic FieldType, std::size_t N>
+constexpr FieldType dot(const std::array<FieldType, N>& a, const std::array<FieldType, N>& b)
 {
-    T sum = 0;
+    FieldType sum = 0;
     for (std::size_t i = 0; i < N; ++i)
         sum += a[i]*b[i];
     return sum;
 }
 
-template <arithmetic T, std::size_t N>
-constexpr T triple_dot(
-    const std::array<T, N>& a, const std::array<T, N>& b,
-    const std::array<T, N>& c)
+template <arithmetic FieldType, std::size_t N>
+constexpr FieldType triple_dot(
+    const std::array<FieldType, N>& a, const std::array<FieldType, N>& b,
+    const std::array<FieldType, N>& c)
 {
-    T sum = 0;
+    FieldType sum = 0;
     for (std::size_t i = 0; i < N; ++i)
         sum += a[i]*b[i]*c[i];
     return sum;
 }
 
-template <std::floating_point T, std::size_t N>
-constexpr T length(const std::array<T, N>& a)
+template <std::floating_point FieldType, std::size_t N>
+constexpr FieldType length(const std::array<FieldType, N>& a)
 {
-    T largest = *std::ranges::max_element(a);
+    FieldType largest = *std::ranges::max_element(a);
     if (largest == 0.0) return 0.0;
-    T inv_largest = 1.0/largest;
-    T sqr_sum = 0.0;
+    FieldType inv_largest = 1.0/largest;
+    FieldType sqr_sum = 0.0;
     for (const auto& element : a)
     {
-        T scaled = element*inv_largest;
+        FieldType scaled = element*inv_largest;
         sqr_sum += scaled*scaled;
     }
     return largest*std::sqrt(sqr_sum);

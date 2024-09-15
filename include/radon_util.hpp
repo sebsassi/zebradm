@@ -64,7 +64,7 @@ constexpr void fmadd(
 }
 
 template <zest::zt::ZernikeNorm NORM>
-constexpr double geg_rec_coeff(std::size_t n) noexcept
+inline double geg_rec_coeff(std::size_t n) noexcept
 {
     if constexpr (NORM == zest::zt::ZernikeNorm::UNNORMED)
         return 1.0/double(2*n + 3);

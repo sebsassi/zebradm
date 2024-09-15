@@ -4,21 +4,21 @@
 
 #include "concepts.hpp"
 
-template <typename T>
+template <typename FieldType>
 struct Simplex
 {
-    std::array<T, std::tuple_size<T>::value + 1> vertices;
+    std::array<FieldType, std::tuple_size<FieldType>::value + 1> vertices;
 
     [[nodiscard]] std::pair<Simplex, Simplex> subdivide_longest_edge()
     {
         std::pair<std::size_t, std::size_t> inds{};
         double max_length_sqr = 0.0;
-        for (std::size_t i = 0; i < std::tuple_size<T>::value; ++i)
+        for (std::size_t i = 0; i < std::tuple_size<FieldType>::value; ++i)
         {
-            for (std::size_t j = i + 1; j < std::tuple_size<T>::value; ++j)
+            for (std::size_t j = i + 1; j < std::tuple_size<FieldType>::value; ++j)
             {
-                const T disp = vertices[j] - vertices[i];
-                const T disp2 = disp*disp;
+                const FieldType disp = vertices[j] - vertices[i];
+                const FieldType disp2 = disp*disp;
                 const double length_sqr = std::accumulate(
                         disp2.begin(), disp2.end(), 0.0);
                 if (length_sqr > max_length_sqr)
@@ -29,7 +29,7 @@ struct Simplex
             }
         }
 
-        const T center = 0.5*(vertices[inds.first] + vertices[inds.second]);
+        const FieldType center = 0.5*(vertices[inds.first] + vertices[inds.second]);
 
         std::pair<Simplex, Simplex> res = {*this, *this};
         res.first[inds.first] = center;

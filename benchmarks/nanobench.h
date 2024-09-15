@@ -350,7 +350,7 @@ char const* json() noexcept;
 
 namespace detail {
 
-template <typename T>
+template <typename FieldType>
 struct PerfCountSet;
 
 class IterationLogic;
@@ -370,14 +370,14 @@ namespace ankerl {
 namespace nanobench {
 namespace detail {
 
-template <typename T>
+template <typename FieldType>
 struct PerfCountSet {
-    T pageFaults{};
-    T cpuCycles{};
-    T contextSwitches{};
-    T instructions{};
-    T branchInstructions{};
-    T branchMisses{};
+    FieldType pageFaults{};
+    FieldType cpuCycles{};
+    FieldType contextSwitches{};
+    FieldType instructions{};
+    FieldType branchInstructions{};
+    FieldType branchMisses{};
 };
 
 } // namespace detail
@@ -723,8 +723,8 @@ public:
      * @tparam T Any input type is internally cast to `double`.
      * @param b batch size
      */
-    template <typename T>
-    Bench& batch(T b) noexcept;
+    template <typename FieldType>
+    Bench& batch(FieldType b) noexcept;
     ANKERL_NANOBENCH(NODISCARD) double batch() const noexcept;
 
     /**
@@ -928,8 +928,8 @@ public:
       @tparam T Any type is cast to `double`.
       @param n Length of N for the next benchmark run, so it is possible to calculate `bigO`.
      */
-    template <typename T>
-    Bench& complexityN(T n) noexcept;
+    template <typename FieldType>
+    Bench& complexityN(FieldType n) noexcept;
     ANKERL_NANOBENCH(NODISCARD) double complexityN() const noexcept;
 
     /*!
@@ -1035,14 +1035,14 @@ void doNotOptimizeAway(T const& val);
 // These assembly magic is directly from what Google Benchmark is doing. I have previously used what facebook's folly was doing, but
 // this seemed to have compilation problems in some cases. Google Benchmark seemed to be the most well tested anyways.
 // see https://github.com/google/benchmark/blob/v1.7.1/include/benchmark/benchmark.h#L443-L446
-template <typename T>
-void doNotOptimizeAway(T const& val) {
+template <typename FieldType>
+void doNotOptimizeAway(FieldType const& val) {
     // NOLINTNEXTLINE(hicpp-no-assembler)
     asm volatile("" : : "r,m"(val) : "memory");
 }
 
-template <typename T>
-void doNotOptimizeAway(T& val) {
+template <typename FieldType>
+void doNotOptimizeAway(FieldType& val) {
 #    if defined(__clang__)
     // NOLINTNEXTLINE(hicpp-no-assembler)
     asm volatile("" : "+r,m"(val) : : "memory");
@@ -1254,15 +1254,15 @@ BigO Bench::complexityBigO(std::string const& benchmarkName, Op op) const {
 
 // Set the batch size, e.g. number of processed bytes, or some other metric for the size of the processed data in each iteration.
 // Any argument is cast to double.
-template <typename T>
-Bench& Bench::batch(T b) noexcept {
+template <typename FieldType>
+Bench& Bench::batch(FieldType b) noexcept {
     mConfig.mBatch = static_cast<double>(b);
     return *this;
 }
 
 // Sets the computation complexity of the next run. Any argument is cast to double.
-template <typename T>
-Bench& Bench::complexityN(T n) noexcept {
+template <typename FieldType>
+Bench& Bench::complexityN(FieldType n) noexcept {
     mConfig.mComplexityN = static_cast<double>(n);
     return *this;
 }
@@ -1357,8 +1357,8 @@ uint64_t splitMix64(uint64_t& state) noexcept;
 namespace detail {
 
 // helpers to get double values
-template <typename T>
-inline double d(T t) noexcept {
+template <typename FieldType>
+inline double d(FieldType t) noexcept {
     return static_cast<double>(t);
 }
 inline double d(Clock::duration duration) noexcept {
@@ -1784,8 +1784,8 @@ char const* getEnv(char const* name);
 bool isEndlessRunning(std::string const& name);
 bool isWarningsEnabled();
 
-template <typename T>
-T parseFile(std::string const& filename, bool* fail);
+template <typename FieldType>
+FieldType parseFile(std::string const& filename, bool* fail);
 
 void gatherStabilityInformation(std::vector<std::string>& warnings, std::vector<std::string>& recommendations);
 void printStabilityInformationOnce(std::ostream* outStream);
@@ -1989,10 +1989,10 @@ void doNotOptimizeAwaySink(void const*) {}
 #        pragma optimize("", on)
 #    endif
 
-template <typename T>
-T parseFile(std::string const& filename, bool* fail) {
+template <typename FieldType>
+FieldType parseFile(std::string const& filename, bool* fail) {
     std::ifstream fin(filename); // NOLINT(misc-const-correctness)
-    T num{};
+    FieldType num{};
     fin >> num;
     if (fail != nullptr) {
         *fail = fin.fail();
@@ -2482,8 +2482,8 @@ public:
     void updateResults(uint64_t numIters);
 
     // rounded integer division
-    template <typename T>
-    static inline T divRounded(T a, T divisor) {
+    template <typename FieldType>
+    static inline FieldType divRounded(FieldType a, FieldType divisor) {
         return (a + divisor / 2) / divisor;
     }
 
@@ -2910,9 +2910,9 @@ Result::Result(Result const&) = default;
 Result::Result(Result&&) noexcept = default;
 
 namespace detail {
-template <typename T>
-inline constexpr typename std::underlying_type<T>::type u(T val) noexcept {
-    return static_cast<typename std::underlying_type<T>::type>(val);
+template <typename FieldType>
+inline constexpr typename std::underlying_type<FieldType>::type u(FieldType val) noexcept {
+    return static_cast<typename std::underlying_type<FieldType>::type>(val);
 }
 } // namespace detail
 

@@ -23,11 +23,14 @@ void apply_gegenbauer_reduction(
 
     if (in_order == 0) return;
     
-    out(0,0,0) = {geg_rec_coeff<NORM>(0)*in(0,0,0)[0], geg_rec_coeff<NORM>(0)*in(0,0,0)[1]};
+    out(0,0,0) = {
+        geg_rec_coeff<NORM>(0)*in(0,0,0)[0],
+        geg_rec_coeff<NORM>(0)*in(0,0,0)[1]
+    };
 
     if (in_order > 1)
     {
-        constexpr double coeff = geg_rec_coeff<NORM>(1);
+        const double coeff = geg_rec_coeff<NORM>(1);
         out(1,1,0) = {coeff*in(1,1,0)[0], coeff*in(1,1,0)[1]};
         out(1,1,1) = {coeff*in(1,1,1)[0], coeff*in(1,1,1)[1]};
     }

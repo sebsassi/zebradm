@@ -30,5 +30,6 @@ create_test(test_affine_legendre_integral)
 create_test(test_radon_util)
 create_test(test_zebra_isotropic_angle_integrator)
 create_test(test_mutual_convergence)
+create_test(test_zernike_recursions)
 
 create_experiment(exp_affine_legendre_integral)

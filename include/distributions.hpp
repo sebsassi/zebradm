@@ -9,8 +9,8 @@
 namespace velocity
 {
 
-template <typename T>
-concept bounded_distribution = requires (const T& dist, const Vector<double, 3>& velocity)
+template <typename FieldType>
+concept bounded_distribution = requires (const FieldType& dist, const Vector<double, 3>& velocity)
 {
     { dist(velocity) } -> std::same_as<double>;
     { dist.normalization() } -> std::same_as<double>;
@@ -37,8 +37,8 @@ public:
 private:
     static double eval_norm(double max_velocity, double disp_velocity) noexcept
     {
-        constexpr double exp_pref = 2.0/std::sqrt(std::numbers::pi);
-        constexpr double pi_sqrt_cb = std::numbers::pi*std::sqrt(std::numbers::pi);
+        constexpr double exp_pref = 2.0*std::numbers::inv_sqrtpi;
+        constexpr double pi_sqrt_cb = std::numbers::pi/std::numbers::inv_sqrtpi;
 
         const double u_max = max_velocity/disp_velocity;
         const double u_max_sq = u_max*u_max;
@@ -57,8 +57,8 @@ private:
 // Standard Halo Model distribution
 using SHM = STIG;
 
-template <typename T>
-constexpr std::array<T, 3> sorted(const std::array<T, 3>& a)
+template <typename FieldType>
+constexpr std::array<FieldType, 3> sorted(const std::array<FieldType, 3>& a)
 {
     return {
         std::max(std::max(a[0], a[1]), a[2]),
@@ -80,7 +80,7 @@ double cerf(double x)
 
     const double x_sq = x*x;
     const double poly = a0 - x_sq*(a1 - x_sq*(a2 - x_sq*(a3 - x_sq*(a4 - x_sq*a5))));
-    return (2.0/std::sqrt(std::numbers::pi))*poly;
+    return (2.0*std::numbers::inv_sqrtpi)*poly;
 }
 
 
@@ -118,7 +118,7 @@ private:
         double max_velocity, double disp_velocity,
         const std::array<double, 3>& sigma)
     {
-        constexpr double two_pi_sqrt = std::sqrt(2.0*std::numbers::pi);
+        constexpr double two_pi_sqrt = std::numbers::sqrt2/std::numbers::inv_sqrtpi;
         constexpr double two_pi_32 = two_pi_sqrt*two_pi_sqrt*two_pi_sqrt;
         const double u_max = max_velocity/disp_velocity;
         const double v_rot_cb = disp_velocity*disp_velocity*disp_velocity;

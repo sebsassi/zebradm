@@ -2,17 +2,17 @@
 
 #include <cstddef>
 
-template <std::size_t M, typename T>
-auto last(T a) noexcept
+template <std::size_t M, typename FieldType>
+auto last(FieldType a) noexcept
 {
-    std::array<typename std::remove_cvref<T>::type::value_type, M> res{};
+    std::array<typename std::remove_cvref<FieldType>::type::value_type, M> res{};
     for (std::size_t i = 0; i < M; ++i)
         res[i] = a[(a.size() - M) + i];
     return res;
 }
 
-template <typename T>
-auto prod(T a) noexcept
+template <typename FieldType>
+auto prod(FieldType a) noexcept
 {
     auto res = a[0];
     for (std::size_t i = 1; i < a.size(); ++i)

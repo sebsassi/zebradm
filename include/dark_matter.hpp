@@ -12,13 +12,13 @@
 #define NQ 3
 #define N_FF_CFF 4
 
-template <typename T, std::size_t... Extents>
+template <typename FieldType, std::size_t... Extents>
 struct MultiArray
 {
     explicit constexpr MultiArray(std::array<double, (Extents * ...)>& data_)
     : data(data_) {}
 
-    constexpr T& operator()(std::size_t multi_index...)
+    constexpr FieldType& operator()(std::size_t multi_index...)
         requires { sizeof...(multi_index) == ndim(); }
     {
         constexpr std::array<std::size_t, ndim()> strides_ = strides();

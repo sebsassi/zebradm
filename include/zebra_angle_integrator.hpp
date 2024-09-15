@@ -26,9 +26,11 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
         @param distribution Zernike expansion of the distribution.
-        @param boosts array of velocity boost vectors.
+        @param boosts velocities of the observer frame at different times.
         @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
+
+        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system.
     */
     void integrate(
         zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out);
@@ -37,9 +39,11 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
         @param distribution Zernike expansion of the distribution.
-        @param boost velocity boost vector.
+        @param boost velocity of the observer frame.
         @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
+
+        @note `distribution` and `boost` are expected to be expressed in the same coordinate system.
     */
     void integrate(
         zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out);
@@ -79,14 +83,14 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boosts array of velocity boost vectors.
+        @param boosts velocities of the observer frame at different times.
         @param min_speeds minimum speed parameters of the Radon transform.
-        @param response spherical harmonic expansions of response at `min_speeds`.
+        @param response spherical harmonic expansions of a response function at `min_speeds`.
         @param era Earth rotation angles.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note This function assumes that the expansions in `distribution` and `response` have been defined in coordinate systems whose z-axes are aligned, and only differ by the angles expressed in `era`.
+        @note `distribution` and `boost` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
@@ -97,14 +101,14 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boost velocity boost vector.
+        @param boost velocity of the observer frame.
         @param min_speeds minimum speed parameters of the Radon transform.
-        @param response spherical harmonic expansions of response at `min_speeds`.
+        @param response spherical harmonic expansions of a response function at `min_speeds`.
         @param era Earth rotation angles.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note This function assumes that the expansions in `distribution` and `response` have been defined in coordinate systems whose z-axes are aligned, and only differ by the angles expressed in `era`.
+        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */

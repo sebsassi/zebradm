@@ -11,29 +11,29 @@
 namespace cubage
 {
 
-template <std::floating_point T>
+template <std::floating_point FieldType>
 struct Interval
 {
-    T xmin;
-    T xmax;
+    FieldType xmin;
+    FieldType xmax;
 
-    [[nodiscard]] constexpr inline T length() const noexcept
+    [[nodiscard]] constexpr inline FieldType length() const noexcept
     {
         return xmax - xmin;
     }
 
-    [[nodiscard]] constexpr inline T center() const noexcept
+    [[nodiscard]] constexpr inline FieldType center() const noexcept
     {
         return 0.5*(xmax + xmin);
     }
 };
 
 
-template <typename T>
+template <typename FieldType>
 concept IntervalIntegratorSignature
-= requires (typename T::CodomainType (*f)(typename T::DomainType), typename T::Limits limits)
+= requires (typename FieldType::CodomainType (*f)(typename FieldType::DomainType), typename FieldType::Limits limits)
 {
-    { T::integrate(f, limits) } -> std::same_as<IntegralResult<typename T::CodomainType>>;
+    { FieldType::integrate(f, limits) } -> std::same_as<IntegralResult<typename FieldType::CodomainType>>;
 };
 
 template <typename Rule>

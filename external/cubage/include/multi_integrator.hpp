@@ -19,38 +19,38 @@ namespace cubage
 
 struct NormIndividual {};
 
-template <typename T>
-concept BiSubdivisible = requires (T x, typename T::CodomainType (*f)(typename T::DomainType))
+template <typename FieldType>
+concept BiSubdivisible = requires (FieldType x, typename FieldType::CodomainType (*f)(typename FieldType::DomainType))
 {
-    { x.subdivide(f) } -> std::same_as<std::pair<T, T>>;
+    { x.subdivide(f) } -> std::same_as<std::pair<FieldType, FieldType>>;
 };
 
-template <typename T>
-concept Limited = requires { typename T::Limits; };
+template <typename FieldType>
+concept Limited = requires { typename FieldType::Limits; };
 
-template <typename T>
-concept ResultStoring = requires (T x)
+template <typename FieldType>
+concept ResultStoring = requires (FieldType x)
 {
-    { x.result() } -> std::same_as<const IntegralResult<typename T::CodomainType>&>;
+    { x.result() } -> std::same_as<const IntegralResult<typename FieldType::CodomainType>&>;
 };
 
-template <typename T>
-concept WeaklyOrdered = requires (T x, T y)
+template <typename FieldType>
+concept WeaklyOrdered = requires (FieldType x, FieldType y)
 {
     x < y;
 };
 
-template <typename T>
+template <typename FieldType>
 concept Integrating =
-requires (T x, typename T::CodomainType (*f)(typename T::DomainType))
+requires (FieldType x, typename FieldType::CodomainType (*f)(typename FieldType::DomainType))
 {
-    { x.integrate(f) } -> std::same_as<const IntegralResult<typename T::CodomainType>&>;
+    { x.integrate(f) } -> std::same_as<const IntegralResult<typename FieldType::CodomainType>&>;
 };
 
-template <typename T>
+template <typename FieldType>
 concept SubdivisionIntegrable
-    = WeaklyOrdered<T> && Limited<T> && Integrating<T> && BiSubdivisible<T>
-    && ResultStoring<T>;
+    = WeaklyOrdered<FieldType> && Limited<FieldType> && Integrating<FieldType> && BiSubdivisible<FieldType>
+    && ResultStoring<FieldType>;
 
 template <SubdivisionIntegrable RegionType, typename NormType = NormIndividual>
 class MultiIntegrator

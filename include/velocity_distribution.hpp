@@ -3,8 +3,8 @@
 #include "linalg.hpp"
 #include "zest/zernike.hpp"
 
-template <typename T>
-concept bounded_distribution = requires (const T& dist, const Vector<double, 3>& velocity)
+template <typename FieldType>
+concept bounded_distribution = requires (const FieldType& dist, const Vector<double, 3>& velocity)
 {
     { dist(velocity) } -> std::same_as<double>;
     { dist.normalization() } -> std::same_as<double>;

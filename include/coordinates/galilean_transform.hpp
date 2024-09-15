@@ -160,8 +160,8 @@ template<std::size_t I = 0, typename... Tp>
         return x;
 }
 
-template<std::size_t I = 0, typename T, typename... Tp>
-[[nodiscard]] T compose_tuple(std::tuple<Tp...>& t, T x) noexcept
+template<std::size_t I = 0, typename FieldType, typename... Tp>
+[[nodiscard]] FieldType compose_tuple(std::tuple<Tp...>& t, FieldType x) noexcept
 {
     if constexpr (I < sizeof...(Tp))
         return compose_tuple<I + 1>(t, std::get<I>(t)(x));

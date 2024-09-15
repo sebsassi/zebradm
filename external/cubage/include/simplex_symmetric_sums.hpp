@@ -5,14 +5,14 @@
 namespace cubage
 {
 
-template <std::size_t Dimension, typename S, typename T, typename FuncType>
-[[nodiscard]] static constexpr T symmetric_sum_axxxx(
-    double base_val, double extra_val, FuncType f, const std::array<S, Dimension + 1>& vertices)
+template <std::size_t Dimension, typename DomainType, typename FieldType, typename FuncType>
+[[nodiscard]] static constexpr FieldType symmetric_sum_axxxx(
+    double base_val, double extra_val, FuncType f, const std::array<DomainType, Dimension + 1>& vertices)
 {
     std::array<double, Dimension + 1> std_point{};
     std_point.fill(base_val);
 
-    T sum{};
+    FieldType sum{};
     for (std::size_t i = 0; i < Dimension + 1; ++i)
     {
         std_point[i] = extra_val;
@@ -23,14 +23,14 @@ template <std::size_t Dimension, typename S, typename T, typename FuncType>
     return sum;
 }
 
-template <std::size_t Dimension, typename S, typename T, typename FuncType>
-[[nodiscard]] static constexpr T symmetric_sum_aaxxx(
-    double base_val, double extra_val, FuncType f, const std::array<S, Dimension + 1>& vertices)
+template <std::size_t Dimension, typename DomainType, typename FieldType, typename FuncType>
+[[nodiscard]] static constexpr FieldType symmetric_sum_aaxxx(
+    double base_val, double extra_val, FuncType f, const std::array<DomainType, Dimension + 1>& vertices)
 {
     std::array<double, Dimension + 1> std_point{};
     std_point.fill(base_val);
 
-    T sum{};
+    FieldType sum{};
     for (std::size_t i = 0; i < Dimension + 1; ++i)
     {
         std_point[i] = extra_val;
@@ -46,15 +46,15 @@ template <std::size_t Dimension, typename S, typename T, typename FuncType>
     return sum;
 }
 
-template <std::size_t Dimension, typename S, typename T, typename FuncType>
-[[nodiscard]] static constexpr T symmetric_sum_abxxx(
-    double base_val, const std::array<double, 2>& extra_vals, FuncType f, const std::array<S, Dimension + 1>& vertices)
+template <std::size_t Dimension, typename DomainType, typename FieldType, typename FuncType>
+[[nodiscard]] static constexpr FieldType symmetric_sum_abxxx(
+    double base_val, const std::array<double, 2>& extra_vals, FuncType f, const std::array<DomainType, Dimension + 1>& vertices)
 {
 
     std::array<double, Dimension + 1> std_point{};
     std_point.fill(base_val);
 
-    T sum{};
+    FieldType sum{};
     for (std::size_t i = 0; i < Dimension + 1; ++i)
     {
         std_point[i] = extra_vals[0];
@@ -74,14 +74,14 @@ template <std::size_t Dimension, typename S, typename T, typename FuncType>
     }
 }
 
-template <std::size_t Dimension, typename S, typename T, typename FuncType>
-[[nodiscard]] static constexpr T symmetric_sum_aaaxx(
-    double base_val, double extra_val, FuncType f, const std::array<S, Dimension + 1>& vertices)
+template <std::size_t Dimension, typename DomainType, typename FieldType, typename FuncType>
+[[nodiscard]] static constexpr FieldType symmetric_sum_aaaxx(
+    double base_val, double extra_val, FuncType f, const std::array<DomainType, Dimension + 1>& vertices)
 {
     std::array<double, Dimension + 1> std_point{};
     std_point.fill(base_val);
 
-    T sum{};
+    FieldType sum{};
     for (std::size_t i = 0; i < Dimension + 1; ++i)
     {
         std_point[i] = extra_val;
@@ -104,13 +104,13 @@ template <std::size_t Dimension, typename S, typename T, typename FuncType>
 
 
 
-template <std::size_t Dimension, typename S>
-[[nodiscard]] static constexpr inline S
+template <std::size_t Dimension, typename DomainType>
+[[nodiscard]] static constexpr inline DomainType
 affine_transform_point(
     const std::array<double, Dimension + 1>& std_point,
-    const std::array<S, Dimension + 1>& vertices)
+    const std::array<DomainType, Dimension + 1>& vertices)
 {
-    S point{};
+    DomainType point{};
     for (std::size_t k = 0; k < Dimension + 1; ++k)
         point += std_point[k]*vertices[k];
     return point;

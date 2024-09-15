@@ -7,26 +7,26 @@
 namespace cubage
 {
 
-template <typename T>
-[[nodiscard]] constexpr auto l1_norm(const T& x)
+template <typename FieldType>
+[[nodiscard]] constexpr auto l1_norm(const FieldType& x)
 {
-    if constexpr (std::is_floating_point<T>::value)
+    if constexpr (std::is_floating_point<FieldType>::value)
         return std::fabs(x);
     else
     {
-        using value_type = typename T::value_type;
+        using value_type = typename FieldType::value_type;
         auto v = x | std::views::transform(
                 static_cast<double(*)(double)>(std::fabs));
         return std::accumulate(v.begin(), v.end(), value_type{});
     }
 }
 
-template <typename T>
+template <typename FieldType>
 concept GenzMalikIntegrable
-    = ArrayLike<T>
-    && std::tuple_size<T>::value > 1
-    && std::tuple_size<T>::value <= 32
-    && FloatingPointVectorOperable<T>;
+    = ArrayLike<FieldType>
+    && std::tuple_size<FieldType>::value > 1
+    && std::tuple_size<FieldType>::value <= 32
+    && FloatingPointVectorOperable<FieldType>;
 
 /*
     Genz-Malik rule of degree 7 based on 

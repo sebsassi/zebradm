@@ -6,29 +6,29 @@
 namespace cubage
 {
 
-template <typename T>
-concept VectorValued = requires (T& a, T b)
+template <typename FieldType>
+concept VectorValued = requires (FieldType& a, FieldType b)
 {
     a += b;
     a -= b;
     a + b;
     a - b;
 }
-&& requires (T a, typename T::value_type c)
+&& requires (FieldType a, typename FieldType::value_type c)
 {
     a *= c;
     a*c;
     c*a;
 };
 
-template <typename T>
+template <typename FieldType>
 concept FloatingPointVectorOperable
-    = VectorValued<T> && std::floating_point<typename T::value_type>;
+    = VectorValued<FieldType> && std::floating_point<typename FieldType::value_type>;
 
-template <typename T>
-concept ArrayLike = requires (T x, std::size_t i)
+template <typename FieldType>
+concept ArrayLike = requires (FieldType x, std::size_t i)
 {
-    std::tuple_size<T>::value;
+    std::tuple_size<FieldType>::value;
     x[i];
 };
 
@@ -48,20 +48,20 @@ enum class Status
     MAX_SUBDIV
 };
 
-template <typename T>
-    requires std::floating_point<T>
-        || (ArrayLike<T> && FloatingPointVectorOperable<T>)
+template <typename FieldType>
+    requires std::floating_point<FieldType>
+        || (ArrayLike<FieldType> && FloatingPointVectorOperable<FieldType>)
 struct IntegralResult
 {
-    T val;
-    T err;
+    FieldType val;
+    FieldType err;
 
     [[nodiscard]] constexpr std::size_t ndim() const noexcept
     {
-        if constexpr (std::is_floating_point<T>::value)
+        if constexpr (std::is_floating_point<FieldType>::value)
             return 1;
         else
-            return std::tuple_size<T>::value;
+            return std::tuple_size<FieldType>::value;
     }
 
     constexpr IntegralResult& operator+=(const IntegralResult& x) noexcept
