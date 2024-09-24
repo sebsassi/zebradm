@@ -12,6 +12,9 @@
 namespace zebra
 {
 
+/**
+    @brief Angle integrated Radon transforms using the Zernike based Radon transform.
+*/
 class IsotropicAngleIntegrator
 {
 public:
@@ -21,7 +24,7 @@ public:
     explicit IsotropicAngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
-    dist_order() const noexcept { return m_dist_order; }
+    distribution_order() const noexcept { return m_dist_order; }
 
     void resize(std::size_t dist_order);
 
@@ -60,10 +63,13 @@ private:
     zest::Rotor m_rotor;
     zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
     zest::zt::ZernikeExpansionOrthoGeo m_rotated_geg_zernike_exp;
-    detail::IsotropicAngleIntegratorCore m_integrator;
+    detail::IsotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
 };
 
+/**
+    @brief Angle integrated Radon transforms with anisotropic response function using the Zernike based Radon transform.
+*/
 class AnisotropicAngleIntegrator
 {
 public:
@@ -76,7 +82,7 @@ public:
         std::size_t trunc_order);
     
     [[nodiscard]] std::size_t
-    dist_order() const noexcept { return m_dist_order; }
+    distribution_order() const noexcept { return m_dist_order; }
 
     void resize(
         std::size_t dist_order, std::size_t resp_order,
@@ -128,12 +134,15 @@ private:
     std::vector<double> m_rotated_geg_zernike_grids;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator;
+    detail::AnisotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
     std::size_t m_resp_order;
     std::size_t m_trunc_order;
 };
 
+/**
+    @brief Angle integrated regular and transverse Radon transforms and using the Zernike based Radon transform.
+*/
 class IsotropicTransverseAngleIntegrator
 {
 public:
@@ -143,7 +152,7 @@ public:
     explicit IsotropicTransverseAngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
-    dist_order() const noexcept { return m_dist_order; }
+    distribution_order() const noexcept { return m_dist_order; }
 
     void resize(std::size_t dist_order);
 
@@ -188,10 +197,13 @@ private:
     zest::zt::ZernikeExpansionOrthoGeo m_rotated_geg_zernike_exp;
     zest::zt::ZernikeExpansionOrthoGeo m_rotated_trans_geg_zernike_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
-    detail::IsotropicAngleIntegratorCore m_integrator;
+    detail::IsotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
 };
 
+/**
+    @brief Angle integrated regular and transverse Radon transforms with anisotropic response function using the Zernike based Radon transform.
+*/
 class AnisotropicTransverseAngleIntegrator
 {
 public:
@@ -204,7 +216,7 @@ public:
         std::size_t trunc_order);
     
     [[nodiscard]] std::size_t
-    dist_order() const noexcept { return m_dist_order; }
+    distribution_order() const noexcept { return m_dist_order; }
 
     void resize(
         std::size_t dist_order, std::size_t resp_order,
@@ -263,7 +275,7 @@ private:
     detail::ZernikeCoordinateMultiplier m_multiplier;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator;
+    detail::AnisotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
     std::size_t m_resp_order;
     std::size_t m_trunc_order;
