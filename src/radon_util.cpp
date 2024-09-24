@@ -17,6 +17,7 @@ void apply_gegenbauer_reduction(
 {
     constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>>::zernike_norm;
 
+    assert(!have_overlap(in.flatten(), out.flatten()));
     assert(in.order() + 2 == out.order());
     const std::size_t out_order = out.order();
     const std::size_t in_order = in.order();
@@ -84,8 +85,8 @@ void apply_gegenbauer_reduction(
             auto in_nm2_l = in_nm2[l];
             for (std::size_t m = 0; m <= l; ++m)
             {
-                out_n_l[m][0] = coeff_nm2*coeff_nm2*in_nm2_l[m][0];
-                out_n_l[m][1] = coeff_nm2*coeff_nm2*in_nm2_l[m][1];
+                out_n_l[m][0] = coeff_nm2*in_nm2_l[m][0];
+                out_n_l[m][1] = coeff_nm2*in_nm2_l[m][1];
             }
         }
 
@@ -93,6 +94,82 @@ void apply_gegenbauer_reduction(
         for (std::size_t m = 0; m <= n; ++m)
             out_n_n[m] = std::array<double, 2>{};
     }
+}
+
+/**
+    @brief Apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to a Zernike expansion.
+
+    @param exp Zernike expansion
+
+    @note This function expects `f_{nlm}` to be contained in the lower portion of `exp`, such that its order is `exp.order() - 2`, and the rest of the values to be
+
+    @note This transformation appears in the evaluation of the Zernike based Radon transform, where it reduces an expression `f_{nlm}(1 - x^2)C^{3/2}_n(x)` to the form `g_{nlm}P_n(x)` with `g_{nlm}` given as above.
+*/
+void apply_gegenbauer_reduction_inplace(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> exp) noexcept
+{
+    constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>>::zernike_norm;
+
+    const std::size_t order = exp.order();
+
+    if (order < 3) return;
+
+    for (std::size_t n = order - 1; n > std::max(order - 3, 1UL); --n)
+    {
+        auto exp_n = exp[n];
+        auto exp_nm2 = exp[n - 2];
+
+        const double coeff_nm2 = -geg_rec_coeff<NORM>(n - 2);
+        for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        {
+            auto exp_n_l = exp_n[l];
+            auto exp_nm2_l = exp_nm2[l];
+            for (std::size_t m = 0; m <= l; ++m)
+            {
+                exp_n_l[m][0] = coeff_nm2*exp_nm2_l[m][0];
+                exp_n_l[m][1] = coeff_nm2*exp_nm2_l[m][1];
+            }
+        }
+
+        auto out_n_n = exp_n[n];
+        for (std::size_t m = 0; m <= n; ++m)
+            out_n_n[m] = std::array<double, 2>{};
+    }
+
+    for (std::size_t n = std::max(order - 3, 1UL); n > 1; --n)
+    {
+        auto exp_n = exp[n];
+        auto exp_nm2 = exp[n - 2];
+
+        const double coeff_n = geg_rec_coeff<NORM>(n);
+        const double coeff_nm2 = -geg_rec_coeff<NORM>(n - 2);
+        for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        {
+            auto exp_n_l = exp_n[l];
+            auto exp_nm2_l = exp_nm2[l];
+            for (std::size_t m = 0; m <= l; ++m)
+            {
+                exp_n_l[m][0] = coeff_n*exp_n_l[m][0] + coeff_nm2*exp_nm2_l[m][0];
+                exp_n_l[m][1] = coeff_n*exp_n_l[m][1] + coeff_nm2*exp_nm2_l[m][1];
+            }
+        }
+
+        auto exp_n_n = exp_n[n];
+        for (std::size_t m = 0; m <= n; ++m)
+        {
+            exp_n_n[m][0] = coeff_n*exp_n_n[m][0];
+            exp_n_n[m][1] = coeff_n*exp_n_n[m][1];
+        }
+    }
+
+    const double coeff = geg_rec_coeff<NORM>(1);
+    exp(1,1,0) = {coeff*exp(1,1,0)[0], coeff*exp(1,1,0)[1]};
+    exp(1,1,1) = {coeff*exp(1,1,1)[0], coeff*exp(1,1,1)[1]};
+
+    exp(0,0,0) = {
+        geg_rec_coeff<NORM>(0)*exp(0,0,0)[0],
+        geg_rec_coeff<NORM>(0)*exp(0,0,0)[1]
+    };
 }
 
 }

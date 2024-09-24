@@ -30,6 +30,11 @@ public:
         zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp,
         double boost_speed, double min_speed);
 
+    [[nodiscard]] std::array<double, 2> integrate_transverse(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp,
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
+        double boost_speed, double min_speed);
+
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
         double min_speed, double boost_speed, std::size_t geg_order);
@@ -57,7 +62,15 @@ public:
     [[nodiscard]] double integrate(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-        double era, const Vector<double, 3>& boost, double min_speed, zest::WignerdPiHalfCollection wigner_d_pi2);
+        double era, const Vector<double, 3>& boost, double min_speed, 
+        zest::WignerdPiHalfCollection wigner_d_pi2);
+
+    [[nodiscard]] std::array<double, 2> integrate_transverse(
+        SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
+        SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
+        zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
+        double era, const Vector<double, 3>& boost, double min_speed, 
+        zest::WignerdPiHalfCollection wigner_d_pi2);
 
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(

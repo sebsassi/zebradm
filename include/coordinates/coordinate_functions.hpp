@@ -6,6 +6,13 @@
 namespace coordinates
 {
 
+/**
+    @brief Convert Cartesian to spherical coordinates in geography convention.
+
+    @param cartesian vector of Cartesian coordinates
+
+    @return spherical harmonic coordinates using geography convention in order [azimuth, altitude, length]
+*/
 [[nodiscard]] constexpr Vector<double, 3> cartesian_to_spherical_geo(
     const Vector<double, 3>& cartesian) noexcept
 {
@@ -19,6 +26,13 @@ namespace coordinates
     return {azimuth, altitude, length};
 }
 
+/**
+    @brief Convert spherical to Cartesian coordinates in geography convention.
+
+    @param spherical vector of spherical coordinates using geography in order [azimuth, altitude, length]
+
+    @return vector of Cartesian coordinates
+*/
 [[nodiscard]] constexpr Vector<double, 3> spherical_to_cartesian_geo(
     const Vector<double, 3>& spherical) noexcept
 {
@@ -29,6 +43,13 @@ namespace coordinates
     };
 }
 
+/**
+    @brief Convert Cartesian to spherical coordinates in physics convention.
+
+    @param cartesian vector of Cartesian coordinates
+
+    @return spherical harmonic coordinates using physics convention in order [azimuth, polar angle, length]
+*/
 [[nodiscard]] constexpr Vector<double, 3> cartesian_to_spherical_phys(
     const Vector<double, 3>& cartesian) noexcept
 {
@@ -42,6 +63,13 @@ namespace coordinates
     return {azimuth, polar_angle, length};
 }
 
+/**
+    @brief Convert spherical to Cartesian coordinates in physics convention.
+
+    @param spherical vector of spherical coordinates using physics in order [azimuth, polar angle, length]
+
+    @return vector of Cartesian coordinates
+*/
 [[nodiscard]] constexpr Vector<double, 3> spherical_to_cartesian_phys(
     const Vector<double, 3>& spherical) noexcept
 {
@@ -52,6 +80,14 @@ namespace coordinates
     };
 }
 
+/**
+    @brief Convert spherical angles to Cartesian coordinates in physics convention.
+
+    @param azimuth azimuthal angle
+    @param polar_angle polar angle
+
+    @return vector of Cartesian coordinates
+*/
 [[nodiscard]] constexpr Vector<double, 3> spherical_to_cartesian_phys(
     double azimuth, double polar_angle) noexcept
 {

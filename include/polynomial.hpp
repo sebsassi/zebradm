@@ -18,6 +18,12 @@ concept vector_over = requires (T x, F a)
     {x - y} -> std::same_as<T>;
 };
 
+template <typename T, typename S>
+concept can_multiply = requires (T x, S y)
+{
+    { x*y } -> std::same_as<decltype(y*x)>;
+};
+
 template <typename FieldType, std::size_t Order>
 struct Monomial
 {
@@ -25,6 +31,18 @@ struct Monomial
     constexpr std::size_t order = Order;
     FieldType coeff;
 };
+
+template <std::ranges::range R, typename DomainType>
+    requires can_multiply<std::ranges::range_value_t<R>, DomainType>
+auto horner_eval(R&& coeffs, DomainType x)
+{
+    using FieldType = std::ranges::range_value_t<R>;
+    using ResType = decltype((*std::begin(coeffs))*x);
+    ResType res{};
+    for (const FieldType& coeff : coeffs | std::views::reverse)
+        res = coeff + res*x;
+    return res;
+}
 
 template <typename FieldType, std::size_t Order>
 struct Polynomial
@@ -36,13 +54,10 @@ struct Polynomial
     constexpr Polynomial(const std::array<FieldType, Order + 1>& coeffs_) : coeffs(coeffs_) {}
 
     template <typename DomainType>
-        requires vector_over<Field, DomainType>
+        requires vector_over<Field, DomainType> || vector_over<DomainType, Field>
     [[nodiscard]] constexpr FieldType operator()(DomainType x) const noexcept
     {
-        FieldType res{};
-        for (const FieldType& coeff : coeffs | std::views::reverse)
-            res = coeff + res*x;
-        return res;
+        return horner_eval(coeffs, x);
     }
 
     template <typename DomainType, std::size_t N>

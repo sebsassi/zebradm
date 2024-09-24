@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include "radon_util.hpp"
+
 namespace zebra
 {
 namespace detail
@@ -52,7 +54,7 @@ template <PlaneCoord COORD>
 void multiply_by_x_y_impl(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     /*
     Literally the worst function I have ever written.
@@ -1069,36 +1071,18 @@ void multiply_by_x_y_impl(
     }
 }
 
-/**
-    @brief Compute coefficients of Zernike expansion multiplied by `x`.
-
-    @param coeff_data precomputed data to speed up computation
-    @param in input expansion
-    @param out output expansion
-
-    @note This function expects `in.order() < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
-*/
 void multiply_by_x(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
 }
 
-/**
-    @brief Compute coefficients of Zernike expansion multiplied by `y`.
-
-    @param coeff_data precomputed data to speed up computation
-    @param in input expansion
-    @param out output expansion
-
-    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
-*/
 void multiply_by_y(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
 }
@@ -1112,10 +1096,10 @@ void multiply_by_y(
 
     @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
 */
-void multiply_by_z(
+void multiply_by_z_impl(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     /*
     The base case is that `out(n,l,m)` is a linear combination of the coefficients
@@ -1491,6 +1475,14 @@ void multiply_by_z(
     }
 }
 
+void multiply_by_z(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    multiply_by_z_impl(coeff_data, in, out);
+}
+
 /**
     @brief Compute coefficients of Zernike expansion multiplied by `r*r`.
 
@@ -1500,10 +1492,10 @@ void multiply_by_z(
 
     @note This function expects `in.order() + 1 < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
 */
-void multiply_by_r2(
+void multiply_by_r2_impl(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     /*
     The base case is that `out(n,l,m)` is a linear combination of the coefficients
@@ -1791,6 +1783,138 @@ void multiply_by_r2(
             }
         }
     }
+}
+
+void multiply_by_r2(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    multiply_by_r2_impl(coeff_data, in, out);
+}
+
+void multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_z_impl(coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+{
+    assert(in.order() + 3 < out.order());
+    multiply_by_r2_impl(coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+ZernikeCoordinateMultiplier::ZernikeCoordinateMultiplier(std::size_t order):
+    m_coeff_data(order) {}
+
+void ZernikeCoordinateMultiplier::expand(std::size_t order)
+{
+    m_coeff_data.expand(order);
+}
+
+void ZernikeCoordinateMultiplier::multiply_by_x(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
+}
+
+void ZernikeCoordinateMultiplier::multiply_by_y(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
+}
+
+void ZernikeCoordinateMultiplier::multiply_by_z(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    multiply_by_z_impl(m_coeff_data, in, out);
+}
+
+void ZernikeCoordinateMultiplier::multiply_by_r2(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    multiply_by_r2_impl(m_coeff_data, in, out);
+}
+
+void
+ZernikeCoordinateMultiplier::multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void
+ZernikeCoordinateMultiplier::multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_x_y_impl<PlaneCoord::Y>(m_coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void
+ZernikeCoordinateMultiplier::multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    assert(in.order() + 2 < out.order());
+    multiply_by_z_impl(m_coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
+}
+
+void
+ZernikeCoordinateMultiplier::multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+) const noexcept
+{
+    assert(in.order() + 3 < out.order());
+    multiply_by_r2_impl(m_coeff_data, in, out);
+    util::apply_gegenbauer_reduction_inplace(out);
 }
 
 } // detail

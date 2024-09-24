@@ -13,6 +13,35 @@
     return std::max(std::fabs(a[0] - b[0]), std::fabs(a[1] - b[1])) < tol;
 }
 
+template <typename T, std::size_t N>
+double horner(const std::array<T, N>& coeffs, T x)
+{
+    T res{};
+    for (const T& coeff : coeffs | std::views::reverse)
+        res = coeff + res*x;
+    return res;
+}
+
+[[maybe_unused]] double angle_integrated_const_dist_radon(
+    double min_speed, const std::array<double, 3>& boost)
+{
+    const double boost_speed = length(boost);
+    const double v = boost_speed;
+    const double v2 = v*v;
+    const double w = min_speed;
+    const double w2 = w*w;
+    const double zmin = std::max(-1.0, -(1.0 + w)/v);
+    const double zmax = std::min(1.0, (1.0 - w)/v);
+    
+    const std::array<double, 3> coeffs = {
+        1.0 - w2, -w*v, -(1.0/3.0)*v2
+    };
+
+    constexpr double two_pi_sq = 2.0*std::numbers::pi*std::numbers::pi;
+    const double res = zmax*horner(coeffs, zmax) - zmin*horner(coeffs, zmin);
+    return two_pi_sq*res;
+}
+
 bool test_angle_integrator_is_correct_for_constant_dist()
 {
     std::vector<Vector<double, 3>> boosts = {
@@ -30,13 +59,8 @@ bool test_angle_integrator_is_correct_for_constant_dist()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            constexpr double two_pi_sq = 2.0*std::numbers::pi*std::numbers::pi;
-            const double boost_speed = length(boosts[i]);
-            const double umax = std::min(1.0, min_speeds[j] + boost_speed);
-            const double umin = std::max(-1.0, min_speeds[j] - boost_speed);
-            const double umax_cb = umax*umax*umax;
-            const double umin_cb = umin*umin*umin;
-            reference(i, j) = two_pi_sq*((umax - umin) - (umax_cb - umin_cb)/3.0)/boost_speed;
+            reference(i, j)
+                = angle_integrated_const_dist_radon(min_speeds[j], boosts[i]);
         }
     }
 
@@ -48,8 +72,8 @@ bool test_angle_integrator_is_correct_for_constant_dist()
     zest::MDSpan<double, 2> test(
             test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::IsotropicAngleIntegrator(order).integrate(
-            distribution, boosts, min_speeds, test);
+    zebra::IsotropicAngleIntegrator(order)
+        .integrate(distribution, boosts, min_speeds, test);
     
     constexpr double tol = 1.0e-13;
     bool success = true;

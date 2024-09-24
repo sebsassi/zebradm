@@ -16,6 +16,7 @@ namespace detail
 class ZernikeRecursionData
 {
 public:
+    ZernikeRecursionData() = default;
     explicit ZernikeRecursionData(std::size_t order);
 
     [[nodiscard]] std::size_t order() const noexcept { return m_order; }
@@ -59,7 +60,7 @@ private:
 */
 void multiply_by_x(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out);
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `y`.
@@ -72,7 +73,7 @@ void multiply_by_x(
 */
 void multiply_by_y(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out);
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `z`.
@@ -85,7 +86,7 @@ void multiply_by_y(
 */
 void multiply_by_z(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out);
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `r*r`.
@@ -98,7 +99,168 @@ void multiply_by_z(
 */
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out);
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+
+/**
+    @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param coeff_data precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+
+/**
+    @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param coeff_data precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+
+/**
+    @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param coeff_data precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+
+/**
+    @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param coeff_data precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 3 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    const ZernikeRecursionData& coeff_data,
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+
+class ZernikeCoordinateMultiplier
+{
+public:
+    ZernikeCoordinateMultiplier() = default;
+    explicit ZernikeCoordinateMultiplier(std::size_t order);
+
+    void expand(std::size_t order);
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `x`.
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_x(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `y`.
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_y(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `z`.
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_z(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `r*r`.
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 1 < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_r2(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param coeff_data precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+    /**
+    @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to the result
+
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 3 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    */
+    void multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in, zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ) const noexcept;
+
+private:
+    ZernikeRecursionData m_coeff_data;
+};
 
 } // detail
 } // zebra

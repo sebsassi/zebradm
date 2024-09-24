@@ -1222,4 +1222,6 @@ int main()
     assert(multiply_random_input_by_y_is_correct_for_order(10));
     assert(multiply_random_input_by_z_is_correct_for_order(10));
     assert(multiply_random_input_by_r2_is_correct_for_order(10));
+
+    assert(multiply_random_input_by_r2_is_correct_for_order(1));
 }
