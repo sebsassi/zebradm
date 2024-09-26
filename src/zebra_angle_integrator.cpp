@@ -2,6 +2,7 @@
 
 #include "coordinates/coordinate_functions.hpp"
 
+#include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
 namespace zebra
@@ -32,7 +33,7 @@ void IsotropicAngleIntegrator::integrate(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
     for (std::size_t i = 0; i < boosts.size(); ++i)
         integrate(boosts[i], min_speeds, out[i]);
 }
@@ -41,7 +42,7 @@ void IsotropicAngleIntegrator::integrate(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out)
 {
     resize(distribution.order());
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
     integrate(boost, min_speeds, out);
 }
 
@@ -143,7 +144,7 @@ void AnisotropicAngleIntegrator::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
 
     for (std::size_t i = 0; i < boosts.size(); ++i)
         integrate(
@@ -163,7 +164,7 @@ void AnisotropicAngleIntegrator::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
 
     integrate(boost, min_speeds, response, era, geg_order, top_order, out);
 }
@@ -244,14 +245,14 @@ void IsotropicTransverseAngleIntegrator::integrate(
     DistributionSpan distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out)
 {
     resize(distribution.order());
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-    m_multiplier.multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    m_multiplier.multiply_by_x_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_x);
-    m_multiplier.multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_y_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_y);
-    m_multiplier.multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_z_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_z);
-    m_multiplier.multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
     for (std::size_t i = 0; i < boosts.size(); ++i)
         integrate(boosts[i], min_speeds, out[i]);
@@ -261,14 +262,14 @@ void IsotropicTransverseAngleIntegrator::integrate(
     DistributionSpan distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
 {
     resize(distribution.order());
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-    m_multiplier.multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    m_multiplier.multiply_by_x_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_x);
-    m_multiplier.multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_y_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_y);
-    m_multiplier.multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_z_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_z);
-    m_multiplier.multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
     integrate(boost, min_speeds, out);
 }
@@ -384,14 +385,14 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-    m_multiplier.multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    m_multiplier.multiply_by_x_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_x);
-    m_multiplier.multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_y_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_y);
-    m_multiplier.multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_z_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_z);
-    m_multiplier.multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
 
     for (std::size_t i = 0; i < boosts.size(); ++i)
@@ -412,14 +413,14 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
-    m_multiplier.multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    m_multiplier.multiply_by_x_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_x);
-    m_multiplier.multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_y_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_y);
-    m_multiplier.multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_z_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_z);
-    m_multiplier.multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+    m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
 
     integrate(boost, min_speeds, response, era, geg_order, top_order, out);

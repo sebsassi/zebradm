@@ -7,6 +7,9 @@
 #include "zest/triangle_layout.hpp"
 #include "zest/gauss_legendre.hpp"
 
+namespace zebra
+{
+
 struct ExtraTriangleLayout
 {
     using index_type = std::size_t;
@@ -485,4 +488,6 @@ void AffineLegendreIntegrals::backward_recursion_step(
                 + scale*anp1*inv_twolp1*(double(l + 1)*integraps_np1[l + 1]
                     + double(l)*integraps_np1[l - 1]);
     }
+}
+
 }

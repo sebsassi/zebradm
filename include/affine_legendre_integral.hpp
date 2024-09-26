@@ -5,6 +5,9 @@
 
 #include "legendre.hpp"
 
+namespace zebra
+{
+
 struct TrapezoidLayout
 {
     using index_type = std::size_t;
@@ -144,3 +147,5 @@ private:
     std::size_t m_order;
     std::size_t m_extra_extent;
 };
+
+} // namespace zebra

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cassert>
 
+#include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
 namespace zebra
@@ -1793,44 +1794,44 @@ void multiply_by_r2(
     multiply_by_r2_impl(coeff_data, in, out);
 }
 
-void multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+void multiply_by_x_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
-void multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+void multiply_by_y_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
-void multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+void multiply_by_z_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_z_impl(coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
-void multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 3 < out.order());
     multiply_by_r2_impl(coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
 ZernikeCoordinateMultiplier::ZernikeCoordinateMultiplier(std::size_t order):
@@ -1874,47 +1875,47 @@ void ZernikeCoordinateMultiplier::multiply_by_r2(
 }
 
 void
-ZernikeCoordinateMultiplier::multiply_by_x_and_apply_gegenbauer_reduction_inplace(
+ZernikeCoordinateMultiplier::multiply_by_x_and_radon_transform_inplace(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
 void
-ZernikeCoordinateMultiplier::multiply_by_y_and_apply_gegenbauer_reduction_inplace(
+ZernikeCoordinateMultiplier::multiply_by_y_and_radon_transform_inplace(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::Y>(m_coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
 void
-ZernikeCoordinateMultiplier::multiply_by_z_and_apply_gegenbauer_reduction_inplace(
+ZernikeCoordinateMultiplier::multiply_by_z_and_radon_transform_inplace(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_z_impl(m_coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
 void
-ZernikeCoordinateMultiplier::multiply_by_r2_and_apply_gegenbauer_reduction_inplace(
+ZernikeCoordinateMultiplier::multiply_by_r2_and_radon_transform_inplace(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 3 < out.order());
     multiply_by_r2_impl(m_coeff_data, in, out);
-    util::apply_gegenbauer_reduction_inplace(out);
+    zebra::radon_transform_inplace(out);
 }
 
 } // detail

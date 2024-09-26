@@ -7,6 +7,9 @@
 
 #include "zest/md_span.hpp"
 
+namespace zebra
+{
+
 void legendre_recursion_vec(
     zest::MDSpan<double, 2> legendre, std::span<double> x);
 
@@ -73,3 +76,5 @@ private:
     std::vector<double> m_b;
     std::size_t m_order;
 };
+
+} // namespace zebra

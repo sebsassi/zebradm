@@ -12,8 +12,8 @@ constexpr bool is_close(double a, double b, double tol)
 
 bool test_affine_legendre_integral_recursion_takes_zero_size_span()
 {
-    AffineLegendreIntegrals recursion(0, 0);
-    recursion.integrals(TrapezoidSpan<double>{}, 0.0, 1.0);
+    zebra::AffineLegendreIntegrals recursion(0, 0);
+    recursion.integrals(zebra::TrapezoidSpan<double>{}, 0.0, 1.0);
 
     return true;
 }
@@ -64,12 +64,12 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
         = b*(a221 + b*(a222 + b*(a223 + b*(a224 + b*a225))))
         - a*(a221 + a*(a222 + a*(a223 + a*(a224 + a*a225))));
 
-    AffineLegendreIntegrals recursion(order, extra_extent);
+    zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
-        TrapezoidSpan<double>::Layout::size(order, extra_extent));
+        zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
     
-    TrapezoidSpan<double> test_trapezoid(
+    zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
     recursion.integrals(test_trapezoid, shift, scale);
 
@@ -121,12 +121,12 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     const double A30 = (0.5*((5.0/4.0)*d*d - (3.0/2.0))*d*d - 0.5*((5.0/4.0)*c*c - (3.0/2.0))*c*c)/scale;
     const double A40 = (0.125*((7.0*d*d - 10.0)*d*d + 3.0)*d - 0.125*((7.0*c*c - 10.0)*c*c + 3.0)*c)/scale;
 
-    AffineLegendreIntegrals recursion(order, extra_extent);
+    zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
-        TrapezoidSpan<double>::Layout::size(order, extra_extent));
+        zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
     
-    TrapezoidSpan<double> test_trapezoid(
+    zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
     recursion.integrals(test_trapezoid, shift, scale);
 
@@ -180,7 +180,7 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     zest::MDSpan<double, 2> legendre(
             legendre_buffer.data(), {last_extent, glq_weights.size()});
     if (scale > shift - 1.0)
-        legendre_recursion_vec(legendre, glq_nodes);
+        zebra::legendre_recursion_vec(legendre, glq_nodes);
 
     for (std::size_t i = 0; i < glq_nodes.size(); ++i)
         glq_nodes[i] = shift + scale*glq_nodes[i];
@@ -189,11 +189,11 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     zest::MDSpan<double, 2> affine_legendre(
             affine_legendre_buffer.data(), {order, glq_weights.size()});
     if (scale > shift - 1.0)
-        legendre_recursion_vec(affine_legendre, glq_nodes);
+        zebra::legendre_recursion_vec(affine_legendre, glq_nodes);
 
     std::vector<double> reference_integral_buffer(
-            TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    TrapezoidSpan<double> reference_integrals(
+            zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
+    zebra::TrapezoidSpan<double> reference_integrals(
             reference_integral_buffer.data(), order, extra_extent);
     
     for (std::size_t n = 0; n < order; ++n)
@@ -208,11 +208,11 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     }
 
     std::vector<double> test_integral_buffer(
-            TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    TrapezoidSpan<double> test_integrals(
+            zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
+    zebra::TrapezoidSpan<double> test_integrals(
             test_integral_buffer.data(), order, extra_extent);
     
-    AffineLegendreIntegrals recursion(order, extra_extent);
+    zebra::AffineLegendreIntegrals recursion(order, extra_extent);
     recursion.integrals(test_integrals, shift, scale);
 
     constexpr double tol = 1.0e-13;

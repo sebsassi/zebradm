@@ -3,6 +3,9 @@
 #include <algorithm>
 #include <cassert>
 
+namespace zebra
+{
+
 AffineLegendreRecursion::AffineLegendreRecursion(std::size_t max_order):
     m_a(max_order), m_b(max_order), m_c(max_order), m_d(max_order),
     m_max_order(max_order)
@@ -128,4 +131,6 @@ void AffineLegendreRecursion::evaluate_scaled(
 
         expansion(n, n) = scale*expansion(n - 1, n - 1);
     }
+}
+
 }

@@ -10,7 +10,7 @@ endif()
 
 add_library(zebradm
     src/zebra_angle_integrator_core.cpp src/zebra_angle_integrator.cpp src/zebra_parallel_angle_integrator.cpp src/legendre.cpp src/affine_legendre.cpp
-    src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp src/zernike_recursions.cpp
+    src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp src/zebra_radon.cpp src/zernike_recursions.cpp
 )
 
 add_subdirectory(external/cubage)

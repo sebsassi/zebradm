@@ -3,9 +3,7 @@
 #include <cassert>
 #include <span>
 
-#include "zest/zernike_expansion.hpp"
-#include "zest/real_sh_expansion.hpp"
-#include "zest/sh_glq_transformer.hpp"
+#include "zest/zernike_conventions.hpp"
 
 #if defined(__GNUC__)
     #define RESTRICT __restrict__
@@ -13,6 +11,8 @@
     #define RESTRICT __restrict
 #endif
 
+namespace zebra
+{
 namespace util
 {
 
@@ -116,28 +116,6 @@ inline double geg_rec_coeff(std::size_t n) noexcept
         return 1.0/std::sqrt(double(2*n + 3));
 }
 
-/**
-    @brief Apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to a Zernike expansion.
 
-    @param in input Zernike expansion `f_{nlm}`
-    @param out output Zernike expansion `g_{nlm}`
-
-    @note This transformation appears in the evaluation of the Zernike based Radon transform, where it reduces an expression `f_{nlm}(1 - x^2)C^{3/2}_n(x)` to the form `g_{nlm}P_n(x)` with `g_{nlm}` given as above.
-*/
-void apply_gegenbauer_reduction(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
-
-/**
-    @brief Apply the transformation `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)` to a Zernike expansion.
-
-    @param exp Zernike expansion
-
-    @note This function expects `f_{nlm}` to be contained in the lower portion of `exp`, such that its order is `exp.order() - 2`, and the rest of the values to be
-
-    @note This transformation appears in the evaluation of the Zernike based Radon transform, where it reduces an expression `f_{nlm}(1 - x^2)C^{3/2}_n(x)` to the form `g_{nlm}P_n(x)` with `g_{nlm}` given as above.
-*/
-void apply_gegenbauer_reduction_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> exp) noexcept;
-
-}
+} // namespace util
+} // namespace zebra

@@ -8,6 +8,9 @@
 
 #include "legendre.hpp"
 
+namespace zebra
+{
+
 /*
 Recursion for expanding a Legendre function with affine transformed argument in terms of Legendre functions.
 
@@ -55,3 +58,5 @@ private:
     std::vector<double> m_d;
     std::size_t m_max_order;
 };
+
+} // namespace zebra

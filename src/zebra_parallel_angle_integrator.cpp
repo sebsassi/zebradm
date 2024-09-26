@@ -4,6 +4,7 @@
 
 #include "coordinates/coordinate_functions.hpp"
 
+#include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
 namespace zebra
@@ -44,7 +45,7 @@ void IsotropicAngleIntegrator::integrate(
     zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
 
     #pragma omp parallel for num_threads(m_num_threads)
     for (std::size_t i = 0; i < boosts.size(); ++i)
@@ -162,7 +163,7 @@ void AnisotropicAngleIntegrator::integrate(
     resize(dist_order, resp_order, trunc_order);
     const std::size_t geg_order = dist_order + 2;
 
-    util::apply_gegenbauer_reduction(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_geg_zernike_exp);
 
     #pragma omp teams num_teams(m_num_teams)
     {

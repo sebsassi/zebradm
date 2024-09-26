@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <cmath>
 
+namespace zebra
+{
+
 void legendre_recursion_vec(
     zest::MDSpan<double, 2> legendre, std::span<double> x)
 {
@@ -197,3 +200,5 @@ void LegendreIntegralRecursion::legendre_integral(
     for (std::size_t l = 2; l <= lmax; ++l)
         pl[l] = m_a[l]*x*pl[l - 1] - m_b[l]*pl[l - 2];
 }
+
+} // namespace zebra

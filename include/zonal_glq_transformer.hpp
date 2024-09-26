@@ -2,6 +2,9 @@
 #include "zest/real_sh_expansion.hpp"
 #include "zest/sh_glq_transformer.hpp"
 
+namespace zebra
+{
+
 template <zest::st::SHNorm SH_NORM, typename GridLayoutType = zest::st::DefaultLayout>
 class ZonalGLQTransformer
 {
@@ -98,3 +101,5 @@ private:
     std::vector<double> m_longitudinal_average;
     std::size_t m_order;
 };
+
+} // namespace zebra
