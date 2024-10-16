@@ -13,8 +13,10 @@ macro(create_nanobench BENCHNAME)
 endmacro()
 
 create_nanobench(benchmark_zebra_isotropic_angle_integrator)
+create_nanobench(benchmark_zebra_transverse_isotropic_angle_integrator)
 create_nanobench(benchmark_zebra_parallel_isotropic_angle_integrator)
 create_nanobench(benchmark_radon_angle_integrator)
+create_nanobench(benchmark_radon_angle_integrator_transverse)
 
 macro(create_other_bench BENCHNAME)
     add_executable(${BENCHNAME}.out

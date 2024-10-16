@@ -4,6 +4,7 @@
 #include <span>
 
 #include "zest/zernike_conventions.hpp"
+#include "zest/rotor.hpp"
 
 #if defined(__GNUC__)
     #define RESTRICT __restrict__
@@ -116,6 +117,20 @@ inline double geg_rec_coeff(std::size_t n) noexcept
         return 1.0/std::sqrt(double(2*n + 3));
 }
 
+/**
+    @brief Set Euler angles for rotation to a coordinate system whose z-axis is in the direction given by the arguments.
+
+    @note The convention for the Euler angles is that used by `zest::Rotor::rotate`.
+*/
+template <zest::RotationType TYPE>
+constexpr std::array<double, 3> euler_angles_to_align_z(
+    double azimuth, double colatitude)
+{
+    if constexpr (TYPE == zest::RotationType::COORDINATE)
+        return {azimuth, colatitude, 0.0};
+    else
+        return {0.0, -colatitude, std::numbers::pi - azimuth};
+}
 
 } // namespace util
 } // namespace zebra

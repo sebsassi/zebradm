@@ -28,10 +28,13 @@ void test_radon_integrator_is_accurate_for_shm()
     };
 
     std::vector<Vector<double, 3>> boosts = {
-        {0.4, 0.1, -0.2}, {-0.3, 0.2, -0.1}, {0.5, -0.2, 0.1}
+        {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
+        {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
 
-    const std::vector<double> min_speeds = {0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35};
+    const std::vector<double> min_speeds = {
+        0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
+    };
 
     std::vector<double> shm_reference_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<double, 2> shm_reference(
@@ -58,7 +61,7 @@ void test_radon_integrator_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_reference(i, j));
+            std::printf("%.16e ", shm_reference(i, j));
         }
         std::printf("\n");
     }
@@ -68,10 +71,11 @@ void test_radon_integrator_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_test(i, j));
+            std::printf("%.16e ", shm_test(i, j));
         }
         std::printf("\n");
     }
+    std::printf("\n");
 }
 
 void test_radon_integrator_resp_is_accurate_for_shm()
@@ -88,13 +92,17 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         return 1.0;
     };
-
-    std::vector<Vector<double, 3>> boosts = {
-        {0.4, 0.1, -0.2}, {-0.3, 0.2, -0.1}, {0.5, -0.2, 0.1}
+    const std::vector<Vector<double, 3>> boosts = {
+        {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
+        {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
-    const std::vector<double> eras = {0.0, 2.0, 3.0};
+    const std::vector<double> eras = {
+        0.0, std::numbers::pi, 0.5*std::numbers::pi, 0.0, std::numbers::pi, 0.5*std::numbers::pi
+    };
 
-    const std::vector<double> min_speeds = {0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35};
+    const std::vector<double> min_speeds = {
+        0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
+    };
 
     std::vector<double> shm_reference_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<double, 2> shm_reference(
@@ -122,7 +130,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_reference(i, j));
+            std::printf("%.16e ", shm_reference(i, j));
         }
         std::printf("\n");
     }
@@ -132,10 +140,11 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
         {
-            std::printf("%f ", shm_test(i, j));
+            std::printf("%.16e ", shm_test(i, j));
         }
         std::printf("\n");
     }
+    std::printf("\n");
 }
 
 int main()

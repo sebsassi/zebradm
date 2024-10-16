@@ -44,11 +44,12 @@ struct GaussKronrod
     using ReturnType = IntegralResult<CodomainType>;
     using RuleData = GK<Degree>;
     using Limits = Interval<DomainType>;
+    using RegionType = SubdivisibleInterval<DomainType>;
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr ReturnType
-    integrate(FuncType f, const Limits& limits)
+    integrate(DistType f, const Limits& limits)
     {
         constexpr auto gauss_points = RuleData::gauss_points();
         constexpr auto kronrod_points = RuleData::kronrod_points();

@@ -47,28 +47,100 @@ requires (FieldType x, typename FieldType::CodomainType (*f)(typename FieldType:
     { x.integrate(f) } -> std::same_as<const IntegralResult<typename FieldType::CodomainType>&>;
 };
 
+template <typename Rule>
+class IntegrationRegion
+{
+public:
+    using RuleType = Rule;
+    using RegionType = Rule::RegionType;
+    using DomainType = typename Rule::DomainType;
+    using CodomainType = typename Rule::CodomainType;
+    using Limits = RuleType::Limits;
+    using Result = IntegralResult<CodomainType>;
+
+    explicit constexpr IntegrationRegion(const Limits& p_limits):
+        m_region(p_limits) {}
+
+    explicit constexpr IntegrationRegion(const RegionType& p_region):
+        m_region(p_region) {}
+
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
+    [[nodiscard]] constexpr std::pair<IntegrationRegion, IntegrationRegion>
+    subdivide(DistType f) const noexcept
+    {
+        const auto& [left, right] = m_region.subdivide();
+
+        std::pair<IntegrationRegion, IntegrationRegion> regions = {
+            IntegrationRegion(left), IntegrationRegion(right)
+        };
+        regions.first.integrate(f);
+        regions.second.integrate(f);
+
+        return regions;
+    }
+
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
+    constexpr const IntegralResult<CodomainType>& integrate(DistType f) noexcept
+    {
+        m_result = m_region.template integrate<RuleType>(f);
+        if constexpr (std::is_floating_point<CodomainType>::value)
+            m_maxerr = m_result.err;
+        else
+            m_maxerr = *std::ranges::max_element(m_result.err);
+        return m_result;
+    }
+
+    [[nodiscard]] constexpr const IntegralResult<CodomainType>&
+    result() const noexcept
+    {
+        return m_result;
+    }
+
+    [[nodiscard]] constexpr double maxerr() const noexcept
+    {
+        return m_maxerr;
+    }
+
+    constexpr auto operator<=>(const IntegrationRegion& b) const noexcept
+    {
+        return maxerr() <=> b.maxerr();
+    }
+    
+    constexpr bool operator==(const IntegrationRegion& b) const noexcept
+    {
+        return maxerr() == b.maxerr();
+    }
+
+private:
+    RegionType m_region;
+    IntegralResult<CodomainType> m_result;
+    double m_maxerr;
+};
+
 template <typename FieldType>
 concept SubdivisionIntegrable
     = WeaklyOrdered<FieldType> && Limited<FieldType> && Integrating<FieldType> && BiSubdivisible<FieldType>
     && ResultStoring<FieldType>;
 
-template <SubdivisionIntegrable RegionType, typename NormType = NormIndividual>
+template <typename RuleType, typename NormType = NormIndividual>
 class MultiIntegrator
 {
 public:
-    using Region = RegionType;
-    using Limits = typename Region::Limits;
-    using CodomainType = typename Region::CodomainType;
-    using DomainType = typename Region::DomainType;
+    using RegionType = IntegrationRegion<RuleType>;
+    using Limits = typename RegionType::Limits;
+    using CodomainType = typename RegionType::CodomainType;
+    using DomainType = typename RegionType::DomainType;
     using ResultType = IntegralResult<CodomainType>;
 
     MultiIntegrator() = default;
 
-    template <typename FuncType, typename LimitsType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType, typename LimitsType>
+        requires MapsAs<DistType, DomainType, CodomainType>
         &&  (std::same_as<std::remove_cvref_t<LimitsType>, Limits> || std::convertible_to<LimitsType, std::span<const Limits>>)
     [[nodiscard]] Result<ResultType, Status> integrate(
-            FuncType f, LimitsType&& integration_domain,
+            DistType f, LimitsType&& integration_domain,
             double abserr, double relerr,
             std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -94,7 +166,7 @@ public:
 
     [[nodiscard]] std::size_t func_eval_count() const noexcept
     {
-        return m_region_eval_count*Region::RuleType::points_count();
+        return m_region_eval_count*RuleType::points_count();
     }
     [[nodiscard]] std::size_t region_eval_count() const noexcept
     {
@@ -110,9 +182,9 @@ public:
     }
 
 private:
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
-    [[nodiscard]] inline ResultType initialize(FuncType f)
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
+    [[nodiscard]] inline ResultType initialize(DistType f)
     {
         ResultType res{};
         for (auto& region : m_region_heap)
@@ -122,9 +194,9 @@ private:
         return res;
     }
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
-    inline void subdivide_top_region(FuncType f, ResultType& res)
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
+    inline void subdivide_top_region(DistType f, ResultType& res)
     {
         m_region_eval_count += 2;
         const RegionType top_region = pop_top_region();
@@ -148,11 +220,6 @@ private:
         {
             if constexpr (std::is_same_v<NormType, NormIndividual>)
             {
-#if (__GNUC__ > 12)
-                for (const auto& [val, err] : std::ranges::views::zip(res.val, res.err))
-                    if (err > abserr && err > std::fabs(val)*relerr) return false;
-                return true;
-#else
                 for (std::size_t i = 0; i < res.ndim(); ++i)
                 {
                     if (res.err[i] > abserr
@@ -160,7 +227,6 @@ private:
                         return false;
                 }
                 return true;
-#endif
             }
             else
             {

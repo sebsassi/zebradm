@@ -8,6 +8,7 @@
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
+#include "zebra_util.hpp"
 
 namespace zebra
 {
@@ -79,7 +80,7 @@ public:
     AnisotropicAngleIntegrator() = default;
     AnisotropicAngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
-        std::size_t trunc_order);
+        std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
     
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -99,7 +100,7 @@ public:
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note `distribution` and `boost` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
+        @note `distribution` and `boost` are expected to be expressed in the same coordinate system. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `distribution` coordinate system to the x-axis of the `response` coordinate system.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
@@ -117,7 +118,7 @@ public:
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
+        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `distribution` coordinate system to the x-axis of the `response` coordinate system.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
@@ -213,7 +214,7 @@ public:
     AnisotropicTransverseAngleIntegrator() = default;
     AnisotropicTransverseAngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
-        std::size_t trunc_order);
+        std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
     
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -233,7 +234,7 @@ public:
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note `distribution` and `boost` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
+        @note `distribution` and `boost` are expected to be expressed in the same coordinate system. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `distribution` coordinate system to the x-axis of the `response` coordinate system.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
@@ -251,7 +252,7 @@ public:
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
-        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system. `response` is expressed in a coordinate system whose z-axis is aligned with that of `distribution`, but is rotated around the z-axis by the angle `era`.
+        @note `distribution` and `boosts` are expected to be expressed in the same coordinate system. The coordinate systems of `response` and `distribution` are related such that they share the same z-axis, but differ by the angle `era` in the xy-plane. Specifically, `era` is the counterclockwise angle from the x-axis of the `distribution` coordinate system to the x-axis of the `response` coordinate system.
 
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */

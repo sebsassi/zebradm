@@ -1,5 +1,7 @@
 #include "zebra_angle_integrator_core.hpp"
 
+#include "coordinates/coordinate_functions.hpp"
+
 #include "radon_util.hpp"
 
 namespace zebra
@@ -114,7 +116,12 @@ IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
 
 AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order):
-    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), m_aff_leg_integrals(geg_order, resp_order), m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, resp_order)), m_ylm_integral_norms(geg_order), m_zonal_transformer(top_order), m_rotated_grid(top_order), m_rotated_exp(top_order)
+    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), 
+    m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), 
+    m_aff_leg_integrals(geg_order, resp_order),
+    m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, resp_order)), 
+    m_ylm_integral_norms(top_order), m_zonal_transformer(top_order), 
+    m_rotated_grid(top_order), m_rotated_exp(top_order)
 {
     for (std::size_t l = 0; l  < geg_order; ++l)
         m_ylm_integral_norms[l]
@@ -148,15 +155,14 @@ double AnisotropicAngleIntegratorCore::integrate(
     double era, const Vector<double, 3>& boost, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
-    const double boost_speed = length(boost);
+    const auto& [boost_az, boost_colat, boost_speed]
+        = coordinates::cartesian_to_spherical_phys(boost);
     if (min_speed > 1.0 + boost_speed) return 0.0;
 
-    const double boost_colat = std::acos(boost[2]/boost_speed);
-    const double boost_az = std::atan2(boost[1], boost[0]);
-
-    const Vector<double, 3> euler_angles = {
-        0.0, -boost_colat, std::numbers::pi - boost_az - era
-    };
+    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    const Vector<double, 3> euler_angles
+        = util::euler_angles_to_align_z<rotation_type>(
+                boost_az - era, boost_colat);
 
     std::ranges::copy(
             response_exp.flatten(), m_rotated_response_exp.flatten().begin());
@@ -198,17 +204,16 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     double era, const Vector<double, 3>& boost, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
-    const double boost_speed = length(boost);
+    const auto& [boost_az, boost_colat, boost_speed]
+        = coordinates::cartesian_to_spherical_phys(boost);
     if (min_speed > 1.0 + boost_speed) return {0.0, 0.0};
 
     const double min_speed_sq = min_speed*min_speed;
 
-    const double boost_colat = std::acos(boost[2]/boost_speed);
-    const double boost_az = std::atan2(boost[1], boost[0]);
-
-    const Vector<double, 3> euler_angles = {
-        0.0, -boost_colat, std::numbers::pi - boost_az - era
-    };
+    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    const Vector<double, 3> euler_angles
+        = util::euler_angles_to_align_z<rotation_type>(
+                boost_az - era, boost_colat);
 
     std::ranges::copy(
             response_exp.flatten(), m_rotated_response_exp.flatten().begin());
@@ -252,7 +257,8 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
                 m_rotated_grid, m_rotated_exp);
         for (std::size_t l = 0; l <= n + extra_extent; ++l)
         {
-            const double nontrans = m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
+            const double nontrans
+                = m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
             res[0] += nontrans;
             res[1] -= min_speed_sq*nontrans;
         }
@@ -263,7 +269,8 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
 
 TrapezoidSpan<double> 
 AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
-    double min_speed, double boost_speed, std::size_t geg_order, std::size_t resp_order)
+    double min_speed, double boost_speed, std::size_t geg_order,
+    std::size_t resp_order)
 {
     const std::size_t extra_extent = resp_order - std::min(1UL, resp_order);
     TrapezoidSpan<double> integrals(

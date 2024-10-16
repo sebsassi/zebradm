@@ -80,12 +80,12 @@ constexpr std::size_t binomial_coeff(std::size_t n, std::size_t k)
     return res;
 }
 
-template <typename FieldType>
+template <typename T>
 concept GenzCoolsIntegrable
-    = ArrayLike<FieldType>
-    && std::tuple_size<FieldType>::value > 1
-    && std::tuple_size<FieldType>::value <= 410
-    && FloatingPointVectorOperable<FieldType>;
+    = ArrayLike<T>
+    && std::tuple_size<T>::value > 1
+    && std::tuple_size<T>::value <= 410
+    && FloatingPointVectorOperable<T>;
 
 template <std::size_t Order, GenzCoolsIntegrable DomainTypeParam, typename CodomainTypeParam>
     requires requires { 0 < Order; Order <= 4; }
@@ -98,10 +98,10 @@ public:
     using Limits = Simplex<DomainType>;
 
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr ReturnType
-    integrate(FuncType f, const Limits& limits)
+    integrate(DistType f, const Limits& limits)
     {
         const auto symmetric_sums = Rule::symmetric_sums(f);
 
@@ -230,12 +230,12 @@ Gram-Schmidt process with two modifications:
 
     2. Each weight vector is scaled to have norm equal to the weight vector of the base (highest order) integration rule.
 */
-template <std::floating_point FieldType, std::size_t Count, std::size_t Dim>
+template <std::floating_point T, std::size_t Count, std::size_t Dim>
 constexpr auto& orthonormalize_null_rules(
-    std::array<std::array<FieldType, Dim>, Count>& rules, std::array<FieldType, Dim>& symmetry_factors)
+    std::array<std::array<T, Dim>, Count>& rules, std::array<T, Dim>& symmetry_factors)
 {
-    FieldType rule_norm_sqr = triple_dot(rules[0], symmetry_factors, rules[0]);
-    FieldType inv_rule_norm_sqr = 1.0/rule_norm_sqr;
+    T rule_norm_sqr = triple_dot(rules[0], symmetry_factors, rules[0]);
+    T inv_rule_norm_sqr = 1.0/rule_norm_sqr;
     for (std::size_t j = 1; j < Count; ++j)
         rules[j] -= project_rule(
                 rules[j], rules[0], symmetry_factors, inv_rule_norm_sqr);
@@ -250,19 +250,19 @@ constexpr auto& orthonormalize_null_rules(
     return rules;
 }
 
-template <std::floating_point FieldType, std::size_t N>
-constexpr inline std::array<FieldType, N>& normalize_null_rule(
-    std::array<FieldType, N>& null_rule, const std::array<FieldType, N>& symmetry_factors,
-    FieldType base_rule_norm_sqr)
+template <std::floating_point T, std::size_t N>
+constexpr inline std::array<T, N>& normalize_null_rule(
+    std::array<T, N>& null_rule, const std::array<T, N>& symmetry_factors,
+    T base_rule_norm_sqr)
 {
-    FieldType null_rule_norm_sqr = triple_dot(null_rule, symmetry_factors, null_rule);
+    T null_rule_norm_sqr = triple_dot(null_rule, symmetry_factors, null_rule);
     null_rule *= std::sqrt(base_rule_norm_sqr/null_rule_norm_sqr);
     return null_rule;
 }
 
-template <std::floating_point FieldType, std::size_t N>
-constexpr inline std::array<FieldType, N> project_rule(
-    const std::array<FieldType, N>& a, const std::array<FieldType, N>& b, const std::array<FieldType, N>& symmetry_factors, FieldType inv_bnorm_sqr)
+template <std::floating_point T, std::size_t N>
+constexpr inline std::array<T, N> project_rule(
+    const std::array<T, N>& a, const std::array<T, N>& b, const std::array<T, N>& symmetry_factors, T inv_bnorm_sqr)
 {
     return (inv_bnorm_sqr*triple_dot(a, symmetry_factors, b))*b;
 }

@@ -59,11 +59,12 @@ struct GenzMalikD7
     using CodomainType = CodomainTypeParam;
     using ReturnType = std::pair<IntegralResult<CodomainType>, std::size_t>;
     using Limits = Box<DomainType>;
+    using RegionType = SubdivisibleBox<DomainType>;
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr ReturnType
-    integrate(FuncType f, const Limits& limits)
+    integrate(DistType f, const Limits& limits)
     {
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
         constexpr double v = double(1UL << ndim);
@@ -121,7 +122,7 @@ struct GenzMalikD7
             err = std::fabs(err);
         else
             std::ranges::transform(
-                    err, err, static_cast<double(*)(double)>(std::fabs));
+                    err, err.begin(), static_cast<double(*)(double)>(std::fabs));
 
         const std::array<double, ndim> fourth_diff_normed
                 = normed_fourth_difference(second_diff_2, second_diff_3);
@@ -167,11 +168,11 @@ private:
         return fourth_diff_normed;
     }
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr std::pair<CodomainType, DiffType> 
     symmetric_sum_1_var(
-        FuncType f, const DomainType& center, const DomainType& half_lengths, const CodomainType& central_value, double gm_point)
+        DistType f, const DomainType& center, const DomainType& half_lengths, const CodomainType& central_value, double gm_point)
     {
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
         CodomainType val{};
@@ -199,11 +200,11 @@ private:
         return {val, second_differences};
     }
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr CodomainType
     symmetric_sum_2_var(
-        FuncType f, const DomainType& center, const DomainType& half_lengths)
+        DistType f, const DomainType& center, const DomainType& half_lengths)
     {
         constexpr double gm_point = 0.9486832980505137995996680633298155601160;
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
@@ -248,11 +249,11 @@ private:
         return val;
     }
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] static constexpr CodomainType
     symmetric_sum_n_var(
-        FuncType f, const DomainType& center, const DomainType& half_lengths)
+        DistType f, const DomainType& center, const DomainType& half_lengths)
     {
         constexpr double gm_point = 0.6882472016116852977216287342936235251269;
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;

@@ -34,13 +34,13 @@ struct GrundmannMoellerGenerator
 {
     static constexpr std::size_t degree = 2*Order + 1;
 
-    template <typename FieldType, std::size_t N>
+    template <typename T, std::size_t N>
         requires requires { N > Order; }
-    [[nodiscard]] static constexpr FieldType evaluate(
-        const std::array<FieldType, N>& sums)
+    [[nodiscard]] static constexpr T evaluate(
+        const std::array<T, N>& sums)
     {
-        constexpr std::array<FieldType, Order + 1> weights_ = weights();
-        FieldType val{};
+        constexpr std::array<T, Order + 1> weights_ = weights();
+        T val{};
         for (std::size_t i = 0; i < weights.size(); ++i)
             val += weights_[i]*sums[i];
         return val;

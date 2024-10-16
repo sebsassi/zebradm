@@ -46,21 +46,6 @@ void IsotropicAngleIntegrator::integrate(
     integrate(boost, min_speeds, out);
 }
 
-/**
-    @brief Set Euler angles for rotation to a coordinate system whose z-axis is in the direction given by the arguments.
-
-    @note The convention for the Euler angles is that used by `zest::Rotor::rotate`.
-*/
-template <zest::RotationType TYPE>
-constexpr Vector<double, 3> euler_angles_to_align_z(
-    double azimuth, double colatitude)
-{
-    if constexpr (TYPE == zest::RotationType::COORDINATE)
-        return {azimuth, colatitude, 0.0};
-    else
-        return {0.0, -colatitude, std::numbers::pi - azimuth};
-}
-
 void IsotropicAngleIntegrator::integrate(
     const Vector<double, 3>& boost, std::span<const double> min_speeds,
     std::span<double> out)
@@ -73,7 +58,7 @@ void IsotropicAngleIntegrator::integrate(
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
-        = euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
     
     m_rotor.rotate(
             m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
@@ -91,11 +76,17 @@ void IsotropicAngleIntegrator::integrate(
     return geg_order*zest::st::SphereGLQGridSpan<double>::size(std::min(geg_order + resp_order, trunc_order));
 }
 
+[[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(
+    std::size_t order)
+{
+    return zest::zt::ZernikeExpansionSHSpan<std::array<double, 2>, zest::zt::ZernikeNorm::NORMED, zest::st::SHNorm::GEO, zest::st::SHPhase::NONE>::size(order);
+}
+
 AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2(std::max(dist_order + 2, resp_order)),
     m_geg_zernike_exp(dist_order + 2),
-    m_rotated_geg_zernike_exp(dist_order + 2),
+    m_rotated_geg_zernike_exp(zernike_expansion_sh_span_size(dist_order + 2)),
     m_rotated_geg_zernike_grids(
         geg_zernike_grids_size(dist_order + 2, resp_order, trunc_order)),
     m_integrator_core(
@@ -114,7 +105,8 @@ void AnisotropicAngleIntegrator::resize(
     if (dist_order != m_dist_order)
     {
         m_geg_zernike_exp.resize(dist_order + 2);
-        m_rotated_geg_zernike_exp.resize(dist_order + 2);
+        m_rotated_geg_zernike_exp.resize(
+                zernike_expansion_sh_span_size(dist_order + 2));
     }
 
     if (dist_order != m_dist_order || resp_order != m_resp_order || trunc_order != m_trunc_order)
@@ -180,7 +172,7 @@ void AnisotropicAngleIntegrator::integrate(
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
-        = euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
 
     SuperSpan<zest::st::SphereGLQGridSpan<double>>
     rotated_geg_zernike_grids(
@@ -302,7 +294,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
-        = euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
 
     m_rotor.rotate(
             m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
@@ -323,7 +315,7 @@ AnisotropicTransverseAngleIntegrator::AnisotropicTransverseAngleIntegrator(
     m_geg_zernike_exp_y(dist_order + 3),
     m_geg_zernike_exp_z(dist_order + 3),
     m_geg_zernike_exp_r2(dist_order + 4),
-    m_rotated_geg_zernike_exp(dist_order + 2),
+    m_rotated_geg_zernike_exp(zernike_expansion_sh_span_size(dist_order + 2)),
     m_rotated_trans_geg_zernike_exp(dist_order + 4),
     m_rotated_geg_zernike_grids(
         geg_zernike_grids_size(dist_order + 2, resp_order, trunc_order)),
@@ -351,7 +343,8 @@ void AnisotropicTransverseAngleIntegrator::resize(
         m_geg_zernike_exp_y.resize(dist_order + 3);
         m_geg_zernike_exp_z.resize(dist_order + 3);
         m_geg_zernike_exp_r2.resize(dist_order + 4);
-        m_rotated_geg_zernike_exp.resize(dist_order + 2);
+        m_rotated_geg_zernike_exp.resize(
+                zernike_expansion_sh_span_size(dist_order + 2));
         m_rotated_trans_geg_zernike_exp.resize(dist_order + 4);
     }
 
@@ -443,7 +436,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
-        = euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
 
     for (std::size_t n = 0; n < geg_order; ++n)
     {

@@ -4,21 +4,21 @@
 
 #include "concepts.hpp"
 
-template <typename FieldType>
+template <typename T>
 struct Simplex
 {
-    std::array<FieldType, std::tuple_size<FieldType>::value + 1> vertices;
+    std::array<T, std::tuple_size<T>::value + 1> vertices;
 
     [[nodiscard]] std::pair<Simplex, Simplex> subdivide_longest_edge()
     {
         std::pair<std::size_t, std::size_t> inds{};
         double max_length_sqr = 0.0;
-        for (std::size_t i = 0; i < std::tuple_size<FieldType>::value; ++i)
+        for (std::size_t i = 0; i < std::tuple_size<T>::value; ++i)
         {
-            for (std::size_t j = i + 1; j < std::tuple_size<FieldType>::value; ++j)
+            for (std::size_t j = i + 1; j < std::tuple_size<T>::value; ++j)
             {
-                const FieldType disp = vertices[j] - vertices[i];
-                const FieldType disp2 = disp*disp;
+                const T disp = vertices[j] - vertices[i];
+                const T disp2 = disp*disp;
                 const double length_sqr = std::accumulate(
                         disp2.begin(), disp2.end(), 0.0);
                 if (length_sqr > max_length_sqr)
@@ -29,7 +29,7 @@ struct Simplex
             }
         }
 
-        const FieldType center = 0.5*(vertices[inds.first] + vertices[inds.second]);
+        const T center = 0.5*(vertices[inds.first] + vertices[inds.second]);
 
         std::pair<Simplex, Simplex> res = {*this, *this};
         res.first[inds.first] = center;
@@ -53,10 +53,10 @@ public:
     IntegrationSimplex(const Limits& p_limits)
     : limits(p_limits), result_(), maxerr_() {}
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
     [[nodiscard]] constexpr std::pair<IntegrationSimplex, IntegrationSimplex>
-    subdivide(FuncType f) const
+    subdivide(DistType f) const
     {
         const std::pair<Simplex, Simplex> verts
             = limits.subdivide_longest_edge();
@@ -71,9 +71,9 @@ public:
         return simplices;
     }
 
-    template <typename FuncType>
-        requires MapsAs<FuncType, DomainType, CodomainType>
-    const IntegralResult<CodomainType>& integrate(FuncType f)
+    template <typename DistType>
+        requires MapsAs<DistType, DomainType, CodomainType>
+    const IntegralResult<CodomainType>& integrate(DistType f)
     {
         result_ = Rule::integrate(f, limits);
         if constexpr (std::is_floating_point<CodomainType>::value)

@@ -2,9 +2,17 @@
 #include "zest/real_sh_expansion.hpp"
 #include "zest/sh_glq_transformer.hpp"
 
+#include "legendre.hpp"
+
 namespace zebra
 {
 
+/**
+    @brief Fast transformations from a Gauss-Legendre quadrature grid to zonal spherical harmonic components.
+
+    @tparam NORM normalization convention of spherical harmonics
+    @tparam GridLayoutType
+*/
 template <zest::st::SHNorm SH_NORM, typename GridLayoutType = zest::st::DefaultLayout>
 class ZonalGLQTransformer
 {
@@ -24,7 +32,15 @@ public:
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
         {
             const double z = m_glq_nodes[i];
-            legendre_recursion(std::span(m_leg_grid.data() + i*order, order), z);
+            std::span leg = std::span(m_leg_grid.data() + i*order, order);
+            legendre_recursion(leg, z);
+            for (std::size_t l = 0; l < order; ++l)
+            {
+                if constexpr (SH_NORM == zest::st::SHNorm::QM)
+                    leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
+                else
+                    leg[l] *= std::sqrt(double(2*l + 1));
+            }
         }
     }
 
@@ -42,12 +58,26 @@ public:
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
         {
             const double z = m_glq_nodes[i];
-            legendre_recursion(std::span(m_leg_grid.data() + i*order, order), z);
+            std::span leg = std::span(m_leg_grid.data() + i*order, order);
+            legendre_recursion(leg, z);
+            for (std::size_t l = 0; l < order; ++l)
+            {
+                if constexpr (SH_NORM == zest::st::SHNorm::QM)
+                    leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
+                else
+                    leg[l] *= std::sqrt(double(2*l + 1));
+            }
         }
 
         m_order = order;
     }
 
+    /**
+        @brief Forward transform from Gauss-Legendre quadrature grid to zonal harmonic coefficients.
+
+        @param values values on the spherical quadrature grid
+        @param expansion coefficients of the expansion
+    */
     void forward_transform(
         zest::st::SphereGLQGridSpan<const double, GridLayout> values, std::span<double> expansion)
     {
@@ -60,7 +90,7 @@ public:
         {
             for (std::size_t i = 0; i < values.shape()[lat_axis]; ++i)
             {
-                zest::MDSpan<double, 1> values_i = values[i];
+                zest::MDSpan<const double, 1> values_i = values[i];
                 m_longitudinal_average[i] = 0.0;
                 for (std::size_t j = 0; j < values.shape()[lon_axis]; ++j)
                     m_longitudinal_average[i] += values_i[j];
@@ -86,12 +116,48 @@ public:
         const std::size_t min_order = std::min(expansion.size(), m_longitudinal_average.size());
 
         std::ranges::fill(expansion, 0.0);
-        for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)
+        const std::size_t num_lat = m_longitudinal_average.size();
+        const std::size_t central_offset = num_lat >> 1;
+        const std::size_t num_unique_nodes = m_glq_weights.size();
+        const std::size_t south_offset = num_unique_nodes - 1;
+        const std::size_t north_offset = central_offset;
+
+        for (std::size_t i = 0; i < num_unique_nodes; ++i)
         {
+            const double south = m_longitudinal_average[south_offset - i];
+            const double north = m_longitudinal_average[north_offset + i];
+            const std::array<double, 2> symm_asymm = {
+                north + south, north - south
+            };
+            const std::array<double, 2> weighted = {
+                m_glq_weights[i]*symm_asymm[0], m_glq_weights[i]*symm_asymm[1]
+            };
+            const std::size_t lparity = min_order & 1;
+            const std::array<double, 2> weighted_l = {
+                weighted[lparity], weighted[lparity ^ 1]
+            };
             std::span leg(m_leg_grid.data() + i*m_order, m_order);
-            for (std::size_t l = 0; l < min_order; ++l)
-                expansion[l] += m_glq_weights[i]*leg[l];
+            expansion[0] += double(lparity)*weighted[0]*leg[0];
+            for (std::size_t l = lparity; l < min_order; l += 2)
+            {
+                expansion[l] += weighted_l[0]*leg[l];
+                expansion[l + 1] += weighted_l[1]*leg[l + 1];
+            }
         }
+    }
+
+    /**
+        @brief Forward transform from Gauss-Legendre quadrature grid to zonal harmonic coefficients.
+
+        @param values values on the spherical quadrature grid
+    */
+    std::vector<double> forward_transform(
+        zest::st::SphereGLQGridSpan<const double, GridLayout> values, 
+        std::size_t order)
+    {
+        std::vector<double> res(order);
+        forward_transform(values, res);
+        return res;
     }
 
 private:
