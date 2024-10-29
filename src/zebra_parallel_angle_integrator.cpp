@@ -202,8 +202,7 @@ void AnisotropicAngleIntegrator::integrate(
                 const std::size_t thread_ind
                     = team_ind + omp_get_thread_num();
                 out(i, j) = m_integrators[thread_ind].integrate(
-                        rotated_geg_zernike_grids, response[j], era[i], boosts[i], 
-                        min_speeds[j], m_wigner_d_pi2);
+                        rotated_geg_zernike_grids, response[j], boosts[i], era[i], min_speeds[j], m_wigner_d_pi2);
             }
         }
     }

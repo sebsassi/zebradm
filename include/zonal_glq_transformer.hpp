@@ -113,16 +113,37 @@ public:
         for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)
             m_longitudinal_average[i] *= prefactor;
         
-        const std::size_t min_order = std::min(expansion.size(), m_longitudinal_average.size());
+        const std::size_t min_order = std::min(expansion.size(), values.order());
 
-        std::ranges::fill(expansion, 0.0);
         const std::size_t num_lat = m_longitudinal_average.size();
         const std::size_t central_offset = num_lat >> 1;
         const std::size_t num_unique_nodes = m_glq_weights.size();
         const std::size_t south_offset = num_unique_nodes - 1;
         const std::size_t north_offset = central_offset;
+        const std::size_t lparity = min_order & 1;
 
-        for (std::size_t i = 0; i < num_unique_nodes; ++i)
+        std::ranges::fill(expansion, 0.0);
+        const double south = m_longitudinal_average[south_offset];
+        const double north = m_longitudinal_average[north_offset];
+        const double symmetry_factor = (num_lat & 1) ? 0.5 : 1.0;
+        const std::array<double, 2> symm_asymm = {
+            symmetry_factor*(north + south), symmetry_factor*(north - south)
+        };
+        const std::array<double, 2> weighted = {
+            m_glq_weights[0]*symm_asymm[0], m_glq_weights[0]*symm_asymm[1]
+        };
+        const std::array<double, 2> weighted_l = {
+            weighted[lparity], weighted[lparity ^ 1]
+        };
+        std::span leg(m_leg_grid.data(), m_order);
+        expansion[0] += double(lparity)*weighted[0]*leg[0];
+        for (std::size_t l = lparity; l < min_order; l += 2)
+        {
+            expansion[l] += weighted_l[0]*leg[l];
+            expansion[l + 1] += weighted_l[1]*leg[l + 1];
+        }
+
+        for (std::size_t i = 1; i < num_unique_nodes; ++i)
         {
             const double south = m_longitudinal_average[south_offset - i];
             const double north = m_longitudinal_average[north_offset + i];
@@ -132,7 +153,6 @@ public:
             const std::array<double, 2> weighted = {
                 m_glq_weights[i]*symm_asymm[0], m_glq_weights[i]*symm_asymm[1]
             };
-            const std::size_t lparity = min_order & 1;
             const std::array<double, 2> weighted_l = {
                 weighted[lparity], weighted[lparity ^ 1]
             };

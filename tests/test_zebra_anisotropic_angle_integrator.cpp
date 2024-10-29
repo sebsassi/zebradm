@@ -81,7 +81,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
             test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     zebra::AnisotropicAngleIntegrator(order, order)
-        .integrate(distribution, boosts, min_speeds, resp, era, test);
+        .integrate(distribution, resp, boosts, era, min_speeds, test);
     
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -182,7 +182,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
         resp[i](0,0) = {1.0, 0.0};
 
     zebra::AnisotropicAngleIntegrator(order, order).integrate(
-            distribution, boosts, min_speeds, resp, era, shm_test);
+            distribution, resp, boosts, era, min_speeds, shm_test);
 
     constexpr double tol = 1.0e-13;
 

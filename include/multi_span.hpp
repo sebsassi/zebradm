@@ -141,4 +141,74 @@ private:
 };
 
 template <typename SubspanType>
-using SuperSpan = MultiSuperSpan<SubspanType, 1>;
+class SuperSpan
+{
+public:
+    using element_type = typename SubspanType::element_type;
+    using value_type = std::remove_cv_t<element_type>;
+    using size_type = std::size_t;
+    using index_type = std::size_t;
+    using data_handle_type = element_type*;
+    using ConstView = SuperSpan<typename SubspanType::ConstView>;
+
+    static constexpr size_type size(
+        size_type extent, size_type subspan_size_param)
+    {
+        return extent*SubspanType::size(subspan_size_param);
+    }
+
+    constexpr SuperSpan(
+        element_type* data, size_type extent, size_type subspan_size_param) noexcept:
+        m_data(data), m_size(extent*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+    
+    constexpr SuperSpan(
+        std::span<element_type> span, size_type extent, size_type subspan_size_param) noexcept:
+        m_data(span.data()), m_size(extent*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+
+    constexpr SuperSpan(
+        data_handle_type data, size_type size, size_type subspan_size, std::size_t subspan_size_param, size_type extent) noexcept:
+        m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+
+    [[nodiscard]] constexpr operator ConstView() const noexcept
+    {
+        return ConstView(
+            m_data, m_size, m_subspan_size, m_subspan_size_param, m_extent);
+    }
+    
+    [[nodiscard]] size_type size() const noexcept
+    {
+        return m_size;
+    }
+    
+    [[nodiscard]] size_type subspan_size() const noexcept
+    {
+        return m_subspan_size;
+    }
+
+    [[nodiscard]] size_type extent() const noexcept
+    {
+        return m_extent;
+    }
+
+    [[nodiscard]] std::span<element_type> flatten() const noexcept
+    {
+        return std::span<element_type>(m_data, m_size);
+    }
+
+    SubspanType operator()(index_type i)
+    {
+        return SubspanType(m_data + i*m_subspan_size, m_subspan_size_param);
+    }
+
+    auto operator[](index_type i)
+    {
+        return (*this)(i);
+    }
+
+private:
+    data_handle_type m_data;
+    size_type m_size;
+    size_type m_subspan_size;
+    size_type m_subspan_size_param;
+    size_type m_extent;
+};

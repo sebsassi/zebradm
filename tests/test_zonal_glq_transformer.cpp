@@ -6,10 +6,8 @@ constexpr bool is_close(double a, double b, double tol)
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y00()
+bool test_zonal_glq_forward_transform_expands_Y00(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = []([[maybe_unused]] double lon, [[maybe_unused]] double colat)
     {
         constexpr double shnorm = (NORM == zest::st::SHNorm::QM) ?
@@ -54,10 +52,8 @@ bool test_zonal_glq_forward_transform_expands_Y00()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y10()
+bool test_zonal_glq_forward_transform_expands_Y10(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = []([[maybe_unused]] double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -104,10 +100,8 @@ bool test_zonal_glq_forward_transform_expands_Y10()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y20()
+bool test_zonal_glq_forward_transform_expands_Y20(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = []([[maybe_unused]] double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -154,10 +148,8 @@ bool test_zonal_glq_forward_transform_expands_Y20()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y21()
+bool test_zonal_glq_forward_transform_expands_Y21(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -192,10 +184,8 @@ bool test_zonal_glq_forward_transform_expands_Y21()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y30()
+bool test_zonal_glq_forward_transform_expands_Y30(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = []([[maybe_unused]] double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -242,10 +232,8 @@ bool test_zonal_glq_forward_transform_expands_Y30()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y31()
+bool test_zonal_glq_forward_transform_expands_Y31(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -280,10 +268,8 @@ bool test_zonal_glq_forward_transform_expands_Y31()
 }
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-bool test_zonal_glq_forward_transform_expands_Y4m3()
+bool test_zonal_glq_forward_transform_expands_Y4m3(std::size_t order)
 {
-    constexpr std::size_t order = 6;
-
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
@@ -319,21 +305,36 @@ bool test_zonal_glq_forward_transform_expands_Y4m3()
 
 
 template <typename GridLayout, zest::st::SHNorm NORM>
-void test_glq()
+void test_glq(std::size_t order)
 {
-    assert((test_zonal_glq_forward_transform_expands_Y00<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y10<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y20<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y21<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y30<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y31<GridLayout, NORM>()));
-    assert((test_zonal_glq_forward_transform_expands_Y4m3<GridLayout, NORM>()));
+    assert((test_zonal_glq_forward_transform_expands_Y00<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y10<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y20<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y21<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y30<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y31<GridLayout, NORM>(order)));
+    assert((test_zonal_glq_forward_transform_expands_Y4m3<GridLayout, NORM>(order)));
 }
 
 int main()
 {
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::GEO>();
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::GEO>();
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::QM>();
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::QM>();
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::GEO>(6);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::GEO>(7);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::GEO>(8);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::GEO>(9);
+
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::GEO>(6);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::GEO>(7);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::GEO>(8);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::GEO>(9);
+
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::QM>(6);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::QM>(7);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::QM>(8);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::QM>(9);
+
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::QM>(6);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::QM>(7);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::QM>(8);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::QM>(9);
 }

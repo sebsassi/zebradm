@@ -1,0 +1,74 @@
+#include <array>
+#include <cmath>
+#include <numbers>
+
+#include "linalg.hpp"
+#include "coordinates/coordinate_functions.hpp"
+
+using Response = double(*)(double, double, double);
+
+double smooth_exponential(double min_speed, double longitude, double colatitude)
+{
+    static const std::array<double, 3> ref_dir
+        = normalize(std::array<double, 3>{0.5, 0.5, 0.5});
+    const std::array<double, 3> dir
+        = coordinates::spherical_to_cartesian_phys(longitude, colatitude);
+    constexpr double rate = 2.0;
+    const double u2 = min_speed*min_speed;
+    const double u4 = u2*u2;
+    return (u4/(1 + u4))*std::exp(rate*(dot(dir, ref_dir)));
+}
+
+inline double smooth_step(double x, double slope)
+{
+    return 0.5*(1.0 + std::tanh(slope*x));
+}
+
+double smooth_dots(double min_speed, double longitude, double colatitude)
+{
+    constexpr double norm = (4000.0/(3.0*33.0*33.0));
+
+    const double t = std::cos(colatitude);
+    const double t2 = t*t;
+    const double u2 = (1.0 - t)*(1.0 + t);
+    const double u4 = u2*u2;
+    const double Y64 = norm*u4*(11.0*t2 - 1.0)*std::cos(4.0*longitude);
+
+    constexpr double rate = 5.0;
+    const double surface = 1.0 - std::exp(rate*(Y64 - 1.0));
+
+    constexpr double slope = 50.0;
+    return smooth_step(min_speed*(1.0/1.5) - surface, slope);
+}
+
+double fcc_dots(double min_speed, double longitude, double colatitude)
+{
+    static const std::array<std::array<double, 3>, 14> ref_dirs = {
+        std::array<double, 3>{1.0, 0.0, 0.0},
+        std::array<double, 3>{-1.0, 0.0, 0.0},
+        std::array<double, 3>{0.0, 1.0, 0.0},
+        std::array<double, 3>{0.0, -1.0, 0.0},
+        std::array<double, 3>{0.0, 0.0, 1.0},
+        std::array<double, 3>{0.0, 0.0, -1.0},
+        std::array<double, 3>{1.0, 1.0, 1.0},
+        std::array<double, 3>{1.0, 1.0, -1.0},
+        std::array<double, 3>{1.0, -1.0, 1.0},
+        std::array<double, 3>{1.0, -1.0, -1.0},
+        std::array<double, 3>{-1.0, 1.0, 1.0},
+        std::array<double, 3>{-1.0, 1.0, -1.0},
+        std::array<double, 3>{-1.0, -1.0, 1.0},
+        std::array<double, 3>{-1.0, -1.0, -1.0}
+    };
+    
+    const std::array<double, 3> dir
+        = coordinates::spherical_to_cartesian_phys(longitude, colatitude);
+    
+    const double radius = std::acos((1.0/1.5)*min_speed);
+    const double c_rad = std::cos(radius);
+
+    double res = 0.0;
+    for (const auto& ref_dir : ref_dirs)
+        res += double(dot(dir, ref_dir) < c_rad);
+    
+    return res;
+}

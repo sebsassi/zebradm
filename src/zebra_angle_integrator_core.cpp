@@ -1,5 +1,9 @@
 #include "zebra_angle_integrator_core.hpp"
 
+#include <fstream>
+
+#include "zest/grid_evaluator.hpp"
+
 #include "coordinates/coordinate_functions.hpp"
 
 #include "radon_util.hpp"
@@ -123,7 +127,7 @@ AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
     m_ylm_integral_norms(top_order), m_zonal_transformer(top_order), 
     m_rotated_grid(top_order), m_rotated_exp(top_order)
 {
-    for (std::size_t l = 0; l  < geg_order; ++l)
+    for (std::size_t l = 0; l  < top_order; ++l)
         m_ylm_integral_norms[l]
             = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
@@ -139,8 +143,8 @@ void AnisotropicAngleIntegratorCore::resize(
     m_aff_leg_integrals.resize(geg_order, resp_order);
     m_aff_leg_ylm_integrals.resize(
             TrapezoidLayout::size(geg_order, resp_order));
-    m_ylm_integral_norms.resize(geg_order);
-    for (std::size_t l = 0; l  < geg_order; ++l)
+    m_ylm_integral_norms.resize(top_order);
+    for (std::size_t l = 0; l  < top_order; ++l)
         m_ylm_integral_norms[l]
             = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 
@@ -149,10 +153,55 @@ void AnisotropicAngleIntegratorCore::resize(
     m_rotated_exp.resize(top_order);
 }
 
+template <std::floating_point T>
+std::vector<T> linspace(T start, T stop, std::size_t count)
+{
+    if (count == 0) return {};
+    if (count == 1) return {start};
+
+    std::vector<T> res(count);
+    const T step = (stop - start)/T(count - 1);
+    for (std::size_t i = 0; i < count - 1; ++i)
+        res[i] = start + T(i)*step;
+    
+    res[count - 1] = stop;
+
+    return res;
+}
+
+void save_debug_grid(
+    const char* fname_prefix,
+    zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> sh_exp, double boost_az, double boost_colat, const Vector<double, 3> euler_angles)
+{
+    constexpr std::size_t num_lon = 100;
+    constexpr std::size_t num_lat = 50;
+    std::vector<double> longitudes = linspace(
+            0.0, 2.0*std::numbers::pi, num_lon);
+    std::vector<double> colatitudes = linspace(
+            0.0, std::numbers::pi, num_lat);
+    std::vector<double> grid
+        = zest::st::GridEvaluator().evaluate(sh_exp, longitudes, colatitudes);
+    
+    zest::MDSpan<double, 2> values_span(grid.data(), {num_lon, num_lat});
+
+    constexpr double to_deg = 180.0/std::numbers::pi;
+
+    char fname[512];
+    std::sprintf(fname, "%s_%.0f_%.0f_rot_%.0f_%.0f_%.0f.dat", fname_prefix, to_deg*boost_az, to_deg*boost_colat, to_deg*euler_angles[0], to_deg*euler_angles[1], to_deg*euler_angles[2]);
+    std::ofstream fs(fname);
+    for (std::size_t i = 0; i < values_span.extents()[0]; ++i)
+    {
+        for (std::size_t j = 0; j < values_span.extents()[1]; ++j)
+            fs << values_span(i,j) << ' ';
+        fs << '\n';
+    }
+    fs.close();
+}
+
 double AnisotropicAngleIntegratorCore::integrate(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-    double era, const Vector<double, 3>& boost, double min_speed, 
+    const Vector<double, 3>& boost, double era, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
     const auto& [boost_az, boost_colat, boost_speed]
@@ -167,12 +216,17 @@ double AnisotropicAngleIntegratorCore::integrate(
     std::ranges::copy(
             response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles);
+    m_rotor.rotate(
+            m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    #ifndef NDEBUG
+        save_debug_grid(
+            "rotated_response", m_rotated_response_exp, boost_az, boost_colat, euler_angles);
+    #endif
 
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.extents()[0];
+    const std::size_t geg_order = rotated_geg_zernike_grids.extent();
     const std::size_t resp_order = response_exp.order();
     TrapezoidSpan<double> aff_leg_ylm_integrals
         = evaluate_aff_leg_ylm_integrals(
@@ -201,14 +255,12 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
     zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-    double era, const Vector<double, 3>& boost, double min_speed, 
+    const Vector<double, 3>& boost, double era, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     if (min_speed > 1.0 + boost_speed) return {0.0, 0.0};
-
-    const double min_speed_sq = min_speed*min_speed;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
     const Vector<double, 3> euler_angles
@@ -218,13 +270,18 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     std::ranges::copy(
             response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles);
+    m_rotor.rotate(
+            m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    #ifndef NDEBUG
+        save_debug_grid(
+            "rotated_response_trans", m_rotated_response_exp, boost_az, boost_colat, euler_angles);
+    #endif
 
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.extents()[0];
-    const std::size_t trans_geg_order = rotated_trans_geg_zernike_grids.extents()[0];
+    const std::size_t geg_order = rotated_geg_zernike_grids.extent();
+    const std::size_t trans_geg_order = rotated_trans_geg_zernike_grids.extent();
     const std::size_t resp_order = response_exp.order();
     TrapezoidSpan<double> aff_leg_ylm_integrals
         = evaluate_aff_leg_ylm_integrals(
@@ -239,6 +296,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
         std::ranges::copy(
                 m_rotated_response_grid.flatten(),
                 m_rotated_grid.flatten().begin());
+        assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
         util::mul(m_rotated_grid.flatten(), rotated_trans_geg_zernike_grids[n].flatten());
         m_zonal_transformer.forward_transform(
                 m_rotated_grid, m_rotated_exp);
@@ -246,12 +304,15 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
             res[1] += m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
     }
 
+    const double min_speed_sq = min_speed*min_speed;
+
     // nontransverse contribution
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         std::ranges::copy(
                 m_rotated_response_grid.flatten(),
                 m_rotated_grid.flatten().begin());
+        assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
         util::mul(m_rotated_grid.flatten(), rotated_geg_zernike_grids[n].flatten());
         m_zonal_transformer.forward_transform(
                 m_rotated_grid, m_rotated_exp);
@@ -264,7 +325,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
         }
     }
 
-    return (2.0*std::numbers::pi)*res;
+    return {2.0*std::numbers::pi*res[0], 2.0*std::numbers::pi*res[1]};
 }
 
 TrapezoidSpan<double> 
