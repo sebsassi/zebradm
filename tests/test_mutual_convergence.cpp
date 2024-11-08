@@ -141,7 +141,7 @@ void test_mutual_convergence_anisotropic(
             integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate(dist, resp, boosts, min_speeds, eras, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate(dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-7, integrator_test);
 
     std::vector<double> transformer_test_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<double, 2> transformer_test(
@@ -204,7 +204,7 @@ void test_mutual_convergence_transverse_anisotropic(
             integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate_transverse(dist, resp, boosts, min_speeds, eras, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate_transverse(dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-7, integrator_test);
 
     std::vector<std::array<double, 2>> transformer_test_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<std::array<double, 2>, 2> transformer_test(

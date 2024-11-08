@@ -7,9 +7,15 @@
 #include "radon_integrator.hpp"
 #include "nanobench.h"
 #include "distributions.hpp"
+#include "responses.hpp"
 
-void benchmark_radon_angle_integrator_isotropic(
-    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist, const char* dist_name, std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, double relerr, zest::MDSpan<const double, 2> reference)
+constexpr double relative_error(double test, double ref)
+{
+    return std::fabs(1.0 - test/ref);
+}
+
+void benchmark_radon_angle_integrator_anisotropic(
+    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, const std::span<const std::array<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double relerr, zest::MDSpan<const double, 2> reference)
 {
     std::vector<double> out_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
@@ -18,11 +24,11 @@ void benchmark_radon_angle_integrator_isotropic(
     integrate::RadonAngleIntegrator integrator{};
     bench.run(name, [&](){
         integrator.integrate(
-                dist, boosts, min_speeds, 0.0, relerr, out, max_subdiv);
+                dist, resp, boosts, eras, min_speeds, 0.0, relerr, out, max_subdiv);
     });
 
     char fname[512] = {};
-    std::sprintf(fname, "radon_isotropic_angle_integrator_error_relative_%s_%.2e.dat", dist_name, relerr);
+    std::sprintf(fname, "radon_anisotropic_angle_integrator_error_relative_%s_%s_%.2e.dat", dist_name, resp_name, relerr);
     std::ofstream output{};
     output.open(fname);
     for (std::size_t i = 0; i < boosts.size(); ++i)
@@ -32,7 +38,7 @@ void benchmark_radon_angle_integrator_isotropic(
             double error = 0.0;
             if (reference(i, j) != 0.0)
             {
-                error = std::fabs(1.0 - out(i, j)/reference(i, j));
+                error = relative_error(out(i, j), reference(i, j));
             }
             output << error << ' ';
         }
@@ -42,7 +48,7 @@ void benchmark_radon_angle_integrator_isotropic(
 }
 
 void run_benchmarks(
-    DistributionCartesian dist, const char* dist_name, std::span<const double> relerrs, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds, double time_limit_s)
+    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, std::span<const double> relerrs, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds, double time_limit_lo_s, double time_limit_hi_s)
 {
     ankerl::nanobench::Bench bench{};
     bench.performanceCounters(true);
@@ -63,37 +69,50 @@ void run_benchmarks(
         };
     }
 
+    std::vector<double> eras(num_boosts);
+    for (auto& element : eras)
+        element = 2.0*std::numbers::pi*rng_dist(gen);
+
     std::vector<double> min_speeds(num_min_speeds);
     for (std::size_t i = 0; i < num_min_speeds; ++i)
         min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
 
-    constexpr std::size_t reference_order = 200;
+    constexpr std::size_t reference_dist_order = 200;
+    constexpr std::size_t reference_resp_order = 300;
     zest::zt::ZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
-            dist, 1.0, reference_order);
+        = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
+            dist, 1.0, reference_resp_order);
+
+    std::vector<std::array<double, 2>> response_buffer(
+        min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
+    zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+    reference_response(response_buffer.data(), {min_speeds.size()}, reference_resp_order);
+    zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
     
     std::vector<double> reference_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<double, 2> reference(
             reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    zebra::IsotropicAngleIntegrator integrator(reference_order);
-    integrator.integrate(reference_distribution, boosts, min_speeds, reference);
+    zebra::AnisotropicAngleIntegrator integrator(reference_dist_order, reference_resp_order);
+    integrator.integrate(reference_distribution, reference_response, boosts, eras, min_speeds, reference);
 
     bench.title("integrate::RadonAngleIntegrator::integrate");
+    bool soft_break = false;
     for (double relerr : relerrs)
     {
         char name[32] = {};
         std::sprintf(name, "%.16e", relerr);
-        benchmark_radon_angle_integrator_isotropic(
-                bench, name, dist, dist_name, boosts, min_speeds, relerr, reference);
+        benchmark_radon_angle_integrator_anisotropic(
+                bench, name, dist, dist_name, resp, resp_name, boosts, eras, min_speeds, relerr, reference);
         const double elapsed_s = bench.results()[bench.results().size() - 1]
             .sumProduct(
                 ankerl::nanobench::Result::Measure::iterations, ankerl::nanobench::Result::Measure::elapsed);
-        if (elapsed_s >= time_limit_s) break;
+        if (elapsed_s >= time_limit_hi_s || soft_break) break;
+        if (elapsed_s >= time_limit_lo_s) soft_break = true;
     }
 
     char fname[512] = {};
-    std::sprintf(fname, "radon_angle_integrator_isotropic_bench_%s_%.2f_%lu_%lu.json", dist_name, boost_len, num_boosts, num_min_speeds);
+    std::sprintf(fname, "radon_anisotropic_angle_integrator_bench_%s_%.2f_%lu_%lu.json", dist_name, boost_len, num_boosts, num_min_speeds);
 
     std::ofstream output{};
     output.open(fname);
@@ -118,18 +137,27 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<DistributionCartesian>{shmpp, "shmpp"}
     };
 
+    constexpr std::array<Labeled<Response>, 2> responses = {
+        Labeled<Response>{smooth_exponential, "smooth_exponential"},
+        Labeled<Response>{smooth_dots, "smooth_dots"}
+    };
+
     const std::size_t dist_ind = atoi(argv[1]);
-    const double boost_len = atof(argv[2]);
-    const std::size_t num_boosts = atoi(argv[3]);
-    const std::size_t num_min_speeds = atoi(argv[4]);
-    const double time_limit_s = double(atoi(argv[5]));
+    const std::size_t resp_ind = atoi(argv[2]);
+    const double boost_len = atof(argv[3]);
+    const std::size_t num_boosts = atoi(argv[4]);
+    const std::size_t num_min_speeds = atoi(argv[5]);
+    const double time_limit_lo_s = double(atoi(argv[6]));
+    const double time_limit_hi_s = double(atoi(argv[7]));
 
     const std::vector<double> relerrs = {
         1.0e+2, 1.0e+1, 1.0e+0, 1.0e-1, 1.0e-2, 1.0e-3, 1.0e-4, 1.0e-5, 1.0e-6, 1.0e-7, 1.0e-8, 1.0e-9, 1.0e-10
     };
 
     const Labeled<DistributionCartesian> dist = distributions[dist_ind];
-    
+    const Labeled<Response> resp = responses[resp_ind];
+
     run_benchmarks(
-            dist.object, dist.label, relerrs, boost_len, num_boosts, num_min_speeds, time_limit_s);
+            dist.object, dist.label, resp.object, resp.label, relerrs, 
+            boost_len, num_boosts, num_min_speeds, time_limit_lo_s, time_limit_hi_s);
 }

@@ -2,6 +2,9 @@
 #include <fstream>
 
 #include "zest/zernike_glq_transformer.hpp"
+
+#include "coordinates/coordinate_functions.hpp"
+
 #include "nanobench.h"
 #include "distributions.hpp"
 
@@ -11,8 +14,12 @@ void benchmark_distribution_zernike_grid_construction(
 {
     zest::zt::BallGLQGridPoints points(order);
     zest::zt::BallGLQGrid<double> grid(order);
+    auto dist_spherical = [&](double r, double lon, double colat)
+    {
+        return dist(coordinates::spherical_to_cartesian_phys({lon, colat, r}));
+    };
     bench.run(name, [&](){
-        points.generate_values(grid, dist);
+        points.generate_values(grid, dist_spherical);
     });
 }
 
@@ -34,7 +41,7 @@ void run_benchmarks(
     }
 
     char fname[512] = {};
-    std::sprintf(fname, "distribution_grid_construction_bench_%s_%.2f_%lu_%lu.json", dist_name);
+    std::sprintf(fname, "distribution_grid_construction_bench_%s.json", dist_name);
 
     std::ofstream output{};
     output.open(fname);
@@ -42,26 +49,28 @@ void run_benchmarks(
     output.close();
 }
 
+template <typename Object>
+struct Labeled
+{
+    Object object;
+    const char* label;
+};
+
 int main([[maybe_unused]] int argc, char** argv)
 {
-    const std::size_t bench_ind = atoi(argv[1]);
+    constexpr std::array<Labeled<DistributionCartesian>, 5> distributions = {
+        Labeled<DistributionCartesian>{aniso_gaussian, "aniso_gaussian"},
+        Labeled<DistributionCartesian>{four_gaussians, "four_gaussians"},
+        Labeled<DistributionCartesian>{shm_plus_stream, "shm_plus_stream"},
+        Labeled<DistributionCartesian>{shmpp_aniso, "shmpp_aniso"},
+        Labeled<DistributionCartesian>{shmpp, "shmpp"}
+    };
+
+    const std::size_t dist_ind = atoi(argv[1]);
+
     std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
-    switch (bench_ind)
-    {
-        case 0:
-            run_benchmarks(aniso_gaussian, "aniso_gaussian", orders);
-            break;
-        case 1:
-            run_benchmarks(four_gaussians, "four_gaussians", orders);
-            break;
-        case 2:
-            run_benchmarks(shm_plus_stream, "shm_plus_stream", orders);
-            break;
-        case 3:
-            run_benchmarks(shmpp_aniso, "shmpp_aniso", orders);
-            break;
-        case 4:
-            run_benchmarks(shmpp, "shmpp", orders);
-            break;
-    }
+
+    const Labeled<DistributionCartesian> dist = distributions[dist_ind];
+
+    run_benchmarks(dist.object, dist.label, orders);
 }

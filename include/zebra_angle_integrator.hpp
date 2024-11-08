@@ -93,10 +93,10 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boosts velocities of the observer frame at different times.
-        @param min_speeds minimum speed parameters of the Radon transform.
         @param response spherical harmonic expansions of a response function at `min_speeds`.
+        @param boosts velocities of the observer frame at different times.
         @param era Earth rotation angles.
+        @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
@@ -111,10 +111,10 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boost velocity of the observer frame.
-        @param min_speeds minimum speed parameters of the Radon transform.
         @param response spherical harmonic expansions of a response function at `min_speeds`.
+        @param boost velocity of the observer frame.
         @param era Earth rotation angles.
+        @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
@@ -227,10 +227,10 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boosts velocities of the observer frame at different times.
-        @param min_speeds minimum speed parameters of the Radon transform.
         @param response spherical harmonic expansions of a response function at `min_speeds`.
+        @param boosts velocities of the observer frame at different times.
         @param era Earth rotation angles.
+        @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 
@@ -245,10 +245,10 @@ public:
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
         @param distribution Zernike expansion of the distribution.
-        @param boost velocity of the observer frame.
-        @param min_speeds minimum speed parameters of the Radon transform.
         @param response spherical harmonic expansions of a response function at `min_speeds`.
+        @param boost velocity of the observer frame.
         @param era Earth rotation angles.
+        @param min_speeds minimum speed parameters of the Radon transform.
         @param out output values.
         @param trunc_order maximum expansion order considered. See notes.
 

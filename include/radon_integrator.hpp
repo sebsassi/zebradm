@@ -88,8 +88,8 @@ public:
         @param distribution velocity distribution; see notes for details
         @param response response function; see notes for details
         @param boosts negative average velocities of the distribution; see notes for units
-        @param min_speeds smallest allowed speeds; ee notes for units
         @param eras Earth rotation angles
+        @param min_speeds smallest allowed speeds; ee notes for units
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
 
@@ -101,7 +101,7 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate(
-        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -121,8 +121,8 @@ public:
         @param distribution velocity distribution; see notes for details
         @param response response function; see notes for details
         @param boosts negative average velocities of the distribution; see notes for units
-        @param min_speeds smallest allowed speeds; ee notes for units
         @param eras Earth rotation angles
+        @param min_speeds smallest allowed speeds; ee notes for units
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
 
@@ -134,7 +134,7 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate_transverse(
-        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -258,8 +258,8 @@ public:
         @param distribution velocity distribution; see notes for details
         @param response response function; see notes for details
         @param boost negative average velocity of the distribution; see notes for units
-        @param min_speed smallest allowed speed; see notes for units
         @param era Earth rotation angle
+        @param min_speed smallest allowed speed; see notes for units
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
 
@@ -271,7 +271,7 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] double integrate(
-        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double min_speed, double era, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return 0.0;
@@ -331,8 +331,8 @@ public:
         @param distribution velocity distribution; see notes for details
         @param response response function; see notes for details
         @param boost negative average velocity of the distribution; see notes for units
-        @param min_speed smallest allowed speed; see notes for units
         @param era Earth rotation angle
+        @param min_speed smallest allowed speed; see notes for units
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
 
@@ -344,7 +344,7 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double min_speed, double era, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return {};

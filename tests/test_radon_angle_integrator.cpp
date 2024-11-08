@@ -123,7 +123,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
 
     integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
-            shm_dist, resp, boosts, min_speeds, eras, 0.0, 1.0e-9, shm_test);
+            shm_dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-9, shm_test);
 
     std::printf("reference\n");
     for (std::size_t i = 0; i < boosts.size(); ++i)
