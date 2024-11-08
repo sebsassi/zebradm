@@ -1,3 +1,24 @@
+/*
+Copyright (c) 2024 Sebastian Sassi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to 
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+of the Software, and to permit persons to whom the Software is furnished to do 
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+SOFTWARE.
+*/
 #pragma once
 
 #include <cmath>
@@ -61,10 +82,10 @@ struct GenzMalikD7
     using Limits = Box<DomainType>;
     using RegionType = SubdivisibleBox<DomainType>;
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
     [[nodiscard]] static constexpr ReturnType
-    integrate(DistType f, const Limits& limits)
+    integrate(FuncType f, const Limits& limits)
     {
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
         constexpr double v = double(1UL << ndim);
@@ -168,11 +189,11 @@ private:
         return fourth_diff_normed;
     }
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
     [[nodiscard]] static constexpr std::pair<CodomainType, DiffType> 
     symmetric_sum_1_var(
-        DistType f, const DomainType& center, const DomainType& half_lengths, const CodomainType& central_value, double gm_point)
+        FuncType f, const DomainType& center, const DomainType& half_lengths, const CodomainType& central_value, double gm_point)
     {
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
         CodomainType val{};
@@ -200,11 +221,11 @@ private:
         return {val, second_differences};
     }
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
     [[nodiscard]] static constexpr CodomainType
     symmetric_sum_2_var(
-        DistType f, const DomainType& center, const DomainType& half_lengths)
+        FuncType f, const DomainType& center, const DomainType& half_lengths)
     {
         constexpr double gm_point = 0.9486832980505137995996680633298155601160;
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;
@@ -249,11 +270,11 @@ private:
         return val;
     }
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
     [[nodiscard]] static constexpr CodomainType
     symmetric_sum_n_var(
-        DistType f, const DomainType& center, const DomainType& half_lengths)
+        FuncType f, const DomainType& center, const DomainType& half_lengths)
     {
         constexpr double gm_point = 0.6882472016116852977216287342936235251269;
         constexpr std::size_t ndim = std::tuple_size<DomainType>::value;

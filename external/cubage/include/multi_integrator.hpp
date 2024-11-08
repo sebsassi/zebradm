@@ -1,3 +1,24 @@
+/*
+Copyright (c) 2024 Sebastian Sassi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to 
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+of the Software, and to permit persons to whom the Software is furnished to do 
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+SOFTWARE.
+*/
 #pragma once
 
 #include <vector>
@@ -64,10 +85,10 @@ public:
     explicit constexpr IntegrationRegion(const RegionType& p_region):
         m_region(p_region) {}
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
     [[nodiscard]] constexpr std::pair<IntegrationRegion, IntegrationRegion>
-    subdivide(DistType f) const noexcept
+    subdivide(FuncType f) const noexcept
     {
         const auto& [left, right] = m_region.subdivide();
 
@@ -80,9 +101,9 @@ public:
         return regions;
     }
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
-    constexpr const IntegralResult<CodomainType>& integrate(DistType f) noexcept
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
+    constexpr const IntegralResult<CodomainType>& integrate(FuncType f) noexcept
     {
         m_result = m_region.template integrate<RuleType>(f);
         if constexpr (std::is_floating_point<CodomainType>::value)
@@ -93,15 +114,10 @@ public:
     }
 
     [[nodiscard]] constexpr const IntegralResult<CodomainType>&
-    result() const noexcept
-    {
-        return m_result;
-    }
+    result() const noexcept { return m_result; }
 
-    [[nodiscard]] constexpr double maxerr() const noexcept
-    {
-        return m_maxerr;
-    }
+    [[nodiscard]] constexpr double
+    maxerr() const noexcept { return m_maxerr; }
 
     constexpr auto operator<=>(const IntegrationRegion& b) const noexcept
     {
@@ -112,6 +128,9 @@ public:
     {
         return maxerr() == b.maxerr();
     }
+
+    [[nodiscard]] constexpr const Limits&
+    limits() const noexcept { return m_region.limits(); }
 
 private:
     RegionType m_region;
@@ -136,11 +155,11 @@ public:
 
     MultiIntegrator() = default;
 
-    template <typename DistType, typename LimitsType>
-        requires MapsAs<DistType, DomainType, CodomainType>
+    template <typename FuncType, typename LimitsType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
         &&  (std::same_as<std::remove_cvref_t<LimitsType>, Limits> || std::convertible_to<LimitsType, std::span<const Limits>>)
     [[nodiscard]] Result<ResultType, Status> integrate(
-            DistType f, LimitsType&& integration_domain,
+            FuncType f, LimitsType&& integration_domain,
             double abserr, double relerr,
             std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -168,23 +187,31 @@ public:
     {
         return m_region_eval_count*RuleType::points_count();
     }
+
     [[nodiscard]] std::size_t region_eval_count() const noexcept
     {
         return m_region_eval_count;
     }
+
     [[nodiscard]] std::size_t region_count() const noexcept
     {
         return m_region_heap.size();
     }
+
+    [[nodiscard]] std::span<const RegionType> regions() const noexcept
+    {
+        return std::span(m_region_heap);
+    }
+
     [[nodiscard]] std::size_t capacity() const noexcept
     {
         return m_region_heap.capacity();
     }
 
 private:
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
-    [[nodiscard]] inline ResultType initialize(DistType f)
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
+    [[nodiscard]] inline ResultType initialize(FuncType f)
     {
         ResultType res{};
         for (auto& region : m_region_heap)
@@ -194,9 +221,9 @@ private:
         return res;
     }
 
-    template <typename DistType>
-        requires MapsAs<DistType, DomainType, CodomainType>
-    inline void subdivide_top_region(DistType f, ResultType& res)
+    template <typename FuncType>
+        requires MapsAs<FuncType, DomainType, CodomainType>
+    inline void subdivide_top_region(FuncType f, ResultType& res)
     {
         m_region_eval_count += 2;
         const RegionType top_region = pop_top_region();
