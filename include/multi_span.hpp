@@ -23,6 +23,9 @@ SOFTWARE.
 
 #include <cstddef>
 
+namespace zdm
+{
+
 template <std::size_t M, typename FieldType>
 auto last(FieldType a) noexcept
 {
@@ -233,3 +236,5 @@ private:
     size_type m_subspan_size_param;
     size_type m_extent;
 };
+
+} // namespace zdm

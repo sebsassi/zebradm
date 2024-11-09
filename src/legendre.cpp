@@ -24,6 +24,8 @@ SOFTWARE.
 #include <stdexcept>
 #include <cmath>
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -223,3 +225,4 @@ void LegendreIntegralRecursion::legendre_integral(
 }
 
 } // namespace zebra
+} // namespace zdm

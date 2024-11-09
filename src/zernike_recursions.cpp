@@ -27,6 +27,8 @@ SOFTWARE.
 #include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace detail
@@ -1939,5 +1941,6 @@ ZernikeCoordinateMultiplier::multiply_by_r2_and_radon_transform_inplace(
     zebra::radon_transform_inplace(out);
 }
 
-} // detail
-} // zebra
+} // namespace detail
+} // namespace zebra
+} // namespace zdm

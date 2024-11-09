@@ -31,6 +31,8 @@ SOFTWARE.
 */
 #include "zonal_glq_transformer.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace detail
@@ -112,3 +114,4 @@ private:
 
 } // namespace detail
 } // namespace zebra
+} // namespace zdm

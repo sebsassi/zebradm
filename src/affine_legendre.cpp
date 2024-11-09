@@ -24,6 +24,8 @@ SOFTWARE.
 #include <algorithm>
 #include <cassert>
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -154,4 +156,5 @@ void AffineLegendreRecursion::evaluate_scaled(
     }
 }
 
-}
+} // namespace zebra
+} // namespace zdm

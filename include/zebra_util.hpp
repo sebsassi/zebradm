@@ -21,7 +21,10 @@ SOFTWARE.
 */
 #include "zest/sh_glq_transformer.hpp"
 
-namespace zebra {
+namespace zdm
+{
+namespace zebra
+{
 
 template <typename ElementType>
 using SHExpansionCollectionSpan = SuperSpan<SHExpansionSpan<ElementType>>;
@@ -50,4 +53,5 @@ private:
     zest::st::SHTransformerGeo<> m_transformer;
 };
 
-}; // namespace zebra
+} // namespace zebra
+} // namespace zdm

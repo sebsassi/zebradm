@@ -28,6 +28,8 @@ SOFTWARE.
 #include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace parallel
@@ -255,3 +257,4 @@ AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp_grids(
 
 } // namespace parallel
 } // namespace zebra
+} // namespace zdm

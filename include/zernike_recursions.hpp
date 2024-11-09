@@ -26,6 +26,8 @@ SOFTWARE.
 
 #include "zest/zernike_expansion.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace detail
@@ -283,5 +285,6 @@ private:
     ZernikeRecursionData m_coeff_data;
 };
 
-} // detail
-} // zebra
+} // namespace detail
+} // namespace zebra
+} // namesapce zdm

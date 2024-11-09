@@ -36,7 +36,7 @@ bool test_zonal_glq_forward_transform_expands_Y00(std::size_t order)
         return shnorm;
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -84,7 +84,7 @@ bool test_zonal_glq_forward_transform_expands_Y10(std::size_t order)
         return shnorm*std::sqrt(3.0)*z;
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -132,7 +132,7 @@ bool test_zonal_glq_forward_transform_expands_Y20(std::size_t order)
         return shnorm*0.5*std::sqrt(5.0)*(3.0*z*z - 1.0);
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -179,7 +179,7 @@ bool test_zonal_glq_forward_transform_expands_Y21(std::size_t order)
         return shnorm*std::sqrt(15.0)*std::sqrt(1.0 - z*z)*z*std::cos(lon);
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -216,7 +216,7 @@ bool test_zonal_glq_forward_transform_expands_Y30(std::size_t order)
         return shnorm*0.5*std::sqrt(7.0)*(5.0*z*z - 3.0)*z;
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -263,7 +263,7 @@ bool test_zonal_glq_forward_transform_expands_Y31(std::size_t order)
         return shnorm*std::sqrt(21.0/8.0)*std::sqrt(1.0 - z*z)*(5.0*z*z - 1.0)*std::cos(lon);
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);
@@ -299,7 +299,7 @@ bool test_zonal_glq_forward_transform_expands_Y4m3(std::size_t order)
         return shnorm*std::sqrt(315.0/8.0)*std::sqrt(1.0 - z*z)*(1.0 - z*z)*z*std::sin(3.0*lon);
     };
     
-    zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
+    zdm::zebra::ZonalGLQTransformer<NORM, GridLayout> transformer(order);
 
     zest::st::SphereGLQGridPoints<GridLayout> points{};
     zest::st::SphereGLQGrid<double, GridLayout> grid = points.generate_values(function, order);

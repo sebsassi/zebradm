@@ -25,6 +25,11 @@ SOFTWARE.
 
 #include "linalg.hpp"
 
+namespace zdm
+{
+namespace detail
+{
+
 [[nodiscard]] constexpr Matrix<double, 3, 3> rotation_matrix_align_z(
     const Vector<double, 3>& unit_vec) noexcept
 {
@@ -92,5 +97,8 @@ SOFTWARE.
 
     return matrix;
 }
+
+} // namespace detail
+} // namespace zdm
 
 #endif

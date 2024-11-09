@@ -32,10 +32,12 @@ SOFTWARE.
 #include "array_arithmetic.hpp"
 #include "hypercube_integrator.hpp"
 
-#include "coordinates/coordinate_functions.hpp"
+#include "coordinate_transforms.hpp"
 
 #include "zest/md_span.hpp"
 
+namespace zdm
+{
 namespace integrate
 {
 
@@ -510,4 +512,5 @@ private:
     Integrator2D<std::array<double, 2>> transverse_angle_integrator;
 };
 
-}
+} // namspace integrate
+} // namespace zdm

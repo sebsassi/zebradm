@@ -24,6 +24,9 @@ SOFTWARE.
 #include <cmath>
 #include "linalg.hpp"
 
+namespace zdm
+{
+
 namespace coordinates
 {
 
@@ -116,4 +119,5 @@ namespace coordinates
     return {vert_rot[0]*std::cos(azimuth), vert_rot[0]*std::sin(azimuth), vert_rot[1]};
 }
 
-}
+} // namespace coordinates
+} // namespace zdm

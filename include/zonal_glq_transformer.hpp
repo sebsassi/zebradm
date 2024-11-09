@@ -25,6 +25,8 @@ SOFTWARE.
 
 #include "legendre.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -210,3 +212,4 @@ private:
 };
 
 } // namespace zebra
+} // namespace zdm

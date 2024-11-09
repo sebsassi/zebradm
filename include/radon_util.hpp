@@ -33,6 +33,8 @@ SOFTWARE.
     #define RESTRICT __restrict
 #endif
 
+namespace zdm
+{
 namespace zebra
 {
 namespace util
@@ -155,3 +157,4 @@ constexpr std::array<double, 3> euler_angles_to_align_z(
 
 } // namespace util
 } // namespace zebra
+} // namespace zdm

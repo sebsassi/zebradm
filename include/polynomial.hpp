@@ -27,6 +27,9 @@ SOFTWARE.
 #include <span>
 #include <concepts>
 
+namespace zdm
+{
+
 template <typename T, typename F>
 concept vector_over = requires (T x, F a)
 {
@@ -297,3 +300,5 @@ struct DynamicPolynomial
 
     std::vector<FieldType> coeffs;
 };
+
+} // namespace zdm

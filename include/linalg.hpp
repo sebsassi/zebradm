@@ -23,6 +23,9 @@ SOFTWARE.
 
 #include <array>
 
+namespace zdm
+{
+
 template <typename FieldType, std::size_t N>
 using Vector = std::array<FieldType, N>;
 
@@ -252,3 +255,5 @@ template <typename FieldType, std::size_t N>
 
     return (1.0/norm)*a;
 }
+
+} // namespace zdm

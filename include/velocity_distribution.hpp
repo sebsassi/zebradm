@@ -24,6 +24,9 @@ SOFTWARE.
 #include "linalg.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
+namespace zdm
+{
+
 template <typename FieldType>
 concept bounded_distribution = requires (const FieldType& dist, const Vector<double, 3>& velocity)
 {
@@ -45,3 +48,5 @@ zest::zt::ZernikeExpansionOrthoGeo zernike_transform(const Func& dist, std::size
     return zest::zt::GLQTransformer(lmax).transform(
             points.generate_values(dist_, lmax), lmax);
 }
+
+} // namespace zdm

@@ -26,6 +26,8 @@ SOFTWARE.
 #include "zebra_radon.hpp"
 #include "radon_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -490,3 +492,4 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 }
 
 } // namespace zebra
+} // namespace zdm

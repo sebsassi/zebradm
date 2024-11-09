@@ -23,6 +23,8 @@ SOFTWARE.
 #include "zest/real_sh_expansion.hpp"
 #include "zest/sh_glq_transformer.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -50,4 +52,5 @@ void radon_transform(
 void radon_transform_inplace(
     zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> exp) noexcept;
 
-}
+} // namespace zebra
+} // namespace zdm

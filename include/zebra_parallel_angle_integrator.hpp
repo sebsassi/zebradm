@@ -29,6 +29,8 @@ SOFTWARE.
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace parallel
@@ -173,3 +175,4 @@ private:
 
 } // namespace parallel
 } // namespace zebra
+} // namespace zdm

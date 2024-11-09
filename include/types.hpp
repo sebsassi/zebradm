@@ -24,8 +24,13 @@ SOFTWARE.
 #include "multi_span.hpp"
 #include "zest/real_sh_expansion.hpp"
 
+namespace zdm
+{
+
 template <typename ElementType>
 using SHExpansionSpan = zest::st::RealSHExpansionSpanGeo<ElementType>;
 
 template <typename ElementType>
 using SHExpansionCollectionSpan = SuperSpan<SHExpansionSpan<ElementType>>;
+
+} // namespace zdm

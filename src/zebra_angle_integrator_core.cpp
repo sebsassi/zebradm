@@ -29,6 +29,8 @@ SOFTWARE.
 
 #include "radon_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 namespace detail
@@ -371,3 +373,4 @@ AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
 
 } // namespace detail
 } // namespace zebra
+} // namespace zdm

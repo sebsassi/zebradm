@@ -28,6 +28,9 @@ SOFTWARE.
 
 #include "zest/md_span.hpp"
 
+namespace zdm
+{
+
 namespace zebra
 {
 
@@ -99,3 +102,4 @@ private:
 };
 
 } // namespace zebra
+} // namespace zdm

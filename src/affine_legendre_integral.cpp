@@ -28,6 +28,8 @@ SOFTWARE.
 #include "zest/triangle_layout.hpp"
 #include "zest/gauss_legendre.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -511,4 +513,5 @@ void AffineLegendreIntegrals::backward_recursion_step(
     }
 }
 
-}
+} // namespace zebra
+} // namespace zdm

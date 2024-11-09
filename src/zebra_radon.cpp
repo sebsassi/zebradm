@@ -25,6 +25,8 @@ SOFTWARE.
 
 #include "radon_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -180,4 +182,5 @@ void radon_transform_inplace(
     };
 }
 
-}
+} // namespace zebra
+} // namespace zdm

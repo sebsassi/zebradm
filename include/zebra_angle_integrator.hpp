@@ -31,6 +31,8 @@ SOFTWARE.
 #include "zernike_recursions.hpp"
 #include "zebra_util.hpp"
 
+namespace zdm
+{
 namespace zebra
 {
 
@@ -304,3 +306,4 @@ private:
 };
 
 } // namespace zebra
+} // namespace zdm
