@@ -31,10 +31,10 @@ namespace zebra
 {
 
 void radon_transform(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
-    constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm NORM = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
 
     assert(!util::have_overlap(in.flatten(), out.flatten()));
     assert(in.order() + 2 == out.order());
@@ -116,9 +116,9 @@ void radon_transform(
 }
 
 void radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> exp) noexcept
+    ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept
 {
-    constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm NORM = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
 
     const std::size_t order = exp.order();
 

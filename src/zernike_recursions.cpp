@@ -77,8 +77,8 @@ enum class PlaneCoord { X, Y };
 template <PlaneCoord COORD>
 void multiply_by_x_y_impl(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     /*
     Literally the worst function I have ever written.
@@ -1097,16 +1097,16 @@ void multiply_by_x_y_impl(
 
 void multiply_by_x(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
 }
 
 void multiply_by_y(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
 }
@@ -1122,8 +1122,8 @@ void multiply_by_y(
 */
 void multiply_by_z_impl(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     /*
     The base case is that `out(n,l,m)` is a linear combination of the coefficients
@@ -1501,8 +1501,8 @@ void multiply_by_z_impl(
 
 void multiply_by_z(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     multiply_by_z_impl(coeff_data, in, out);
 }
@@ -1518,8 +1518,8 @@ void multiply_by_z(
 */
 void multiply_by_r2_impl(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     /*
     The base case is that `out(n,l,m)` is a linear combination of the coefficients
@@ -1811,16 +1811,16 @@ void multiply_by_r2_impl(
 
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     multiply_by_r2_impl(coeff_data, in, out);
 }
 
 void multiply_by_x_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
@@ -1829,8 +1829,8 @@ void multiply_by_x_and_radon_transform_inplace(
 
 void multiply_by_y_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
@@ -1839,8 +1839,8 @@ void multiply_by_y_and_radon_transform_inplace(
 
 void multiply_by_z_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 2 < out.order());
     multiply_by_z_impl(coeff_data, in, out);
@@ -1849,8 +1849,8 @@ void multiply_by_z_and_radon_transform_inplace(
 
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
     assert(in.order() + 3 < out.order());
     multiply_by_r2_impl(coeff_data, in, out);
@@ -1866,32 +1866,32 @@ void ZernikeCoordinateMultiplier::expand(std::size_t order)
 }
 
 void ZernikeCoordinateMultiplier::multiply_by_x(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
 }
 
 void ZernikeCoordinateMultiplier::multiply_by_y(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
 }
 
 void ZernikeCoordinateMultiplier::multiply_by_z(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     multiply_by_z_impl(m_coeff_data, in, out);
 }
 
 void ZernikeCoordinateMultiplier::multiply_by_r2(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     multiply_by_r2_impl(m_coeff_data, in, out);
@@ -1899,8 +1899,8 @@ void ZernikeCoordinateMultiplier::multiply_by_r2(
 
 void
 ZernikeCoordinateMultiplier::multiply_by_x_and_radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
@@ -1910,8 +1910,8 @@ ZernikeCoordinateMultiplier::multiply_by_x_and_radon_transform_inplace(
 
 void
 ZernikeCoordinateMultiplier::multiply_by_y_and_radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
@@ -1921,8 +1921,8 @@ ZernikeCoordinateMultiplier::multiply_by_y_and_radon_transform_inplace(
 
 void
 ZernikeCoordinateMultiplier::multiply_by_z_and_radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 2 < out.order());
@@ -1932,8 +1932,8 @@ ZernikeCoordinateMultiplier::multiply_by_z_and_radon_transform_inplace(
 
 void
 ZernikeCoordinateMultiplier::multiply_by_r2_and_radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out
 ) const noexcept
 {
     assert(in.order() + 3 < out.order());

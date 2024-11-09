@@ -48,7 +48,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 [[maybe_unused]] double angle_integrated_const_dist_radon(
     double min_speed, const std::array<double, 3>& boost)
 {
-    const double boost_speed = length(boost);
+    const double boost_speed = zdm::length(boost);
     const double v = boost_speed;
     const double v2 = v*v;
     const double w = min_speed;
@@ -67,7 +67,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 
 bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
 {
-    std::vector<Vector<double, 3>> boosts = {
+    std::vector<zdm::Vector<double, 3>> boosts = {
         {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -93,7 +93,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
     distribution(0,0,0) = {1.0/std::sqrt(3.0), 0.0};
 
     std::vector<std::array<double, 2>> resp_buffer(min_speeds.size()*zest::st::RealSHExpansionGeo::size(order));
-    zebra::SHExpansionCollectionSpan<std::array<double, 2>> resp(resp_buffer.data(), {min_speeds.size()}, order);
+    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {min_speeds.size()}, order);
     for (std::size_t i = 0; i < min_speeds.size(); ++i)
         resp[i](0,0) = {1.0, 0.0};
 
@@ -101,7 +101,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
     zest::MDSpan<double, 2> test(
             test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::AnisotropicAngleIntegrator(order, order)
+    zdm::zebra::AnisotropicAngleIntegrator(order, order)
         .integrate(distribution, resp, boosts, era, min_speeds, test);
     
     constexpr double tol = 1.0e-13;
@@ -139,10 +139,10 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
 }
 
 double angle_integrated_radon_shm(
-    const Vector<double, 3>& boost, double min_speed, double disp_speed)
+    const zdm::Vector<double, 3>& boost, double min_speed, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
-    const double boost_speed = length(boost);
+    const double boost_speed = zdm::length(boost);
     const double erf_part
         = std::erf(std::min(1.0,min_speed + boost_speed)/disp_speed)
         - std::erf((min_speed - boost_speed)/disp_speed);
@@ -159,13 +159,13 @@ double angle_integrated_radon_shm(
 bool test_angle_integrator_is_accurate_for_shm_constant_resp()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const Vector<double, 3>& velocity){
-        const double speed = length(velocity);
+    auto shm_dist = [&](const zdm::Vector<double, 3>& velocity){
+        const double speed = zdm::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
 
-    std::vector<Vector<double, 3>> boosts = {
+    std::vector<zdm::Vector<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -198,11 +198,11 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
                 shm_dist, 1.0, order);
 
     std::vector<std::array<double, 2>> resp_buffer(min_speeds.size()*zest::st::RealSHExpansionGeo::size(order));
-    zebra::SHExpansionCollectionSpan<std::array<double, 2>> resp(resp_buffer.data(), {min_speeds.size()}, order);
+    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {min_speeds.size()}, order);
     for (std::size_t i = 0; i < min_speeds.size(); ++i)
         resp[i](0,0) = {1.0, 0.0};
 
-    zebra::AnisotropicAngleIntegrator(order, order).integrate(
+    zdm::zebra::AnisotropicAngleIntegrator(order, order).integrate(
             distribution, resp, boosts, era, min_speeds, shm_test);
 
     constexpr double tol = 1.0e-13;

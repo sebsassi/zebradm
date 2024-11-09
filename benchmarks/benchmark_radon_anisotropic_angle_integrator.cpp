@@ -106,7 +106,7 @@ void run_benchmarks(
 
     std::vector<std::array<double, 2>> response_buffer(
         min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+    zebra::SHExpansionVectorSpan<std::array<double, 2>>
     reference_response(response_buffer.data(), {min_speeds.size()}, reference_resp_order);
     zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
     

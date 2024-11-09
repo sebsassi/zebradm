@@ -36,10 +36,10 @@ void benchmark_zebra_anisotropic_angle_integrator(
     for (auto& element : distribution.flatten())
         element = {dist(gen), dist(gen)};
     
-    std::vector<std::array<double, 2>> response_buffer(SHExpansionCollectionSpan<std::array<double, 2>>::size(num_min_speeds, resp_order));
+    std::vector<std::array<double, 2>> response_buffer(SHExpansionVectorSpan<std::array<double, 2>>::size(num_min_speeds, resp_order));
     for (auto& element : response_buffer)
         element = {dist(gen), dist(gen)};
-    SHExpansionCollectionSpan<const std::array<double, 2>> response(
+    SHExpansionVectorSpan<const std::array<double, 2>> response(
             response_buffer, num_min_speeds, resp_order);
 
     std::vector<std::array<double, 3>> boosts(num_boosts);

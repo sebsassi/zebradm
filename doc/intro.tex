@@ -86,6 +86,8 @@ zest::zt::ZernikeExpansionOrthoGeo zernike_expansion
 \end{minted}
 The result of this function call is a \mintinline{c++}{zest::zt::ZernikeExpansionOrthoGeo}. This is a \emph{container} for Zernike expansions. That is, it owns the data it stores.
 
+It is important to note that from here on, everything is expressed in terms of the rescaled parameter $\vec{u}=\vec{v}/v_\text{max}=\vec{v}/v_\text{esc}$. When we pass the parameter \mintinline{c++}{escape_velocity} to \mintinline{c++}{zernike_transformer}, all it does is apply this change of variables, because the underlying Zernike transform itself expects $u\leq1$. This is important to keep in mind, because all the Radon transforms computed by \texttt{ZebraDM} need to be rescaled with appropriate powers of $v_\text{max}$.
+
 But say we don't want to store the Zernike expansion in its own container, say we want to store it in a \mintinline{c++}{std::vector}. Suppose we have 
 \begin{minted}{c++}
 std::vector<std::array<double, 2>> zernike_buffer(size);
@@ -144,10 +146,10 @@ For purposes of taking the angle integrated Radon transform, we need a spherical
 std::vector<double> min_speeds = {0.0, 0.5, 1.0, 1.5};
 std::vector<std::array<double, 2>> response_buffer(
     min_speeds.size()*zest::st::SHExpansionSpan<std::array<double, 2>>::size(response_order));
-zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+zdm::zebra::SHExpansionCollectionSpan<std::array<double, 2>>
 response_expansions(
         response_buffer.data(), {min_speeds.size()}, response_order);
-zebra::ResponseTransformer response_transformer(response_order);
+zdm::zebra::ResponseTransformer response_transformer(response_order);
 response_transformer.transform(response, min_speeds, response_expansions);
 \end{minted}
 Here we first create a buffer for the data, and then we use \mintinline{c++}{SHExpansionCollectionSpan} to view that data as a stack of spherical harmonic expansions of order \texttt{response_order}.
@@ -156,10 +158,10 @@ Here we first create a buffer for the data, and then we use \mintinline{c++}{SHE
 
 Finally, we have (nearly) everything set up for evaluating the angle integrated Radon transform. At the core of this library there are four classes:
 \begin{minted}{c++}
-zebra::IsotropicAngleIntegrator;
-zebra::AnisotropicAngleIntegrator;
-zebra::IsotropicTransverseAngleIntegrator;
-zebra::AnisotropicTransverseAngleIntegrator;
+zdm::zebra::IsotropicAngleIntegrator;
+zdm::zebra::AnisotropicAngleIntegrator;
+zdm::zebra::IsotropicTransverseAngleIntegrator;
+zdm::zebra::AnisotropicTransverseAngleIntegrator;
 \end{minted}
 The \texttt{Isotropic} integrators are for the special case where the response is isotropic. For this special case they use a faster variant of the algorithm. 
 The \texttt{Transverse} integrators compute both the nontransverse and transverse Radon transform at the same time, whereas the other ones only compute the nontransverse case. The reason there is no integrator for the transverse case by itself is that computing it gives the nontransverse case "for free". 
@@ -168,11 +170,11 @@ The last class in the above list, therefore, is for the most general case, where
 
 To start off, we create the transformer
 \begin{minted}{c++}
-zebra::AnisotropicTransverseAngleIntegrator zebra_transformer();
+zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer();
 \end{minted}
 There is also a more complex constructor we could use if we wanted to pre-allocate memory
 \begin{minted}{c++}
-zebra::AnisotropicTransverseAngleIntegrator zebra_transformer(
+zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer(
         distribution_order, response_order, truncation_order);
 \end{minted}
 The two first parameters we are familiar with. The last parameter needs a bit of explanation.

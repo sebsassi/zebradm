@@ -23,6 +23,8 @@ SOFTWARE.
 #include "zest/real_sh_expansion.hpp"
 #include "zest/sh_glq_transformer.hpp"
 
+#include "types.hpp"
+
 namespace zdm
 {
 namespace zebra
@@ -37,8 +39,8 @@ namespace zebra
     @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the boost vector.
 */
 void radon_transform(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> in,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> out) noexcept;
+    ZernikeExpansionSpan<const std::array<double, 2>> in,
+    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
 
 /**
     @brief Apply the Radon transform onto a Zernike expansion.
@@ -50,7 +52,7 @@ void radon_transform(
     @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the boost vector.
 */
 void radon_transform_inplace(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> exp) noexcept;
+    ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept;
 
 } // namespace zebra
 } // namespace zdm

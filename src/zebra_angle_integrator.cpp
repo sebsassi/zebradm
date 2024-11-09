@@ -53,7 +53,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -62,7 +62,7 @@ void IsotropicAngleIntegrator::integrate(
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -149,7 +149,7 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    DistributionSpan distribution, ResponseSpan response, std::span<const Vector<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+   ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const Vector<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -166,7 +166,7 @@ void AnisotropicAngleIntegrator::integrate(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    DistributionSpan distribution, ResponseSpan response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -180,7 +180,7 @@ void AnisotropicAngleIntegrator::integrate(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    ResponseSpan response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order, std::span<double> out)
+    SHExpansionVectorSpan<const std::array<double, 2>> response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order, std::span<double> out)
 {
     using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
 
@@ -250,7 +250,7 @@ void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    DistributionSpan distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -267,7 +267,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    DistributionSpan distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, const Vector<double, 3>& boost, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -385,7 +385,7 @@ void AnisotropicTransverseAngleIntegrator::resize(
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    DistributionSpan distribution, ResponseSpan response, std::span<const Vector<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const Vector<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -406,7 +406,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    DistributionSpan distribution, ResponseSpan response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -426,7 +426,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    ResponseSpan response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
+    SHExpansionVectorSpan<const std::array<double, 2>> response, const Vector<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
 {
     using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
 

@@ -30,6 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "zonal_glq_transformer.hpp"
+#include "types.hpp"
 
 namespace zdm
 {
@@ -50,11 +51,11 @@ public:
     void resize(std::size_t geg_order);
 
     [[nodiscard]] double integrate(
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp, double boost_speed, double min_speed);
+        ConstDistributionSpan rotated_geg_zernike_exp, double boost_speed, double min_speed);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp,
-        zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
+        ConstDistributionSpan rotated_geg_zernike_exp,
+        ConstDistributionSpan rotated_trans_geg_zernike_exp,
         double boost_speed, double min_speed);
 
 private:

@@ -31,6 +31,9 @@ template <typename ElementType>
 using SHExpansionSpan = zest::st::RealSHExpansionSpanGeo<ElementType>;
 
 template <typename ElementType>
-using SHExpansionCollectionSpan = SuperSpan<SHExpansionSpan<ElementType>>;
+using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
+
+template <typename ElementType>
+using ZernikeExpansionSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<ElementType>;
 
 } // namespace zdm

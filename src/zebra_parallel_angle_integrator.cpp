@@ -179,7 +179,7 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionCollectionSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();

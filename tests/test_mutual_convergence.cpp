@@ -176,7 +176,7 @@ void test_mutual_convergence_anisotropic(
 
     std::vector<std::array<double, 2>> response_buffer(
         min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+    zebra::SHExpansionVectorSpan<std::array<double, 2>>
     response(response_buffer.data(), {min_speeds.size()}, resp_order);
     zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
 
@@ -239,7 +239,7 @@ void test_mutual_convergence_transverse_anisotropic(
 
     std::vector<std::array<double, 2>> response_buffer(
         min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+    zebra::SHExpansionVectorSpan<std::array<double, 2>>
     response(response_buffer.data(), {min_speeds.size()}, resp_order);
     zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
 

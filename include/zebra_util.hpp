@@ -27,7 +27,7 @@ namespace zebra
 {
 
 template <typename ElementType>
-using SHExpansionCollectionSpan = SuperSpan<SHExpansionSpan<ElementType>>;
+using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
 class ResponseTransformer
 {
@@ -37,7 +37,7 @@ public:
 
     template <typename RespType>
     void transform(
-        RespType&& resp, std::span<const double> min_speeds, SHExpansionCollectionSpan<std::array<double, 2>> out)
+        RespType&& resp, std::span<const double> min_speeds, SHExpansionVectorSpan<std::array<double, 2>> out)
     {
         for (std::size_t i = 0; i < min_speeds.size(); ++i)
         {
