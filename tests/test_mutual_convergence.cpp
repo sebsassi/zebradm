@@ -22,7 +22,7 @@ SOFTWARE.
 #include "radon_integrator.hpp"
 #include "zebra_angle_integrator.hpp"
 
-#include "coordinates/coordinate_functions.hpp"
+#include "coordinate_transforms.hpp"
 
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,

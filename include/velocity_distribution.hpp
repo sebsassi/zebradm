@@ -22,7 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include "linalg.hpp"
-#include "zest/zernike.hpp"
+#include "zest/zernike_glq_transformer.hpp"
 
 template <typename FieldType>
 concept bounded_distribution = requires (const FieldType& dist, const Vector<double, 3>& velocity)
@@ -33,7 +33,7 @@ concept bounded_distribution = requires (const FieldType& dist, const Vector<dou
 };
 
 template <bounded_distribution Func>
-zest::zt::ZernikeExpansion zernike_transform(const Func& dist, std::size_t lmax, const Matrix<double, 3, 3>& rotation)
+zest::zt::ZernikeExpansionOrthoGeo zernike_transform(const Func& dist, std::size_t lmax, const Matrix<double, 3, 3>& rotation)
 {
     const double scale = dist.max_velocity();
     auto dist_ = [&](const Vector<double, 3>& x)

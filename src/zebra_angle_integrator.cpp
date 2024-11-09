@@ -21,7 +21,7 @@ SOFTWARE.
 */
 #include "zebra_angle_integrator.hpp"
 
-#include "coordinates/coordinate_functions.hpp"
+#include "coordinate_transforms.hpp"
 
 #include "zebra_radon.hpp"
 #include "radon_util.hpp"

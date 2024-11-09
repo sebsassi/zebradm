@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "zest/grid_evaluator.hpp"
 
-#include "coordinates/coordinate_functions.hpp"
+#include "coordinate_transforms.hpp"
 
 #include "radon_util.hpp"
 

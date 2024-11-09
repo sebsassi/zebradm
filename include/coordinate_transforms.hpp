@@ -22,7 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include <cmath>
-#include "../linalg.hpp"
+#include "linalg.hpp"
 
 namespace coordinates
 {
