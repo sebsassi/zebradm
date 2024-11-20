@@ -51,11 +51,11 @@ public:
     void resize(std::size_t geg_order);
 
     [[nodiscard]] double integrate(
-        ConstDistributionSpan rotated_geg_zernike_exp, double boost_speed, double min_speed);
+        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp, double boost_speed, double min_speed);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        ConstDistributionSpan rotated_geg_zernike_exp,
-        ConstDistributionSpan rotated_trans_geg_zernike_exp,
+        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
+        ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
         double boost_speed, double min_speed);
 
 private:

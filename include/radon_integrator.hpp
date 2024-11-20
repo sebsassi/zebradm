@@ -190,7 +190,7 @@ public:
         const double boost_speed = length(boost);
         if (min_speed > 1.0 + boost_speed) return 0.0;
         const Matrix<double, 3, 3> align_z_transp
-            = rotation_matrix_align_z_transp(normalize(boost));
+            = detail::rotation_matrix_align_z_transp(normalize(boost));
         const double boost_speed_sq = boost_speed*boost_speed;
         auto integrand = [&](const Vector<double, 3>& coords)
         {
@@ -240,7 +240,7 @@ public:
         const double boost_speed = length(boost);
         if (min_speed > 1.0 + boost_speed) return {};
         const Matrix<double, 3, 3> align_z_transp
-            = rotation_matrix_align_z_transp(normalize(boost));
+            = detail::rotation_matrix_align_z_transp(normalize(boost));
         const double boost_speed_sq = boost_speed*boost_speed;
         const double min_speed_sq = min_speed*min_speed;
         auto integrand = [&](const Vector<double, 3>& coords)
@@ -306,9 +306,9 @@ public:
             boost[2]
         };
         const Matrix<double, 3, 3> to_resp_coords
-            = rotation_matrix_align_z_transp(normalize(boost_era));
+            = detail::rotation_matrix_align_z_transp(normalize(boost_era));
         const Matrix<double, 3, 3> to_dist_coords
-            = rotation_matrix_align_z_transp(normalize(boost));
+            = detail::rotation_matrix_align_z_transp(normalize(boost));
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
@@ -379,9 +379,9 @@ public:
             boost[2]
         };
         const Matrix<double, 3, 3> to_resp_coords
-            = rotation_matrix_align_z_transp(normalize(boost_era));
+            = detail::rotation_matrix_align_z_transp(normalize(boost_era));
         const Matrix<double, 3, 3> to_dist_coords
-            = rotation_matrix_align_z_transp(normalize(boost));
+            = detail::rotation_matrix_align_z_transp(normalize(boost));
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
@@ -432,7 +432,7 @@ private:
         if (w > 1.0) return 0.0;
 
         const Matrix<double, 3, 3> to_dist_coords
-            = rotation_matrix_align_z_transp(recoil_dir_dist);
+            = detail::rotation_matrix_align_z_transp(recoil_dir_dist);
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double v = coords[0];
@@ -467,7 +467,7 @@ private:
         if (w > 1.0) return {};
 
         const Matrix<double, 3, 3> to_dist_coords
-            = rotation_matrix_align_z_transp(recoil_dir_dist);
+            = detail::rotation_matrix_align_z_transp(recoil_dir_dist);
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double v = coords[0];

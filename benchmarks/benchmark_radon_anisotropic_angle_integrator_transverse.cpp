@@ -125,7 +125,7 @@ void run_benchmarks(
     zest::MDSpan<std::array<double, 2>, 2> reference(
             reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    zebra::AnisotropicTransverseAngleIntegrator integrator(reference_dist_order, reference_resp_order);
+    zdm::zebra::AnisotropicTransverseAngleIntegrator integrator(reference_dist_order, reference_resp_order);
     integrator.integrate(reference_distribution, reference_response, boosts, eras, min_speeds, reference);
 
     bench.title("integrate::RadonAngleIntegrator::integrate");
