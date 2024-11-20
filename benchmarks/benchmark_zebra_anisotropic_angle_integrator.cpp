@@ -36,10 +36,10 @@ void benchmark_zebra_anisotropic_angle_integrator(
     for (auto& element : distribution.flatten())
         element = {dist(gen), dist(gen)};
     
-    std::vector<std::array<double, 2>> response_buffer(SHExpansionVectorSpan<std::array<double, 2>>::size(num_min_speeds, resp_order));
+    std::vector<std::array<double, 2>> response_buffer(zdm::SHExpansionVectorSpan<std::array<double, 2>>::size(num_min_speeds, resp_order));
     for (auto& element : response_buffer)
         element = {dist(gen), dist(gen)};
-    SHExpansionVectorSpan<const std::array<double, 2>> response(
+    zdm::SHExpansionVectorSpan<const std::array<double, 2>> response(
             response_buffer, num_min_speeds, resp_order);
 
     std::vector<std::array<double, 3>> boosts(num_boosts);
@@ -64,7 +64,7 @@ void benchmark_zebra_anisotropic_angle_integrator(
     std::vector<double> out_buffer(num_boosts*num_min_speeds);
     zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
+    zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
     bench.run(name, [&](){
         integrator.integrate(
                 distribution, response, boosts, eras, min_speeds, out);

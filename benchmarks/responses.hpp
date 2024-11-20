@@ -24,20 +24,20 @@ SOFTWARE.
 #include <numbers>
 
 #include "linalg.hpp"
-#include "coordinates/coordinate_functions.hpp"
+#include "coordinate_transforms.hpp"
 
 using Response = double(*)(double, double, double);
 
 double smooth_exponential(double min_speed, double longitude, double colatitude)
 {
     static const std::array<double, 3> ref_dir
-        = normalize(std::array<double, 3>{0.5, 0.5, 0.5});
+        = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
     const std::array<double, 3> dir
-        = coordinates::spherical_to_cartesian_phys(longitude, colatitude);
+        = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
     constexpr double rate = 2.0;
     const double u2 = min_speed*min_speed;
     const double u4 = u2*u2;
-    return (u4/(1 + u4))*std::exp(rate*(dot(dir, ref_dir)));
+    return (u4/(1 + u4))*std::exp(rate*(zdm::dot(dir, ref_dir)));
 }
 
 inline double smooth_step(double x, double slope)
@@ -82,14 +82,14 @@ double fcc_dots(double min_speed, double longitude, double colatitude)
     };
     
     const std::array<double, 3> dir
-        = coordinates::spherical_to_cartesian_phys(longitude, colatitude);
+        = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
     
     const double radius = std::acos((1.0/1.5)*min_speed);
     const double c_rad = std::cos(radius);
 
     double res = 0.0;
     for (const auto& ref_dir : ref_dirs)
-        res += double(dot(dir, ref_dir) < c_rad);
+        res += double(zdm::dot(dir, ref_dir) < c_rad);
     
     return res;
 }

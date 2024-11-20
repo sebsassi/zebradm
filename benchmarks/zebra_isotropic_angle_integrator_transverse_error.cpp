@@ -56,7 +56,7 @@ void angle_integrator_error(
     std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::IsotropicTransverseAngleIntegrator integrator(order);
+    zdm::zebra::IsotropicTransverseAngleIntegrator integrator(order);
     integrator.integrate(distribution, boosts, min_speeds, out);
 
     char fname_nt[512] = {};
@@ -134,7 +134,7 @@ void angle_integrator_errors(
     zest::MDSpan<std::array<double, 2>, 2> reference(
             reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    zebra::IsotropicTransverseAngleIntegrator integrator(reference_order);
+    zdm::zebra::IsotropicTransverseAngleIntegrator integrator(reference_order);
     integrator.integrate(reference_distribution, boosts, min_speeds, reference);
 
     std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};

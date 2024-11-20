@@ -53,7 +53,7 @@ void benchmark_zebra_isotropic_angle_integrator(
     std::vector<double> out_buffer(num_boosts*num_min_speeds);
     zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::IsotropicAngleIntegrator integrator(order);
+    zdm::zebra::IsotropicAngleIntegrator integrator(order);
     bench.run(name, [&](){
         integrator.integrate(
                 distribution, boosts, min_speeds, out);

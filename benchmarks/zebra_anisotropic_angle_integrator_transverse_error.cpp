@@ -55,15 +55,15 @@ void angle_integrator_error(
             dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zebra::SHExpansionVectorSpan<std::array<double, 2>>
+        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
+    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
     response(response_buffer.data(), {min_speeds.size()}, resp_order);
-    zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
+    zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
 
     std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::AnisotropicTransverseAngleIntegrator integrator(dist_order, resp_order);
+    zdm::zebra::AnisotropicTransverseAngleIntegrator integrator(dist_order, resp_order);
     integrator.integrate(distribution, response, boosts, eras, min_speeds, out);
 
     char fname_nt[512] = {};
@@ -141,23 +141,24 @@ void angle_integrator_errors(
             dist, 1.0, reference_dist_order);
     
     std::vector<std::array<double, 2>> reference_response_buffer(
-        min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zebra::SHExpansionVectorSpan<std::array<double, 2>>
+        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
+    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
     reference_response(reference_response_buffer.data(), {min_speeds.size()}, reference_resp_order);
-    zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
+    zdm::zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
 
     std::vector<std::array<double, 2>> reference_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<std::array<double, 2>, 2> reference(
             reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    zebra::AnisotropicTransverseAngleIntegrator integrator(reference_dist_order, reference_resp_order);
+    zdm::zebra::AnisotropicTransverseAngleIntegrator integrator(reference_dist_order, reference_resp_order);
     integrator.integrate(reference_distribution, reference_response, boosts, eras, min_speeds, reference);
 
-    const std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
+    const std::vector<std::size_t> dist_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
+    const std::vector<std::size_t> resp_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,240,280};
 
-    for (std::size_t dist_order : orders)
+    for (std::size_t dist_order : dist_orders)
     {
-        for (std::size_t resp_order : orders)
+        for (std::size_t resp_order : resp_orders)
             angle_integrator_error(
                     boosts, eras, min_speeds, reference, dist, dist_name, resp, resp_name, dist_order, resp_order, relative_error);
     }

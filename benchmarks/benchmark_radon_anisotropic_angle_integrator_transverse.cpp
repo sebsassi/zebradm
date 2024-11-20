@@ -46,7 +46,7 @@ void benchmark_radon_angle_integrator_anisotropic_transverse(
     zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
     std::size_t max_subdiv = 200000000;
-    integrate::RadonAngleIntegrator integrator{};
+    zdm::integrate::RadonAngleIntegrator integrator{};
     bench.run(name, [&](){
         integrator.integrate_transverse(
                 dist, resp, boosts, eras, min_speeds, 0.0, relerr, out, max_subdiv);
@@ -116,10 +116,10 @@ void run_benchmarks(
             dist, 1.0, reference_resp_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zebra::SHExpansionVectorSpan<std::array<double, 2>>
+        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
+    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
     reference_response(response_buffer.data(), {min_speeds.size()}, reference_resp_order);
-    zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
+    zdm::zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
     
     std::vector<std::array<double, 2>> reference_buffer(boosts.size()*min_speeds.size());
     zest::MDSpan<std::array<double, 2>, 2> reference(

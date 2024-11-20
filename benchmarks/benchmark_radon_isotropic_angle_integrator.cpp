@@ -36,7 +36,7 @@ void benchmark_radon_angle_integrator_isotropic(
     zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
 
     std::size_t max_subdiv = 200000000;
-    integrate::RadonAngleIntegrator integrator{};
+    zdm::integrate::RadonAngleIntegrator integrator{};
     bench.run(name, [&](){
         integrator.integrate(
                 dist, boosts, min_speeds, 0.0, relerr, out, max_subdiv);
@@ -97,7 +97,7 @@ void run_benchmarks(
     zest::MDSpan<double, 2> reference(
             reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    zebra::IsotropicAngleIntegrator integrator(reference_order);
+    zdm::zebra::IsotropicAngleIntegrator integrator(reference_order);
     integrator.integrate(reference_distribution, boosts, min_speeds, reference);
 
     bench.title("integrate::RadonAngleIntegrator::integrate");
