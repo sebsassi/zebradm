@@ -30,12 +30,12 @@ void exp_affine_legendre_integral_recursion_stability(
     constexpr std::size_t order = 100;
     constexpr std::size_t extra_extent = 0;
 
-    zebra::AffineLegendreIntegrals recursion(order, extra_extent);
+    zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
     std::vector<double> trapezoid_buffer(
-        zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
+        zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
     
-    zebra::TrapezoidSpan<double> test_trapezoid(
+    zdm::zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
     recursion.integrals(test_trapezoid, shift, scale);
 

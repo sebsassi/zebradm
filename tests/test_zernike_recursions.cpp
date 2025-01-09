@@ -133,11 +133,11 @@ bool multiply_empty_expansion_by_r2_does_nothing()
     return success;
 }
 
-template <std::size_t INORDER>
+template <std::size_t in_order_param>
 bool multiply_Z000_by_x_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -180,11 +180,11 @@ bool multiply_Z000_by_x_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
+template <std::size_t in_order_param>
 bool multiply_Z000_by_y_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -227,11 +227,11 @@ bool multiply_Z000_by_y_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
+template <std::size_t in_order_param>
 bool multiply_Z000_by_z_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -274,11 +274,11 @@ bool multiply_Z000_by_z_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
+template <std::size_t in_order_param>
 bool multiply_Z000_by_r2_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 2;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 2;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -325,12 +325,12 @@ bool multiply_Z000_by_r2_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z111_by_x_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -382,12 +382,12 @@ bool multiply_Z111_by_x_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z111_by_y_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -430,12 +430,12 @@ bool multiply_Z111_by_y_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z111_by_z_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -478,12 +478,12 @@ bool multiply_Z111_by_z_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z11m1_by_x_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -526,12 +526,12 @@ bool multiply_Z11m1_by_x_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z11m1_by_y_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -583,12 +583,12 @@ bool multiply_Z11m1_by_y_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z11m1_by_z_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -631,12 +631,12 @@ bool multiply_Z11m1_by_z_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z110_by_x_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -679,12 +679,12 @@ bool multiply_Z110_by_x_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z110_by_y_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     
@@ -727,12 +727,12 @@ bool multiply_Z110_by_y_is_correct_for_order()
     return success;
 }
 
-template <std::size_t INORDER>
-    requires (INORDER > 1)
+template <std::size_t in_order_param>
+    requires (in_order_param > 1)
 bool multiply_Z110_by_z_is_correct_for_order()
 {
-    constexpr std::size_t in_order = INORDER;
-    constexpr std::size_t out_order = INORDER + 1;
+    constexpr std::size_t in_order = in_order_param;
+    constexpr std::size_t out_order = in_order_param + 1;
     zest::zt::ZernikeExpansionOrthoGeo in(in_order);
     zest::zt::ZernikeExpansionOrthoGeo out(out_order);
     

@@ -68,7 +68,7 @@ void angle_integrator_error(
 
     char fname_nt[512] = {};
     char fname_t[512] = {};
-    if (relative_error)
+    if (use_relative_error)
     {
         std::sprintf(fname_nt, "zebra_angle_integrator_nontransverse_error_relative_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
         std::sprintf(fname_t, "zebra_angle_integrator_transverse_error_relative_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
@@ -159,8 +159,11 @@ void angle_integrator_errors(
     for (std::size_t dist_order : dist_orders)
     {
         for (std::size_t resp_order : resp_orders)
+        {
+            std::printf("%s, %s: (%lu, %lu)\n", dist_name, resp_name, dist_order, resp_order);
             angle_integrator_error(
                     boosts, eras, min_speeds, reference, dist, dist_name, resp, resp_name, dist_order, resp_order, relative_error);
+        }
     }
 }
 
@@ -174,15 +177,15 @@ int main()
     angle_integrator_errors(
         four_gaussians, "four_gaussians",
         smooth_exponential, "smooth_exponential", relative_error);
-    angle_integrator_errors(
+    /*angle_integrator_errors(
         shm_plus_stream, "shm_plus_stream",
-        smooth_exponential, "smooth_exponential", relative_error);
+        smooth_exponential, "smooth_exponential", relative_error);*/
     angle_integrator_errors(
         shmpp_aniso, "shmpp_aniso",
         smooth_exponential, "smooth_exponential", relative_error);
-    angle_integrator_errors(
+    /*angle_integrator_errors(
         shmpp, "shmpp",
-        smooth_exponential, "smooth_exponential", relative_error);
+        smooth_exponential, "smooth_exponential", relative_error);*/
     
     angle_integrator_errors(
         aniso_gaussian, "aniso_gaussian",
@@ -190,13 +193,13 @@ int main()
     angle_integrator_errors(
         four_gaussians, "four_gaussians",
         fcc_dots, "smooth_dots", relative_error);
-    angle_integrator_errors(
+    /*angle_integrator_errors(
         shm_plus_stream, "shm_plus_stream",
-        fcc_dots, "smooth_dots", relative_error);
+        fcc_dots, "smooth_dots", relative_error);*/
     angle_integrator_errors(
         shmpp_aniso, "shmpp_aniso",
         fcc_dots, "smooth_dots", relative_error);
-    angle_integrator_errors(
+    /*angle_integrator_errors(
         shmpp, "shmpp",
-        fcc_dots, "smooth_dots", relative_error);
+        fcc_dots, "smooth_dots", relative_error);*/
 }

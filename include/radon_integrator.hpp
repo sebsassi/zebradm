@@ -130,8 +130,8 @@ public:
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
                 out(i, j) = integrate(
-                        distribution, response, boosts[i], min_speeds[j],
-                        eras[i], abserr, relerr, max_subdiv);
+                        distribution, response, boosts[i], eras[i],
+                        min_speeds[j], abserr, relerr, max_subdiv);
         }
     }
 
@@ -163,8 +163,8 @@ public:
         {
             for (std::size_t j = 0; j < min_speeds.size(); ++j)
                 out(i, j) = integrate_transverse(
-                        distribution, response, boosts[i], min_speeds[j],
-                        eras[i], abserr, relerr, max_subdiv);
+                        distribution, response, boosts[i], eras[i],
+                        min_speeds[j], abserr, relerr, max_subdiv);
         }
     }
     
@@ -299,16 +299,22 @@ public:
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return 0.0;
 
-        // `boost_era` is in the same coordinates as `response`.
-        const Vector<double, 3> boost_era = {
-            std::cos(era)*boost[0] + std::sin(era)*boost[1],
-            std::cos(era)*boost[1] - std::sin(era)*boost[0],
-            boost[2]
+        // Rotation from `distribution` coordinates to `response` coordinates.
+        const Matrix<double, 3, 3> dist_to_resp = {
+            Vector<double, 3>{std::cos(era), -std::sin(era), 0.0},
+            Vector<double, 3>{std::sin(era), std::cos(era), 0.0},
+            Vector<double, 3>{0.0, 0.0, 1.0}
         };
-        const Matrix<double, 3, 3> to_resp_coords
-            = detail::rotation_matrix_align_z_transp(normalize(boost_era));
-        const Matrix<double, 3, 3> to_dist_coords
+
+        // Rotation from coordinates where the z-axis is in the direction of `boost` to `distribution` coordinates.
+        const Matrix<double, 3, 3> boost_to_dist
             = detail::rotation_matrix_align_z_transp(normalize(boost));
+        
+
+        // Rotation from coordinates where the z-axis is in the direction of `boost` to `response` coordinates.
+        const Matrix<double, 3, 3> boost_to_resp
+            = matmul(dist_to_resp, boost_to_dist);
+
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
@@ -322,11 +328,11 @@ public:
 
             // `recoil_dir_resp` is in the same coordinates as `response`
             const Vector<double, 3> recoil_dir_resp
-                = matmul(to_resp_coords, recoil_dir);
+                = matmul(boost_to_resp, recoil_dir);
             
             // `recoil_dir_dist` is in the same coordinates as `distribution`
             const Vector<double, 3> recoil_dir_dist
-                = matmul(to_dist_coords, recoil_dir);
+                = matmul(boost_to_dist, recoil_dir);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(recoil_dir_resp);
@@ -372,16 +378,22 @@ public:
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return {};
 
-        // `boost_era` is in the same coordinates as `response`.
-        const Vector<double, 3> boost_era = {
-            std::cos(era)*boost[0] + std::sin(era)*boost[1],
-            std::cos(era)*boost[1] - std::sin(era)*boost[0],
-            boost[2]
+        // Rotation from `distribution` coordinates to `response` coordinates.
+        const Matrix<double, 3, 3> dist_to_resp = {
+            Vector<double, 3>{std::cos(era), -std::sin(era), 0.0},
+            Vector<double, 3>{std::sin(era), std::cos(era), 0.0},
+            Vector<double, 3>{0.0, 0.0, 1.0}
         };
-        const Matrix<double, 3, 3> to_resp_coords
-            = detail::rotation_matrix_align_z_transp(normalize(boost_era));
-        const Matrix<double, 3, 3> to_dist_coords
+
+        // Rotation from coordinates where the z-axis is in the direction of `boost` to `distribution` coordinates.
+        const Matrix<double, 3, 3> boost_to_dist
             = detail::rotation_matrix_align_z_transp(normalize(boost));
+        
+
+        // Rotation from coordinates where the z-axis is in the direction of `boost` to `response` coordinates.
+        const Matrix<double, 3, 3> boost_to_resp
+            = matmul(dist_to_resp, boost_to_dist);
+
         auto integrand = [&](const Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
@@ -395,11 +407,11 @@ public:
 
             // `recoil_dir_resp` is in the same coordinates as `response`
             const Vector<double, 3> recoil_dir_resp
-                = matmul(to_resp_coords, recoil_dir);
+                = matmul(boost_to_resp, recoil_dir);
             
             // `recoil_dir_dist` is in the same coordinates as `distribution`
             const Vector<double, 3> recoil_dir_dist
-                = matmul(to_dist_coords, recoil_dir);
+                = matmul(boost_to_dist, recoil_dir);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(recoil_dir_resp);
@@ -503,10 +515,13 @@ private:
     using Integrator2D = cubage::HypercubeIntegrator<std::array<double, 2>, T>;
     template <typename T>
     using Integrator3D = cubage::HypercubeIntegrator<std::array<double, 3>, T>;
+    template <typename T>
+    using Integrator4D = cubage::HypercubeIntegrator<std::array<double, 4>, T>;
 
     Integrator3D<double> isotropic_integrator;
     Integrator2D<double> velocity_integrator;
     Integrator2D<double> angle_integrator;
+    Integrator4D<double> anisotropic_integrator;
     Integrator3D<std::array<double, 2>> transverse_integrator;
     Integrator2D<std::array<double, 2>> transverse_velocity_integrator;
     Integrator2D<std::array<double, 2>> transverse_angle_integrator;

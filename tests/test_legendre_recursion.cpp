@@ -42,7 +42,7 @@ bool test_legendre_array_recursion_next_is_correct_to_order_6(double x)
         0.125*(63.0*x*x*x*x*x - 70.0*x*x*x + 15.0*x),
     };
 
-    zebra::LegendreArrayRecursion recursion(std::span<double>(&x, 1));
+    zdm::zebra::LegendreArrayRecursion recursion(std::span<double>(&x, 1));
 
     std::array<double, order> p{};
     p[0] = recursion.current()[0];
@@ -78,7 +78,7 @@ bool test_legendre_array_recursion_iterate_is_correct_to_order_6(double x)
         0.125*(63.0*x*x*x*x*x - 70.0*x*x*x + 15.0*x),
     };
 
-    zebra::LegendreArrayRecursion recursion(std::span<double>(&x, 1));
+    zdm::zebra::LegendreArrayRecursion recursion(std::span<double>(&x, 1));
     recursion.iterate(order - 1);
 
     constexpr double tol = 1.0e-13;
@@ -108,7 +108,7 @@ bool test_legendre_integral_recursion_is_correct_to_order_6(double x)
         0.125*((63.0/6.0)*x*x*x*x*x*x - (70.0/4.0)*x*x*x*x + (15.0/2.0)*x*x) - 0.0625,
     };
 
-    zebra::LegendreIntegralRecursion recursion(order);
+    zdm::zebra::LegendreIntegralRecursion recursion(order);
 
     std::array<double, order> integrals;
     recursion.legendre_integral(integrals, x);

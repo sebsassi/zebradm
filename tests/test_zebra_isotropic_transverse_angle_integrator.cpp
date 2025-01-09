@@ -46,7 +46,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 std::array<double, 2> angle_integrated_const_dist_radon_pair(
     double min_speed, const std::array<double, 3>& boost)
 {
-    const double boost_speed = length(boost);
+    const double boost_speed = zdm::length(boost);
     const double v = boost_speed;
     const double v2 = v*v;
     const double w = min_speed;
@@ -74,7 +74,7 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
 
 bool test_transverse_angle_integrator_is_correct_for_constant_dist()
 {
-    std::vector<Vector<double, 3>> boosts = {
+    std::vector<zdm::Vector<double, 3>> boosts = {
         {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -102,7 +102,7 @@ bool test_transverse_angle_integrator_is_correct_for_constant_dist()
     zest::MDSpan<std::array<double, 2>, 2> test(
             test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    zebra::IsotropicTransverseAngleIntegrator(order)
+    zdm::zebra::IsotropicTransverseAngleIntegrator(order)
         .integrate(distribution, boosts, min_speeds, test);
     
     constexpr double tol = 1.0e-13;

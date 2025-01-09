@@ -34,7 +34,7 @@ void radon_transform(
     ZernikeExpansionSpan<const std::array<double, 2>> in,
     ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
 {
-    constexpr zest::zt::ZernikeNorm NORM = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
 
     assert(!util::have_overlap(in.flatten(), out.flatten()));
     assert(in.order() + 2 == out.order());
@@ -44,19 +44,19 @@ void radon_transform(
     if (in_order == 0) return;
     
     out(0,0,0) = {
-        util::geg_rec_coeff<NORM>(0)*in(0,0,0)[0],
-        util::geg_rec_coeff<NORM>(0)*in(0,0,0)[1]
+        util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[0],
+        util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[1]
     };
 
     if (in_order > 1)
     {
-        const double coeff = util::geg_rec_coeff<NORM>(1);
+        const double coeff = util::geg_rec_coeff<zernike_norm>(1);
         out(1,1,0) = {coeff*in(1,1,0)[0], coeff*in(1,1,0)[1]};
         out(1,1,1) = {coeff*in(1,1,1)[0], coeff*in(1,1,1)[1]};
     }
     else
     {
-        out(2,0,0) = {(-util::geg_rec_coeff<NORM>(0))*in(0,0,0)[0], (-util::geg_rec_coeff<NORM>(0))*in(0,0,0)[1]};
+        out(2,0,0) = {(-util::geg_rec_coeff<zernike_norm>(0))*in(0,0,0)[0], (-util::geg_rec_coeff<zernike_norm>(0))*in(0,0,0)[1]};
         out(2,2,0) = std::array<double, 2>{};
         out(2,2,1) = std::array<double, 2>{};
         out(2,2,2) = std::array<double, 2>{};
@@ -69,8 +69,8 @@ void radon_transform(
         auto in_n = in[n];
         auto in_nm2 = in[n - 2];
 
-        const double coeff_n = util::geg_rec_coeff<NORM>(n);
-        const double coeff_nm2 = -util::geg_rec_coeff<NORM>(n - 2);
+        const double coeff_n = util::geg_rec_coeff<zernike_norm>(n);
+        const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
         for (std::size_t l = n & 1; l <= n - 2; l += 2)
         {
             auto out_n_l = out_n[l];
@@ -97,7 +97,7 @@ void radon_transform(
         auto out_n = out[n];
         auto in_nm2 = in[n - 2];
 
-        const double coeff_nm2 = -util::geg_rec_coeff<NORM>(n - 2);
+        const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
         for (std::size_t l = n & 1; l <= n - 2; l += 2)
         {
             auto out_n_l = out_n[l];
@@ -118,7 +118,7 @@ void radon_transform(
 void radon_transform_inplace(
     ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept
 {
-    constexpr zest::zt::ZernikeNorm NORM = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
 
     const std::size_t order = exp.order();
 
@@ -129,7 +129,7 @@ void radon_transform_inplace(
         auto exp_n = exp[n];
         auto exp_nm2 = exp[n - 2];
 
-        const double coeff_nm2 = -util::geg_rec_coeff<NORM>(n - 2);
+        const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
         for (std::size_t l = n & 1; l <= n - 2; l += 2)
         {
             auto exp_n_l = exp_n[l];
@@ -151,8 +151,8 @@ void radon_transform_inplace(
         auto exp_n = exp[n];
         auto exp_nm2 = exp[n - 2];
 
-        const double coeff_n = util::geg_rec_coeff<NORM>(n);
-        const double coeff_nm2 = -util::geg_rec_coeff<NORM>(n - 2);
+        const double coeff_n = util::geg_rec_coeff<zernike_norm>(n);
+        const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
         for (std::size_t l = n & 1; l <= n - 2; l += 2)
         {
             auto exp_n_l = exp_n[l];
@@ -172,13 +172,13 @@ void radon_transform_inplace(
         }
     }
 
-    const double coeff = util::geg_rec_coeff<NORM>(1);
+    const double coeff = util::geg_rec_coeff<zernike_norm>(1);
     exp(1,1,0) = {coeff*exp(1,1,0)[0], coeff*exp(1,1,0)[1]};
     exp(1,1,1) = {coeff*exp(1,1,1)[0], coeff*exp(1,1,1)[1]};
 
     exp(0,0,0) = {
-        util::geg_rec_coeff<NORM>(0)*exp(0,0,0)[0],
-        util::geg_rec_coeff<NORM>(0)*exp(0,0,0)[1]
+        util::geg_rec_coeff<zernike_norm>(0)*exp(0,0,0)[0],
+        util::geg_rec_coeff<zernike_norm>(0)*exp(0,0,0)[1]
     };
 }
 

@@ -93,10 +93,11 @@ void IsotropicAngleIntegrator::integrate(
         m_geg_zernike_exp.flatten(),
         rotated_geg_zernike_exp.flatten().begin());
 
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     zest::Rotor& rotor = m_contexts[thread_id].rotor;
     for (std::size_t n = 0; n < m_geg_zernike_exp.order(); ++n)
         rotor.rotate(
-                rotated_geg_zernike_exp[n], m_wigner_d_pi2, euler_angles);
+                rotated_geg_zernike_exp[n], m_wigner_d_pi2, euler_angles, rotation_type);
 
     detail::IsotropicAngleIntegratorCore& integrator
         = m_contexts[thread_id].integrator;
@@ -213,8 +214,12 @@ void AnisotropicAngleIntegrator::integrate(
                 ZernikeSpan::SubSpan rotated_geg_zernike_exp
                     = accesss_rotated_geg_zernike_exp(team_id, n + 1);
                 std::ranges::copy(m_geg_zernike_exp[n].flatten(), m_rotated_geg_zernike_exp.begin());
+
+
+                constexpr zest::RotationType rotation_type
+                    = zest::RotationType::coordinate;
                 m_integrators[team_ind].rotor().rotate(
-                        rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+                        rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, rotation_type);
                 m_integrators[team_ind].glq_transformer().backward_transform(
                         rotated_geg_zernike_exp, rotated_geg_zernike_grids[n]);
             }

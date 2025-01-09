@@ -77,7 +77,7 @@ void IsotropicAngleIntegrator::integrate(
         m_geg_zernike_exp.flatten(),
         m_rotated_geg_zernike_exp.flatten().begin());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
@@ -102,7 +102,7 @@ void IsotropicAngleIntegrator::integrate(
 [[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(
     std::size_t order)
 {
-    return zest::zt::ZernikeExpansionSHSpan<std::array<double, 2>, zest::zt::ZernikeNorm::NORMED, zest::st::SHNorm::GEO, zest::st::SHPhase::NONE>::size(order);
+    return zest::zt::ZernikeExpansionSHSpan<std::array<double, 2>, zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none>::size(order);
 }
 
 AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
@@ -184,7 +184,7 @@ void AnisotropicAngleIntegrator::integrate(
 {
     using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
@@ -306,7 +306,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
         m_rotated_trans_geg_zernike_exp.flatten(),
         -2.0*boost[2], m_geg_zernike_exp_z.flatten());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles
@@ -430,7 +430,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 {
     using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]
         = coordinates::cartesian_to_spherical_phys(boost);
     const Vector<double, 3> euler_angles

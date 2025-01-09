@@ -67,7 +67,7 @@ AffineLegendreIntegrals::AffineLegendreIntegrals(
     m_legendre((order + extra_extent)*(order + extra_extent/2)), m_order(order),
     m_extra_extent(extra_extent)
 {
-    zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::COS>(
+    zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
             m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
 }
 
@@ -86,7 +86,7 @@ void AffineLegendreIntegrals::resize(
         m_nodes.resize(order + extra_extent/2);
         m_legendre.resize((order + extra_extent)*(order + extra_extent/2));
 
-        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::COS>(
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
     }
 

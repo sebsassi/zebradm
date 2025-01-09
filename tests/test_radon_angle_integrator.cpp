@@ -22,10 +22,10 @@ SOFTWARE.
 #include "radon_integrator.hpp"
 
 double angle_integrated_radon_shm(
-    const Vector<double, 3>& boost, double min_speed, double disp_speed)
+    const zdm::Vector<double, 3>& boost, double min_speed, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
-    const double boost_speed = length(boost);
+    const double boost_speed = zdm::length(boost);
     const double erf_part
         = std::erf(std::min(1.0,min_speed + boost_speed)/disp_speed)
         - std::erf((min_speed - boost_speed)/disp_speed);
@@ -42,13 +42,13 @@ double angle_integrated_radon_shm(
 void test_radon_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const Vector<double, 3>& velocity){
-        const double speed = length(velocity);
+    auto shm_dist = [&](const zdm::Vector<double, 3>& velocity){
+        const double speed = zdm::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
 
-    std::vector<Vector<double, 3>> boosts = {
+    std::vector<zdm::Vector<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -74,7 +74,7 @@ void test_radon_integrator_is_accurate_for_shm()
     zest::MDSpan<double, 2> shm_test(
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    integrate::RadonAngleIntegrator integrator{};
+    zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(shm_dist, boosts, min_speeds, 0.0, 1.0e-9, shm_test);
 
     std::printf("reference\n");
@@ -102,8 +102,8 @@ void test_radon_integrator_is_accurate_for_shm()
 void test_radon_integrator_resp_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const Vector<double, 3>& velocity){
-        const double speed = length(velocity);
+    auto shm_dist = [&](const zdm::Vector<double, 3>& velocity){
+        const double speed = zdm::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
@@ -113,7 +113,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         return 1.0;
     };
-    const std::vector<Vector<double, 3>> boosts = {
+    const std::vector<zdm::Vector<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -142,7 +142,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     zest::MDSpan<double, 2> shm_test(
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
-    integrate::RadonAngleIntegrator integrator{};
+    zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
             shm_dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-9, shm_test);
 

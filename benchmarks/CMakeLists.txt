@@ -54,6 +54,8 @@ macro(create_other_bench BENCHNAME)
     target_link_libraries(${BENCHNAME}.out zebradm)
 endmacro()
 
+create_other_bench(radon_anisotropic_angle_integrator_error)
+create_other_bench(radon_anisotropic_angle_integrator_transverse_error)
 create_other_bench(zebra_isotropic_angle_integrator_error)
 create_other_bench(zebra_isotropic_angle_integrator_transverse_error)
 create_other_bench(zebra_anisotropic_angle_integrator_error)

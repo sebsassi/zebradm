@@ -74,7 +74,7 @@ void ZernikeRecursionData::expand(std::size_t order)
 
 enum class PlaneCoord { X, Y };
 
-template <PlaneCoord COORD>
+template <PlaneCoord coord_param>
 void multiply_by_x_y_impl(
     const ZernikeRecursionData& coeff_data,
     ZernikeExpansionSpan<const std::array<double, 2>> in,
@@ -114,7 +114,7 @@ void multiply_by_x_y_impl(
 
     std::ranges::fill(out.flatten(), std::array<double, 2>{});
 
-    if constexpr (COORD == PlaneCoord::X)
+    if constexpr (coord_param == PlaneCoord::X)
     {
         out(1,1,1)[0] = (-1.0/sqrt5)*in(0,0,0)[0];
         if (nmax == 1) return;
@@ -208,7 +208,7 @@ void multiply_by_x_y_impl(
         {
             const double dn = double(n);
             constexpr double l_coeff = -2.0/sqrt3;
-            constexpr std::size_t idx = std::size_t(COORD == PlaneCoord::Y);
+            constexpr std::size_t idx = std::size_t(coord_param == PlaneCoord::Y);
             out_n(0,0)[0] = l_coeff*(
                     n_coeff_m*dn*in_nm1(1,1)[idx]
                     + n_coeff_p*(dn + 3.0)*in_np1(1,1)[idx]);
@@ -231,7 +231,7 @@ void multiply_by_x_y_impl(
             constexpr double l2_coeff_mm = 2.0*sqrt3;
             constexpr double l2_coeff_pm = sqrt2;
             constexpr double l2_coeff_pp = sqrt2*sqrt3*sqrt5;
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n(2,0)[0] = nl_coeff_mm*l0_coeff_m*in_nm1(1,1)[0]
                         - nl_coeff_mp*l0_coeff_p*in_nm1(3,1)[0]
@@ -317,7 +317,7 @@ void multiply_by_x_y_impl(
             constexpr double l1_coeff_mm = 2.0;
             constexpr double l1_coeff_pm = l1_coeff_mm;
             constexpr double l1_coeff_pp = 2.0*sqrt3;
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n(1,0)[0] = (-2.0*sqrt3)*(
                     nl_coeff_mp*in_nm1(2,1)[0] + nl_coeff_pp*in_np1(2,1)[0]);
@@ -385,7 +385,7 @@ void multiply_by_x_y_impl(
                 = coeff_data.sqrt_n(l - 2)*coeff_data.sqrt_n(l - 1);
             const double l1_coeff_pp
                 = coeff_data.sqrt_n(l + 2)*coeff_data.sqrt_n(l + 3);
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_l[0][0]
                     = nl_coeff_mm*l0_coeff_mp*in_nm1_lm1[1][0]
@@ -448,7 +448,7 @@ void multiply_by_x_y_impl(
                 const std::array<double, 2> in_np1_lp1_mp1 = in_np1_lp1[m + 1];
 
                 // base case
-                if constexpr (COORD == PlaneCoord::X)
+                if constexpr (coord_param == PlaneCoord::X)
                 {
                     out_n_l_m[0]
                         = nl_coeff_mm*(
@@ -513,7 +513,7 @@ void multiply_by_x_y_impl(
                 const std::array<double, 2> in_np1_lp1_mm1 = in_np1_lp1[m - 1];
                 const std::array<double, 2> in_np1_lp1_mp1 = in_np1_lp1[m + 1];
 
-                if constexpr (COORD == PlaneCoord::X)
+                if constexpr (coord_param == PlaneCoord::X)
                 {
                     out_n_l_m[0]
                         = -nl_coeff_mm*lm_coeff_mm*in_nm1_lm1_mm1[0]
@@ -580,7 +580,7 @@ void multiply_by_x_y_impl(
             = coeff_data.sqrt_n(n - 2)*coeff_data.sqrt_n(n - 1);
         const double l1_coeff_pp
             = coeff_data.sqrt_n(n + 2)*coeff_data.sqrt_n(n + 3);
-        if constexpr (COORD == PlaneCoord::X)
+        if constexpr (coord_param == PlaneCoord::X)
         {
             out_n_n[0][0]
                 = nl_coeff_mm*l0_coeff_mp*in_nm1_nm1[1][0]
@@ -635,7 +635,7 @@ void multiply_by_x_y_impl(
             const std::array<double, 2> in_np1_np1_mp1 = in_np1_np1[m + 1];
 
             // edge case: n > 2, l = n, m > 1
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_n_m[0]
                     = nl_coeff_mm*(
@@ -690,7 +690,7 @@ void multiply_by_x_y_impl(
             const std::array<double, 2> in_np1_np1_mm1 = in_np1_np1[m - 1];
             const std::array<double, 2> in_np1_np1_mp1 = in_np1_np1[m + 1];
 
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_n_m[0]
                     = -nl_coeff_mm*lm_coeff_mm*in_nm1_nm1_mm1[0]
@@ -737,7 +737,7 @@ void multiply_by_x_y_impl(
         {
             const double dn = double(n);
             constexpr double l_coeff = -2.0/sqrt3;
-            constexpr std::size_t idx = std::size_t(COORD == PlaneCoord::Y);
+            constexpr std::size_t idx = std::size_t(coord_param == PlaneCoord::Y);
             out_n(0,0)[0] = l_coeff*n_coeff_m*dn*in_nm1(1,1)[idx];
             
             // l == 2 special case
@@ -756,7 +756,7 @@ void multiply_by_x_y_impl(
             constexpr double l2_coeff_mm = 2.0*sqrt3;
             constexpr double l2_coeff_pm = sqrt2;
             constexpr double l2_coeff_pp = sqrt2*sqrt3*sqrt5;
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n(2,0)[0] = nl_coeff_mm*l0_coeff_m*in_nm1(1,1)[0]
                         - nl_coeff_mp*l0_coeff_p*in_nm1(3,1)[0];
@@ -817,7 +817,7 @@ void multiply_by_x_y_impl(
             constexpr double l1_coeff_mm = 2.0;
             constexpr double l1_coeff_pm = l1_coeff_mm;
             constexpr double l1_coeff_pp = 2.0*sqrt3;
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n(1,0)[0] = (-2.0*sqrt3)*nl_coeff_mp*in_nm1(2,1)[0];
 
@@ -871,7 +871,7 @@ void multiply_by_x_y_impl(
                 = coeff_data.sqrt_n(l - 2)*coeff_data.sqrt_n(l - 1);
             const double l1_coeff_pp
                 = coeff_data.sqrt_n(l + 2)*coeff_data.sqrt_n(l + 3);
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_l[0][0]
                     = nl_coeff_mm*l0_coeff_mp*in_nm1_lm1[1][0]
@@ -919,7 +919,7 @@ void multiply_by_x_y_impl(
 
                 // edge case: n = nmax - 1, l > 2, m > 1
                 // edge case: n = nmax, l > 2, m > 1
-                if constexpr (COORD == PlaneCoord::X)
+                if constexpr (coord_param == PlaneCoord::X)
                 {
                     out_n_l_m[0]
                         = nl_coeff_mm*(
@@ -967,7 +967,7 @@ void multiply_by_x_y_impl(
                 const std::array<double, 2> in_nm1_lp1_mm1 = in_nm1_lp1[m - 1];
                 const std::array<double, 2> in_nm1_lp1_mp1 = in_nm1_lp1[m + 1];
 
-                if constexpr (COORD == PlaneCoord::X)
+                if constexpr (coord_param == PlaneCoord::X)
                 {
                     out_n_l_m[0]
                         = -nl_coeff_mm*lm_coeff_mm*in_nm1_lm1_mm1[0]
@@ -1012,7 +1012,7 @@ void multiply_by_x_y_impl(
             = sqrt2*coeff_data.sqrt_n(n)*coeff_data.sqrt_n(n + 1);
         const double l1_coeff_mp
             = coeff_data.sqrt_n(n - 2)*coeff_data.sqrt_n(n - 1);
-        if constexpr (COORD == PlaneCoord::X)
+        if constexpr (coord_param == PlaneCoord::X)
         {
             out_n_n[0][0] = nl_coeff_mm*l0_coeff_mp*in_nm1_nm1[1][0];
             
@@ -1047,7 +1047,7 @@ void multiply_by_x_y_impl(
 
             // edge case: n = nmax - 1, l = n, m > 1
             // edge case: n > nmax, l = n, m > 1
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_n_m[0]
                     = nl_coeff_mm*(
@@ -1081,7 +1081,7 @@ void multiply_by_x_y_impl(
             std::array<double, 2>& out_n_n_m = out_n_n[m];
             const std::array<double, 2> in_nm1_nm1_mm1 = in_nm1_nm1[m - 1];
 
-            if constexpr (COORD == PlaneCoord::X)
+            if constexpr (coord_param == PlaneCoord::X)
             {
                 out_n_n_m[0] = -nl_coeff_mm*lm_coeff_mm*in_nm1_nm1_mm1[0];
                 out_n_n_m[1] = -nl_coeff_mm*lm_coeff_mm*in_nm1_nm1_mm1[1];

@@ -143,6 +143,8 @@ linear combination of a centered wide isotropic Gaussian with shifted narrow iso
 */
 double shm_plus_stream(double r, double lon, double colat)
 {
+    constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
+    constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
     constexpr double ve = 544.0;
     constexpr double v0 = 220.0/ve;
     constexpr double v0_sq = v0*v0;
@@ -166,11 +168,19 @@ double shm_plus_stream(double r, double lon, double colat)
     const double shm_part = std::exp(-quad_shm);
     const double stream_part = std::exp(-quad_stream);
 
-    return 0.8*shm_part + 0.2*stream_part;
+    constexpr std::array<double, 2> frac = {0.8, 0.2};
+    constexpr std::array<double, 2> norm = {
+        frac[0]/(sqrt_pi_3*v0*v0*v0),
+        frac[1]/(sqrt_pi_3*vs*vs*vs)
+    };
+
+    return norm[0]*shm_part + norm[1]*stream_part;
 }
 
 double shm_plus_stream(const std::array<double, 3>& x)
 {
+    constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
+    constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
     constexpr double ve = 544.0;
     constexpr double v0 = 220.0/ve;
     constexpr double v0_sq = v0*v0;
@@ -192,7 +202,13 @@ double shm_plus_stream(const std::array<double, 3>& x)
     const double shm_part = std::exp(-quad_shm);
     const double stream_part = std::exp(-quad_stream);
 
-    return 0.8*shm_part + 0.2*stream_part;
+    constexpr std::array<double, 2> frac = {0.8, 0.2};
+    constexpr std::array<double, 2> norm = {
+        frac[0]/(sqrt_pi_3*v0*v0*v0),
+        frac[1]/(sqrt_pi_3*vs*vs*vs)
+    };
+
+    return norm[0]*shm_part + norm[1]*stream_part;
 }
 
 /*
@@ -234,6 +250,8 @@ linear combination of an isotropic and an anisotropic Gaussian.
 */
 double shmpp(double r, double lon, double colat)
 {
+    constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
+    constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
     constexpr double eta = 0.3;
     constexpr double beta = 0.9;
     constexpr double v0 = 233.0/580.0;
@@ -250,12 +268,18 @@ double shmpp(double r, double lon, double colat)
 
     const double shm_part = std::exp(-quad_shm);
     const double pp_part = std::exp(-quad_pp);
+    constexpr std::array<double, 2> norm = {
+        (1.0 - eta)/(sqrt_pi_3*v0*v0*v0),
+        eta/(sqrt_pi_3*sigma_r_sq*sigma_th_sq*sigma_th_sq)
+    };
 
-    return (1.0 - eta)*shm_part + eta*pp_part;
+    return norm[0]*shm_part + norm[1]*pp_part;
 }
 
 double shmpp(const std::array<double, 3>& x)
 {
+    constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
+    constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
     constexpr double eta = 0.3;
     constexpr double beta = 0.9;
     constexpr double v0 = 233.0/580.0;
@@ -271,6 +295,10 @@ double shmpp(const std::array<double, 3>& x)
 
     const double shm_part = std::exp(-quad_shm);
     const double pp_part = std::exp(-quad_pp);
+    constexpr std::array<double, 2> norm = {
+        (1.0 - eta)/(sqrt_pi_3*v0*v0*v0),
+        eta/(sqrt_pi_3*sigma_r_sq*sigma_th_sq*sigma_th_sq)
+    };
 
-    return (1.0 - eta)*shm_part + eta*pp_part;
+    return norm[0]*shm_part + norm[1]*pp_part;
 }

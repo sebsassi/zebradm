@@ -134,7 +134,7 @@ constexpr void fmadd(
 template <zest::zt::ZernikeNorm NORM>
 inline double geg_rec_coeff(std::size_t n) noexcept
 {
-    if constexpr (NORM == zest::zt::ZernikeNorm::UNNORMED)
+    if constexpr (NORM == zest::zt::ZernikeNorm::unnormed)
         return 1.0/double(2*n + 3);
     else
         return 1.0/std::sqrt(double(2*n + 3));
@@ -149,7 +149,7 @@ template <zest::RotationType TYPE>
 constexpr std::array<double, 3> euler_angles_to_align_z(
     double azimuth, double colatitude)
 {
-    if constexpr (TYPE == zest::RotationType::COORDINATE)
+    if constexpr (TYPE == zest::RotationType::coordinate)
         return {azimuth, colatitude, 0.0};
     else
         return {0.0, -colatitude, std::numbers::pi - azimuth};

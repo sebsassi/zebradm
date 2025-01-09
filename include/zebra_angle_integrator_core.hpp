@@ -108,7 +108,7 @@ private:
     std::vector<double> m_aff_leg_ylm_integrals;
     std::vector<double> m_ylm_integral_norms;
 
-    ZonalGLQTransformer<zest::st::SHNorm::GEO> m_zonal_transformer;
+    ZonalGLQTransformer<zest::st::SHNorm::geo> m_zonal_transformer;
     zest::st::SphereGLQGrid<double> m_rotated_grid;
     std::vector<double> m_rotated_exp;
 };

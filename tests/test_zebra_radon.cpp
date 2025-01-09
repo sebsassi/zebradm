@@ -44,13 +44,13 @@ bool test_zebra_radon_accepts_order(std::size_t order)
 {
     zest::zt::ZernikeExpansionOrthoGeo in(order);
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
-    zebra::radon_transform(in, out);
+    zdm::zebra::radon_transform(in, out);
     return true;
 }
 
 bool test_zebra_radon_is_correct_to_order_5()
 {
-    static constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeNorm::NORMED;
+    static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
     zest::zt::ZernikeExpansionOrthoGeo in(order);
     in(0,0,0) = {1.0, -1.0};
@@ -77,56 +77,56 @@ bool test_zebra_radon_is_correct_to_order_5()
     in(4,4,4) = {22.0, -22.0};
 
     zest::zt::ZernikeExpansionOrthoGeo out_ref(order + 2);
-    out_ref(0,0,0) = zebra::util::geg_rec_coeff<NORM>(0)*in(0,0,0);
-    out_ref(1,1,0) = zebra::util::geg_rec_coeff<NORM>(1)*in(1,1,0);
-    out_ref(1,1,1) = zebra::util::geg_rec_coeff<NORM>(1)*in(1,1,1);
-    out_ref(2,0,0) = zebra::util::geg_rec_coeff<NORM>(2)*in(2,0,0)
-                        - zebra::util::geg_rec_coeff<NORM>(0)*in(0,0,0);
-    out_ref(2,2,0) = zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,0);
-    out_ref(2,2,1) = zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,1);
-    out_ref(2,2,2) = zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,2);
-    out_ref(3,1,0) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,1,0)
-                        - zebra::util::geg_rec_coeff<NORM>(1)*in(1,1,0);
-    out_ref(3,1,1) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,1,1)
-                        - zebra::util::geg_rec_coeff<NORM>(1)*in(1,1,1);
-    out_ref(3,3,0) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,0);
-    out_ref(3,3,1) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,1);
-    out_ref(3,3,2) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,2);
-    out_ref(3,3,3) = zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,3);
-    out_ref(4,0,0) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,0,0)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*in(2,0,0);
-    out_ref(4,2,0) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,0)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,0);
-    out_ref(4,2,1) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,1)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,1);
-    out_ref(4,2,2) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,2)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*in(2,2,2);
-    out_ref(4,4,0) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,0);
-    out_ref(4,4,1) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,1);
-    out_ref(4,4,2) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,2);
-    out_ref(4,4,3) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,3);
-    out_ref(4,4,4) = zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,4);
-    out_ref(5,1,0) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,1,0);
-    out_ref(5,1,1) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,1,1);
-    out_ref(5,3,0) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,0);
-    out_ref(5,3,1) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,1);
-    out_ref(5,3,2) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,2);
-    out_ref(5,3,3) = -zebra::util::geg_rec_coeff<NORM>(3)*in(3,3,3);
+    out_ref(0,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(0)*in(0,0,0);
+    out_ref(1,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,0);
+    out_ref(1,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,1);
+    out_ref(2,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,0,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(0)*in(0,0,0);
+    out_ref(2,2,0) = zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,0);
+    out_ref(2,2,1) = zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,1);
+    out_ref(2,2,2) = zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,2);
+    out_ref(3,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,1,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,0);
+    out_ref(3,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,1,1)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,1);
+    out_ref(3,3,0) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,0);
+    out_ref(3,3,1) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,1);
+    out_ref(3,3,2) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,2);
+    out_ref(3,3,3) = zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,3);
+    out_ref(4,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,0,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,0,0);
+    out_ref(4,2,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,0);
+    out_ref(4,2,1) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,1)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,1);
+    out_ref(4,2,2) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,2)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*in(2,2,2);
+    out_ref(4,4,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,0);
+    out_ref(4,4,1) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,1);
+    out_ref(4,4,2) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,2);
+    out_ref(4,4,3) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,3);
+    out_ref(4,4,4) = zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,4);
+    out_ref(5,1,0) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,1,0);
+    out_ref(5,1,1) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,1,1);
+    out_ref(5,3,0) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,0);
+    out_ref(5,3,1) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,1);
+    out_ref(5,3,2) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,2);
+    out_ref(5,3,3) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*in(3,3,3);
     out_ref(5,5,0) = {0.0, 0.0};
     out_ref(5,5,1) = {0.0, 0.0};
     out_ref(5,5,2) = {0.0, 0.0};
     out_ref(5,5,3) = {0.0, 0.0};
     out_ref(5,5,4) = {0.0, 0.0};
     out_ref(5,5,5) = {0.0, 0.0};
-    out_ref(6,0,0) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,0,0);
-    out_ref(6,2,0) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,0);
-    out_ref(6,2,1) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,1);
-    out_ref(6,2,2) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,2,2);
-    out_ref(6,4,0) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,0);
-    out_ref(6,4,1) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,1);
-    out_ref(6,4,2) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,2);
-    out_ref(6,4,3) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,3);
-    out_ref(6,4,4) = -zebra::util::geg_rec_coeff<NORM>(4)*in(4,4,4);
+    out_ref(6,0,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,0,0);
+    out_ref(6,2,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,0);
+    out_ref(6,2,1) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,1);
+    out_ref(6,2,2) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,2,2);
+    out_ref(6,4,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,0);
+    out_ref(6,4,1) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,1);
+    out_ref(6,4,2) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,2);
+    out_ref(6,4,3) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,3);
+    out_ref(6,4,4) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*in(4,4,4);
     out_ref(6,6,0) = {0.0, 0.0};
     out_ref(6,6,1) = {0.0, 0.0};
     out_ref(6,6,2) = {0.0, 0.0};
@@ -137,7 +137,7 @@ bool test_zebra_radon_is_correct_to_order_5()
 
     zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
 
-    zebra::radon_transform(in, out);
+    zdm::zebra::radon_transform(in, out);
 
     constexpr double tol = 1.0e-13;
 
@@ -170,7 +170,7 @@ bool test_zebra_radon_is_correct_to_order_5()
 
 bool test_inplace_zebra_radon_is_correct_to_order_5()
 {
-    static constexpr zest::zt::ZernikeNorm NORM = zest::zt::ZernikeNorm::NORMED;
+    static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
     zest::zt::ZernikeExpansionOrthoGeo exp(order + 2);
     exp(0,0,0) = {1.0, -1.0};
@@ -197,56 +197,56 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     exp(4,4,4) = {22.0, -22.0};
 
     zest::zt::ZernikeExpansionOrthoGeo out_ref(order + 2);
-    out_ref(0,0,0) = zebra::util::geg_rec_coeff<NORM>(0)*exp(0,0,0);
-    out_ref(1,1,0) = zebra::util::geg_rec_coeff<NORM>(1)*exp(1,1,0);
-    out_ref(1,1,1) = zebra::util::geg_rec_coeff<NORM>(1)*exp(1,1,1);
-    out_ref(2,0,0) = zebra::util::geg_rec_coeff<NORM>(2)*exp(2,0,0)
-                        - zebra::util::geg_rec_coeff<NORM>(0)*exp(0,0,0);
-    out_ref(2,2,0) = zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,0);
-    out_ref(2,2,1) = zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,1);
-    out_ref(2,2,2) = zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,2);
-    out_ref(3,1,0) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,1,0)
-                        - zebra::util::geg_rec_coeff<NORM>(1)*exp(1,1,0);
-    out_ref(3,1,1) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,1,1)
-                        - zebra::util::geg_rec_coeff<NORM>(1)*exp(1,1,1);
-    out_ref(3,3,0) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,0);
-    out_ref(3,3,1) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,1);
-    out_ref(3,3,2) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,2);
-    out_ref(3,3,3) = zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,3);
-    out_ref(4,0,0) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,0,0)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*exp(2,0,0);
-    out_ref(4,2,0) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,0)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,0);
-    out_ref(4,2,1) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,1)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,1);
-    out_ref(4,2,2) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,2)
-                        - zebra::util::geg_rec_coeff<NORM>(2)*exp(2,2,2);
-    out_ref(4,4,0) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,0);
-    out_ref(4,4,1) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,1);
-    out_ref(4,4,2) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,2);
-    out_ref(4,4,3) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,3);
-    out_ref(4,4,4) = zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,4);
-    out_ref(5,1,0) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,1,0);
-    out_ref(5,1,1) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,1,1);
-    out_ref(5,3,0) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,0);
-    out_ref(5,3,1) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,1);
-    out_ref(5,3,2) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,2);
-    out_ref(5,3,3) = -zebra::util::geg_rec_coeff<NORM>(3)*exp(3,3,3);
+    out_ref(0,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(0)*exp(0,0,0);
+    out_ref(1,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,0);
+    out_ref(1,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,1);
+    out_ref(2,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,0,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(0)*exp(0,0,0);
+    out_ref(2,2,0) = zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,0);
+    out_ref(2,2,1) = zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,1);
+    out_ref(2,2,2) = zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,2);
+    out_ref(3,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,1,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,0);
+    out_ref(3,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,1,1)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,1);
+    out_ref(3,3,0) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,0);
+    out_ref(3,3,1) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,1);
+    out_ref(3,3,2) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,2);
+    out_ref(3,3,3) = zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,3);
+    out_ref(4,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,0,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,0,0);
+    out_ref(4,2,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,0)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,0);
+    out_ref(4,2,1) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,1)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,1);
+    out_ref(4,2,2) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,2)
+                        - zdm::zebra::util::geg_rec_coeff<norm>(2)*exp(2,2,2);
+    out_ref(4,4,0) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,0);
+    out_ref(4,4,1) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,1);
+    out_ref(4,4,2) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,2);
+    out_ref(4,4,3) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,3);
+    out_ref(4,4,4) = zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,4);
+    out_ref(5,1,0) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,1,0);
+    out_ref(5,1,1) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,1,1);
+    out_ref(5,3,0) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,0);
+    out_ref(5,3,1) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,1);
+    out_ref(5,3,2) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,2);
+    out_ref(5,3,3) = -zdm::zebra::util::geg_rec_coeff<norm>(3)*exp(3,3,3);
     out_ref(5,5,0) = {0.0, 0.0};
     out_ref(5,5,1) = {0.0, 0.0};
     out_ref(5,5,2) = {0.0, 0.0};
     out_ref(5,5,3) = {0.0, 0.0};
     out_ref(5,5,4) = {0.0, 0.0};
     out_ref(5,5,5) = {0.0, 0.0};
-    out_ref(6,0,0) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,0,0);
-    out_ref(6,2,0) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,0);
-    out_ref(6,2,1) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,1);
-    out_ref(6,2,2) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,2,2);
-    out_ref(6,4,0) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,0);
-    out_ref(6,4,1) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,1);
-    out_ref(6,4,2) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,2);
-    out_ref(6,4,3) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,3);
-    out_ref(6,4,4) = -zebra::util::geg_rec_coeff<NORM>(4)*exp(4,4,4);
+    out_ref(6,0,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,0,0);
+    out_ref(6,2,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,0);
+    out_ref(6,2,1) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,1);
+    out_ref(6,2,2) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,2,2);
+    out_ref(6,4,0) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,0);
+    out_ref(6,4,1) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,1);
+    out_ref(6,4,2) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,2);
+    out_ref(6,4,3) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,3);
+    out_ref(6,4,4) = -zdm::zebra::util::geg_rec_coeff<norm>(4)*exp(4,4,4);
     out_ref(6,6,0) = {0.0, 0.0};
     out_ref(6,6,1) = {0.0, 0.0};
     out_ref(6,6,2) = {0.0, 0.0};
@@ -255,7 +255,7 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     out_ref(6,6,5) = {0.0, 0.0};
     out_ref(6,6,6) = {0.0, 0.0};
 
-    zebra::radon_transform_inplace(exp);
+    zdm::zebra::radon_transform_inplace(exp);
 
     constexpr double tol = 1.0e-13;
 

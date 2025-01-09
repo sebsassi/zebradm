@@ -36,20 +36,20 @@ namespace zebra
     @tparam NORM normalization convention of spherical harmonics
     @tparam GridLayoutType
 */
-template <zest::st::SHNorm SH_NORM, typename GridLayoutType = zest::st::DefaultLayout>
+template <zest::st::SHNorm sh_norm_param, typename GridLayoutType = zest::st::DefaultLayout>
 class ZonalGLQTransformer
 {
 public:
     using GridLayout = GridLayoutType;
 
-    static constexpr zest::st::SHNorm sh_norm = SH_NORM;
+    static constexpr zest::st::SHNorm sh_norm = sh_norm_param;
 
     ZonalGLQTransformer() = default;
     explicit ZonalGLQTransformer(std::size_t order):
         m_glq_nodes(zest::gl::PackedLayout::size(GridLayout::lat_size(order))),
         m_glq_weights(zest::gl::PackedLayout::size(GridLayout::lat_size(order))), m_leg_grid(order*GridLayout::lat_size(order)), m_longitudinal_average(GridLayout::lat_size(order)), m_order(order)
     {
-        zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::COS>(
+        zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, GridLayout::lat_size(order) & 1);
         
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
@@ -59,7 +59,7 @@ public:
             legendre_recursion(leg, z);
             for (std::size_t l = 0; l < order; ++l)
             {
-                if constexpr (SH_NORM == zest::st::SHNorm::QM)
+                if constexpr (sh_norm_param == zest::st::SHNorm::qm)
                     leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
                     leg[l] *= std::sqrt(double(2*l + 1));
@@ -75,7 +75,7 @@ public:
         m_glq_weights.resize(zest::gl::PackedLayout::size(GridLayout::lat_size(order)));
         m_leg_grid.resize(order*GridLayout::lat_size(order));
         m_longitudinal_average.resize(GridLayout::lat_size(order));
-        zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::COS>(
+        zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, GridLayout::lat_size(order) & 1);
         
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
@@ -85,7 +85,7 @@ public:
             legendre_recursion(leg, z);
             for (std::size_t l = 0; l < order; ++l)
             {
-                if constexpr (SH_NORM == zest::st::SHNorm::QM)
+                if constexpr (sh_norm_param == zest::st::SHNorm::qm)
                     leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
                     leg[l] *= std::sqrt(double(2*l + 1));
@@ -130,7 +130,7 @@ public:
             }
         }
 
-        constexpr double sh_normalization = zest::st::normalization<SH_NORM>();
+        constexpr double sh_normalization = zest::st::normalization<sh_norm_param>();
         const double prefactor = sh_normalization*(2.0*std::numbers::pi)/double(values.shape()[lon_axis]);
 
         for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)

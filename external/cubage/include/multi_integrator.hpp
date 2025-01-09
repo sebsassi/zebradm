@@ -1,24 +1,3 @@
-/*
-Copyright (c) 2024 Sebastian Sassi
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of 
-this software and associated documentation files (the "Software"), to deal in 
-the Software without restriction, including without limitation the rights to 
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
-of the Software, and to permit persons to whom the Software is furnished to do 
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all 
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-SOFTWARE.
-*/
 #pragma once
 
 #include <vector>
@@ -143,6 +122,14 @@ concept SubdivisionIntegrable
     = WeaklyOrdered<FieldType> && Limited<FieldType> && Integrating<FieldType> && BiSubdivisible<FieldType>
     && ResultStoring<FieldType>;
 
+template <typename T, typename ValueType>
+concept SizedRangeOf = std::ranges::sized_range<T>
+    && std::same_as<std::ranges::range_value_t<T>, ValueType>;
+
+template <typename T, typename ValueType>
+concept ValueOrSizedRangeOf
+    = std::same_as<std::remove_cvref_t<T>, ValueType> || SizedRangeOf<T, ValueType>;
+
 template <typename RuleType, typename NormType = NormIndividual>
 class MultiIntegrator
 {
@@ -157,18 +144,18 @@ public:
 
     template <typename FuncType, typename LimitsType>
         requires MapsAs<FuncType, DomainType, CodomainType>
-        &&  (std::same_as<std::remove_cvref_t<LimitsType>, Limits> || std::convertible_to<LimitsType, std::span<const Limits>>)
+            && ValueOrSizedRangeOf<LimitsType, Limits>
     [[nodiscard]] Result<ResultType, Status> integrate(
             FuncType f, LimitsType&& integration_domain,
             double abserr, double relerr,
             std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        if constexpr (std::same_as<std::remove_cvref_t<LimitsType>, Limits>)
-            m_region_eval_count = 1;
+        if constexpr (SizedRangeOf<LimitsType, Limits>)
+            m_region_eval_count = std::ranges::size(integration_domain);
         else
-            m_region_eval_count = integration_domain.size();
-        generate(integration_domain);
-        ResultType res = initialize(f);
+            m_region_eval_count = 1;
+        generate_region_heap(integration_domain);
+        ResultType res = integrate_initial_regions(f);
 
         while (!has_converged(res, abserr, relerr) && m_region_heap.size() < max_subdiv)
             subdivide_top_region(f, res);
@@ -211,7 +198,7 @@ public:
 private:
     template <typename FuncType>
         requires MapsAs<FuncType, DomainType, CodomainType>
-    [[nodiscard]] inline ResultType initialize(FuncType f)
+    [[nodiscard]] inline ResultType integrate_initial_regions(FuncType f)
     {
         ResultType res{};
         for (auto& region : m_region_heap)
@@ -279,15 +266,17 @@ private:
         return top_region;
     }
 
-    void generate(std::span<const Limits> limits)
+    template <typename LimitsRange>
+        requires SizedRangeOf<LimitsRange, Limits>
+    void generate_region_heap(LimitsRange&& limits)
     {
         m_region_heap.clear();
-        m_region_heap.reserve(limits.size());
+        m_region_heap.reserve(std::ranges::size(limits));
         for (const auto& limit : limits)
             m_region_heap.emplace_back(limit);
     }
 
-    void generate(const Limits& limits)
+    void generate_region_heap(const Limits& limits)
     {
         m_region_heap.clear();
         m_region_heap.reserve(1);

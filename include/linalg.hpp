@@ -247,6 +247,25 @@ matmul(const Matrix<FieldType, N, M>& mat, const Vector<FieldType, M>& vec) noex
     return res;
 }
 
+template <typename FieldType, std::size_t N, std::size_t M, std::size_t L>
+[[nodiscard]] constexpr Matrix<FieldType, N, L>
+matmul(const Matrix<FieldType, N, M>& a, const Matrix<FieldType, M, L>& b) noexcept
+{
+    Matrix<FieldType, N, L> res{};
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        for (std::size_t j = 0; j < L; ++j)
+        {
+            Vector<FieldType, M> bj;
+            for (std::size_t k = 0; k < M; ++k)
+                bj[k] = b[k][j];
+            res[i][j] = dot(a[i], bj);
+        }
+    }
+    
+    return res;
+}
+
 template <typename FieldType, std::size_t N>
 [[nodiscard]] constexpr Vector<FieldType, N> normalize(const Vector<FieldType, N>& a) noexcept
 {

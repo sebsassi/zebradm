@@ -19,6 +19,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+#include <vector>
+#include <cstdio>
+
 #include "zest/zernike_glq_transformer.hpp"
 #include "zebradm/zebra_angle_integrator.hpp"
 
@@ -28,7 +31,7 @@ int main()
         constexpr double disp_sq = 0.4*0.4;
         const double speed_sq = dot(v,v);
         return std::exp(-speed_sq/disp_sq);
-    }
+    };
 
     constexpr std::size_t order = 20;
     constexpr double vmax = 1.0;
@@ -45,7 +48,7 @@ int main()
     zest::MDSpan<std::array<double, 2>, 2> out(
             out_buffer.data(), {vlab.size(), vmin.size()});
 
-    zebra::IsotropicTransverseAngleIntegrator(order)
+    zdm::zebra::IsotropicTransverseAngleIntegrator(order)
         .integrate(dist_expansion, vlab, vmin, out);
     
     for (std::size_t i = 0; i < 0; ++i)

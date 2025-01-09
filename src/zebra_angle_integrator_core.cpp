@@ -60,7 +60,7 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
 }
 
 double IsotropicAngleIntegratorCore::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp,
+    ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
     double boost_speed, double min_speed)
 {
     if (min_speed > 1.0 + boost_speed) return 0.0;
@@ -82,8 +82,8 @@ double IsotropicAngleIntegratorCore::integrate(
 }
 
 std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_geg_zernike_exp,
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
+    ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
+    ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
     double boost_speed, double min_speed)
 {
     if (min_speed > 1.0 + boost_speed) return {0.0, 0.0};
@@ -231,7 +231,7 @@ double AnisotropicAngleIntegratorCore::integrate(
         = coordinates::cartesian_to_spherical_phys(boost);
     if (min_speed > 1.0 + boost_speed) return 0.0;
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const Vector<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 boost_az - era, boost_colat);
@@ -285,7 +285,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
         = coordinates::cartesian_to_spherical_phys(boost);
     if (min_speed > 1.0 + boost_speed) return {0.0, 0.0};
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::COORDINATE;
+    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const Vector<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 boost_az - era, boost_colat);
