@@ -4,17 +4,11 @@ ZebraDM is a modern C++ library that provides tools for performing dark matter d
 
 ## Theoretical background
 
-Dark matter double differential event rate integrals can be expressed as Radon transforms of the dark matter velocity distribution. Expanding the velocity distribution in a suitable chosen basis of functions (the 3D Zernike basis) for which an analytic result for the Radon transform is available, the problem of computing event rates can be reduced from integration to sums, which are significantly faster to perform.
+Dark matter double differential event rate integrals can be expressed as Radon transforms of the dark matter velocity distribution. Expanding the velocity distribution in a suitable chosen basis of functions (the 3D Zernike function basis) for which an analytic result for the Radon transform is available, the problem of computing event rates can be reduced from integration to summation of expansion coefficients. This has numerous advantages: fast convergence of the basis expansion, fewer function evaluations, array operations consisting of easy-to-vectorize branchless loops of addition and multiplication, and so on. The theoretical background is further described in [arXiv:????.????](https://example.com).
 
 ## About this library
 
-Currently, this library provides functionality for performing the fast Zernike based Radon transform described in [arXiv:????.????](https://example.com), and a miscellaneous assortment of other basic utilities.
-
-A longer term aim of this library is to provide a more extensive set of tools useful for performing dark matter event rate computations in a performant and efficient manner with well separated components that can function independently of each other. However, this library is not intended to be an end-to-end batteries-included black box solution for event rate computations.
-
-The philosophy of this library is to provide a collection of logically separated independent components with clear APIs that depend minimally on each other, such that the user doesn't need to use all of the library to use some of the library. It aims to do this while also providing a high level of optimization and performance.
-
-Finally, this library also acts as a reference implementation for the methods described in [arXiv:????.????](https://example.com).
+Currently, this library provides functionality for performing the fast Zernike based Radon transform described in [arXiv:????.????](https://example.com), and a miscellaneous assortment of other basic utilities. This library acts as a reference implementation for these methods.
 
 ## Build and installation
 
@@ -34,7 +28,7 @@ and finally install it to your preferred directory
 cmake --install . --prefix <install directory>
 ```
 
-Note that this library uses C++20 features, so a sufficiently modern compiler is required, e.g., GGC 11 or greater or Clang 14 or greater.
+Note: this library aims to use the C++20 standard. Therefore, a sufficiently modern compiler is required. At least GGC 13 or Clang 17 is recommended. The library may compile at any point with compilers down to GCC 11 and Clang 14, but no guarantees are made about this.
 
 ## Usage
 
@@ -86,4 +80,4 @@ g++ -O3 -std=c++20 -o transverse_radon_example.cpp transverse_radon_example.cpp 
 ```
 Note the `-std=c++20` needed to enable the C++20 features required by the library, unless your compiler defaults to C++20.
 
-If the transverse Radon transform is not needed, the class `zebra::IsotropicTransverseAngleIntegrator` is provided. If an anisotropic response to recoils is needed, corresponding anisotropic classes are also provided.
+If the transverse Radon transform is not needed, the class `zebra::IsotropicAngleIntegrator` is provided. If an anisotropic response to recoils is needed, corresponding anisotropic classes are also provided.

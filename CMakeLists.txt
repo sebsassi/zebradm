@@ -48,6 +48,13 @@ target_compile_options(zebradm
 
 target_compile_features(zebradm PUBLIC cxx_std_20)
 
+install(DIRECTORY include/ DESTINATION include/zebradm)
+
+install(TARGETS zebradm
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+)
+
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)

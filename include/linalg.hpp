@@ -266,6 +266,19 @@ matmul(const Matrix<FieldType, N, M>& a, const Matrix<FieldType, M, L>& b) noexc
     return res;
 }
 
+template <typename FieldType, std::size_t N, std::size_t M>
+[[nodiscard]] constexpr Matrix<FieldType, M, N>
+transpose(const Matrix<FieldType, N, M>& matrix)
+{
+    Matrix<FieldType, M, N> res{};
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        for (std::size_t j = 0; j < M; ++j)
+            res[j][i] = matrix[i][j];
+    }
+    return res;
+}
+
 template <typename FieldType, std::size_t N>
 [[nodiscard]] constexpr Vector<FieldType, N> normalize(const Vector<FieldType, N>& a) noexcept
 {
