@@ -138,9 +138,6 @@ public:
 
     void integrals(
         TrapezoidSpan<double> integrals, double shift, double scale);
-    
-    void integrals_fr_fr_no_cap_ong(
-        TrapezoidSpan<double> integrals, double shift, double scale);
 
 private:
     void integrals_full_interval(

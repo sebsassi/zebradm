@@ -146,54 +146,6 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
     return (partial_res[0] + partial_res[2]) + (partial_res[1] + partial_res[3]);
 }
 
-void AffineLegendreIntegrals::integrals_fr_fr_no_cap_ong(
-    TrapezoidSpan<double> integrals, double shift, double scale)
-{
-    if (integrals.order() == 0) return;
-    resize(integrals.order(), integrals.extra_extent());
-
-    std::ranges::fill(integrals.flatten(), 0.0);
-    if (scale + 1.0 < shift) return;
-
-    const double zmin = std::max(-1.0, -(1.0 + shift)/scale);
-    const double zmax = std::min(1.0, (1.0 - shift)/scale);
-    const double half_width = 0.5*(zmax - zmin);
-    const double mid_point = 0.5*(zmin + zmax);
-
-    util::fmadd(m_nodes, mid_point, half_width, m_glq_nodes);
-
-    const std::size_t last_extent
-        = integrals.order() + integrals.extra_extent();
-    zest::MDSpan<double, 2> weighted_legendre(
-            m_legendre.data(), {last_extent, m_glq_weights.size()});
-    legendre_recursion_vec(weighted_legendre, m_nodes);
-    for (std::size_t l = 0; l < weighted_legendre.extents()[0]; ++l)
-    {
-        zest::MDSpan<double, 1> legendre_l = weighted_legendre[l];
-        util::mul(legendre_l, m_glq_weights);
-    }
-
-    m_affine_legendre.init([&](std::span<double> x){
-        util::fmadd(x, shift, scale, m_nodes);
-    });
-
-    const std::size_t extra_extent
-        = (shift + scale <= 1.0) ? 0 : integrals.extra_extent();
-
-    zest::MDSpan<const double, 2> const_weighted_legendre = weighted_legendre;
-    for (std::size_t n = 0; n < integrals.order(); ++n)
-    {
-        const std::size_t l0 = (shift + 1 < scale) ? n : 0;
-        const std::size_t extent = extra_extent + n + 1;
-        std::span<const double> affine_leg_n = m_affine_legendre.current();
-        std::span<double> integrals_n = integrals[n];
-        for (std::size_t l = l0; l < extent; ++l)
-            integrals_n[l] = half_width*inner_product(
-                    affine_leg_n, const_weighted_legendre[l]);
-        m_affine_legendre.iterate();
-    }
-}
-
 // Operates in the region where `shift + scale <= 1`
 // In this region the integrals are zero for `n < l`
 void AffineLegendreIntegrals::integrals_full_interval(

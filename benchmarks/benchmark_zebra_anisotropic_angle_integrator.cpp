@@ -81,8 +81,8 @@ int main([[maybe_unused]] int argc, char** argv)
     const std::size_t num_boosts = atoi(argv[2]);
     const std::size_t num_min_speeds = atoi(argv[3]);
 
-    std::vector<std::size_t> dist_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
-    const std::vector<std::size_t> resp_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,240,280};
+    std::vector<std::size_t> dist_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
+    const std::vector<std::size_t> resp_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,240,280,320,400,480};
 
     bench.title("zebra::AnisotropicAngleIntegrator::integrate");
     for (const auto& dist_order : dist_orders)

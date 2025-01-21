@@ -48,7 +48,7 @@ SOFTWARE.
     output.close();
 }
 
-double exp_affine_legendre_integral_recursion_stability(
+void exp_affine_legendre_integral_recursion_stability(
     double shift, double scale)
 {
     constexpr std::size_t order = 200;
@@ -58,30 +58,16 @@ double exp_affine_legendre_integral_recursion_stability(
 
     std::vector<double> trapezoid_buffer(
         zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    std::vector<double> trapezoid_buffer_fr_fr_no_cap_ong(
-        zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
     
     zdm::zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
-    zdm::zebra::TrapezoidSpan<double> test_trapezoid_fr_fr_no_cap_ong(
-        trapezoid_buffer_fr_fr_no_cap_ong.data(), order, extra_extent);
     
     recursion.integrals(
             test_trapezoid, shift, scale);
-    recursion.integrals_fr_fr_no_cap_ong(
-            test_trapezoid_fr_fr_no_cap_ong, shift, scale);
 
-    double abserr = 0.0;
-    for (std::size_t i = 0; i < trapezoid_buffer.size(); ++i)
-        abserr = std::max(abserr, std::fabs(test_trapezoid.flatten()[i] - test_trapezoid_fr_fr_no_cap_ong.flatten()[i]));
-    return abserr;
-
-/*
     char fname[128] = {};
     std::sprintf(fname, "aff_leg_coeff_%.2f_%.2f.dat", shift, scale);
     print(fname, test_trapezoid);
-    std::sprintf(fname, "aff_leg_coeff_fr_fr_no_cap_ong_%.2f_%.2f.dat", shift, scale);
-    print(fname, test_trapezoid_fr_fr_no_cap_ong);*/
 }
 
 int main()
@@ -98,11 +84,6 @@ int main()
     {
         const double shift = shift_dist(gen);
         const double scale = scale_dist(gen);
-        const double abserr = exp_affine_legendre_integral_recursion_stability(shift, scale);
-        if (maxerr < abserr)
-        {
-            maxerr = abserr;
-            std::printf("%.16e %.16e: %.16e\n", shift, scale, maxerr);
-        }
+        exp_affine_legendre_integral_recursion_stability(shift, scale);
     }
 }
