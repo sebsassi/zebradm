@@ -52,7 +52,18 @@ class RadonPlotter:
         self.ax_na = self.fig.add_axes([0.95, 0.3, 0.05, 0.03])
         self.ax_i = self.fig.add_axes([0.95, 0.35, 0.05, 0.03])
 
-        self.fig.add_axes()
+        #self.fig.add_axes()
+
+        self.nucleus_mass = {
+            "Xe": amu_to_gev*131.293,
+            "Ar": amu_to_gev*39.963,
+            "Ge": amu_to_gev*73.630,
+            "Si": amu_to_gev*28.085,
+            "C": amu_to_gev*12.011,
+            "F": amu_to_gev*18.998,
+            "Na": amu_to_gev*22.990,
+            "I": amu_to_gev*126.90
+        }
 
         self.vmax = 537
         self.vdisp = 233
@@ -67,13 +78,13 @@ class RadonPlotter:
         self.times = np.linspace(self.tmin, self.tmax, 24)
 
         self.slider_vmax = widgets.Slider(
-            ax=self.ax_vmax, label=r"$v_\text{esc}$", valmin=500, valmax=600, valinit=self.vmax)
+            ax=self.ax_vmax, label=r"$v_{esc}$", valmin=500, valmax=600, valinit=self.vmax)
         self.slider_vdisp = widgets.Slider(
-            ax=self.ax_vdisp, label=r"$v_0$", valmin=250, valmax=300, valinit=self.vdisp)
+            ax=self.ax_vdisp, label=r"$v_0$", valmin=200, valmax=300, valinit=self.vdisp)
         self.slider_dist_order = widgets.Slider(
             ax=self.ax_dist_order, label=r"$L$", valmin=2, valmax=50, valinit=self.vdisp, valstep=1)
         self.slider_dm_mass = widgets.Slider(
-            ax=self.ax_dm_mass, label=r"$m_\text{DM}$", valmin=0.4, valmax=2.0, valinit=self.dm_mass)
+            ax=self.ax_dm_mass, label=r"$m_{DM}$", valmin=0.4, valmax=2.0, valinit=self.dm_mass)
         
         self.slider_vmax.on_changed(self.update_vmax)
         self.slider_vdisp.on_changed(self.update_vdisp)
@@ -103,17 +114,6 @@ class RadonPlotter:
 
         self.pcmesh = self.ax1.pcolormesh(self.rate_energy, vmin=0.0)
         self.line, = self.ax2.plot(self.times, self.rate)
-
-        self.nucleus_mass = {
-            "Xe": amu_to_gev*131.293,
-            "Ar": amu_to_gev*39.963,
-            "Ge": amu_to_gev*73.630,
-            "Si": amu_to_gev*28.085,
-            "C": amu_to_gev*12.011,
-            "F": amu_to_gev*18.998,
-            "Na": amu_to_gev*22.990,
-            "I": amu_to_gev*126.90
-        }
     
     def update_vmax(self, val):
         self.vmax = val
@@ -162,7 +162,7 @@ class RadonPlotter:
             self.fig.canvas.draw()
     
     def compute_radon(self):
-        p = subprocess.run(f"./lab_radon_example {self.vmax} {self.vdisp} {int(self.dist_order)} {self.dm_mass} {self.nucleus_mass[self.element]} {self.tmin} {self.tmax} {self.emax}", capture_output=True, text=True)
+        p = subprocess.run(f"./lab_radon_example {self.vmax} {self.vdisp} {int(self.dist_order)} {self.dm_mass} {self.nucleus_mass[self.element]} {self.tmin} {self.tmax} {self.emax}", capture_output=True, text=True, shell=True)
         return np.loadtxt(io.StringIO(p.stdout))
 
 

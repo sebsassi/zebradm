@@ -123,7 +123,7 @@ void LegendreArrayRecursion::init(std::span<const double> x)
     reset();
 }
 
-std::span<const double> LegendreArrayRecursion::next() noexcept
+void LegendreArrayRecursion::iterate() noexcept
 {
     double* temp = m_second_prev;
     m_second_prev = m_prev;
@@ -139,8 +139,6 @@ std::span<const double> LegendreArrayRecursion::next() noexcept
             m_current[i] = a*m_x[i]*m_prev[i] - b*m_second_prev[i];
     }
     ++m_l;
-
-    return current();
 }
 
 void LegendreArrayRecursion::iterate(std::size_t n) noexcept
@@ -170,6 +168,12 @@ void LegendreArrayRecursion::iterate(std::size_t n) noexcept
             m_current[i] = a*m_x[i]*m_prev[i] - b*m_second_prev[i];
         ++m_l;
     }
+}
+
+std::span<const double> LegendreArrayRecursion::next() noexcept
+{
+    iterate();
+    return current();
 }
 
 void LegendreArrayRecursion::reset() noexcept

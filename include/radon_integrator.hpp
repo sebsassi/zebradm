@@ -25,6 +25,10 @@ SOFTWARE.
 #include <span>
 #include <functional>
 #include <cmath>
+#include <limits>
+#include <array>
+
+#include <zest/md_span.hpp>
 
 #include "linalg.hpp"
 #include "align_z.hpp"
@@ -33,8 +37,6 @@ SOFTWARE.
 #include "hypercube_integrator.hpp"
 
 #include "coordinate_transforms.hpp"
-
-#include "zest/md_span.hpp"
 
 namespace zdm
 {
@@ -49,7 +51,7 @@ public:
     /**
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution velocity distribution; see notes for details
         @param boosts negative average velocity of the distribution; see notes for units
@@ -63,7 +65,7 @@ public:
     */
     template <typename Dist>
     void integrate(
-        Dist&& distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -77,7 +79,7 @@ public:
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity disitribution on a boosted unit ball.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution velocity distribution; see notes for details
         @param boosts negative average velocity of the distribution; see notes for units
@@ -91,7 +93,7 @@ public:
     */
     template <typename Dist>
     void integrate_transverse(
-        Dist&& distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -105,7 +107,7 @@ public:
     /**
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution velocity distribution; see notes for details
@@ -124,7 +126,7 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate(
-        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, std::span<const std::array<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<double, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -138,7 +140,7 @@ public:
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution velocity distribution; see notes for details
@@ -157,7 +159,7 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate_transverse(
-        Dist&& distribution, Resp&& response, std::span<const Vector<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, std::span<const std::array<double, 3>> boosts, std::span<const double> eras, std::span<const double> min_speeds, double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
@@ -171,7 +173,7 @@ public:
     /**
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution velocity distribution; see notes for details
         @param boost negative average velocity of the distribution; see notes for units
@@ -185,14 +187,14 @@ public:
     */
     template <typename Dist>
     [[nodiscard]] double integrate(
-        Dist&& distribution, const Vector<double, 3>& boost, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, const std::array<double, 3>& boost, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed > 1.0 + boost_speed) return 0.0;
         const Matrix<double, 3, 3> align_z_transp
             = detail::rotation_matrix_align_z_transp(normalize(boost));
         const double boost_speed_sq = boost_speed*boost_speed;
-        auto integrand = [&](const Vector<double, 3>& coords)
+        auto integrand = [&](const std::array<double, 3>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -202,7 +204,7 @@ public:
             const double v_perp = v*std::sqrt((1.0 - z)*(1.0 + z));
 
             // `velocity` is in coordinates with z-axis in direction of `boost`.
-            const Vector<double, 3> velocity = {
+            const std::array<double, 3> velocity = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), v*z
             };
 
@@ -221,7 +223,7 @@ public:
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity disitribution on a boosted unit ball.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution velocity distribution; see notes for details
         @param boost negative average velocity of the distribution; see notes for units
@@ -235,7 +237,7 @@ public:
     */
     template <typename Dist>
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        Dist&& distribution, const Vector<double, 3>& boost, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, const std::array<double, 3>& boost, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed > 1.0 + boost_speed) return {};
@@ -243,7 +245,7 @@ public:
             = detail::rotation_matrix_align_z_transp(normalize(boost));
         const double boost_speed_sq = boost_speed*boost_speed;
         const double min_speed_sq = min_speed*min_speed;
-        auto integrand = [&](const Vector<double, 3>& coords)
+        auto integrand = [&](const std::array<double, 3>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -253,7 +255,7 @@ public:
             const double v_perp = v*std::sqrt((1.0 - z)*(1.0 + z));
 
             // `velocity` is in coordinates with z-axis in direction of `boost`.
-            const Vector<double, 3> velocity = {
+            const std::array<double, 3> velocity = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), v*z
             };
 
@@ -275,7 +277,7 @@ public:
     /**
         @brief Angle integrated Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution velocity distribution; see notes for details
@@ -294,16 +296,16 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] double integrate(
-        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, const std::array<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return 0.0;
 
         // Rotation from `distribution` coordinates to `response` coordinates.
         const Matrix<double, 3, 3> dist_to_resp = {
-            Vector<double, 3>{std::cos(era), -std::sin(era), 0.0},
-            Vector<double, 3>{std::sin(era), std::cos(era), 0.0},
-            Vector<double, 3>{0.0, 0.0, 1.0}
+            std::array<double, 3>{std::cos(era), std::sin(era), 0.0},
+            std::array<double, 3>{-std::sin(era), std::cos(era), 0.0},
+            std::array<double, 3>{0.0, 0.0, 1.0}
         };
 
         // Rotation from coordinates where the z-axis is in the direction of `boost` to `distribution` coordinates.
@@ -315,23 +317,23 @@ public:
         const Matrix<double, 3, 3> boost_to_resp
             = matmul(dist_to_resp, boost_to_dist);
 
-        auto integrand = [&](const Vector<double, 2>& coords)
+        auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double azimuth = coords[0];
             const double z = coords[1];
             const double perp = std::sqrt((1.0 - z)*(1.0 + z));
 
             // `recoil_dir` is in coordinates with z-axis in direction of `boost`.
-            const Vector<double, 3> recoil_dir = {
+            const std::array<double, 3> recoil_dir = {
                 perp*std::cos(azimuth), perp*std::sin(azimuth), z 
             };
 
             // `recoil_dir_resp` is in the same coordinates as `response`
-            const Vector<double, 3> recoil_dir_resp
+            const std::array<double, 3> recoil_dir_resp
                 = matmul(boost_to_resp, recoil_dir);
             
             // `recoil_dir_dist` is in the same coordinates as `distribution`
-            const Vector<double, 3> recoil_dir_dist
+            const std::array<double, 3> recoil_dir_dist
                 = matmul(boost_to_dist, recoil_dir);
             
             const auto& [resp_az, resp_colat, resp_mag]
@@ -354,7 +356,7 @@ public:
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity disitribution on a boosted unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `Vector<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution velocity distribution; see notes for details
@@ -373,16 +375,16 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        Dist&& distribution, Resp&& response, const Vector<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
+        Dist&& distribution, Resp&& response, const std::array<double, 3>& boost, double era, double min_speed, double abserr, double relerr, std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         const double boost_speed = length(boost);
         if (min_speed - boost_speed > 1.0) return {};
 
         // Rotation from `distribution` coordinates to `response` coordinates.
         const Matrix<double, 3, 3> dist_to_resp = {
-            Vector<double, 3>{std::cos(era), -std::sin(era), 0.0},
-            Vector<double, 3>{std::sin(era), std::cos(era), 0.0},
-            Vector<double, 3>{0.0, 0.0, 1.0}
+            std::array<double, 3>{std::cos(era), std::sin(era), 0.0},
+            std::array<double, 3>{-std::sin(era), std::cos(era), 0.0},
+            std::array<double, 3>{0.0, 0.0, 1.0}
         };
 
         // Rotation from coordinates where the z-axis is in the direction of `boost` to `distribution` coordinates.
@@ -394,23 +396,23 @@ public:
         const Matrix<double, 3, 3> boost_to_resp
             = matmul(dist_to_resp, boost_to_dist);
 
-        auto integrand = [&](const Vector<double, 2>& coords)
+        auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double azimuth = coords[0];
             const double z = coords[1];
             const double perp = std::sqrt((1.0 - z)*(1.0 + z));
 
             // `recoil_dir` is in coordinates with z-axis in direction of `boost`.
-            const Vector<double, 3> recoil_dir = {
+            const std::array<double, 3> recoil_dir = {
                 perp*std::cos(azimuth), perp*std::sin(azimuth), z 
             };
 
             // `recoil_dir_resp` is in the same coordinates as `response`
-            const Vector<double, 3> recoil_dir_resp
+            const std::array<double, 3> recoil_dir_resp
                 = matmul(boost_to_resp, recoil_dir);
             
             // `recoil_dir_dist` is in the same coordinates as `distribution`
-            const Vector<double, 3> recoil_dir_dist
+            const std::array<double, 3> recoil_dir_dist
                 = matmul(boost_to_dist, recoil_dir);
             
             const auto& [resp_az, resp_colat, resp_mag]
@@ -434,8 +436,8 @@ public:
 private:
     template <typename Dist>
     double velocity_integral(
-        Dist&& distribution, const Vector<double, 3>& boost_dist,
-        double min_speed, const Vector<double, 3>& recoil_dir_dist,
+        Dist&& distribution, const std::array<double, 3>& boost_dist,
+        double min_speed, const std::array<double, 3>& recoil_dir_dist,
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
@@ -445,14 +447,14 @@ private:
 
         const Matrix<double, 3, 3> to_dist_coords
             = detail::rotation_matrix_align_z_transp(recoil_dir_dist);
-        auto integrand = [&](const Vector<double, 2>& coords)
+        auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
             const double v_perp = std::sqrt((v - radon_parameter)*(v + radon_parameter));
 
             // `velocity` is in coordinates with z-axis in direction of `recoil_dir`.
-            const Vector<double, 3> velocity = {
+            const std::array<double, 3> velocity = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), radon_parameter
             };
 
@@ -469,8 +471,8 @@ private:
 
     template <typename Dist>
     std::array<double, 2> transverse_velocity_integral(
-        Dist&& distribution, const Vector<double, 3>& boost_dist,
-        double min_speed, const Vector<double, 3>& recoil_dir_dist,
+        Dist&& distribution, const std::array<double, 3>& boost_dist,
+        double min_speed, const std::array<double, 3>& recoil_dir_dist,
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
@@ -480,7 +482,7 @@ private:
 
         const Matrix<double, 3, 3> to_dist_coords
             = detail::rotation_matrix_align_z_transp(recoil_dir_dist);
-        auto integrand = [&](const Vector<double, 2>& coords)
+        auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -488,12 +490,12 @@ private:
                 = std::sqrt((v - radon_parameter)*(v + radon_parameter));
 
             // `velocity` is in coordinates with z-axis in direction of `recoil_dir`.
-            const Vector<double, 3> velocity = {
+            const std::array<double, 3> velocity = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), radon_parameter
             };
-            const Vector<double, 3> velocity_dist
+            const std::array<double, 3> velocity_dist
                 = matmul(to_dist_coords, velocity);
-            const Vector<double, 3> velocity_boosted
+            const std::array<double, 3> velocity_boosted
                 = velocity_dist - boost_dist;
 
             const double v_boost_sq = dot(velocity_boosted, velocity_boosted);

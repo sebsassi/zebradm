@@ -55,10 +55,10 @@ double smooth_dots(double min_speed, double longitude, double colatitude)
     const double u4 = u2*u2;
     const double Y64 = norm*u4*(11.0*t2 - 1.0)*std::cos(4.0*longitude);
 
-    constexpr double rate = 5.0;
+    constexpr double rate = 2.0;
     const double surface = 1.0 - std::exp(rate*(Y64 - 1.0));
 
-    constexpr double slope = 50.0;
+    constexpr double slope = 10.0;
     return smooth_step(min_speed*(1.0/1.5) - surface, slope);
 }
 

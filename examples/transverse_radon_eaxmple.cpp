@@ -27,9 +27,9 @@ SOFTWARE.
 
 int main()
 {
-    auto shm_dist = [](const Vector<double, 3>& v){
+    auto shm_dist = [](const std::array<double, 3>& v){
         constexpr double disp_sq = 0.4*0.4;
-        const double speed_sq = dot(v,v);
+        const double speed_sq = zdm::dot(v,v);
         return std::exp(-speed_sq/disp_sq);
     };
 

@@ -65,7 +65,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 
 bool test_angle_integrator_is_correct_for_constant_dist()
 {
-    std::vector<zdm::Vector<double, 3>> boosts = {
+    std::vector<std::array<double, 3>> boosts = {
         {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -131,7 +131,7 @@ bool test_angle_integrator_is_correct_for_constant_dist()
 }
 
 double angle_integrated_radon_shm(
-    const zdm::Vector<double, 3>& boost, double min_speed, double disp_speed)
+    const std::array<double, 3>& boost, double min_speed, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     const double boost_speed = zdm::length(boost);
@@ -151,13 +151,13 @@ double angle_integrated_radon_shm(
 bool test_angle_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const zdm::Vector<double, 3>& velocity){
+    auto shm_dist = [&](const std::array<double, 3>& velocity){
         const double speed = zdm::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
 
-    std::vector<zdm::Vector<double, 3>> boosts = {
+    std::vector<std::array<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };

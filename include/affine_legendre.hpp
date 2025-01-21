@@ -22,10 +22,8 @@ SOFTWARE.
 #pragma once
 
 #include <vector>
-#include <algorithm>
 
-#include "zest/triangle_layout.hpp"
-#include "zest/md_span.hpp"
+#include <zest/triangle_layout.hpp>
 
 #include "legendre.hpp"
 

@@ -24,6 +24,8 @@ SOFTWARE.
 #include <vector>
 #include <span>
 
+#include <zest/md_span.hpp>
+
 #include "legendre.hpp"
 
 namespace zdm
@@ -135,6 +137,9 @@ public:
     void resize(std::size_t order, std::size_t extra_extent);
 
     void integrals(
+        TrapezoidSpan<double> integrals, double shift, double scale);
+    
+    void integrals_fr_fr_no_cap_ong(
         TrapezoidSpan<double> integrals, double shift, double scale);
 
 private:

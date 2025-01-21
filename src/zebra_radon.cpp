@@ -23,6 +23,8 @@ SOFTWARE.
 
 #include <cassert>
 
+#include <zest/zernike_conventions.hpp>
+
 #include "radon_util.hpp"
 
 namespace zdm

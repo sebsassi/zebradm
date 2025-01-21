@@ -1,12 +1,35 @@
 \documentclass{article}
 
+\frenchspacing
+
+\usepackage[
+    inner = 100pt,
+    outer = 100pt,
+    top = 100pt,
+    bottom = 100pt
+]{geometry}
+
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{minted}
+\usepackage{xcolor}
+
+\setminted{
+    bgcolor = black!6!white,
+    bgcolorpadding = 3pt,
+    autogobble = true,
+    frame = leftline,
+    framerule = 1.5pt,
+    rulecolor = black!20!white}
+\setmintedinline{bgcolorpadding = 1.5pt}
 
 \newcommand{\der}[2]{\frac{d#1}{d#2}}
 \newcommand{\unitv}[1]{\hat{#1}}
 \newcommand{\mean}[1]{\langle #1 \rangle}
-\newcommand{\difd}[1]{d\,}
+\newcommand{\difd}{\,d}
+
+\newmintinline{cpp}{}
+\newmintinline{text}{}
 
 \begin{document}
 
@@ -14,103 +37,109 @@
 \large\textbf{Brief intro to DM event rate calculations with \texttt{ZebraDM}}
 \end{center}
 
+\noindent
 In computing predictions for dark matter event rate experiments, one has to evaluate the integral
 \begin{equation}
-\der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_(S^2)S(q, unitv{q})\int_{\mathbb(R)^3}\mean{|\mathcal{M}|^2} \delta\left(\vec{v}\cdot unitv{q}-\frac{q}{2\mu_\text{DM--T}}\right)f(\vec{v}+\vec{v}_\text{lab})\difd^3v \difd\Omega
+    \der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_{S^2}S(q, \unitv{q})\int_{\mathbb{R}^3}\mean{|\mathcal{M}|^2} \delta\left(\vec{v}\cdot\unitv{q}-\frac{q}{2\mu_\text{DM--T}}\right)f(\vec{v}+\vec{v}_\text{lab})\difd^3v \difd\Omega.
 \end{equation}
 Commonly, e.g., in DM--nucleus scattering problems, the form of the matrix element $\mathcal{M}$ has a simple dependence on the velocity $\vec{v}$ such that the squared matrix element can be expressed as $\mean{|\mathcal{M}|^2}=|\vec{v}_\perp|^{2s}F(q)$ with $s=0,1$. We call the $s=0$ case the \emph{nontransverse} case and the $s=1$ case the \emph{transverse} case. In these cases the event rate formula can be reduced to integrating the boosted angle integrated Radon transform
 \begin{equation}
-\der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_(S^2)\mathcal{R}[|vector(v)_perp|^(2s)f](v_\text{min}+\vec{v}_\text{lab}\cdot\unitv{q}, \unitv{q})\difd\Omega.
+    \der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_{S^2}\mathcal{R}[|\vec{v}_\perp|^{2s}f](v_\text{min}+\vec{v}_\text{lab}\cdot\unitv{q}, \unitv{q})\difd\Omega.
 \end{equation}
 Here $v_\text{min}=q/2\mu_\text{DM--T}$ and $\mathcal{R}[f]$ denotes the Radon transform
 \begin{equation}
-\mathcal{R}[f](w, \unitv{q})=\int_{\mathbb(R)^3}\delta(\vec{v}\cdot unitv{q}-w)f(\vec{v})\difd^3v.
+    \mathcal{R}[f](w, \unitv{q}) = \int_{\mathbb{R}^3}\delta(\vec{v}\cdot \unitv{q}-w)f(\vec{v})\difd^3v.
 \end{equation}
 
 The \texttt{ZebraDM} library implements functions for efficient evaluation of the angle integrated Radon transforms for a class of distributions. Distributions defined on the unit ball $B(1)$ can be expressed in the basis of Zernike functions
 \begin{equation}
-f(\vec{v})=\sum f_{nlm}Z_{nlm}(\vec{v}).
+    f(\vec{v})=\sum f_{nlm}Z_{nlm}(\vec{v}).
 \end{equation}
 Many dark matter velocity distributions can be defined on a ball of some radius $v_\text{max}$, for example for the standard halo model $v_\text{max}=v_\text{esc}$, or in general $v_\text{max}$ can be chosen such that contribution to the distribution beyond it is negligible. To make use of Zernike functions, velocities need to be expressed in units of $v_\text{max}$.
 
-In this brief intrduction to the capabilities of \texttt{ZebraDM} we're going to go through a simple event rate calculation example in detail.
+In this brief intrduction to the capabilities of \texttt{ZebraDM} we're going to go through a simple event rate calculation example in detail. This guide assumes that you already have the required libraries on your system. If not, see the \texttt{README} file for installation instructions.
 
 \section{Performing Zernike expansions}
 
-The first thing we need to do is calculate the Zernike expansion of our velocity distribution. For that we want to use the companion library \texttt{zest}, and include the header \mintinline{c++}{"zest/zernike_glq_transformer.hpp"}. From there we want to use the class \mintinline{c++}{zest::zt::ZernikeTransformerOrthoGeo} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
+The first thing we need to do is calculate the Zernike expansion of our velocity distribution. For that we want to use the companion library \texttt{zest}, and include the appropriate header
 \begin{minted}{c++}
-zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer();
+    #include <zest/zernike_glq_transformer.hpp>
+\end{minted}
+From there we want to use the class \cppinline{ZernikeTransformerOrthoGeo} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
+\begin{minted}{c++}
+    zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer();
 \end{minted}
 or we can initialize it with a \texttt{order} parameter
 \begin{minted}{c++}
-zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer(order);
+    zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer(order);
 \end{minted}
-The parameter \mintinline{c++}{std::size_t order} specifies the order of the Zernike expansion with higher orders corresponding for more accurate representation of the function. Higher orders require significantly more time to perform computations with, and the level of accuracy for a given order varies by distribution. The desired order should therefore be chosen through testing.
+The parameter \cppinline{std::size_t order} specifies the order of the Zernike expansion with higher orders corresponding for more accurate representation of the function. Higher orders require significantly more time to perform computations with, and the level of accuracy for a given order varies by distribution. The desired order should therefore be chosen through careful testing.
 
 There is no substantial practical difference between the two alternatives. The latter simply allocates some buffers for work with Zernike expansions with the given \texttt{order}. Ultimately, these buffers are resized (or allocated if they aren't already), if necessary, to have the correct size for the order of the transform we are performing.
 
-To perform the transformation, we are going to need the distribution function. We have multiple options for defining the distribution function. Generally speaking, the distribution function needs to be a callable object that returns a \mintinline{c++}{double}, and as parameters it can either take a Cartesian vector
+To perform the transformation, we are going to need the distribution function. We have multiple options for defining the distribution function. Generally speaking, the distribution function needs to be a callable object that returns a \cppinline{double}, and as parameters it can either take a Cartesian vector
 \begin{minted}{c++}
-double distribution(std::array<double, 3>& v);
+    double distribution(std::array<double, 3>& v);
 \end{minted}
 or three spherical coordinates
 \begin{minted}{c++}
-double distribution(double longitude, double colatitude, double radius);
+    double distribution(double longitude, double colatitude, double radius);
 \end{minted}
 We could define this as a regular function
 \begin{minted}{c++}
-double distribution(std::array<double, 3>& v)
-{
-    const double velocity_dispersion = 230;
-    const double v_d_sq = velocity_dispersion*velocity_dispersion;
-    const double v_sq = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-    return std::exp(-v_sq/v_d_sq);
-}
+    double distribution(std::array<double, 3>& v)
+    {
+        const double velocity_dispersion = 230;
+        const double v_d_sq = velocity_dispersion*velocity_dispersion;
+        const double v_sq = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+        return std::exp(-v_sq/v_d_sq);
+    }
 \end{minted}
-However we may want to pass parameters to the distribution, e.g., \texttt{velocity_dispersion}. For this purpose, a lambda with capture is convenient
+However we may want to pass parameters to the distribution, e.g., \texttt{velocity\_dispersion}. For this purpose, a lambda with capture is convenient
 \begin{minted}{c++}
-const double velocity_dispersion = 230;
-auto distribution = [&](std::array<double, 3>& v) -> double
-{
-    const double v_d_sq = velocity_dispersion*velocity_dispersion;
-    const double v_sq = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-    return std::exp(-v_sq/v_d_sq);
-}
+    const double velocity_dispersion = 230;
+    auto distribution = [&](std::array<double, 3>& v) -> double
+    {
+        const double v_d_sq = velocity_dispersion*velocity_dispersion;
+        const double v_sq = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+        return std::exp(-v_sq/v_d_sq);
+    }
 \end{minted}
 
 In this case we are dealing with the standard halo model, therefore our $v_\text{max}=v_\text{esc}$. With this parameter in hand, we can finally write down the transform
 \begin{minted}{c++}
-const double escape_velocity = 544;
-zest::zt::ZernikeExpansionOrthoGeo zernike_expansion
-    = zernike_transformer.transform(distribution, escape_velocity, distribution_order);
+    const double escape_velocity = 544;
+    zest::zt::ZernikeExpansionOrthoGeo zernike_expansion
+        = zernike_transformer.transform(
+            distribution, escape_velocity, distribution_order);
 \end{minted}
-The result of this function call is a \mintinline{c++}{zest::zt::ZernikeExpansionOrthoGeo}. This is a \emph{container} for Zernike expansions. That is, it owns the data it stores.
+The result of this function call is a \cppinline{ZernikeExpansionOrthoGeo}. This is a \emph{container} for Zernike expansions. This means that it owns the data it refers to, and is responsible for its allocation and deallocation. For all containers the library also has corresponding \emph{views}, which merely refer to data owned by someone else.
 
-It is important to note that from here on, everything is expressed in terms of the rescaled parameter $\vec{u}=\vec{v}/v_\text{max}=\vec{v}/v_\text{esc}$. When we pass the parameter \mintinline{c++}{escape_velocity} to \mintinline{c++}{zernike_transformer}, all it does is apply this change of variables, because the underlying Zernike transform itself expects $u\leq1$. This is important to keep in mind, because all the Radon transforms computed by \texttt{ZebraDM} need to be rescaled with appropriate powers of $v_\text{max}$.
+It is important to note that from here on, everything is expressed in terms of the rescaled parameter $\vec{u}=\vec{v}/v_\text{max}=\vec{v}/v_\text{esc}$. When we pass the parameter \cppinline{escape_velocity} to the transformer object \cppinline{zernike_transformer}, all it does is apply this change of variables, because the underlying Zernike transform itself expects $u\leq1$. This is important to keep in mind, because all the Radon transforms computed by \texttt{ZebraDM} need to be rescaled with appropriate powers of $v_\text{max}$.
 
-But say we don't want to store the Zernike expansion in its own container, say we want to store it in a \mintinline{c++}{std::vector}. Suppose we have 
+But say we don't want to store the Zernike expansion in its own container, say we want to store it in a \cppinline{std::vector}. Suppose we have 
 \begin{minted}{c++}
-std::vector<std::array<double, 2>> zernike_buffer(size);
+    std::vector<std::array<double, 2>> zernike_buffer(size);
 \end{minted}
-where the \texttt{size} is large enough to store our Zernike expansion. Don't mind the element type \mintinline{c++}{std::array<double, 2>}. It is used because the Zernike coefficients are stored in pairs. In any case, we can now define our Zernike expansion
+where the \texttt{size} is large enough to store our Zernike expansion. The elements have the type \cppinline{std::array<double, 2>}, because the Zernike coefficients are stored in pairs $(f_{nl,+|m|},f_{nl,-|m|})$. In any case, we can now define our Zernike expansion
 \begin{minted}{c++}
-zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
-zernike_expansion_span(zernike_buffer.size(), distribution_order);
+    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
+    zernike_expansion_span(zernike_buffer.size(), distribution_order);
 \end{minted}
-Here mintinline{c++}{zest::zt::ZernikeExpansionSpanOrthoGeo} is a \emph{view}, which doesn't own any data. It merely gives a layout over an existing buffer. We can now call
+Here \cppinline{ZernikeExpansionSpanOrthoGeo} is a \emph{view}, which doesn't own any data. It merely determines the layout of data in an existing buffer. By convention, views in the library are indetified by the word \texttt{Span}. We can now call
 \begin{minted}{c++}
-zernike_transformer.transform(
-    distribution, escape_velocity, zernike_expansion_span);
+    zernike_transformer.transform(
+        distribution, escape_velocity, zernike_expansion_span);
 \end{minted}
-to write the expansion into our buffer. Note here that there is no \texttt{distribution_order} parameter, because the order of \texttt{zernike_expansion_span} is used.
+to write the expansion into our buffer. Note here that there is no \texttt{distribution\_order} parameter, because the order of \texttt{zernike\_expansion\_span} is used.
 
-A more common use for this version is if we want to reuse a single \mintinline{c++}{zest::zt::ZernikeExpansionOrthoGeo} container for computing a transform multiple times, so that we don't need to continuously allocate a new container. In this case we can do
+A more common use case for this version is if we want to reuse a single instance of a \cppinline{ZernikeExpansionOrthoGeo} for computing a transform multiple times, so that we don't need to continuously allocate a new container. In this case we can do
 \begin{minted}{c++}
-zest::zt::ZernikeExpansionOrthoGeo zernike_expansion(distribution_order);
-zernike_transformer.transform(
-    distribution, escape_velocity, zernike_expansion);
+    zest::zt::ZernikeExpansionOrthoGeo zernike_expansion(distribution_order);
+    zernike_transformer.transform(
+        distribution, escape_velocity, zernike_expansion);
 \end{minted}
-This works because a \texttt{ZernikeExpansion} object can be automatically converted to a \texttt{ZernikeExpansionSpan}.
+This works because a \texttt{ZernikeExpansion} container can be automatically converted to a view of type \texttt{ZernikeExpansionSpan}. This is generally true for all containers and their respective views in the library.
 
 \section{Coordinate system interlude}
 
@@ -118,101 +147,122 @@ Before we move forward, it is necessary to discuss things related to the choice 
 
 In \texttt{ZebraDM} the coordinate choices are fixed such that the distribution and lab velocity are expected to be defined in the same coordinate system. In the case of an isotropic response, no further specification is necessary. 
 
-However, when the response is anisotropic, the distribution and response coordinate systems have a very specific relative orientation: their $z$-axes are aligned, but in the $xy$-plane the response coordinate system may be rotated relative to the distribution coordinate system by a (possibly time-dependent) angle.
+However, when the response is anisotropic, the distribution and response coordinate systems have a very specific relative orientation: their $z$-axes are aligned, but in the $xy$-plane the response coordinate system may be rotated relative to the distribution coordinate system by a (possibly time-dependent) angle. These are the coordinate systems in which the ZebraDM methods expect to get their data.
 
-This requirement is easier understood in terms of the actual physical situation: both the distribution and response coordinate system have their $z$-axis aligned with the Earth's axis of rotation, but in the $xy$-plane their orientation differs by the Earth rotation angle (ERA).
-
-The relative boost of the two coordinate systems is not specified. Therefore, if, for example, the natural coordinates for the velocity distribution are the galactic coordinates, for \texttt{ZebraDM} those coordinates need to be rotated to match the orientation of the equatorial coordinats.
+This requirement is easier understood in terms of the actual physical situation: both the distribution and response coordinate system have their $z$-axis aligned with the Earth's axis of rotation, but in the $xy$-plane their orientation differs by the Earth rotation angle (ERA). Typically, the distribution is defined in galactic coordinates, while the response is defined in some laboratory coordinates. These are generally related time-independent rotations to the coordinate systems used by \texttt{ZebraDM}. For the distribution, the rotation is typically easily applied in the definition of the distribution function
+\begin{minted}{c++}
+    #include <zebradm/linalg.hpp>
+    constexpr zdm::Matrix<double, 3, 3> equ_to_gal
+        = equatorial_to_galactic_rotation();
+    auto distribution = [&](std::array<double, 3>& v) -> double
+    {
+        return distribution_galactic(zdm::matmul(equ_to_gal, v));
+    }
+\end{minted}
+\texttt{ZebraDM} provides some limited linear algebra facilities with constant size matrices and vectors. The template \cppinline{zdm::Matrix} is simply an alias for nested arrays
+\begin{minted}{c++}
+    template <typename T, std::size_t N, std::size_t M>
+    using Matrix = std::array<std::array<T, M>, N>;
+\end{minted}
 
 \section{The response function}
 
-If our response function $S(q, unitv{q})$ is isotropic, we don't need to worry about this part, because then we don't need a response function inside the angle integral and \texttt{ZebraDM} can deal with this special case. However, if we have a response function, we need to get it to the correct format. We start by defining the function we are going to use
+If our response function $S(q, \unitv{q})$ is isotropic, we don't need to worry about this part, because then we don't need a response function inside the angle integral and \texttt{ZebraDM} can deal with this special case. However, if we have a response function, we need to get it to the correct format. We start by defining the function we are going to use
 \begin{minted}{c++}
-const double velocity_dispersion = 230;
-auto response = [&](
-    double min_speed, double longitude, double colatitude) -> double
-{
-    const double z = std::cos(colatitude);
-    if (z > 0.75*min_speed - 1.0)
-        return 1.0;
-    else
-        return 0.0;
-}
+    const double velocity_dispersion = 230;
+    auto response = [&](
+        double min_speed, double longitude, double colatitude) -> double
+    {
+        const double z = std::cos(colatitude);
+        if (z > 0.75*min_speed - 1.0)
+            return 1.0;
+        else
+            return 0.0;
+    }
 \end{minted}
-This is an arbitrary response function which cuts off a section of the sphere depending on the value of \texttt{min_speed}. This is sufficient to showcase the essential features of how response functions are defined. The parameter \texttt{min_speed} corresponds to the value of $v_\text{min}/v_\text{max}$.
+This is an arbitrary response function which cuts off a section of the sphere depending on the value of \texttt{min\_speed}. This is sufficient to showcase the essential features of how response functions are defined. The parameter \texttt{min\_speed} corresponds to the value of $v_\text{min}/v_\text{max}$.
 
-For purposes of taking the angle integrated Radon transform, we need a spherical harmonic expansion of the response function at the desired value of \texttt{min_speed}. The \texttt{zest} library offers tools for this. However, we often want to do this for a batch of \texttt{min_speed} values, because algorithm for the angle integrated Radon transform is more efficient for batched input. To make the process easier, \texttt{ZebraDM} offers the \mintinline{c++}{ResponseTransformer}. We can use it to compute spherical harmonic transforms for multiple \texttt{min_speed} values
+For purposes of taking the angle integrated Radon transform, we need a spherical harmonic expansion of the response function at the desired value of \texttt{min\_speed}. The \texttt{zest} library offers tools for this. However, we often want to do this for a batch of \texttt{min\_speed} values, because algorithm for the angle integrated Radon transform is more efficient for batched input. To make the process easier, \texttt{ZebraDM} offers the \cppinline{ResponseTransformer}. We can use it to compute spherical harmonic transforms for multiple \texttt{min\_speed} values
 \begin{minted}{c++}
-std::vector<double> min_speeds = {0.0, 0.5, 1.0, 1.5};
-std::vector<std::array<double, 2>> response_buffer(
-    min_speeds.size()*zest::st::SHExpansionSpan<std::array<double, 2>>::size(response_order));
-zdm::zebra::SHExpansionCollectionSpan<std::array<double, 2>>
-response_expansions(
-        response_buffer.data(), {min_speeds.size()}, response_order);
-zdm::zebra::ResponseTransformer response_transformer(response_order);
-response_transformer.transform(response, min_speeds, response_expansions);
+    using SHSpan = zest::st::SHExpansionSpan<std::array<double, 2>>;
+    std::vector<double> min_speeds = {0.0, 0.5, 1.0, 1.5};
+    std::vector<std::array<double, 2>> response_buffer(
+        min_speeds.size()*SHSpan::size(response_order));
+
+    zdm::zebra::SHExpansionCollectionSpan<std::array<double, 2>>
+    response_expansions(
+            response_buffer.data(), {min_speeds.size()}, response_order);
+
+    zdm::zebra::ResponseTransformer response_transformer(response_order);
+    response_transformer.transform(response, min_speeds, response_expansions);
 \end{minted}
-Here we first create a buffer for the data, and then we use \mintinline{c++}{SHExpansionCollectionSpan} to view that data as a stack of spherical harmonic expansions of order \texttt{response_order}.
+Here we first create a buffer for the data, and then we use \cppinline{SHExpansionCollectionSpan} to view that data as a stack of spherical harmonic expansions of order \texttt{response\_order}.
 
 \section{Angle integrated Radon transform}
 
 Finally, we have (nearly) everything set up for evaluating the angle integrated Radon transform. At the core of this library there are four classes:
 \begin{minted}{c++}
-zdm::zebra::IsotropicAngleIntegrator;
-zdm::zebra::AnisotropicAngleIntegrator;
-zdm::zebra::IsotropicTransverseAngleIntegrator;
-zdm::zebra::AnisotropicTransverseAngleIntegrator;
+    zdm::zebra::IsotropicAngleIntegrator;
+    zdm::zebra::AnisotropicAngleIntegrator;
+    zdm::zebra::IsotropicTransverseAngleIntegrator;
+    zdm::zebra::AnisotropicTransverseAngleIntegrator;
+\end{minted}
+To access these
+\begin{minted}{c++}
+    #include <zebradm/zebra_angle_integrator.hpp>
 \end{minted}
 The \texttt{Isotropic} integrators are for the special case where the response is isotropic. For this special case they use a faster variant of the algorithm. 
-The \texttt{Transverse} integrators compute both the nontransverse and transverse Radon transform at the same time, whereas the other ones only compute the nontransverse case. The reason there is no integrator for the transverse case by itself is that computing it gives the nontransverse case "for free". 
+The \texttt{Transverse} integrators compute both the nontransverse and transverse Radon transform at the same time, whereas the other ones only compute the nontransverse case. The reason there is no integrator for the transverse case by itself is that computing it gives the nontransverse case effectively for free. 
 
 The last class in the above list, therefore, is for the most general case, whereas the first class would be used for, e.g., a standard spin-(in)dependent scattering computation. We will consider the general anisotropic transverse case, because it is the most complex one, and covers most of the things you need to know for the simple cases.
 
 To start off, we create the transformer
 \begin{minted}{c++}
-zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer();
+    zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer();
 \end{minted}
 There is also a more complex constructor we could use if we wanted to pre-allocate memory
 \begin{minted}{c++}
-zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer(
-        distribution_order, response_order, truncation_order);
+    zdm::zebra::AnisotropicTransverseAngleIntegrator zebra_transformer(
+            distribution_order, response_order, truncation_order);
 \end{minted}
 The two first parameters we are familiar with. The last parameter needs a bit of explanation.
 
-In performing the Radon transform, at some point in the process we need to do what amounts to multiplying the distribution with the response. For practical purposes, let's consider the Zernike expansion of the distribution as a collection of spherical harmonic expansions of order \texttt{distribution_order}. The result of multiplying two spherical harmonic expansions of orders $N$ and $M$ has the order $N + M - 1$. So, if we wish to capture the product accurately, we need an expansion of order $N + M - 1$. However, for typical spherical harmonic expansions the coefficients decrease fast at higher orders. Therefore it is possible that the product might be presented well enough by, say, an expansion of order $\max\{N,M\}$, and so we could \emph{truncate} the expansion at this order, i.e., use it as the \texttt{truncation_order}. If \texttt{distribution_order} and \texttt{response_order} are both high, this can be very beneficial for performance, because the computational complexity of a spherical harmonic transform grows with the order $N$ as $\mathcal{O}(N^3)$.
+In performing the Radon transform, at some point in the process we need to do what amounts to multiplying the distribution with the response. For practical purposes, let's consider the Zernike expansion of the distribution as a collection of spherical harmonic expansions of order \texttt{distribution\_order}. The result of multiplying two spherical harmonic expansions of orders $N$ and $M$ has the order $N + M - 1$. So, if we wish to capture the product accurately, we need an expansion of order $N + M - 1$. However, for typical spherical harmonic expansions the coefficients decrease fast at higher orders. Therefore it is possible that the product might be presented well enough by, say, an expansion of order $\max\{N,M\}$, and so we could \emph{truncate} the expansion at this order, i.e., use it as the \texttt{truncation\_order}. If \texttt{distribution\_order} and \texttt{response\_order} are both high, this can be very beneficial for performance, because the computational complexity of a spherical harmonic transform grows with the order $N$ as $\mathcal{O}(N^3)$.
 
 In any case, however we choose to initialize the transformer, the next step is to integrate
 \begin{minted}{c++}
-zebra_transformer.integrate(
-        distribution_expansion, response_expansions, boosts, era, min_speeds, out, truncation_order);
+    zebra_transformer.integrate(
+            distribution_expansion, response_expansions, boosts, era,
+            min_speeds, out, truncation_order);
 \end{minted}
 First of all, here we see the truncation order appear again. We also have the option of not supplying it
 \begin{minted}{c++}
-zebra_transformer.integrate(
-        distribution_expansion, response_expansions, boosts, era, min_speeds, out);
+    zebra_transformer.integrate(
+            distribution_expansion, response_expansions, boosts, era, min_speeds,
+            out);
 \end{minted}
 In this case it is treated as effectively infinite. The same is actually also possible in the constructor.
 
-Secondly there are three parameters here that still need to be explained, \texttt{boosts}, \texttt{era}, and \texttt{out}. The first one, \texttt{boosts} the values of $\vec{v}_\text{lab}/v_\text{max}$. As discussed above in the coordinate system interlude, the coordinate system of these is oriented the same as the coordinate system of \texttt{distribution_expansion}. Each element of boosts is therefore a 3-vector expressed as \mintinline{c++}{std::array<double, 3>}. We could therefore write, for example
+Secondly there are three parameters here that still need to be explained, \texttt{boosts}, \texttt{era}, and \texttt{out}. The first one, \texttt{boosts} the values of $\vec{v}_\text{lab}/v_\text{max}$. As discussed above in the coordinate system interlude, the coordinate system of these is oriented the same as the coordinate system of \texttt{distribution\_expansion}. Each element of boosts is therefore a 3-vector expressed as \cppinline{std::array<double, 3>}. We could therefore write, for example
 \begin{minted}{c++}
-std::vector<std::array<double, 3>> boosts = {
-    {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}
-};
+    std::vector<std::array<double, 3>> boosts = {
+        {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}
+    };
 \end{minted}
-Technically the type of the argument is \mintinline{c++}{std::span<std::array<double, 3>>}, so any range which is convertible to a span is acceptable.
+Technically the type of the argument is \cppinline{std::span<std::array<double, 3>>}, so any range which is convertible to a span is acceptable.
 
-The \texttt{era} parameter is a collection of Earth rotation angles in radians for each value of \texttt{boosts}. Its type is \mintinline{c++}{std::span<double>}, so we could take
+The \texttt{era} parameter is a collection of Earth rotation angles in radians for each value of \texttt{boosts}. Its type is \cppinline{std::span<double>}, so we could take
 \begin{minted}{c++}
-std::vector<std::array<double, 3>> boosts = {
-    0.0, 0.5*std::numbers::pi, std::numbers::pi
-};
+    std::vector<std::array<double, 3>> boosts = {
+        0.0, 0.5*std::numbers::pi, std::numbers::pi
+    };
 \end{minted}
 
-Finally, \texttt{out} contains the output values, i.e., the (non)transverse angle integrated Radon transforms. It is a 2D-array of transverse--nontransverse pairs as \mintinline{c++}{zest::MDSpan<std::array<double, 2>, 2>}, with dimensions equal to the size of \texttt{boosts} and the size of \texttt{min_speeds}. Thus we can define it as
+Finally, \texttt{out} contains the output values, i.e., the (non)transverse angle integrated Radon transforms. It is a 2D-array of transverse--nontransverse pairs, represented by the multidimensional view \cppinline{zest::MDSpan<std::array<double, 2>, 2>}, with dimensions equal to the size of \texttt{boosts} and the size of \texttt{min\_speeds}. Thus we can define it as
 \begin{minted}{c++}
-std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
-zest::MDSpan<std::array<double, 2>, 2> out(
-        out_buffer.data(), {boosts.size(), min_speeds.size()});
+    std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
+    zest::MDSpan<std::array<double, 2>, 2> out(
+            out_buffer.data(), {boosts.size(), min_speeds.size()});
 \end{minted}
 
 \end{document}

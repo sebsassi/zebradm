@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <fstream>
 
-#include "zest/grid_evaluator.hpp"
+#include <zest/grid_evaluator.hpp>
 
 #include "coordinate_transforms.hpp"
 
@@ -194,7 +194,7 @@ std::vector<T> linspace(T start, T stop, std::size_t count)
 
 void save_debug_grid(
     const char* fname_prefix,
-    zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> sh_exp, double boost_az, double boost_colat, const Vector<double, 3> euler_angles)
+    zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> sh_exp, double boost_az, double boost_colat, const std::array<double, 3> euler_angles)
 {
     constexpr std::size_t num_lon = 100;
     constexpr std::size_t num_lat = 50;
@@ -224,7 +224,7 @@ void save_debug_grid(
 double AnisotropicAngleIntegratorCore::integrate(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-    const Vector<double, 3>& boost, double era, double min_speed, 
+    const std::array<double, 3>& boost, double era, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
     const auto& [boost_az, boost_colat, boost_speed]
@@ -232,7 +232,7 @@ double AnisotropicAngleIntegratorCore::integrate(
     if (min_speed > 1.0 + boost_speed) return 0.0;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const Vector<double, 3> euler_angles
+    const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 boost_az - era, boost_colat);
 
@@ -278,7 +278,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
     zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-    const Vector<double, 3>& boost, double era, double min_speed, 
+    const std::array<double, 3>& boost, double era, double min_speed, 
     zest::WignerdPiHalfCollection wigner_d_pi2)
 {
     const auto& [boost_az, boost_colat, boost_speed]
@@ -286,7 +286,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     if (min_speed > 1.0 + boost_speed) return {0.0, 0.0};
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const Vector<double, 3> euler_angles
+    const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 boost_az - era, boost_colat);
 

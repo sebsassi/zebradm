@@ -24,8 +24,6 @@ SOFTWARE.
 #include <vector>
 #include <array>
 
-#include "zest/zernike_expansion.hpp"
-
 #include "types.hpp"
 
 namespace zdm

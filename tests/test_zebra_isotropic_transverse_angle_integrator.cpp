@@ -74,7 +74,7 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
 
 bool test_transverse_angle_integrator_is_correct_for_constant_dist()
 {
-    std::vector<zdm::Vector<double, 3>> boosts = {
+    std::vector<std::array<double, 3>> boosts = {
         {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };

@@ -22,7 +22,7 @@ macro(create_test TESTNAME)
     )
     target_compile_options(${TESTNAME}.test
         PRIVATE
-            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O0>
+            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
     )
     target_link_libraries(${TESTNAME}.test zebradm)
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME}.test)
@@ -35,7 +35,7 @@ macro(create_experiment EXPNAME)
     )
     target_compile_options(${EXPNAME}.exp
         PRIVATE
-            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O0>
+            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
     )
     target_link_libraries(${EXPNAME}.exp zebradm)
 endmacro()
@@ -53,3 +53,4 @@ create_test(test_mutual_convergence)
 create_test(test_zernike_recursions)
 
 create_experiment(exp_affine_legendre_integral)
+create_experiment(exp_zebra_convergence)

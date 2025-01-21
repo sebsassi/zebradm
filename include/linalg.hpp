@@ -25,238 +25,304 @@ SOFTWARE.
 
 namespace zdm
 {
+    
+template <typename T, std::size_t N, std::size_t M>
+using Matrix = std::array<std::array<T, M>, N>;
 
-template <typename FieldType, std::size_t N>
-using Vector = std::array<FieldType, N>;
-
-template <typename FieldType, std::size_t N, std::size_t M>
-using Matrix = std::array<std::array<FieldType, M>, N>;
-
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr FieldType
-dot(const Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+namespace detail
 {
-    FieldType res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res += a[i]*b[i];
-    return res;
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> add_(
+    const std::array<T, sizeof...(idx)>& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx] + b[idx])...}};
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] inline FieldType length(const Vector<FieldType, N>& a) noexcept
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> add_(
+    const T& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a + b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> add_(
+    const std::array<T, sizeof...(idx)>& a, const T& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx] + b)...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> sub_(
+    const std::array<T, sizeof...(idx)>& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx] - b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> sub_(
+    const T& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a - b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> sub_(
+    const std::array<T, sizeof...(idx)>& a, const T& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx] - b)...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> mul_(
+    const std::array<T, sizeof...(idx)>& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx]*b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> mul_(
+    const T& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a*b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> mul_(
+    const std::array<T, sizeof...(idx)>& a, const T& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx]*b)...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> div_(
+    const std::array<T, sizeof...(idx)>& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx]/b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> div_(
+    const T& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a/b[idx])...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr std::array<T, sizeof...(idx)> div_(
+    const std::array<T, sizeof...(idx)>& a, const T& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return {{(a[idx]/b)...}};
+}
+
+template <typename T, std::size_t... idx>
+[[nodiscard]] constexpr T dot_(
+    const std::array<T, sizeof...(idx)>& a, const std::array<T, sizeof...(idx)>& b, 
+    std::index_sequence<idx...>) noexcept
+{
+    return ((a[idx]*b[idx]) + ...);
+}
+
+} // namespace detail
+
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr T dot(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
+{
+    return detail::dot_(a, b, std::make_index_sequence<N>{});
+}
+
+template <typename T, std::size_t N>
+[[nodiscard]] inline T length(const std::array<T, N>& a) noexcept
 {
     return std::sqrt(dot(a, a));
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator+(const Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+add(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i] + b[i];
-    return res;
+    return detail::add_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator-(const Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+sub(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i] - b[i];
-    return res;
+    return detail::sub_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator*(const Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+mul(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i]*b[i];
-    return res;
+    return detail::mul_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator/(const Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+div(const std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i]/b[i];
-    return res;
+    return detail::div_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>&
-operator+=(Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>&
+add_assign(std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] += b[i];
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>&
-operator-=(Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>&
+sub_assign(std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] -= b[i];
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>&
-operator*=(Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>&
+mul_assign(std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] *= b[i];
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>&
-operator/=(Vector<FieldType, N>& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>&
+div_assign(std::array<T, N>& a, const std::array<T, N>& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] /= b[i];
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator+(const FieldType& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+add(const T& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a + b[i];
-    return res;
+    return detail::add_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator-(const FieldType& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+sub(const T& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a - b[i];
-    return res;
+    return detail::sub_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator*(const FieldType& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+mul(const T& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a*b[i];
-    return res;
+    return detail::mul_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator/(const FieldType& a, const Vector<FieldType, N>& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+div(const T& a, const std::array<T, N>& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a/b[i];
-    return res;
+    return detail::div_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator+(const Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+add(const std::array<T, N>& a, const T& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i] + b;
-    return res;
+    return detail::add_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator-(const Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+sub(const std::array<T, N>& a, const T& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i] - b;
-    return res;
+    return detail::sub_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator*(const Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+mul(const std::array<T, N>& a, const T& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i]*b;
-    return res;
+    return detail::mul_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N>
-operator/(const Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N>
+div(const std::array<T, N>& a, const T& b) noexcept
 {
-    Vector<FieldType, N> res{};
-    for (std::size_t i = 0; i < N; ++i)
-        res[i] = a[i]/b;
-    return res;
+    return detail::div_(a, b, std::make_index_sequence<N>{});
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>& operator+=(Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>& add_assign(std::array<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] += b;
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>& operator-=(Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>& sub_assign(std::array<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] -= b;
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>& operator*=(Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>& mul_assign(std::array<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] *= b;
     return a;
 }
 
-template <typename FieldType, std::size_t N>
-constexpr Vector<FieldType, N>& operator/=(Vector<FieldType, N>& a, const FieldType& b) noexcept
+template <typename T, std::size_t N>
+constexpr std::array<T, N>& div_assign(std::array<T, N>& a, const T& b) noexcept
 {
     for (std::size_t i = 0; i < N; ++i)
         a[i] /= b;
     return a;
 }
 
-template <typename FieldType, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr Vector<FieldType, N>
-matmul(const Matrix<FieldType, N, M>& mat, const Vector<FieldType, M>& vec) noexcept
+template <typename T, std::size_t N, std::size_t M>
+[[nodiscard]] constexpr std::array<T, N>
+matmul(const Matrix<T, N, M>& mat, const std::array<T, M>& vec) noexcept
 {
-    Vector<FieldType, N> res{};
+    std::array<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
         res[i] = dot(mat[i], vec);
     
     return res;
 }
 
-template <typename FieldType, std::size_t N, std::size_t M, std::size_t L>
-[[nodiscard]] constexpr Matrix<FieldType, N, L>
-matmul(const Matrix<FieldType, N, M>& a, const Matrix<FieldType, M, L>& b) noexcept
+template <typename T, std::size_t N, std::size_t M, std::size_t L>
+[[nodiscard]] constexpr Matrix<T, N, L>
+matmul(const Matrix<T, N, M>& a, const Matrix<T, M, L>& b) noexcept
 {
-    Matrix<FieldType, N, L> res{};
+    Matrix<T, N, L> res{};
     for (std::size_t i = 0; i < N; ++i)
     {
         for (std::size_t j = 0; j < L; ++j)
         {
-            Vector<FieldType, M> bj;
+            std::array<T, M> bj;
             for (std::size_t k = 0; k < M; ++k)
                 bj[k] = b[k][j];
             res[i][j] = dot(a[i], bj);
@@ -266,11 +332,11 @@ matmul(const Matrix<FieldType, N, M>& a, const Matrix<FieldType, M, L>& b) noexc
     return res;
 }
 
-template <typename FieldType, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr Matrix<FieldType, M, N>
-transpose(const Matrix<FieldType, N, M>& matrix)
+template <typename T, std::size_t N, std::size_t M>
+[[nodiscard]] constexpr Matrix<T, M, N>
+transpose(const Matrix<T, N, M>& matrix)
 {
-    Matrix<FieldType, M, N> res{};
+    Matrix<T, M, N> res{};
     for (std::size_t i = 0; i < N; ++i)
     {
         for (std::size_t j = 0; j < M; ++j)
@@ -279,13 +345,13 @@ transpose(const Matrix<FieldType, N, M>& matrix)
     return res;
 }
 
-template <typename FieldType, std::size_t N>
-[[nodiscard]] constexpr Vector<FieldType, N> normalize(const Vector<FieldType, N>& a) noexcept
+template <typename T, std::size_t N>
+[[nodiscard]] constexpr std::array<T, N> normalize(const std::array<T, N>& a) noexcept
 {
-    const FieldType norm = length(a);
-    if (norm == FieldType{}) return Vector<FieldType, N>{};
+    const T norm = length(a);
+    if (norm == T{}) return std::array<T, N>{};
 
-    return (1.0/norm)*a;
+    return mul((1.0/norm), a);
 }
 
 } // namespace zdm

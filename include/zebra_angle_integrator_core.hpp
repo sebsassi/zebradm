@@ -1,13 +1,3 @@
-#pragma once
-
-#include "zest/zernike_glq_transformer.hpp"
-#include "zest/sh_glq_transformer.hpp"
-#include "zest/rotor.hpp"
-
-#include "affine_legendre.hpp"
-#include "linalg.hpp"
-#include "multi_span.hpp"
-#include "affine_legendre_integral.hpp"
 /*
 Copyright (c) 2024 Sebastian Sassi
 
@@ -29,6 +19,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+#pragma once
+
+#include <vector>
+#include <array>
+
+#include <zest/rotor.hpp>
+#include <zest/real_sh_expansion.hpp>
+#include <zest/sh_glq_transformer.hpp>
+
+#include "linalg.hpp"
+#include "affine_legendre.hpp"
+#include "affine_legendre_integral.hpp"
 #include "zonal_glq_transformer.hpp"
 #include "types.hpp"
 
@@ -85,14 +87,14 @@ public:
     [[nodiscard]] double integrate(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-        const Vector<double, 3>& boost, double era, double min_speed, 
+        const std::array<double, 3>& boost, double era, double min_speed, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
         zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
-        const Vector<double, 3>& boost, double era, double min_speed, 
+        const std::array<double, 3>& boost, double era, double min_speed, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 
 private:

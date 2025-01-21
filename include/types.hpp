@@ -21,8 +21,10 @@ SOFTWARE.
 */
 #pragma once
 
+#include <zest/real_sh_expansion.hpp>
+#include <zest/zernike_expansion.hpp>
+
 #include "multi_span.hpp"
-#include "zest/real_sh_expansion.hpp"
 
 namespace zdm
 {

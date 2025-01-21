@@ -106,7 +106,7 @@ void run_benchmarks(
     constexpr std::size_t reference_resp_order = 300;
     zest::zt::ZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
-            dist, 1.0, reference_resp_order);
+            dist, 1.0, reference_dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
         min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));

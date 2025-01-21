@@ -21,9 +21,11 @@ SOFTWARE.
 */
 #pragma once
 
-#include "zest/zernike_glq_transformer.hpp"
-#include "zest/sh_glq_transformer.hpp"
-#include "zest/rotor.hpp"
+#include <zest/md_span.hpp>
+#include <zest/zernike_expansion.hpp>
+#include <zest/zernike_glq_transformer.hpp>
+#include <zest/sh_glq_transformer.hpp>
+#include <zest/rotor.hpp>
 
 #include "linalg.hpp"
 #include "types.hpp"
@@ -61,7 +63,7 @@ public:
         @param out output values.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out);
+        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out);
     
 private:
     struct ThreadContext
@@ -81,7 +83,7 @@ private:
         std::size_t thread_id) noexcept;
 
     void integrate(
-        std::size_t thread_id, const Vector<double, 3>& boost,
+        std::size_t thread_id, const std::array<double, 3>& boost,
         std::span<const double> min_speeds, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
@@ -138,7 +140,7 @@ public:
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
+        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(

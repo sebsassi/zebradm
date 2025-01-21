@@ -26,7 +26,7 @@ SOFTWARE.
 #include <algorithm>
 #include <ranges>
 
-#include "zest/md_span.hpp"
+#include <zest/md_span.hpp>
 
 namespace zdm
 {
@@ -71,8 +71,9 @@ public:
     [[nodiscard]] std::span<const double>
     current() const noexcept { return std::span(m_current, m_size); }
 
-    std::span<const double> next() noexcept;
+    void iterate() noexcept;
     void iterate(std::size_t n) noexcept;
+    std::span<const double> next() noexcept;
 
 private:
     void reset() noexcept;

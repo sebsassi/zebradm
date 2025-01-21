@@ -23,9 +23,10 @@ SOFTWARE.
 
 #include <cassert>
 #include <span>
+#include <array>
 
-#include "zest/zernike_conventions.hpp"
-#include "zest/rotor.hpp"
+#include <zest/zernike_conventions.hpp>
+#include <zest/rotor.hpp>
 
 #if defined(__GNUC__)
     #define RESTRICT __restrict__

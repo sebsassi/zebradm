@@ -22,6 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include <cstddef>
+#include <array>
 
 namespace zdm
 {
@@ -64,7 +65,7 @@ then `MultiSuperSpan<SubSpanType, 2>` can be used to describe a 2D array of such
 (2,0,1,0) (2,0,1,1)  (2,1,1,0) (2,1,1,1)
 ```
 */
-template <typename SubspanType, std::size_t NDIM>
+template <typename SubspanType, std::size_t ndim>
 class MultiSuperSpan
 {
 public:
@@ -73,18 +74,18 @@ public:
     using size_type = std::size_t;
     using index_type = std::size_t;
     using data_handle_type = element_type*;
-    using ConstView = MultiSuperSpan<typename SubspanType::ConstView, NDIM>;
+    using ConstView = MultiSuperSpan<typename SubspanType::ConstView, ndim>;
 
     constexpr MultiSuperSpan(
-        element_type* data, const std::array<std::size_t, NDIM>& extents, std::size_t subspan_size_param) noexcept:
+        element_type* data, const std::array<std::size_t, ndim>& extents, std::size_t subspan_size_param) noexcept:
         m_data(data), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
     
     constexpr MultiSuperSpan(
-        std::span<element_type> span, const std::array<std::size_t, NDIM>& extents, std::size_t subspan_size_param) noexcept:
+        std::span<element_type> span, const std::array<std::size_t, ndim>& extents, std::size_t subspan_size_param) noexcept:
         m_data(span.data()), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     constexpr MultiSuperSpan(
-        data_handle_type data, size_type size, std::size_t subspan_size, std::size_t subspan_size_param, const std::array<std::size_t, NDIM>& extents) noexcept:
+        data_handle_type data, size_type size, std::size_t subspan_size, std::size_t subspan_size_param, const std::array<std::size_t, ndim>& extents) noexcept:
         m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     [[nodiscard]] constexpr operator ConstView() const noexcept
@@ -103,7 +104,7 @@ public:
         return m_subspan_size;
     }
 
-    [[nodiscard]] std::span<const std::size_t, NDIM> extents() const noexcept
+    [[nodiscard]] std::span<const std::size_t, ndim> extents() const noexcept
     {
         return m_extents;
     }
@@ -114,7 +115,7 @@ public:
     }
 
     template <typename... Ts>
-        requires (sizeof...(Ts) == NDIM)
+        requires (sizeof...(Ts) == ndim)
     SubspanType operator()(Ts... inds)
     {
         std::size_t ind = idx(inds...);
@@ -122,12 +123,12 @@ public:
     }
 
     template <typename... Ts>
-        requires (sizeof...(Ts) < NDIM)
-    MultiSuperSpan<SubspanType, NDIM - sizeof...(Ts)> operator()(Ts... inds)
+        requires (sizeof...(Ts) < ndim)
+    MultiSuperSpan<SubspanType, ndim - sizeof...(Ts)> operator()(Ts... inds)
     {
         std::size_t ind = idx(inds...);
-        std::array<std::size_t, NDIM - sizeof...(Ts)> extents = last<NDIM - sizeof...(Ts)>(m_extents);
-        return MultiSuperSpan<SubspanType, NDIM - sizeof...(Ts)>(m_data + ind*prod(extents)*m_subspan_size, extents, m_subspan_size_param);
+        std::array<std::size_t, ndim - sizeof...(Ts)> extents = last<ndim - sizeof...(Ts)>(m_extents);
+        return MultiSuperSpan<SubspanType, ndim - sizeof...(Ts)>(m_data + ind*prod(extents)*m_subspan_size, extents, m_subspan_size_param);
     }
 
     auto operator[](std::size_t i)
@@ -145,7 +146,7 @@ private:
     template <std::size_t N, typename... Ts>
     std::size_t idx_impl(std::size_t ind, std::size_t next, Ts... inds)
     {
-        if constexpr (N < NDIM)
+        if constexpr (N < ndim)
             return idx_impl<N + 1>(ind*m_extents[N] + next, inds...);
         else
             return ind;
@@ -161,7 +162,7 @@ private:
     size_type m_size;
     std::size_t m_subspan_size;
     std::size_t m_subspan_size_param;
-    std::array<std::size_t, NDIM> m_extents;
+    std::array<std::size_t, ndim> m_extents;
 };
 
 template <typename SubspanType>

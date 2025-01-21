@@ -40,7 +40,7 @@ double quadratic_form(
 
 template <typename DistType>
 void test_mutual_convergence_isotropic(
-    DistType&& dist, std::span<const zdm::Vector<double, 3>> boosts,
+    DistType&& dist, std::span<const std::array<double, 3>> boosts,
     std::span<const double> min_speeds)
 {
     std::vector<double> integrator_test_buffer(boosts.size()*min_speeds.size());
@@ -96,7 +96,7 @@ void test_mutual_convergence_isotropic(
 
 template <typename DistType>
 void test_mutual_convergence_transverse_isotropic(
-    DistType&& dist, std::span<const zdm::Vector<double, 3>> boosts,
+    DistType&& dist, std::span<const std::array<double, 3>> boosts,
     std::span<const double> min_speeds)
 {
     std::vector<std::array<double, 2>> integrator_test_buffer(boosts.size()*min_speeds.size());
@@ -154,7 +154,7 @@ void test_mutual_convergence_transverse_isotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const zdm::Vector<double, 3>> boosts,
+    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts,
     std::span<const double> min_speeds, std::span<const double> eras)
 {
     std::vector<double> integrator_test_buffer(boosts.size()*min_speeds.size());
@@ -217,7 +217,7 @@ void test_mutual_convergence_anisotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_transverse_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const zdm::Vector<double, 3>> boosts,
+    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts,
     std::span<const double> min_speeds, std::span<const double> eras)
 {
     std::vector<std::array<double, 2>> integrator_test_buffer(boosts.size()*min_speeds.size());
@@ -281,14 +281,14 @@ void test_mutual_convergence_transverse_anisotropic(
 
 int main()
 {
-    [[maybe_unused]] auto gaussian = [](const zdm::Vector<double, 3>& v){
+    [[maybe_unused]] auto gaussian = [](const std::array<double, 3>& v){
         constexpr double disp = 0.4;
         const double speed = zdm::length(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);
     };
 
-    [[maybe_unused]] auto aniso_gaussian = [](const zdm::Vector<double, 3>& v)
+    [[maybe_unused]] auto aniso_gaussian = [](const std::array<double, 3>& v)
     {
         constexpr std::array<std::array<double, 3>, 3> sigma = {
             std::array<double, 3>{3.0, 1.4, 0.5},
@@ -309,7 +309,7 @@ int main()
     [[maybe_unused]] auto smooth_exponential = [](double min_speed, double longitude, double colatitude)
     {
         static const std::array<double, 3> ref_dir
-            = zdm::normalize(std::array<double, 3>{0.0, 0.0, 0.5});
+            = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
         const std::array<double, 3> dir
             = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
         constexpr double rate = 2.0;
@@ -319,7 +319,7 @@ int main()
     };
 
     /*
-    const std::vector<zdm::Vector<double, 3>> boosts = {
+    const std::vector<std::array<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
@@ -334,7 +334,7 @@ int main()
     };
     */
 
-   const std::vector<zdm::Vector<double, 3>> boosts = {
+   const std::vector<std::array<double, 3>> boosts = {
         {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0},
         {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}
     };

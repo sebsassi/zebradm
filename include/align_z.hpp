@@ -31,7 +31,7 @@ namespace detail
 {
 
 [[nodiscard]] constexpr Matrix<double, 3, 3> rotation_matrix_align_z(
-    const Vector<double, 3>& unit_vec) noexcept
+    const std::array<double, 3>& unit_vec) noexcept
 {
     Matrix<double, 3, 3> matrix;
     const double u_xx = unit_vec[0]*unit_vec[0];
@@ -65,7 +65,7 @@ namespace detail
 }
 
 [[nodiscard]] constexpr Matrix<double, 3, 3> rotation_matrix_align_z_transp(
-    const Vector<double, 3>& unit_vec) noexcept
+    const std::array<double, 3>& unit_vec) noexcept
 {
     Matrix<double, 3, 3> matrix;
     const double u_xx = unit_vec[0]*unit_vec[0];

@@ -65,7 +65,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -76,13 +76,13 @@ void IsotropicAngleIntegrator::integrate(
 }
 
 void IsotropicAngleIntegrator::integrate(
-    std::size_t thread_id, const Vector<double, 3>& boost,
+    std::size_t thread_id, const std::array<double, 3>& boost,
     std::span<const double> min_speeds, std::span<double> out)
 {
     const auto& [boost_speed, boost_colat, boost_az]
         = coordinates::cartesian_to_spherical_phys(boost);
 
-    const Vector<double, 3> euler_angles = {
+    const std::array<double, 3> euler_angles = {
         0.0, -boost_colat, std::numbers::pi - boost_az
     };
 
@@ -180,7 +180,7 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const Vector<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -199,7 +199,7 @@ void AnisotropicAngleIntegrator::integrate(
             const auto& [boost_speed, boost_colat, boost_az]
                 = coordinates::cartesian_to_spherical_phys(boosts[i]);
 
-            const Vector<double, 3> euler_angles = {
+            const std::array<double, 3> euler_angles = {
                 0.0, -boost_colat, std::numbers::pi - boost_az
             };
 

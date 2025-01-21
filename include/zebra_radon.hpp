@@ -19,9 +19,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "zest/zernike_expansion.hpp"
-#include "zest/real_sh_expansion.hpp"
-#include "zest/sh_glq_transformer.hpp"
+#pragma once
+
+#include <array>
+
+#include <zest/zernike_expansion.hpp>
 
 #include "types.hpp"
 
