@@ -30,12 +30,12 @@ namespace zdm
 {
 
 template <typename ElementType>
-using SHExpansionSpan = zest::st::RealSHExpansionSpanGeo<ElementType>;
+using SHExpansionSpan = zest::st::RealSHSpanGeo<ElementType>;
 
 template <typename ElementType>
 using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
 template <typename ElementType>
-using ZernikeExpansionSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<ElementType>;
+using ZernikeExpansionSpan = zest::zt::RealZernikeSpanNormalGeo<ElementType>;
 
 } // namespace zdm

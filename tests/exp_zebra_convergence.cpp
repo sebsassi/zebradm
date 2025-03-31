@@ -46,7 +46,7 @@ void relative_error(
     {
         for (std::size_t j = 0; j < err.extents()[1]; ++j)
         {
-            err(i, j) = 1.0 - a(i, j)/b(i, j);
+            err(i, j) = std::fabs(1.0 - a(i, j)/b(i, j));
         }
     }
 }
@@ -75,37 +75,55 @@ template <typename DistType, typename RespType>
 void zebra_convergence(
     DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras)
 {
-    constexpr std::size_t dist_order = 100;
-    const std::vector<std::size_t> response_orders = {30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480, 640, 800};
-    std::vector<double> test_buffer(
-            response_orders.size()*boosts.size()*min_speeds.size());
-    zest::MDSpan<double, 3> test(
-            test_buffer.data(), {response_orders.size(), boosts.size(), min_speeds.size()});
+    constexpr std::size_t dist_order = 200;
+    constexpr std::size_t resp_order = 800;
+    const std::vector<std::size_t> dist_orders = {20, 50, 100, 150};
+    const std::vector<std::size_t> resp_orders = {30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480, 640};
+
+    std::vector<double> reference_buffer(boosts.size()*min_speeds.size());
+    zest::MDSpan<double, 2> reference(
+            reference_buffer.data(), {boosts.size(), min_speeds.size()});
     
-    for (std::size_t i = 0; i < response_orders.size(); ++i)
+    std::printf("Computing reference orders: (%lu, %lu)\n", dist_order, resp_order);
+    zebra_evaluate(
+            dist, resp, dist_order, resp_order, boosts, min_speeds, eras, reference);
+
+    std::vector<double> test_buffer(
+            dist_orders.size()*resp_orders.size()*boosts.size()*min_speeds.size());
+    zest::MDSpan<double, 4> test(
+            test_buffer.data(), {dist_orders.size(), resp_orders.size(), boosts.size(), min_speeds.size()});
+    
+    for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
-        std::printf("Computing order: %lu\n", response_orders[i]);
-        zebra_evaluate(
-            dist, resp, dist_order, response_orders[i], boosts, min_speeds, eras, test[i]);
+        for (std::size_t j = 0; j < resp_orders.size(); ++j)
+        {
+            std::printf("Computing orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
+            zebra_evaluate(
+                    dist, resp, dist_orders[i], resp_orders[j], boosts, min_speeds, eras, test(i, j));
+        }
     }
 
     std::vector<double> relative_error_buffer(
-            (response_orders.size() - 1)*boosts.size()*min_speeds.size());
-    zest::MDSpan<double, 3> relative_errors(
-            test_buffer.data(), {response_orders.size() - 1, boosts.size(), min_speeds.size()});
-    for (std::size_t i = 0; i < response_orders.size() - 1; ++i)
-        relative_error(relative_errors[i], test[i], test[i + 1]);
-    
-    for (std::size_t i = 0; i < response_orders.size() - 1; ++i)
+            dist_orders.size()*resp_orders.size()*boosts.size()*min_speeds.size());
+    zest::MDSpan<double, 4> relative_errors(
+            relative_error_buffer.data(), {dist_orders.size(), resp_orders.size(), boosts.size(), min_speeds.size()});
+    for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
-        std::printf("\n orders: %lu, %lu\n", response_orders[i], response_orders[i + 1]);
-        for (std::size_t j = 0; j < boosts.size(); ++j)
+        for (std::size_t j = 0; j < resp_orders.size(); ++j)
+            relative_error(relative_errors(i, j), test(i, j), reference);
+    }
+    
+    for (std::size_t i = 0; i < dist_orders.size(); ++i)
+    {
+        for (std::size_t j = 0; j < resp_orders.size(); ++j)
         {
-            for (std::size_t k = 0; k < min_speeds.size(); ++k)
+            std::printf("\n orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
+            for (std::size_t k = 0; k < boosts.size(); ++k)
             {
-                std::printf("%.16e ", relative_errors(i, j, k));
+                for (std::size_t l = 0; l < min_speeds.size(); ++l)
+                    std::printf("%.16e ", relative_errors(i, j, k, l));
+                std::printf("\n");
             }
-            std::printf("\n");
         }
     }
 }
@@ -148,8 +166,8 @@ int main()
     constexpr std::size_t num_boosts = 10;
     constexpr std::size_t num_min_speeds = 10;
 
-    constexpr double max_min_speed = 1.5;
-    constexpr double max_boost_len = 1.0;
+    constexpr double boost_len = 0.5;
+    constexpr double max_min_speed = 1.0 + boost_len;
 
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
@@ -158,7 +176,6 @@ int main()
     std::vector<double> eras(num_boosts);
     for (std::size_t i = 0; i < num_boosts; ++i)
     {
-        const double boost_len = double(i)*max_boost_len/double(num_boosts - 1);
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);

@@ -79,7 +79,7 @@ int main()
     std::uniform_real_distribution<> scale_dist(0.25, 0.75);
     std::uniform_real_distribution<> shift_dist(0.00, 1.50);
 
-    double maxerr = 0.0;
+    //double maxerr = 0.0;
     for (std::size_t i = 0; i < 1000000; ++i)
     {
         const double shift = shift_dist(gen);

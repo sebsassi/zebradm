@@ -31,7 +31,7 @@ void benchmark_zebra_isotropic_angle_integrator_transverse(
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zest::zt::ZernikeExpansionOrthoGeo distribution(order);
+    zest::zt::RealZernikeExpansionNormalGeo distribution(order);
     for (auto& element : distribution.flatten())
         element = {dist(gen), dist(gen)};
 
@@ -66,11 +66,20 @@ int main([[maybe_unused]] int argc, char** argv)
     bench.performanceCounters(true);
     bench.minEpochTime(std::chrono::nanoseconds(1000000000));
 
+    if (argc < 4)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)");
+
     const double boost_len = atof(argv[1]);
     const std::size_t num_boosts = atoi(argv[2]);
     const std::size_t num_min_speeds = atoi(argv[3]);
 
-    std::vector<std::size_t> order_vec = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
+    std::vector<std::size_t> order_vec = {
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200
+    };
 
     bench.title("zebra::IsotropicTransverseAngleIntegrator::integrate");
     for (const auto& order : order_vec)

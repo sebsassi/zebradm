@@ -21,6 +21,7 @@ SOFTWARE.
 */
 #include <random>
 #include <fstream>
+#include <iomanip>
 
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -31,7 +32,7 @@ SOFTWARE.
 void angle_integrator_error(
     std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, zest::MDSpan<double, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool relative_error)
 {
-    zest::zt::ZernikeExpansion distribution
+    zest::zt::RealZernikeExpansion distribution
         = zest::zt::ZernikeTransformerOrthoGeo(order).transform(
             dist, 1.0, order);
 
@@ -48,6 +49,7 @@ void angle_integrator_error(
         std::sprintf(fname, "zebra_angle_integrator_error_absolute_%s_order_%lu.dat", name, order);
     std::ofstream output{};
     output.open(fname);
+    output << std::scientific << std::setprecision(16);
     for (std::size_t i = 0; i < boosts.size(); ++i)
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
@@ -67,15 +69,12 @@ void angle_integrator_error(
 }
 
 void angle_integrator_errors(
-    DistributionSpherical dist, const char* name, bool relative_error)
+    DistributionSpherical dist, const char* name, bool relative_error,
+    double boost_len, std::size_t num_boosts, std::size_t num_min_speeds)
 {
     constexpr std::size_t reference_order = 200;
 
-    constexpr std::size_t num_boosts = 100;
-    constexpr std::size_t num_min_speeds = 100;
-
-    constexpr double max_min_speed = 1.5;
-    constexpr double max_boost_len = 1.0;
+    const double max_min_speed = 1.0 + boost_len;
 
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
@@ -83,7 +82,6 @@ void angle_integrator_errors(
     std::vector<std::array<double, 3>> boosts(num_boosts);
     for (std::size_t i = 0; i < num_boosts; ++i)
     {
-        const double boost_len = double(i)*max_boost_len/double(num_boosts - 1);
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);
@@ -96,7 +94,7 @@ void angle_integrator_errors(
     for (std::size_t i = 0; i < num_min_speeds; ++i)
         min_speeds[i] = double(i)*max_min_speed/double(num_min_speeds - 1);
 
-    zest::zt::ZernikeExpansion reference_distribution
+    zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
@@ -115,12 +113,38 @@ void angle_integrator_errors(
                 relative_error);
 }
 
-int main()
+template <typename Object>
+struct Labeled
+{
+    Object object;
+    const char* label;
+};
+
+int main([[maybe_unused]] int argc, char** argv)
 {
     const bool relative_error = true;
-    angle_integrator_errors(aniso_gaussian, "aniso_gaussian", relative_error);
-    angle_integrator_errors(four_gaussians, "four_gaussians", relative_error);
-    angle_integrator_errors(shm_plus_stream, "shm_plus_stream", relative_error);
-    angle_integrator_errors(shmpp_aniso, "shmpp_aniso", relative_error);
-    angle_integrator_errors(shmpp, "shmpp", relative_error);
+    constexpr std::array<Labeled<DistributionSpherical>, 5> distributions = {
+        Labeled<DistributionSpherical>{aniso_gaussian, "aniso_gaussian"},
+        Labeled<DistributionSpherical>{four_gaussians, "four_gaussians"},
+        Labeled<DistributionSpherical>{shm_plus_stream, "shm_plus_stream"},
+        Labeled<DistributionSpherical>{shmpp_aniso, "shmpp_aniso"},
+        Labeled<DistributionSpherical>{shmpp, "shmpp"}
+    };
+
+    if (argc < 5)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)");
+
+    const std::size_t dist_ind = atoi(argv[1]);
+    const double boost_len = atof(argv[2]);
+    const std::size_t num_boosts = atoi(argv[3]);
+    const std::size_t num_min_speeds = atoi(argv[4]);
+
+    const Labeled<DistributionSpherical> dist = distributions[dist_ind];
+    angle_integrator_errors(
+            dist.object, dist.label, relative_error, boost_len, num_boosts, num_min_speeds);
 }

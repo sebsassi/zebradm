@@ -90,8 +90,8 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
-    zest::zt::ZernikeExpansionOrthoGeo m_rotated_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_rotated_geg_zernike_exp;
     detail::IsotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
 };
@@ -161,7 +161,7 @@ private:
         SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
     std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     zest::Rotor m_rotor;
@@ -219,13 +219,13 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_x;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_y;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_z;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_r2;
-    zest::zt::ZernikeExpansionOrthoGeo m_rotated_geg_zernike_exp;
-    zest::zt::ZernikeExpansionOrthoGeo m_rotated_trans_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_x;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_y;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_z;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_r2;
+    zest::zt::RealZernikeExpansionNormalGeo m_rotated_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_rotated_trans_geg_zernike_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     detail::IsotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order;
@@ -296,13 +296,13 @@ private:
         SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_x;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_y;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_z;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp_r2;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_x;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_y;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_z;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_r2;
     std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
-    zest::zt::ZernikeExpansionOrthoGeo m_rotated_trans_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_rotated_trans_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     std::vector<double> m_rotated_trans_geg_zernike_grids;
     detail::ZernikeCoordinateMultiplier m_multiplier;

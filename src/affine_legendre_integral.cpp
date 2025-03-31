@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <cassert>
 
-#include <zest/triangle_layout.hpp>
+#include <zest/layout.hpp>
 #include <zest/gauss_legendre.hpp>
 
 #include "radon_util.hpp"

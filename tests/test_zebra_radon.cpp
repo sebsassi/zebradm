@@ -27,7 +27,7 @@ SOFTWARE.
 #include "zest/zernike_glq_transformer.hpp"
 
 #include "radon_util.hpp"
-#include "array_arithmetic.hpp"
+#include "cubage/array_arithmetic.hpp"
 
 constexpr bool is_close(double a, double b, double tol)
 {
@@ -42,8 +42,8 @@ constexpr bool is_close(
 
 bool test_zebra_radon_accepts_order(std::size_t order)
 {
-    zest::zt::ZernikeExpansionOrthoGeo in(order);
-    zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
+    zest::zt::RealZernikeExpansionNormalGeo in(order);
+    zest::zt::RealZernikeExpansionNormalGeo out(order + 2);
     zdm::zebra::radon_transform(in, out);
     return true;
 }
@@ -52,7 +52,7 @@ bool test_zebra_radon_is_correct_to_order_5()
 {
     static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
-    zest::zt::ZernikeExpansionOrthoGeo in(order);
+    zest::zt::RealZernikeExpansionNormalGeo in(order);
     in(0,0,0) = {1.0, -1.0};
     in(1,1,0) = {2.0, -2.0};
     in(1,1,1) = {3.0, -3.0};
@@ -76,7 +76,7 @@ bool test_zebra_radon_is_correct_to_order_5()
     in(4,4,3) = {21.0, -21.0};
     in(4,4,4) = {22.0, -22.0};
 
-    zest::zt::ZernikeExpansionOrthoGeo out_ref(order + 2);
+    zest::zt::RealZernikeExpansionNormalGeo out_ref(order + 2);
     out_ref(0,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(0)*in(0,0,0);
     out_ref(1,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,0);
     out_ref(1,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(1)*in(1,1,1);
@@ -135,7 +135,7 @@ bool test_zebra_radon_is_correct_to_order_5()
     out_ref(6,6,5) = {0.0, 0.0};
     out_ref(6,6,6) = {0.0, 0.0};
 
-    zest::zt::ZernikeExpansionOrthoGeo out(order + 2);
+    zest::zt::RealZernikeExpansionNormalGeo out(order + 2);
 
     zdm::zebra::radon_transform(in, out);
 
@@ -172,7 +172,7 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
 {
     static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
-    zest::zt::ZernikeExpansionOrthoGeo exp(order + 2);
+    zest::zt::RealZernikeExpansionNormalGeo exp(order + 2);
     exp(0,0,0) = {1.0, -1.0};
     exp(1,1,0) = {2.0, -2.0};
     exp(1,1,1) = {3.0, -3.0};
@@ -196,7 +196,7 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     exp(4,4,3) = {21.0, -21.0};
     exp(4,4,4) = {22.0, -22.0};
 
-    zest::zt::ZernikeExpansionOrthoGeo out_ref(order + 2);
+    zest::zt::RealZernikeExpansionNormalGeo out_ref(order + 2);
     out_ref(0,0,0) = zdm::zebra::util::geg_rec_coeff<norm>(0)*exp(0,0,0);
     out_ref(1,1,0) = zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,0);
     out_ref(1,1,1) = zdm::zebra::util::geg_rec_coeff<norm>(1)*exp(1,1,1);

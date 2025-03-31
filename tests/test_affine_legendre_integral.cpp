@@ -92,7 +92,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     
     zdm::zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
-    recursion.integrals_fr_fr_no_cap_ong(test_trapezoid, shift, scale);
+    recursion.integrals(test_trapezoid, shift, scale);
 
     constexpr double tol = 1.0e-13;
     bool success = is_close(test_trapezoid(0, 0), A00, tol)
@@ -149,7 +149,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     
     zdm::zebra::TrapezoidSpan<double> test_trapezoid(
         trapezoid_buffer.data(), order, extra_extent);
-    recursion.integrals_fr_fr_no_cap_ong(test_trapezoid, shift, scale);
+    recursion.integrals(test_trapezoid, shift, scale);
 
     constexpr double tol = 1.0e-13;
     bool success = is_close(test_trapezoid(0, 0), A00, tol)
@@ -234,7 +234,7 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
             test_integral_buffer.data(), order, extra_extent);
     
     zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
-    recursion.integrals_fr_fr_no_cap_ong(test_integrals, shift, scale);
+    recursion.integrals(test_integrals, shift, scale);
 
     constexpr double tol = 1.0e-13;
     bool success = true;

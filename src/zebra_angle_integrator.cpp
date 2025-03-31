@@ -108,7 +108,7 @@ void IsotropicAngleIntegrator::integrate(
 [[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(
     std::size_t order)
 {
-    return zest::zt::ZernikeExpansionSHSpan<std::array<double, 2>, zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none>::size(order);
+    return zest::zt::ZernikeSHSpan<std::array<double, 2>, zest::RowSkippingTriangleLayout<zest::IndexingMode::nonnegative>, zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none>::size(order);
 }
 
 AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
@@ -188,7 +188,7 @@ void AnisotropicAngleIntegrator::integrate(
 void AnisotropicAngleIntegrator::integrate(
     SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order, std::span<double> out)
 {
-    using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
+    using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]
@@ -207,6 +207,7 @@ void AnisotropicAngleIntegrator::integrate(
                 m_rotated_geg_zernike_exp.begin());
         ZernikeSpan::SubSpan rotated_geg_zernike_exp(
                 m_rotated_geg_zernike_exp.data(), n + 1);
+        
         m_rotor.rotate(
                 rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
                 rotation_type);
@@ -434,7 +435,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 void AnisotropicTransverseAngleIntegrator::integrate(
     SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
 {
-    using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
+    using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [boost_az, boost_colat, boost_speed]

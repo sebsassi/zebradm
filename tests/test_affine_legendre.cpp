@@ -57,10 +57,10 @@ bool legendre_affine_coeffs_expand_legendre(double a, double b, double x)
 
     constexpr std::size_t order = 6;
 
-    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout>;
+    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>>;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    std::vector<double> coeffs(zest::TriangleLayout::size(order));
+    std::vector<double> coeffs(zest::TriangleLayout<zest::IndexingMode::nonnegative>::size(order));
 
     recursion.evaluate_affine(TriangleSpan(coeffs, order), a, b);
 
@@ -112,10 +112,10 @@ bool legendre_shift_coeffs_expand_legendre(double a, double x)
 
     constexpr std::size_t order = 6;
 
-    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout>;
+    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>>;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    std::vector<double> coeffs(zest::TriangleLayout::size(order));
+    std::vector<double> coeffs(zest::TriangleLayout<zest::IndexingMode::nonnegative>::size(order));
 
     recursion.evaluate_shifted(TriangleSpan(coeffs, order), a);
 
@@ -167,10 +167,10 @@ bool legendre_scale_coeffs_expand_legendre(double b, double x)
 
     constexpr std::size_t order = 6;
 
-    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout>;
+    using TriangleSpan = zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>>;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    std::vector<double> coeffs(zest::TriangleLayout::size(order));
+    std::vector<double> coeffs(zest::TriangleLayout<zest::IndexingMode::nonnegative>::size(order));
 
     recursion.evaluate_scaled(TriangleSpan(coeffs, order), b);
 

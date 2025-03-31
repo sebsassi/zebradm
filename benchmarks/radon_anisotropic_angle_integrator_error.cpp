@@ -49,6 +49,7 @@ void radon_angle_integrator_anisotropic_error(
     std::sprintf(fname, "radon_anisotropic_angle_integrator_error_relative_%s_%s_%lu_%.2e.dat", dist_name, resp_name, max_subdiv, relerr);
     std::ofstream output{};
     output.open(fname);
+    output << std::scientific << std::setprecision(16);
     for (std::size_t i = 0; i < boosts.size(); ++i)
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
@@ -68,7 +69,7 @@ void radon_angle_integrator_anisotropic_error(
 void run_errors(
     DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, double relerr, std::size_t max_subdiv, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds)
 {
-    std::printf("Initalizing...\n");
+    std::printf("Initalizing... ");
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
@@ -92,8 +93,8 @@ void run_errors(
         min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
 
     constexpr std::size_t reference_dist_order = 200;
-    constexpr std::size_t reference_resp_order = 300;
-    zest::zt::ZernikeExpansion reference_distribution
+    constexpr std::size_t reference_resp_order = 800;
+    zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
             dist, 1.0, reference_dist_order);
 
@@ -109,9 +110,11 @@ void run_errors(
     
     zdm::zebra::AnisotropicAngleIntegrator integrator(reference_dist_order, reference_resp_order);
     integrator.integrate(reference_distribution, reference_response, boosts, eras, min_speeds, reference);
+    std::printf("Done\n Integrating... ");
 
     radon_angle_integrator_anisotropic_error(
             dist, dist_name, resp, resp_name, boosts, eras, min_speeds, relerr, max_subdiv, reference);
+    std::printf("Done\n");
 }
 
 template <typename Object>
@@ -135,6 +138,17 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<Response>{smooth_exponential, "smooth_exponential"},
         Labeled<Response>{smooth_dots, "smooth_dots"}
     };
+
+    if (argc < 8)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
+            "   resp_ind:       index of response {0,1}\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)\n"
+            "   relerr:         target relative error for integrator (float)\n"
+            "   max_subdiv:     maximum number of subdivisions for integrator (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
     const std::size_t resp_ind = atoi(argv[2]);

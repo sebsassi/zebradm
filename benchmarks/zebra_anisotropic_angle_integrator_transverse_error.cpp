@@ -21,6 +21,7 @@ SOFTWARE.
 */
 #include <random>
 #include <fstream>
+#include <iomanip>
 
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -50,7 +51,7 @@ constexpr std::array<double, 2> absolute_error(
 void angle_integrator_error(
     std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<const std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* dist_name, Response resp, const char* resp_name, std::size_t dist_order, std::size_t resp_order, bool use_relative_error)
 {
-    zest::zt::ZernikeExpansion distribution
+    zest::zt::RealZernikeExpansion distribution
         = zest::zt::ZernikeTransformerOrthoGeo(dist_order).transform(
             dist, 1.0, dist_order);
 
@@ -79,9 +80,11 @@ void angle_integrator_error(
         std::sprintf(fname_t, "zebra_angle_integrator_transverse_error_absolute_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
     }
     std::ofstream output_nt{};
-    output_nt.open(fname_nt);
     std::ofstream output_t{};
+    output_nt.open(fname_nt);
     output_t.open(fname_t);
+    output_nt << std::scientific << std::setprecision(16);
+    output_t << std::scientific << std::setprecision(16);
     for (std::size_t i = 0; i < boosts.size(); ++i)
     {
         for (std::size_t j = 0; j < min_speeds.size(); ++j)
@@ -111,7 +114,7 @@ void fill_reference(
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
 
-    zest::zt::ZernikeExpansion reference_distribution
+    zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
             dist, 1.0, reference_dist_order);
     
@@ -191,6 +194,15 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<Response>{smooth_exponential, "smooth_exponential"},
         Labeled<Response>{smooth_dots, "smooth_dots"}
     };
+
+    if (argc < 6)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
+            "   resp_ind:       index of response {0,1}\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
     const std::size_t resp_ind = atoi(argv[2]);

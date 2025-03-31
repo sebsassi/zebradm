@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <vector>
 
-#include <zest/triangle_layout.hpp>
+#include <zest/layout.hpp>
 
 #include "legendre.hpp"
 
@@ -59,19 +59,19 @@ public:
     Evaluate recursion of Legendre polynomials with affine transformed argument `y = shift + scale*x`.
     */
     void evaluate_affine(
-        zest::TriangleSpan<double, zest::TriangleLayout> expansion, double shift, double scale);
+        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift, double scale);
 
     /*
     Evaluate recursion of Legendre polynomials with shifted argument `y = shift + x`.
     */
     void evaluate_shifted(
-        zest::TriangleSpan<double, zest::TriangleLayout> expansion, double shift);
+        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift);
 
     /*
     Evaluate recursion of Legendre polynomials with scaled argument `y = scale*x`.
     */
     void evaluate_scaled(
-        zest::TriangleSpan<double, zest::TriangleLayout> expansion, double scale);
+        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double scale);
 
 private:
     std::vector<double> m_a;

@@ -43,7 +43,7 @@ double quadratic_form(
 /*
 anisotropic Gaussian with arbitrary covariance.
 */
-double aniso_gaussian(double r, double lon, double colat)
+double aniso_gaussian(double lon, double colat, double r)
 {
     constexpr std::array<std::array<double, 3>, 3> sigma = {
         std::array<double, 3>{3.0, 1.4, 0.5},
@@ -68,7 +68,7 @@ double aniso_gaussian(const std::array<double, 3>& x)
 /*
 linear combination of four isotropic Gaussians of different means and widths.
 */
-double four_gaussians(double r, double lon, double colat)
+double four_gaussians(double lon, double colat, double r)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
@@ -141,7 +141,7 @@ double four_gaussians(const std::array<double, 3>& v)
 /*
 linear combination of a centered wide isotropic Gaussian with shifted narrow isotropic Gaussian.
 */
-double shm_plus_stream(double r, double lon, double colat)
+double shm_plus_stream(double lon, double colat, double r)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;
@@ -214,7 +214,7 @@ double shm_plus_stream(const std::array<double, 3>& x)
 /*
 anisotropic Gaussian.
 */
-double shmpp_aniso(double r, double lon, double colat)
+double shmpp_aniso(double lon, double colat, double r)
 {
     constexpr double beta = 0.9;
     constexpr double v0 = 233.0/580.0;
@@ -248,7 +248,7 @@ double shmpp_aniso(const std::array<double, 3>& x)
 /*
 linear combination of an isotropic and an anisotropic Gaussian.
 */
-double shmpp(double r, double lon, double colat)
+double shmpp(double lon, double colat, double r)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     constexpr double sqrt_pi_3 = sqrt_pi*sqrt_pi*sqrt_pi;

@@ -12,9 +12,11 @@ Currently, this library provides functionality for performing the fast Zernike b
 
 ## Build and installation
 
-This library depends on the [zest](https://github.com/sebsassi/zest) companion library, which provides utilities for performing Zernike and spherical harmonic transforms.
+This library has dependencies on two other libraries:
+- [zest](https://github.com/sebsassi/zest) is a companion library, which provides utilities for performing Zernike and spherical harmonic transforms.
+- [cubage](https://github.com/sebsassi/cubage) provides capabilities for multidimensional numerical integration.
 
-Provided you have [zest](https://github.com/sebsassi/zest) installed, this library uses CMake for its build/install process. Once you have obtained the source code, and have navigated to the source directory, set up the build directory and navigate to it
+Provided you have the above dependencies installed, this library uses CMake for its build/install process. Once you have obtained the source code, and have navigated to the source directory, set up the build directory and navigate to it
 ```bash
 cmake -S . -B build
 cd build

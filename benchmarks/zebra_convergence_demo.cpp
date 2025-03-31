@@ -10,7 +10,7 @@
 void isotropic_convergence(
     const std::array<double, 3>& boost, std::span<const double> min_speeds, std::span<double> reference, DistributionSpherical dist, const char* name, std::size_t order)
 {
-    zest::zt::ZernikeExpansion distribution
+    zest::zt::RealZernikeExpansion distribution
         = zest::zt::ZernikeTransformerOrthoGeo(order).transform(
             dist, 1.0, order);
 
@@ -47,7 +47,7 @@ void convergence_demo(
     for (std::size_t i = 0; i < num_min_speeds; ++i)
         min_speeds[i] = double(i)*max_min_speed/double(num_min_speeds - 1);
 
-    zest::zt::ZernikeExpansion reference_distribution
+    zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
             dist, 1.0, reference_order);
     

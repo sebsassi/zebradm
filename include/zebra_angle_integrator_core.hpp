@@ -86,14 +86,14 @@ public:
 
     [[nodiscard]] double integrate(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
-        zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
+        zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
         const std::array<double, 3>& boost, double era, double min_speed, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
-        zest::st::RealSHExpansionSpanGeo<const std::array<double, 2>> response_exp,
+        zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
         const std::array<double, 3>& boost, double era, double min_speed, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 

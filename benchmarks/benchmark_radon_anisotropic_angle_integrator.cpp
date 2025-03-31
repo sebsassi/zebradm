@@ -56,7 +56,6 @@ void run_benchmarks(
     bench.minEpochTime(std::chrono::nanoseconds(1000000000));
     bench.maxEpochTime(std::chrono::nanoseconds(100000000000));
 
-    std::printf("Initalizing...\n");
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
@@ -126,6 +125,17 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<Response>{smooth_dots, "smooth_dots"}
     };
 
+    if (argc < 8)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:           index of distribution {0,1,2,3,4}\n"
+            "   resp_ind:           index of response {0,1}\n"
+            "   boost_len:          length of boost vector (float)\n"
+            "   num_boosts:         number of boost vectors (positive integer)\n"
+            "   num_min_speeds:     number of min_speed values (positive integer)\n"
+            "   time_limit_lo_s:    shoft time cutoff in seconds (positive integer)\n"
+            "   time_limit_hi_s:    hard time cutoff in seconds (positive integer)");
+
     const std::size_t dist_ind = atoi(argv[1]);
     const std::size_t resp_ind = atoi(argv[2]);
     const double boost_len = atof(argv[3]);
@@ -136,11 +146,11 @@ int main([[maybe_unused]] int argc, char** argv)
     std::printf("dist_ind: %lu\nresp_ind: %lu\nboost_len: %.2f\nnum_boosts: %lu\nnum_speeds: %lu\ntime_limit_lo_s: %.0f\ntime_limit_hi_s: %.0f\n", dist_ind, resp_ind, boost_len, num_boosts, num_min_speeds, time_limit_lo_s, time_limit_hi_s);
 
     const std::vector<double> relerrs = {
-        1.0e+2, 1.0e+1, 1.0e+0, 1.0e-1, 1.0e-2, 1.0e-3, 1.0e-4, 1.0e-5, 1.0e-6, 1.0e-7, 1.0e-8, 1.0e-9, 1.0e-10
+        /*1.0e+2, 1.0e+1, 1.0e+0, 1.0e-1, 1.0e-2, 1.0e-3, 1.0e-4, 1.0e-5, 1.0e-6,*/ 1.0e-7/*, 1.0e-8, 1.0e-9, 1.0e-10*/
     };
 
     const std::vector<std::size_t> max_subdiv = {
-        1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000
+        1000000/*, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000*/
     };
 
     const Labeled<DistributionCartesian> dist = distributions[dist_ind];

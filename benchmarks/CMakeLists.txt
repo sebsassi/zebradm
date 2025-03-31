@@ -39,6 +39,7 @@ create_nanobench(benchmark_radon_isotropic_angle_integrator_transverse)
 create_nanobench(benchmark_radon_anisotropic_angle_integrator)
 create_nanobench(benchmark_radon_anisotropic_angle_integrator_transverse)
 create_nanobench(benchmark_dist_grid_creation)
+create_nanobench(benchmark_resp_grid_creation)
 
 macro(create_other_bench BENCHNAME)
     add_executable(${BENCHNAME}.out

@@ -30,8 +30,6 @@ add_library(zebradm
     src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp src/zebra_radon.cpp src/zernike_recursions.cpp
 )
 
-add_subdirectory(external/cubage)
-
 target_include_directories(zebradm
     PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -43,16 +41,45 @@ target_include_directories(zebradm
 target_compile_options(zebradm
     PRIVATE
         $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
-        $<$<CONFIG:Release>:-Wall;-Wextra;-Wpedantic;-Wconversion;-g;-O3>
+        $<$<CONFIG:Release>:-Wall;-Wextra;-Wpedantic;-Wconversion;-g;-O3;-mavx2;-mfma>
 )
 
 target_compile_features(zebradm PUBLIC cxx_std_20)
 
+include(GNUInstallDirs)
 install(DIRECTORY include/ DESTINATION include/zebradm)
 
-install(TARGETS zebradm
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
+install(TARGETS zebradm EXPORT zebradm-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "cmake/config.cmake.in"
+    "zebradm/zebradm-config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zebradm
+    PATH_VARS CMAKE_INSTALL_LIBDIR
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/zebradm/zebradm-config-version.cmake"
+    VERSION ${CMAKE_PROJECT_VERSION}
+    COMPATIBILITY ExactVersion
+)
+
+install(EXPORT zebradm-targets
+    FILE zebradm-targets.cmake
+    NAMESPACE zebradm::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zebradm
+)
+
+install(
+    FILES 
+        "${CMAKE_CURRENT_BINARY_DIR}/zebradm/zebradm-config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/zebradm/zebradm-config-version.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zebradm
+    COMPONENT Devel
 )
 
 find_package(OpenMP)
@@ -60,7 +87,9 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-target_link_libraries(zebradm PUBLIC cubage zest)
+find_package(cubage CONFIG REQUIRED)
+find_package(zest CONFIG REQUIRED)
+target_link_libraries(zebradm PUBLIC cubage::cubage zest::zest)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     enable_testing()

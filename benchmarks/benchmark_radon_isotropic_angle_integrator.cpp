@@ -89,7 +89,7 @@ void run_benchmarks(
         min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
 
     constexpr std::size_t reference_order = 200;
-    zest::zt::ZernikeExpansion reference_distribution
+    zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
@@ -138,6 +138,15 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<DistributionCartesian>{shmpp_aniso, "shmpp_aniso"},
         Labeled<DistributionCartesian>{shmpp, "shmpp"}
     };
+
+    if (argc < 6)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)\n"
+            "   time_limit_s:   hard time cutoff in seconds (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
     const double boost_len = atof(argv[2]);

@@ -37,7 +37,7 @@ concept bounded_distribution = requires (const FieldType& dist, const std::array
 };
 
 template <bounded_distribution Func>
-zest::zt::ZernikeExpansionOrthoGeo zernike_transform(const Func& dist, std::size_t lmax, const Matrix<double, 3, 3>& rotation)
+zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std::size_t lmax, const Matrix<double, 3, 3>& rotation)
 {
     const double scale = dist.max_velocity();
     auto dist_ = [&](const std::array<double, 3>& x)

@@ -31,7 +31,7 @@ void benchmark_zebra_parallel_isotropic_angle_integrator(
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zest::zt::ZernikeExpansionOrthoGeo distribution(order);
+    zest::zt::RealZernikeExpansionNormalGeo distribution(order);
     for (auto& element : distribution.flatten())
         element = {dist(gen), dist(gen)};
 
@@ -71,7 +71,9 @@ int main([[maybe_unused]] int argc, char** argv)
     const std::size_t num_min_speeds = atoi(argv[3]);
     const std::size_t num_threads = atoi(argv[4]);
 
-    std::vector<std::size_t> order_vec = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
+    std::vector<std::size_t> order_vec = {
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180
+    };
 
     bench.title("zebra::parallel::IsotropicAngleIntegrator::integrate");
     for (const auto& order : order_vec)

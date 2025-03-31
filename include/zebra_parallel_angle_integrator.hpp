@@ -75,10 +75,10 @@ private:
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(
         std::size_t order) noexcept
     {
-        return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(order);
+        return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(order);
     }
 
-    [[nodiscard]] zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
+    [[nodiscard]] zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>
     accesss_rotated_geg_zernike_exp(
         std::size_t thread_id) noexcept;
 
@@ -87,7 +87,7 @@ private:
         std::span<const double> min_speeds, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
     std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
     std::vector<ThreadContext> m_contexts;
     std::size_t m_dist_order;
@@ -146,7 +146,7 @@ private:
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(
         std::size_t order) noexcept
     {
-        return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(order);
+        return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(order);
     }
 
     [[nodiscard]] static constexpr std::size_t sh_grid_size(
@@ -155,7 +155,7 @@ private:
         return zest::st::SphereGLQGridSpan<double>::size(order);
     }
 
-    [[nodiscard]] zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::SubSpan
+    [[nodiscard]] zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::SubSpan
     accesss_rotated_geg_zernike_exp(
         std::size_t team_id, std::size_t order) noexcept;
 
@@ -164,7 +164,7 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     std::vector<zest::Rotor> m_rotors;
-    zest::zt::ZernikeExpansionOrthoGeo m_geg_zernike_exp;
+    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
     std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     std::vector<detail::AnisotropicAngleIntegratorCore> m_integrators;

@@ -65,7 +65,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
+    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -86,7 +86,7 @@ void IsotropicAngleIntegrator::integrate(
         0.0, -boost_colat, std::numbers::pi - boost_az
     };
 
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> 
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> 
     rotated_geg_zernike_exp = accesss_rotated_geg_zernike_exp(thread_id);
 
     std::ranges::copy(
@@ -108,14 +108,14 @@ void IsotropicAngleIntegrator::integrate(
     }
 }
 
-zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
+zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>
 IsotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
     std::size_t thread_id) noexcept
 {
     const std::size_t geg_order = m_dist_order + 2;
-    const std::size_t size = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(geg_order);
+    const std::size_t size = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(geg_order);
 
-    return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>(m_rotated_geg_zernike_exp.data() + thread_id*size, geg_order);
+    return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>(m_rotated_geg_zernike_exp.data() + thread_id*size, geg_order);
 }
 
 AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
@@ -180,7 +180,7 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    zest::zt::ZernikeExpansionSpanOrthoGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -194,7 +194,7 @@ void AnisotropicAngleIntegrator::integrate(
         #pragma omp distribute
         for (std::size_t i = 0; i < boosts.size(); ++i)
         {
-            using ZernikeSpan = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>;
+            using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
             const auto& [boost_speed, boost_colat, boost_az]
                 = coordinates::cartesian_to_spherical_phys(boosts[i]);
@@ -236,14 +236,14 @@ void AnisotropicAngleIntegrator::integrate(
     }
 }
 
-zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::SubSpan
+zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::SubSpan
 AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
     std::size_t team_id, std::size_t order) noexcept
 {
     const std::size_t geg_order = m_dist_order + 2;
-    const std::size_t size = zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::size(geg_order);
+    const std::size_t size = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(geg_order);
 
-    return zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>::SubSpan(m_rotated_geg_zernike_exp.data() + team_id*size, order);
+    return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::SubSpan(m_rotated_geg_zernike_exp.data() + team_id*size, order);
 }
 
 SuperSpan<zest::st::SphereGLQGridSpan<double>>

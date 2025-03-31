@@ -35,7 +35,7 @@ void benchmark_distribution_zernike_grid_construction(
 {
     zest::zt::BallGLQGridPoints points(order);
     zest::zt::BallGLQGrid<double> grid(order);
-    auto dist_spherical = [&](double r, double lon, double colat)
+    auto dist_spherical = [&](double lon, double colat, double r)
     {
         return dist(zdm::coordinates::spherical_to_cartesian_phys({lon, colat, r}));
     };
@@ -87,9 +87,16 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<DistributionCartesian>{shmpp, "shmpp"}
     };
 
+    if (argc < 2)
+        throw std::runtime_error(
+            "Requires argument:\n"
+            "   dist_ind:   index of distribution {0,1,2,3,4}");
+
     const std::size_t dist_ind = atoi(argv[1]);
 
-    std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
+    std::vector<std::size_t> orders = {
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200
+    };
 
     const Labeled<DistributionCartesian> dist = distributions[dist_ind];
 

@@ -86,7 +86,7 @@ bool test_angle_integrator_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zest::zt::ZernikeExpansionOrthoGeo distribution(order);
+    zest::zt::RealZernikeExpansionNormalGeo distribution(order);
     distribution(0,0,0) = {1.0/std::sqrt(3.0), 0.0};
 
     std::vector<double> test_buffer(boosts.size()*min_speeds.size());
@@ -184,7 +184,7 @@ bool test_angle_integrator_is_accurate_for_shm()
             shm_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     constexpr std::size_t order = 100;
-    zest::zt::ZernikeExpansionOrthoGeo distribution
+    zest::zt::RealZernikeExpansionNormalGeo distribution
         = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
                 shm_dist, 1.0, order);
 

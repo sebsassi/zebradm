@@ -35,9 +35,9 @@ constexpr bool is_close(
 
 bool multiply_empty_expansion_by_x_does_nothing()
 {
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> in{};
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> in{};
 
-    zest::zt::ZernikeExpansionOrthoGeo out(4);
+    zest::zt::RealZernikeExpansionNormalGeo out(4);
     std::ranges::fill(out.flatten(), std::array<double, 2>{2.0, 3.0});
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(4);
@@ -60,9 +60,9 @@ bool multiply_empty_expansion_by_x_does_nothing()
 
 bool multiply_empty_expansion_by_y_does_nothing()
 {
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> in{};
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> in{};
 
-    zest::zt::ZernikeExpansionOrthoGeo out(4);
+    zest::zt::RealZernikeExpansionNormalGeo out(4);
     std::ranges::fill(out.flatten(), std::array<double, 2>{2.0, 3.0});
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(4);
@@ -85,9 +85,9 @@ bool multiply_empty_expansion_by_y_does_nothing()
 
 bool multiply_empty_expansion_by_z_does_nothing()
 {
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> in{};
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> in{};
 
-    zest::zt::ZernikeExpansionOrthoGeo out(4);
+    zest::zt::RealZernikeExpansionNormalGeo out(4);
     std::ranges::fill(out.flatten(), std::array<double, 2>{2.0, 3.0});
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(4);
@@ -110,9 +110,9 @@ bool multiply_empty_expansion_by_z_does_nothing()
 
 bool multiply_empty_expansion_by_r2_does_nothing()
 {
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>> in{};
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> in{};
 
-    zest::zt::ZernikeExpansionOrthoGeo out(4);
+    zest::zt::RealZernikeExpansionNormalGeo out(4);
     std::ranges::fill(out.flatten(), std::array<double, 2>{2.0, 3.0});
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(4);
@@ -138,8 +138,8 @@ bool multiply_Z000_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(0,0,0) = {1.0, 0.0};
 
@@ -185,8 +185,8 @@ bool multiply_Z000_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(0,0,0) = {1.0, 0.0};
 
@@ -232,8 +232,8 @@ bool multiply_Z000_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(0,0,0) = {1.0, 0.0};
 
@@ -279,8 +279,8 @@ bool multiply_Z000_by_r2_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 2;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(0,0,0) = {1.0, 0.0};
 
@@ -331,8 +331,8 @@ bool multiply_Z111_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {1.0, 0.0};
 
@@ -388,8 +388,8 @@ bool multiply_Z111_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {1.0, 0.0};
 
@@ -436,8 +436,8 @@ bool multiply_Z111_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {1.0, 0.0};
 
@@ -484,8 +484,8 @@ bool multiply_Z11m1_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {0.0, 1.0};
 
@@ -532,8 +532,8 @@ bool multiply_Z11m1_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {0.0, 1.0};
 
@@ -589,8 +589,8 @@ bool multiply_Z11m1_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,1) = {0.0, 1.0};
 
@@ -637,8 +637,8 @@ bool multiply_Z110_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,0) = {1.0, 0.0};
 
@@ -685,8 +685,8 @@ bool multiply_Z110_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,0) = {1.0, 0.0};
 
@@ -733,8 +733,8 @@ bool multiply_Z110_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
     
     in(1,1,0) = {1.0, 0.0};
 
@@ -784,9 +784,9 @@ bool multiply_Z110_by_z_is_correct_for_order()
 bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     for (std::size_t n = 0; n < in.order(); ++n)
     {
@@ -851,9 +851,9 @@ bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -921,9 +921,9 @@ bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -991,9 +991,9 @@ bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1061,9 +1061,9 @@ bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1131,9 +1131,9 @@ bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 2;
-    zest::zt::ZernikeExpansionOrthoGeo in(in_order);
-    zest::zt::ZernikeExpansionOrthoGeo out(out_order);
-    zest::zt::ZernikeExpansionOrthoGeo reference_out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo in(in_order);
+    zest::zt::RealZernikeExpansionNormalGeo out(out_order);
+    zest::zt::RealZernikeExpansionNormalGeo reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;

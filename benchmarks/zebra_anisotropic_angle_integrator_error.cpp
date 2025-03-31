@@ -21,6 +21,9 @@ SOFTWARE.
 */
 #include <random>
 #include <fstream>
+#include <iomanip>
+#include <ios>
+#include <iostream>
 
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -29,12 +32,25 @@ SOFTWARE.
 #include "distributions.hpp"
 #include "responses.hpp"
 
-void angle_integrator_error(
-    std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<double, 2> reference, DistributionSpherical dist, const char* dist_name, Response resp, const char* resp_name, std::size_t dist_order, std::size_t resp_order, bool relative_error)
+inline double relative_error(double test, double reference)
 {
-    zest::zt::ZernikeExpansion distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(dist_order).transform(
-            dist, 1.0, dist_order);
+    if (reference == 0.0) return 0.0;
+    return std::fabs(1.0 - test/reference);
+}
+
+inline double absolute_error(double test, double reference)
+{
+    return std::fabs(reference - test);
+}
+
+void zebra_evaluate(
+    DistributionSpherical dist, Response resp, std::size_t dist_order,
+    std::size_t resp_order, std::span<const std::array<double, 3>> boosts,
+    std::span<const double> min_speeds, std::span<const double> eras, zest::MDSpan<double, 2> out)
+{
+    zest::zt::RealZernikeExpansionNormalGeo distribution
+        = zest::zt::ZernikeTransformerOrthoGeo<>(dist_order).transform(
+                dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
         min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
@@ -42,35 +58,21 @@ void angle_integrator_error(
     response(response_buffer.data(), {min_speeds.size()}, resp_order);
     zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
 
-    std::vector<double> out_buffer(boosts.size()*min_speeds.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
+            distribution, response, boosts, eras, min_speeds, out);
+}
 
-    zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
-    integrator.integrate(distribution, response, boosts, eras, min_speeds, out);
-
-    char fname[512] = {};
-    if (relative_error)
-        std::sprintf(fname, "zebra_angle_integrator_error_relative_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
-    else
-        std::sprintf(fname, "zebra_angle_integrator_error_absolute_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
-    std::ofstream output{};
-    output.open(fname);
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+template <typename S, typename F>
+void print(
+    S&& stream, zest::MDSpan<double, 2> test, zest::MDSpan<double, 2> reference, F&& error_func)
+{
+    stream << std::scientific << std::setprecision(16);
+    for (std::size_t i = 0; i < test.extent(0); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
-        {
-            double error = 0.0;
-            if (reference(i, j) != 0.0)
-            {
-                error = (relative_error) ?
-                    std::fabs(1.0 - out(i, j)/reference(i, j))
-                    : std::fabs(reference(i, j) - out(i, j));
-            }
-            output << error << ' ';
-        }
-        output << '\n';
+        for (std::size_t j = 0; j < test.extent(1); ++j)
+            stream << error_func(test(i, j), reference(i, j)) << ' ';
+        stream << '\n';
     }
-    output.close();
 }
 
 void fill_reference(
@@ -81,19 +83,32 @@ void fill_reference(
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
 
-    zest::zt::ZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
-            dist, 1.0, reference_dist_order);
-    
-    std::vector<std::array<double, 2>> reference_response_buffer(
-        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
-    reference_response(reference_response_buffer.data(), {min_speeds.size()}, reference_resp_order);
-    zdm::zebra::ResponseTransformer(reference_resp_order).transform(resp, min_speeds, reference_response);
-    
-    zdm::zebra::AnisotropicAngleIntegrator integrator(reference_dist_order, reference_resp_order);
-    integrator.integrate(reference_distribution, reference_response, boosts, eras, min_speeds, reference);
+    zebra_evaluate(
+        dist, resp, reference_dist_order, reference_resp_order, boosts, min_speeds, eras, reference);
     std::printf("Done\n");
+}
+
+void angle_integrator_error(
+    std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<double, 2> reference, DistributionSpherical dist, [[maybe_unused]] const char* dist_name, Response resp, [[maybe_unused]] const char* resp_name, std::size_t dist_order, std::size_t resp_order, [[maybe_unused]] bool use_relative_error)
+{
+    std::vector<double> out_buffer(boosts.size()*min_speeds.size());
+    zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    zebra_evaluate(
+            dist, resp, dist_order, resp_order, boosts, min_speeds, eras, out);
+
+    char fname[512] = {};
+    if (use_relative_error)
+        std::sprintf(fname, "zebra_angle_integrator_error_relative_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
+    else
+        std::sprintf(fname, "zebra_angle_integrator_error_absolute_%s_dist-order_%lu_%s_resp-order_%lu.dat", dist_name, dist_order, resp_name, resp_order);
+    std::ofstream output{};
+    output.open(fname);
+    if (use_relative_error)
+        print(output, out, reference, relative_error);
+    else
+        print(output, out, reference, absolute_error);
+    output.close();
+    //print(std::cout, out, reference, relative_error);
 }
 
 void angle_integrator_errors(
@@ -127,6 +142,8 @@ void angle_integrator_errors(
 
     const std::vector<std::size_t> dist_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
     const std::vector<std::size_t> resp_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,240,280,320,400,480};
+    //const std::vector<std::size_t> dist_orders = {20, 50, 100, 150};
+    //const std::vector<std::size_t> resp_orders = {30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480, 640};
 
     for (std::size_t dist_order : dist_orders)
     {
@@ -161,6 +178,15 @@ int main([[maybe_unused]] int argc, char** argv)
         Labeled<Response>{smooth_exponential, "smooth_exponential"},
         Labeled<Response>{smooth_dots, "smooth_dots"}
     };
+
+    if (argc < 6)
+        throw std::runtime_error(
+            "Requires arguments:\n"
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
+            "   resp_ind:       index of response {0,1}\n"
+            "   boost_len:      length of boost vector (float)\n"
+            "   num_boosts:     number of boost vectors (positive integer)\n"
+            "   num_min_speeds: number of min_speed values (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
     const std::size_t resp_ind = atoi(argv[2]);
