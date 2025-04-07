@@ -1,14 +1,16 @@
+[![arXiv](https://img.shields.io/badge/arXiv-xxxx.xxxx-green?labelColor=red)](https://example.com)
+
 # ZebraDM - fast Zernike based Radon transforms for DM event rate computations
 
-ZebraDM is a modern C++ library that provides tools for performing dark matter direct detection event rate computations using the fast Zernike based Radon transform introduced in [arXiv:????.????](https://example.com).
+ZebraDM is a modern C++ library that provides tools for performing dark matter direct detection event rate computations using the fast Zernike based Radon transform introduced in [arXiv:xxxx.xxxx](https://example.com).
 
 ## Theoretical background
 
-Dark matter double differential event rate integrals can be expressed as Radon transforms of the dark matter velocity distribution. Expanding the velocity distribution in a suitable chosen basis of functions (the 3D Zernike function basis) for which an analytic result for the Radon transform is available, the problem of computing event rates can be reduced from integration to summation of expansion coefficients. This has numerous advantages: fast convergence of the basis expansion, fewer function evaluations, array operations consisting of easy-to-vectorize branchless loops of addition and multiplication, and so on. The theoretical background is further described in [arXiv:????.????](https://example.com).
+Dark matter double differential event rate integrals can be expressed as Radon transforms of the dark matter velocity distribution. Expanding the velocity distribution in a suitable chosen basis of functions (the 3D Zernike function basis) for which an analytic result for the Radon transform is available, the problem of computing event rates can be reduced from integration to summation of expansion coefficients. This has numerous advantages: fast convergence of the basis expansion, fewer function evaluations, array operations consisting of easy-to-vectorize branchless loops of addition and multiplication, and so on. The theoretical background is further described in [arXiv:xxxx.xxxx](https://example.com).
 
 ## About this library
 
-Currently, this library provides functionality for performing the fast Zernike based Radon transform described in [arXiv:????.????](https://example.com), and a miscellaneous assortment of other basic utilities. This library acts as a reference implementation for these methods.
+Currently, this library provides functionality for performing the fast Zernike based Radon transform described in [arXiv:xxxx.xxxx](https://example.com), and a miscellaneous assortment of other basic utilities. This library acts as a reference implementation for these methods.
 
 ## Build and installation
 
