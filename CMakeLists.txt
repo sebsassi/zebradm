@@ -15,7 +15,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.19)
 project(zebradm 
     VERSION 0.1.0 
     LANGUAGES CXX
@@ -36,12 +36,6 @@ target_include_directories(zebradm
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     PRIVATE
         ${PROJECT_SOURCE_DIR}/src
-)
-
-target_compile_options(zebradm
-    PRIVATE
-        $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
-        $<$<CONFIG:Release>:-Wall;-Wextra;-Wpedantic;-Wconversion;-g;-O3;-mavx2;-mfma>
 )
 
 target_compile_features(zebradm PUBLIC cxx_std_20)
@@ -87,7 +81,7 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-find_package(cubage CONFIG REQUIRED)
+find_package(cubage CONFIG)
 find_package(zest CONFIG REQUIRED)
 target_link_libraries(zebradm PUBLIC cubage::cubage zest::zest)
 

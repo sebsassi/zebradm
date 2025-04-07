@@ -110,7 +110,9 @@ int main([[maybe_unused]] int argc, char** argv)
     const double boost_len = atof(argv[2]);
     const std::size_t num_min_speeds = atoi(argv[3]);
 
-    std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200};
+    std::vector<std::size_t> orders = {
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480
+    };
 
     const Labeled<Response> dist = responses[resp_ind];
 
