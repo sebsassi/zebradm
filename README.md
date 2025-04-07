@@ -16,7 +16,7 @@ This library has dependencies on two other libraries:
 - [zest](https://github.com/sebsassi/zest) (REQUIRED) is a companion library, which provides utilities for performing Zernike and spherical harmonic transforms.
 - [cubage](https://github.com/sebsassi/cubage) (OPTIONAL) provides capabilities for multidimensional numerical integration. This library is only used by the numerical integration implementation of the Radon transforms, which are implemented for comparison.
 
-This library uses CMake for its build/install process. Therefore, once you have the required dependencies installed, the following three commands configure, build, and install the project to your preferred install directory
+This library uses CMake for its build/install process. Therefore, provided you have the required dependencies installed, the following three commands configure, build, and install the project to your preferred install directory
 ```bash
 cmake --preset=default
 cmake --build build
