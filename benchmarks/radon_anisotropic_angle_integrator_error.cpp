@@ -95,7 +95,7 @@ void run_errors(
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
     zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).transform(
             dist, 1.0, reference_dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(

@@ -52,7 +52,7 @@ void angle_integrator_error(
     std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<const std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* dist_name, Response resp, const char* resp_name, std::size_t dist_order, std::size_t resp_order, bool use_relative_error)
 {
     zest::zt::RealZernikeExpansion distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(dist_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(dist_order).transform(
             dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
@@ -115,7 +115,7 @@ void fill_reference(
     constexpr std::size_t reference_resp_order = 800;
 
     zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_dist_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).transform(
             dist, 1.0, reference_dist_order);
     
     std::vector<std::array<double, 2>> reference_response_buffer(

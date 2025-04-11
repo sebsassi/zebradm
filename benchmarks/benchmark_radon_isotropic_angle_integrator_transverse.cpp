@@ -104,7 +104,7 @@ void run_benchmarks(
 
     constexpr std::size_t reference_order = 200;
     zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
     std::vector<std::array<double, 2>> reference_buffer(boosts.size()*min_speeds.size());

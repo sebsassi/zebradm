@@ -194,7 +194,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
 
     constexpr std::size_t order = 100;
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
                 shm_dist, 1.0, order);
 
     std::vector<std::array<double, 2>> resp_buffer(min_speeds.size()*zest::st::RealSHExpansionGeo::size(order));

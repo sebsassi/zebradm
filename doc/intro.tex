@@ -65,13 +65,13 @@ The first thing we need to do is calculate the Zernike expansion of our velocity
 \begin{minted}{c++}
     #include <zest/zernike_glq_transformer.hpp>
 \end{minted}
-From there we want to use the class \cppinline{ZernikeTransformerOrthoGeo} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
+From there we want to use the class \cppinline{ZernikeTransformerNormalGeo} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
 \begin{minted}{c++}
-    zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer();
+    zest::zt::ZernikeTransformerNormalGeo<> zernike_transformer();
 \end{minted}
 or we can initialize it with a \texttt{order} parameter
 \begin{minted}{c++}
-    zest::zt::ZernikeTransformerOrthoGeo<> zernike_transformer(order);
+    zest::zt::ZernikeTransformerNormalGeo<> zernike_transformer(order);
 \end{minted}
 The parameter \cppinline{std::size_t order} specifies the order of the Zernike expansion with higher orders corresponding for more accurate representation of the function. Higher orders require significantly more time to perform computations with, and the level of accuracy for a given order varies by distribution. The desired order should therefore be chosen through careful testing.
 
@@ -109,11 +109,11 @@ However we may want to pass parameters to the distribution, e.g., \texttt{veloci
 In this case we are dealing with the standard halo model, therefore our $v_\text{max}=v_\text{esc}$. With this parameter in hand, we can finally write down the transform
 \begin{minted}{c++}
     const double escape_velocity = 544;
-    zest::zt::ZernikeExpansionOrthoGeo zernike_expansion
+    zest::zt::RealZernikeExpansionNormalGeo zernike_expansion
         = zernike_transformer.transform(
             distribution, escape_velocity, distribution_order);
 \end{minted}
-The result of this function call is a \cppinline{ZernikeExpansionOrthoGeo}. This is a \emph{container} for Zernike expansions. This means that it owns the data it refers to, and is responsible for its allocation and deallocation. For all containers the library also has corresponding \emph{views}, which merely refer to data owned by someone else.
+The result of this function call is a \cppinline{RealZernikeExpansionNormalGeo}. This is a \emph{container} for Zernike expansions. This means that it owns the data it refers to, and is responsible for its allocation and deallocation. For all containers the library also has corresponding \emph{views}, which merely refer to data owned by someone else.
 
 It is important to note that from here on, everything is expressed in terms of the rescaled parameter $\vec{u}=\vec{v}/v_\text{max}=\vec{v}/v_\text{esc}$. When we pass the parameter \cppinline{escape_velocity} to the transformer object \cppinline{zernike_transformer}, all it does is apply this change of variables, because the underlying Zernike transform itself expects $u\leq1$. This is important to keep in mind, because all the Radon transforms computed by \texttt{ZebraDM} need to be rescaled with appropriate powers of $v_\text{max}$.
 
@@ -123,23 +123,23 @@ But say we don't want to store the Zernike expansion in its own container, say w
 \end{minted}
 where the \texttt{size} is large enough to store our Zernike expansion. The elements have the type \cppinline{std::array<double, 2>}, because the Zernike coefficients are stored in pairs $(f_{nl,+|m|},f_{nl,-|m|})$. In any case, we can now define our Zernike expansion
 \begin{minted}{c++}
-    zest::zt::ZernikeExpansionSpanOrthoGeo<std::array<double, 2>>
+    zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>
     zernike_expansion_span(zernike_buffer.size(), distribution_order);
 \end{minted}
-Here \cppinline{ZernikeExpansionSpanOrthoGeo} is a \emph{view}, which doesn't own any data. It merely determines the layout of data in an existing buffer. By convention, views in the library are indetified by the word \texttt{Span}. We can now call
+Here \cppinline{RealZernikeSpanNormalGeo} is a \emph{view}, which doesn't own any data. It merely determines the layout of data in an existing buffer. By convention, views in the library are indetified by the word \texttt{Span}. We can now call
 \begin{minted}{c++}
     zernike_transformer.transform(
         distribution, escape_velocity, zernike_expansion_span);
 \end{minted}
 to write the expansion into our buffer. Note here that there is no \texttt{distribution\_order} parameter, because the order of \texttt{zernike\_expansion\_span} is used.
 
-A more common use case for this version is if we want to reuse a single instance of a \cppinline{ZernikeExpansionOrthoGeo} for computing a transform multiple times, so that we don't need to continuously allocate a new container. In this case we can do
+A more common use case for this version is if we want to reuse a single instance of a \cppinline{RealZernikeExpansionNormalGeo} for computing a transform multiple times, so that we don't need to continuously allocate a new container. In this case we can do
 \begin{minted}{c++}
-    zest::zt::ZernikeExpansionOrthoGeo zernike_expansion(distribution_order);
+    zest::zt::RealZernikeExpansionNormalGeo zernike_expansion(distribution_order);
     zernike_transformer.transform(
         distribution, escape_velocity, zernike_expansion);
 \end{minted}
-This works because a \texttt{ZernikeExpansion} container can be automatically converted to a view of type \texttt{ZernikeExpansionSpan}. This is generally true for all containers and their respective views in the library.
+This works because a \texttt{RealZernikeExpansion} container can be automatically converted to a view of type \texttt{RealZernikeSpan}. This is generally true for all containers and their respective views in the library.
 
 \section{Coordinate system interlude}
 

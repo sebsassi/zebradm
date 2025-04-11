@@ -49,7 +49,7 @@ void zebra_evaluate(
     std::span<const double> min_speeds, std::span<const double> eras, zest::MDSpan<double, 2> out)
 {
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(dist_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(

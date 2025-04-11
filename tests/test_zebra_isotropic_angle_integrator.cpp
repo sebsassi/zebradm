@@ -185,7 +185,7 @@ bool test_angle_integrator_is_accurate_for_shm()
 
     constexpr std::size_t order = 100;
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
                 shm_dist, 1.0, order);
 
     zdm::zebra::IsotropicAngleIntegrator(order).integrate(

@@ -800,7 +800,7 @@ bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
@@ -870,7 +870,7 @@ bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
@@ -940,7 +940,7 @@ bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
@@ -1010,7 +1010,7 @@ bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
@@ -1080,7 +1080,7 @@ bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
@@ -1150,7 +1150,7 @@ bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 
     std::ranges::copy(in.flatten(), reference_out.flatten().begin());
 
-    zest::zt::GLQTransformerOrthoGeo transformer(out_order);
+    zest::zt::GLQTransformerNormalGeo transformer(out_order);
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 

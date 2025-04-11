@@ -55,8 +55,8 @@ void test_mutual_convergence_isotropic(
             transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     constexpr std::size_t order = 200;
-    zest::zt::ZernikeExpansionOrthoGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
+    zest::zt::RealZernikeExpansionNormalGeo distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
                 dist, 1.0, order);
 
     zdm::zebra::IsotropicAngleIntegrator(order).integrate(
@@ -111,8 +111,8 @@ void test_mutual_convergence_transverse_isotropic(
             transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
 
     constexpr std::size_t order = 200;
-    zest::zt::ZernikeExpansionOrthoGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(order).transform(
+    zest::zt::RealZernikeExpansionNormalGeo distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
                 dist, 1.0, order);
 
     zdm::zebra::IsotropicTransverseAngleIntegrator(order).integrate(
@@ -170,8 +170,8 @@ void test_mutual_convergence_anisotropic(
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zest::zt::ZernikeExpansionOrthoGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(dist_order).transform(
+    zest::zt::RealZernikeExpansionNormalGeo distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
@@ -233,8 +233,8 @@ void test_mutual_convergence_transverse_anisotropic(
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zest::zt::ZernikeExpansionOrthoGeo distribution
-        = zest::zt::ZernikeTransformerOrthoGeo<>(dist_order).transform(
+    zest::zt::RealZernikeExpansionNormalGeo distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(

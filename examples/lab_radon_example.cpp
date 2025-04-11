@@ -159,7 +159,7 @@ std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
 
     // zebradm
     // zest
-    const zest::zt::ZernikeExpansion dist_expansion = zest::zt::ZernikeTransformerOrthoGeo{}.transform(
+    const zest::zt::RealZernikeExpansion dist_expansion = zest::zt::ZernikeTransformerNormalGeo{}.transform(
             velocity_distribution, vesc, dist_order);
     
     const std::array<std::size_t, 2> shape = {vlab.size(), vmin.size()};
