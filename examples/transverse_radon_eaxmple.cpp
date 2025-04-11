@@ -35,8 +35,8 @@ int main()
 
     constexpr std::size_t order = 20;
     constexpr double vmax = 1.0;
-    zest::zt::ZernikeExpansion dist_expansion
-        = zest::zt::ZernikeTransformerOrthoGeo{}.transform(shm_dist, vmax, order);
+    zest::zt::RealZernikeExpansion dist_expansion
+        = zest::zt::ZernikeTransformerNormalGeo{}.transform(shm_dist, vmax, order);
     
     std::vector<std::array<double, 3>> vlab = {
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}

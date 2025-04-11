@@ -51,7 +51,7 @@ void angle_integrator_error(
     std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, zest::MDSpan<std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool use_relative_error)
 {
     zest::zt::RealZernikeExpansion distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(order).transform(
             dist, 1.0, order);
 
     std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
@@ -126,7 +126,7 @@ void angle_integrator_errors(
         min_speeds[i] = double(i)*max_min_speed/double(num_min_speeds - 1);
 
     zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerOrthoGeo(reference_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
     std::vector<std::array<double, 2>> reference_buffer(boosts.size()*min_speeds.size());
