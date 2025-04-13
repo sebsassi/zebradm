@@ -49,8 +49,6 @@ add_custom_command(
     DEPENDS
         ${SPHINX_SOURCE_DIR}/index.rst
         ${SPHINX_SOURCE_DIR}/getting_started.rst
-        ${SPHINX_SOURCE_DIR}/introduction.rst
-        ${SPHINX_SOURCE_DIR}/reference.rst
         ${DOXYGEN_INDEX_FILE}
     MAIN_DEPENDENCY ${SPHINX_CONFIG_DIR}/conf.py
     COMMENT "Generating documentation with Sphinx: ${SPHINX_EXECUTABLE}"
