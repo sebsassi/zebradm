@@ -59,24 +59,28 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
-    for (std::size_t i = 0; i < boosts.size(); ++i)
-        integrate(boosts[i], min_speeds, out[i]);
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+        integrate(offsets[i], shells, out[i]);
 }
 
 void IsotropicAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, const std::array<double, 3>& boost, std::span<const double> min_speeds, std::span<double> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    const std::array<double, 3>& offset, std::span<const double> shells,
+    std::span<double> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
-    integrate(boost, min_speeds, out);
+    integrate(offset, shells, out);
 }
 
 void IsotropicAngleIntegrator::integrate(
-    const std::array<double, 3>& boost, std::span<const double> min_speeds,
+    const std::array<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
     std::ranges::copy(
@@ -84,18 +88,18 @@ void IsotropicAngleIntegrator::integrate(
         m_rotated_geg_zernike_exp.flatten().begin());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const auto& [boost_az, boost_colat, boost_speed]
-        = coordinates::cartesian_to_spherical_phys(boost);
+    const auto& [offset_az, offset_colat, offset_len]
+        = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
     
     m_rotor.rotate(
             m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
             rotation_type);
 
-    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                m_rotated_geg_zernike_exp, boost_speed, min_speeds[i]);
+                m_rotated_geg_zernike_exp, offset_len, shells[i]);
 }
 
 [[nodiscard]] constexpr std::size_t geg_zernike_grids_size(
@@ -155,7 +159,11 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-   ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const std::array<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+   ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    std::span<const std::array<double, 3>> offsets,
+    std::span<const double> rotation_angles, std::span<const double> shells,
+    zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -165,14 +173,18 @@ void AnisotropicAngleIntegrator::integrate(
 
     zebra::radon_transform(distribution, m_geg_zernike_exp);
 
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(
-                response, boosts[i], era[i], min_speeds, geg_order, top_order, 
-                out[i]);
+                response, offsets[i], rotation_angles[i], shells, geg_order,
+                top_order, out[i]);
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    const std::array<double, 3>& offset, double rotation_angle,
+    std::span<const double> shells, zest::MDSpan<double, 2> out,
+    std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -182,19 +194,22 @@ void AnisotropicAngleIntegrator::integrate(
 
     zebra::radon_transform(distribution, m_geg_zernike_exp);
 
-    integrate(response, boost, era, min_speeds, geg_order, top_order, out);
+    integrate(response, offset, rotation_angle, shells, geg_order, top_order, out);
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::size_t geg_order, std::size_t top_order, std::span<double> out)
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    const std::array<double, 3>& offset, double rotation_angle,
+    std::span<const double> shells, std::size_t geg_order,
+    std::size_t top_order, std::span<double> out)
 {
     using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const auto& [boost_az, boost_colat, boost_speed]
-        = coordinates::cartesian_to_spherical_phys(boost);
+    const auto& [offset_az, offset_colat, offset_len]
+        = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     SuperSpan<zest::st::SphereGLQGridSpan<double>>
     rotated_geg_zernike_grids(
@@ -215,10 +230,10 @@ void AnisotropicAngleIntegrator::integrate(
                 rotated_geg_zernike_exp, rotated_geg_zernike_grids[n]);
     }
 
-    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                rotated_geg_zernike_grids, response[i], boost, era, 
-                min_speeds[i], m_wigner_d_pi2);
+                rotated_geg_zernike_grids, response[i], offset, rotation_angle, 
+                shells[i], m_wigner_d_pi2);
 }
 
 IsotropicTransverseAngleIntegrator::IsotropicTransverseAngleIntegrator(
@@ -257,7 +272,9 @@ void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    std::span<const std::array<double, 3>> offsets, std::span<const double> shells,
+    zest::MDSpan<std::array<double, 2>, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -269,12 +286,14 @@ void IsotropicTransverseAngleIntegrator::integrate(
             distribution, m_geg_zernike_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
-    for (std::size_t i = 0; i < boosts.size(); ++i)
-        integrate(boosts[i], min_speeds, out[i]);
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+        integrate(offsets[i], shells, out[i]);
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, const std::array<double, 3>& boost, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    const std::array<double, 3>& offset, std::span<const double> shells,
+    std::span<std::array<double, 2>> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
@@ -286,11 +305,11 @@ void IsotropicTransverseAngleIntegrator::integrate(
             distribution, m_geg_zernike_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
-    integrate(boost, min_speeds, out);
+    integrate(offset, shells, out);
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    const std::array<double, 3>& boost, std::span<const double> min_speeds,
+    const std::array<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
     std::ranges::copy(
@@ -302,22 +321,22 @@ void IsotropicTransverseAngleIntegrator::integrate(
         m_rotated_trans_geg_zernike_exp.flatten().begin());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        dot(boost, boost), m_geg_zernike_exp.flatten());
+        dot(offset, offset), m_geg_zernike_exp.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[0], m_geg_zernike_exp_x.flatten());
+        -2.0*offset[0], m_geg_zernike_exp_x.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[1], m_geg_zernike_exp_y.flatten());
+        -2.0*offset[1], m_geg_zernike_exp_y.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[2], m_geg_zernike_exp_z.flatten());
+        -2.0*offset[2], m_geg_zernike_exp_z.flatten());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const auto& [boost_az, boost_colat, boost_speed]
-        = coordinates::cartesian_to_spherical_phys(boost);
+    const auto& [offset_az, offset_colat, offset_len]
+        = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     m_rotor.rotate(
             m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
@@ -325,9 +344,9 @@ void IsotropicTransverseAngleIntegrator::integrate(
     m_rotor.rotate(
             m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles, rotation_type);
 
-    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
-                m_rotated_geg_zernike_exp, m_rotated_trans_geg_zernike_exp, boost_speed, min_speeds[i]);
+                m_rotated_geg_zernike_exp, m_rotated_trans_geg_zernike_exp, offset_len, shells[i]);
 }
 
 AnisotropicTransverseAngleIntegrator::AnisotropicTransverseAngleIntegrator(
@@ -392,7 +411,11 @@ void AnisotropicTransverseAngleIntegrator::resize(
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const std::array<double, 3>> boosts, std::span<const double> era, std::span<const double> min_speeds, zest::MDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    std::span<const std::array<double, 3>> offsets,
+    std::span<const double> rotation_angles, std::span<const double> shells,
+    zest::MDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -408,12 +431,16 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
 
-    for (std::size_t i = 0; i < boosts.size(); ++i)
-        integrate(response, boosts[i], era[i], min_speeds, out[i]);
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+        integrate(response, offsets[i], rotation_angles[i], shells, out[i]);
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> distribution, SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out, std::size_t trunc_order)
+    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    const std::array<double, 3>& offset, double rotation_angle,
+    std::span<const double> shells, std::span<std::array<double, 2>> out,
+    std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -429,19 +456,21 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
             distribution, m_geg_zernike_exp_r2);
 
-    integrate(response, boost, era, min_speeds, out);
+    integrate(response, offset, rotation_angle, shells, out);
 }
 
 void AnisotropicTransverseAngleIntegrator::integrate(
-    SHExpansionVectorSpan<const std::array<double, 2>> response, const std::array<double, 3>& boost, double era, std::span<const double> min_speeds, std::span<std::array<double, 2>> out)
+    SHExpansionVectorSpan<const std::array<double, 2>> response,
+    const std::array<double, 3>& offset, double rotation_angle,
+    std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
     using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
-    const auto& [boost_az, boost_colat, boost_speed]
-        = coordinates::cartesian_to_spherical_phys(boost);
+    const auto& [offset_az, offset_colat, offset_len]
+        = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(boost_az, boost_colat);
+        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     const std::size_t geg_order = m_dist_order + 2;
     const std::size_t trans_geg_order = m_dist_order + 4;
@@ -473,16 +502,16 @@ void AnisotropicTransverseAngleIntegrator::integrate(
             m_rotated_trans_geg_zernike_exp.flatten().begin());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        boost_speed*boost_speed, m_geg_zernike_exp.flatten());
+        offset_len*offset_len, m_geg_zernike_exp.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[0], m_geg_zernike_exp_x.flatten());
+        -2.0*offset[0], m_geg_zernike_exp_x.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[1], m_geg_zernike_exp_y.flatten());
+        -2.0*offset[1], m_geg_zernike_exp_y.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*boost[2], m_geg_zernike_exp_z.flatten());
+        -2.0*offset[2], m_geg_zernike_exp_z.flatten());
     
     m_rotor.rotate(
             m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
@@ -492,10 +521,10 @@ void AnisotropicTransverseAngleIntegrator::integrate(
         m_glq_transformer.backward_transform(
                 m_rotated_trans_geg_zernike_exp[n], rotated_trans_geg_zernike_grids[n]);
 
-    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
                 rotated_geg_zernike_grids, rotated_trans_geg_zernike_grids, 
-                response[i], boost, era, min_speeds[i], m_wigner_d_pi2);
+                response[i], offset, rotation_angle, shells[i], m_wigner_d_pi2);
 }
 
 } // namespace zebra

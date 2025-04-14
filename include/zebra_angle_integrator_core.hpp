@@ -53,16 +53,17 @@ public:
     void resize(std::size_t geg_order);
 
     [[nodiscard]] double integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp, double boost_speed, double min_speed);
+        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
+        double offset_len, double shell);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
         ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
-        double boost_speed, double min_speed);
+        double offset_len, double shell);
 
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
-        double min_speed, double boost_speed, std::size_t geg_order);
+        double shell, double offset_len, std::size_t geg_order);
     
     AffineLegendreIntegrals m_aff_leg_integrals;
     std::vector<double> m_aff_leg_ylm_integrals;
@@ -87,19 +88,19 @@ public:
     [[nodiscard]] double integrate(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-        const std::array<double, 3>& boost, double era, double min_speed, 
+        const std::array<double, 3>& offset, double rotation_angle, double shell, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
         zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-        const std::array<double, 3>& boost, double era, double min_speed, 
+        const std::array<double, 3>& offset, double rotation_angle, double shell, 
         zest::WignerdPiHalfCollection wigner_d_pi2);
 
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
-        double min_speed, double boost_speed, std::size_t geg_order, std::size_t resp_order);
+        double shell, double offset_len, std::size_t geg_order, std::size_t resp_order);
     
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
