@@ -569,7 +569,7 @@ public:
             
             // `normal_dist` is in the same coordinates as `distribution`
             const std::array<double, 3> normal_dist
-                = matmul(normal_to_dist, normal);
+                = matmul(offset_to_dist, normal);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
