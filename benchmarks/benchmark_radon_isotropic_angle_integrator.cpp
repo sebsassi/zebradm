@@ -30,25 +30,25 @@ SOFTWARE.
 #include "distributions.hpp"
 
 void benchmark_radon_angle_integrator_isotropic(
-    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist, const char* dist_name, std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, double relerr, zest::MDSpan<const double, 2> reference)
+    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist, const char* dist_name, std::span<const std::array<double, 3>> offsets, std::span<const double > shells, double relerr, zest::MDSpan<const double, 2> reference)
 {
-    std::vector<double> out_buffer(boosts.size()*min_speeds.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    std::vector<double> out_buffer(offsets.size()*shells.size());
+    zest::MDSpan<double, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
 
     std::size_t max_subdiv = 200000000;
     zdm::integrate::RadonAngleIntegrator integrator{};
     bench.run(name, [&](){
         integrator.integrate(
-                dist, boosts, min_speeds, 0.0, relerr, out, max_subdiv);
+                dist, offsets, shells, 0.0, relerr, out, max_subdiv);
     });
 
     char fname[512] = {};
     std::sprintf(fname, "radon_isotropic_angle_integrator_error_relative_%s_%.2e.dat", dist_name, relerr);
     std::ofstream output{};
     output.open(fname);
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             double error = 0.0;
             if (reference(i, j) != 0.0)
@@ -63,7 +63,7 @@ void benchmark_radon_angle_integrator_isotropic(
 }
 
 void run_benchmarks(
-    DistributionCartesian dist, const char* dist_name, std::span<const double> relerrs, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds, double time_limit_s)
+    DistributionCartesian dist, const char* dist_name, std::span<const double> relerrs, double offset_len, std::size_t num_offsets, std::size_t num_shells, double time_limit_s)
 {
     ankerl::nanobench::Bench bench{};
     bench.performanceCounters(true);
@@ -73,32 +73,32 @@ void run_benchmarks(
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> boosts(num_boosts);
-    for (auto& element : boosts)
+    std::vector<std::array<double, 3>> offsets(num_offsets);
+    for (auto& element : offsets)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);
         element = {
-            boost_len*st*std::cos(az), boost_len*st*std::sin(az), ct
+            offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct
         };
     }
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
     constexpr std::size_t reference_order = 200;
     zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
-    std::vector<double> reference_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> reference_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {boosts.size(), min_speeds.size()});
+            reference_buffer.data(), {offsets.size(), shells.size()});
     
     zdm::zebra::IsotropicAngleIntegrator integrator(reference_order);
-    integrator.integrate(reference_distribution, boosts, min_speeds, reference);
+    integrator.integrate(reference_distribution, offsets, shells, reference);
 
     bench.title("integrate::RadonAngleIntegrator::integrate");
     for (double relerr : relerrs)
@@ -106,7 +106,7 @@ void run_benchmarks(
         char name[32] = {};
         std::sprintf(name, "%.16e", relerr);
         benchmark_radon_angle_integrator_isotropic(
-                bench, name, dist, dist_name, boosts, min_speeds, relerr, reference);
+                bench, name, dist, dist_name, offsets, shells, relerr, reference);
         const double elapsed_s = bench.results()[bench.results().size() - 1]
             .sumProduct(
                 ankerl::nanobench::Result::Measure::iterations, ankerl::nanobench::Result::Measure::elapsed);
@@ -114,7 +114,7 @@ void run_benchmarks(
     }
 
     char fname[512] = {};
-    std::sprintf(fname, "radon_angle_integrator_isotropic_bench_%s_%.2f_%lu_%lu.json", dist_name, boost_len, num_boosts, num_min_speeds);
+    std::sprintf(fname, "radon_angle_integrator_isotropic_bench_%s_%.2f_%lu_%lu.json", dist_name, offset_len, num_offsets, num_shells);
 
     std::ofstream output{};
     output.open(fname);
@@ -143,15 +143,15 @@ int main([[maybe_unused]] int argc, char** argv)
         throw std::runtime_error(
             "Requires arguments:\n"
             "   dist_ind:       index of distribution {0,1,2,3,4}\n"
-            "   boost_len:      length of boost vector (float)\n"
-            "   num_boosts:     number of boost vectors (positive integer)\n"
-            "   num_min_speeds: number of min_speed values (positive integer)\n"
+            "   offset_len:      length of offset vector (float)\n"
+            "   num_offsets:     number of offset vectors (positive integer)\n"
+            "   num_shells: number of shell values (positive integer)\n"
             "   time_limit_s:   hard time cutoff in seconds (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
-    const double boost_len = atof(argv[2]);
-    const std::size_t num_boosts = atoi(argv[3]);
-    const std::size_t num_min_speeds = atoi(argv[4]);
+    const double offset_len = atof(argv[2]);
+    const std::size_t num_offsets = atoi(argv[3]);
+    const std::size_t num_shells = atoi(argv[4]);
     const double time_limit_s = double(atoi(argv[5]));
 
     const std::vector<double> relerrs = {
@@ -161,5 +161,5 @@ int main([[maybe_unused]] int argc, char** argv)
     const Labeled<DistributionCartesian> dist = distributions[dist_ind];
     
     run_benchmarks(
-            dist.object, dist.label, relerrs, boost_len, num_boosts, num_min_speeds, time_limit_s);
+            dist.object, dist.label, relerrs, offset_len, num_offsets, num_shells, time_limit_s);
 }

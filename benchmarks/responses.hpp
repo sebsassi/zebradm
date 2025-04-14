@@ -28,14 +28,14 @@ SOFTWARE.
 
 using Response = double(*)(double, double, double);
 
-double smooth_exponential(double min_speed, double longitude, double colatitude)
+double smooth_exponential(double shell, double longitude, double colatitude)
 {
     static const std::array<double, 3> ref_dir
         = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
     const std::array<double, 3> dir
         = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
     constexpr double rate = 2.0;
-    const double u2 = min_speed*min_speed;
+    const double u2 = shell*shell;
     const double u4 = u2*u2;
     return (u4/(1 + u4))*std::exp(rate*(zdm::dot(dir, ref_dir)));
 }
@@ -45,7 +45,7 @@ inline double smooth_step(double x, double slope)
     return 0.5*(1.0 + std::tanh(slope*x));
 }
 
-double smooth_dots(double min_speed, double longitude, double colatitude)
+double smooth_dots(double shell, double longitude, double colatitude)
 {
     constexpr double norm = (4000.0/(3.0*33.0*33.0));
 
@@ -59,10 +59,10 @@ double smooth_dots(double min_speed, double longitude, double colatitude)
     const double surface = 1.0 - std::exp(rate*(Y64 - 1.0));
 
     constexpr double slope = 10.0;
-    return smooth_step(min_speed*(1.0/1.5) - surface, slope);
+    return smooth_step(shell*(1.0/1.5) - surface, slope);
 }
 
-double fcc_dots(double min_speed, double longitude, double colatitude)
+double fcc_dots(double shell, double longitude, double colatitude)
 {
     static const std::array<std::array<double, 3>, 14> ref_dirs = {
         std::array<double, 3>{1.0, 0.0, 0.0},
@@ -84,7 +84,7 @@ double fcc_dots(double min_speed, double longitude, double colatitude)
     const std::array<double, 3> dir
         = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
     
-    const double radius = std::acos((1.0/1.5)*min_speed);
+    const double radius = std::acos((1.0/1.5)*shell);
     const double c_rad = std::cos(radius);
 
     double res = 0.0;

@@ -54,44 +54,44 @@ void relative_error(
 template <typename DistType, typename RespType>
 void zebra_evaluate(
     DistType&& dist, RespType&& resp, std::size_t dist_order,
-    std::size_t resp_order, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds, std::span<const double> eras, zest::MDSpan<double, 2> out)
+    std::size_t resp_order, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles, zest::MDSpan<double, 2> out)
 {
     zest::zt::RealZernikeExpansionNormalGeo distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
+        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {min_speeds.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
+    response(response_buffer.data(), {shells.size()}, resp_order);
+    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, boosts, eras, min_speeds, out);
+            distribution, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename DistType, typename RespType>
 void zebra_convergence(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, std::span<const double> eras)
+    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, std::span<const double> rotation_angles)
 {
     constexpr std::size_t dist_order = 200;
     constexpr std::size_t resp_order = 800;
     const std::vector<std::size_t> dist_orders = {20, 50, 100, 150};
     const std::vector<std::size_t> resp_orders = {30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480, 640};
 
-    std::vector<double> reference_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> reference_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {boosts.size(), min_speeds.size()});
+            reference_buffer.data(), {offsets.size(), shells.size()});
     
     std::printf("Computing reference orders: (%lu, %lu)\n", dist_order, resp_order);
     zebra_evaluate(
-            dist, resp, dist_order, resp_order, boosts, min_speeds, eras, reference);
+            dist, resp, dist_order, resp_order, offsets, shells, rotation_angles, reference);
 
     std::vector<double> test_buffer(
-            dist_orders.size()*resp_orders.size()*boosts.size()*min_speeds.size());
+            dist_orders.size()*resp_orders.size()*offsets.size()*shells.size());
     zest::MDSpan<double, 4> test(
-            test_buffer.data(), {dist_orders.size(), resp_orders.size(), boosts.size(), min_speeds.size()});
+            test_buffer.data(), {dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()});
     
     for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
@@ -99,14 +99,14 @@ void zebra_convergence(
         {
             std::printf("Computing orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
             zebra_evaluate(
-                    dist, resp, dist_orders[i], resp_orders[j], boosts, min_speeds, eras, test(i, j));
+                    dist, resp, dist_orders[i], resp_orders[j], offsets, shells, rotation_angles, test(i, j));
         }
     }
 
     std::vector<double> relative_error_buffer(
-            dist_orders.size()*resp_orders.size()*boosts.size()*min_speeds.size());
+            dist_orders.size()*resp_orders.size()*offsets.size()*shells.size());
     zest::MDSpan<double, 4> relative_errors(
-            relative_error_buffer.data(), {dist_orders.size(), resp_orders.size(), boosts.size(), min_speeds.size()});
+            relative_error_buffer.data(), {dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()});
     for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
         for (std::size_t j = 0; j < resp_orders.size(); ++j)
@@ -118,9 +118,9 @@ void zebra_convergence(
         for (std::size_t j = 0; j < resp_orders.size(); ++j)
         {
             std::printf("\n orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
-            for (std::size_t k = 0; k < boosts.size(); ++k)
+            for (std::size_t k = 0; k < offsets.size(); ++k)
             {
-                for (std::size_t l = 0; l < min_speeds.size(); ++l)
+                for (std::size_t l = 0; l < shells.size(); ++l)
                     std::printf("%.16e ", relative_errors(i, j, k, l));
                 std::printf("\n");
             }
@@ -146,7 +146,7 @@ int main()
         return std::exp(-0.5*quadratic_form(sigma, v));
     };
 
-    [[maybe_unused]] auto smooth_dots = [](double min_speed, double longitude, double colatitude)
+    [[maybe_unused]] auto smooth_dots = [](double shell, double longitude, double colatitude)
     {
         constexpr double norm = (4000.0/(3.0*33.0*33.0));
 
@@ -160,34 +160,34 @@ int main()
         const double surface = 1.0 - std::exp(rate*(Y64 - 1.0));
 
         constexpr double slope = 10.0;
-        return smooth_step(min_speed*(1.0/1.5) - surface, slope);
+        return smooth_step(shell*(1.0/1.5) - surface, slope);
     };
 
-    constexpr std::size_t num_boosts = 10;
-    constexpr std::size_t num_min_speeds = 10;
+    constexpr std::size_t num_offsets = 10;
+    constexpr std::size_t num_shells = 10;
 
-    constexpr double boost_len = 0.5;
-    constexpr double max_min_speed = 1.0 + boost_len;
+    constexpr double offset_len = 0.5;
+    constexpr double max_shell = 1.0 + offset_len;
 
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> boosts(num_boosts);
-    std::vector<double> eras(num_boosts);
-    for (std::size_t i = 0; i < num_boosts; ++i)
+    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<double> rotation_angles(num_offsets);
+    for (std::size_t i = 0; i < num_offsets; ++i)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);
-        boosts[i] = {
-            boost_len*st*std::cos(az), boost_len*st*std::sin(az), ct
+        offsets[i] = {
+            offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct
         };
-        eras[i] = 2.0*std::numbers::pi*rng_dist(gen);
+        rotation_angles[i] = 2.0*std::numbers::pi*rng_dist(gen);
     }
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*max_min_speed/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*max_shell/double(num_shells - 1);
     
-    zebra_convergence(aniso_gaussian, smooth_dots, boosts, min_speeds, eras);
+    zebra_convergence(aniso_gaussian, smooth_dots, offsets, shells, rotation_angles);
 }

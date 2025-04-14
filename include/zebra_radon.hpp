@@ -38,7 +38,7 @@ namespace zebra
     @param in input Zernike expansion `f_{nlm}`
     @param out output Zernike expansion `g_{nlm}`
 
-    @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the boost vector.
+    @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the offset vector.
 */
 void radon_transform(
     ZernikeExpansionSpan<const std::array<double, 2>> in,
@@ -51,7 +51,7 @@ void radon_transform(
 
     @note This function expects `f_{nlm}` to be contained in the lower portion of `exp`, such that its order is `exp.order() - 2`, and the rest of the values to be zero.
 
-    @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the boost vector.
+    @note The radon transform coefficients are given by `g_{nlm} = f_{nlm}/(2*n + 3) - f_{n - 2,lm}/(2*n - 1)`. The Radon transform in coordinate space is given by `g_{nlm}P_n(w + dot(n,v))Y_{lm}(n)`, where `n` represents a unit vector and `v` is the offset vector.
 */
 void radon_transform_inplace(
     ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept;

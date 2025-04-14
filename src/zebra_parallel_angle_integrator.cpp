@@ -65,25 +65,25 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 }
 
 void IsotropicAngleIntegrator::integrate(
-    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, zest::MDSpan<double, 2> out)
+    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
 
     #pragma omp parallel for num_threads(m_num_threads)
-    for (std::size_t i = 0; i < boosts.size(); ++i)
-        integrate(omp_get_thread_num(), boosts[i], min_speeds, out[i]);
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+        integrate(omp_get_thread_num(), offsets[i], shells, out[i]);
 }
 
 void IsotropicAngleIntegrator::integrate(
-    std::size_t thread_id, const std::array<double, 3>& boost,
-    std::span<const double> min_speeds, std::span<double> out)
+    std::size_t thread_id, const std::array<double, 3>& offset,
+    std::span<const double> shells, std::span<double> out)
 {
-    const auto& [boost_speed, boost_colat, boost_az]
-        = coordinates::cartesian_to_spherical_phys(boost);
+    const auto& [offset_len, offset_colat, offset_az]
+        = coordinates::cartesian_to_spherical_phys(offset);
 
     const std::array<double, 3> euler_angles = {
-        0.0, -boost_colat, std::numbers::pi - boost_az
+        0.0, -offset_colat, std::numbers::pi - offset_az
     };
 
     zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>> 
@@ -101,10 +101,10 @@ void IsotropicAngleIntegrator::integrate(
 
     detail::IsotropicAngleIntegratorCore& integrator
         = m_contexts[thread_id].integrator;
-    for (std::size_t i = 0; i < min_speeds.size(); ++i)
+    for (std::size_t i = 0; i < shells.size(); ++i)
     {
         out[i] = integrator.integrate(
-                rotated_geg_zernike_exp, boost_speed, min_speeds[i]);
+                rotated_geg_zernike_exp, offset_len, shells[i]);
     }
 }
 
@@ -180,7 +180,7 @@ void AnisotropicAngleIntegrator::resize(
 }
 
 void AnisotropicAngleIntegrator::integrate(
-    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> boosts, std::span<const double> min_speeds, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> era, zest::MDSpan<double, 2> out, std::size_t trunc_order)
+    zest::zt::RealZernikeSpanNormalGeo<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> rotation_angles, zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
@@ -192,15 +192,15 @@ void AnisotropicAngleIntegrator::integrate(
     #pragma omp teams num_teams(m_num_teams)
     {
         #pragma omp distribute
-        for (std::size_t i = 0; i < boosts.size(); ++i)
+        for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
 
-            const auto& [boost_speed, boost_colat, boost_az]
-                = coordinates::cartesian_to_spherical_phys(boosts[i]);
+            const auto& [offset_len, offset_colat, offset_az]
+                = coordinates::cartesian_to_spherical_phys(offsets[i]);
 
             const std::array<double, 3> euler_angles = {
-                0.0, -boost_colat, std::numbers::pi - boost_az
+                0.0, -offset_colat, std::numbers::pi - offset_az
             };
 
             const std::size_t team_id = omp_get_team_num();
@@ -225,12 +225,12 @@ void AnisotropicAngleIntegrator::integrate(
             }
 
             #pragma omp parallel for num_threads(m_threads_per_team)
-            for (std::size_t j = 0; j < min_speeds.size(); ++j)
+            for (std::size_t j = 0; j < shells.size(); ++j)
             {
                 const std::size_t thread_ind
                     = team_ind + omp_get_thread_num();
                 out(i, j) = m_integrators[thread_ind].integrate(
-                        rotated_geg_zernike_grids, response[j], boosts[i], era[i], min_speeds[j], m_wigner_d_pi2);
+                        rotated_geg_zernike_grids, response[j], offsets[i], rotation_angles[i], shells[j], m_wigner_d_pi2);
             }
         }
     }

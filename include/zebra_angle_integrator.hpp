@@ -58,7 +58,7 @@ public:
     void resize(std::size_t dist_order);
 
     /**
-        @brief Angle integrated Radon transform of a disitribution on a boosted unit ball.
+        @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -87,7 +87,7 @@ public:
         std::span<const double> shells, zest::MDSpan<double, 2> out);
     
     /**
-        @brief Angle integrated Radon transform of a disitribution on a boosted unit ball.
+        @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -299,7 +299,7 @@ public:
 
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
-        velocity disitribution on a boosted unit ball.
+        velocity disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -329,7 +329,7 @@ public:
     
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
-        velocity disitribution on a boosted unit ball.
+        velocity disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 

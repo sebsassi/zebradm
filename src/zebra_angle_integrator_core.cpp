@@ -288,7 +288,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
-                offset_az - rotation_angle, boost_colat);
+                offset_az - rotation_angle, offset_colat);
 
     std::ranges::copy(
             response_exp.flatten(), m_rotated_response_exp.flatten().begin());

@@ -49,7 +49,7 @@ public:
     RadonAngleIntegrator() = default;
 
     /**
-        @brief Angle integrated Radon transform of a disitribution on a boosted unit ball.
+        @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -92,7 +92,7 @@ public:
 
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
-        velocity disitribution on a boosted unit ball.
+        velocity disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -195,7 +195,7 @@ public:
 
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity
-        disitribution on a boosted unit ball, combined with an angle-dependent response.
+        disitribution on an offset unit ball, combined with an angle-dependent response.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
@@ -254,7 +254,7 @@ public:
     }
     
     /**
-        @brief Angle integrated Radon transform of a disitribution on a boosted unit ball.
+        @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -316,7 +316,7 @@ public:
     
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
-        velocity disitribution on a boosted unit ball.
+        velocity disitribution on an offset unit ball.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
@@ -439,12 +439,12 @@ public:
             std::array<double, 3>{0.0, 0.0, 1.0}
         };
 
-        // Rotation from coordinates where the z-axis is in the direction of `boost` to `distribution` coordinates.
+        // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
         const Matrix<double, 3, 3> offset_to_dist
             = detail::rotation_matrix_align_z_transp(normalize(offset));
         
 
-        // Rotation from coordinates where the z-axis is in the direction of `boost` to `response` coordinates.
+        // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
         const Matrix<double, 3, 3> offset_to_resp
             = matmul(dist_to_resp, offset_to_dist);
 
@@ -461,11 +461,11 @@ public:
 
             // `normal` is in the same coordinates as `response`
             const std::array<double, 3> normal_resp
-                = matmul(boost_to_resp, normal);
+                = matmul(offset_to_resp, normal);
             
             // `normal_dist` is in the same coordinates as `distribution`
             const std::array<double, 3> normal_dist
-                = matmul(boost_to_dist, normal);
+                = matmul(offset_to_dist, normal);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
@@ -486,7 +486,7 @@ public:
     
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity
-        disitribution on a boosted unit ball, combined with an angle-dependent response.
+        disitribution on an offset unit ball, combined with an angle-dependent response.
 
         @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
@@ -576,7 +576,7 @@ public:
             const double resp = response(shell, resp_az, resp_colat);
 
             const std::array<double, 2> integral = transverse_radon_integral(
-                    distribution, offset, min_speed, normal_dist, abserr, relerr, max_subdiv);
+                    distribution, offset, shell, normal_dist, abserr, relerr, max_subdiv);
             return std::array<double, 2>{resp*integral[0], resp*integral[1]};
         };
 

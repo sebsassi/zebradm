@@ -42,7 +42,7 @@ In computing predictions for dark matter event rate experiments, one has to eval
 \begin{equation}
     \der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_{S^2}S(q, \unitv{q})\int_{\mathbb{R}^3}\mean{|\mathcal{M}|^2} \delta\left(\vec{v}\cdot\unitv{q}-\frac{q}{2\mu_\text{DM--T}}\right)f(\vec{v}+\vec{v}_\text{lab})\difd^3v \difd\Omega.
 \end{equation}
-Commonly, e.g., in DM--nucleus scattering problems, the form of the matrix element $\mathcal{M}$ has a simple dependence on the velocity $\vec{v}$ such that the squared matrix element can be expressed as $\mean{|\mathcal{M}|^2}=|\vec{v}_\perp|^{2s}F(q)$ with $s=0,1$. We call the $s=0$ case the \emph{nontransverse} case and the $s=1$ case the \emph{transverse} case. In these cases the event rate formula can be reduced to integrating the boosted angle integrated Radon transform
+Commonly, e.g., in DM--nucleus scattering problems, the form of the matrix element $\mathcal{M}$ has a simple dependence on the velocity $\vec{v}$ such that the squared matrix element can be expressed as $\mean{|\mathcal{M}|^2}=|\vec{v}_\perp|^{2s}F(q)$ with $s=0,1$. We call the $s=0$ case the \emph{nontransverse} case and the $s=1$ case the \emph{transverse} case. In these cases the event rate formula can be reduced to integrating the offseted angle integrated Radon transform
 \begin{equation}
     \der{R}{E_R} = \frac{\rho_\text{DM}}{64\pi^2m_\text{DM}^3m_\text{N}^2}\int_{S^2}\mathcal{R}[|\vec{v}_\perp|^{2s}f](v_\text{min}+\vec{v}_\text{lab}\cdot\unitv{q}, \unitv{q})\difd\Omega.
 \end{equation}
@@ -171,10 +171,10 @@ If our response function $S(q, \unitv{q})$ is isotropic, we don't need to worry 
 \begin{minted}{c++}
     const double velocity_dispersion = 230;
     auto response = [&](
-        double min_speed, double longitude, double colatitude) -> double
+        double shell, double longitude, double colatitude) -> double
     {
         const double z = std::cos(colatitude);
-        if (z > 0.75*min_speed - 1.0)
+        if (z > 0.75*shell - 1.0)
             return 1.0;
         else
             return 0.0;
@@ -185,16 +185,16 @@ This is an arbitrary response function which cuts off a section of the sphere de
 For purposes of taking the angle integrated Radon transform, we need a spherical harmonic expansion of the response function at the desired value of \texttt{min\_speed}. The \texttt{zest} library offers tools for this. However, we often want to do this for a batch of \texttt{min\_speed} values, because algorithm for the angle integrated Radon transform is more efficient for batched input. To make the process easier, \texttt{ZebraDM} offers the \cppinline{ResponseTransformer}. We can use it to compute spherical harmonic transforms for multiple \texttt{min\_speed} values
 \begin{minted}{c++}
     using SHSpan = zest::st::SHExpansionSpan<std::array<double, 2>>;
-    std::vector<double> min_speeds = {0.0, 0.5, 1.0, 1.5};
+    std::vector<double> shells = {0.0, 0.5, 1.0, 1.5};
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*SHSpan::size(response_order));
+        shells.size()*SHSpan::size(response_order));
 
     zdm::zebra::SHExpansionCollectionSpan<std::array<double, 2>>
     response_expansions(
-            response_buffer.data(), {min_speeds.size()}, response_order);
+            response_buffer.data(), {shells.size()}, response_order);
 
     zdm::zebra::ResponseTransformer response_transformer(response_order);
-    response_transformer.transform(response, min_speeds, response_expansions);
+    response_transformer.transform(response, shells, response_expansions);
 \end{minted}
 Here we first create a buffer for the data, and then we use \cppinline{SHExpansionCollectionSpan} to view that data as a stack of spherical harmonic expansions of order \texttt{response\_order}.
 
@@ -232,37 +232,37 @@ In performing the Radon transform, at some point in the process we need to do wh
 In any case, however we choose to initialize the transformer, the next step is to integrate
 \begin{minted}{c++}
     zebra_transformer.integrate(
-            distribution_expansion, response_expansions, boosts, era,
-            min_speeds, out, truncation_order);
+            distribution_expansion, response_expansions, offsets, rotation_angles,
+            shells, out, truncation_order);
 \end{minted}
 First of all, here we see the truncation order appear again. We also have the option of not supplying it
 \begin{minted}{c++}
     zebra_transformer.integrate(
-            distribution_expansion, response_expansions, boosts, era, min_speeds,
+            distribution_expansion, response_expansions, offsets, rotation_angles, shells,
             out);
 \end{minted}
 In this case it is treated as effectively infinite. The same is actually also possible in the constructor.
 
-Secondly there are three parameters here that still need to be explained, \texttt{boosts}, \texttt{era}, and \texttt{out}. The first one, \texttt{boosts} the values of $\vec{v}_\text{lab}/v_\text{max}$. As discussed above in the coordinate system interlude, the coordinate system of these is oriented the same as the coordinate system of \texttt{distribution\_expansion}. Each element of boosts is therefore a 3-vector expressed as \cppinline{std::array<double, 3>}. We could therefore write, for example
+Secondly there are three parameters here that still need to be explained, \texttt{offsets}, \texttt{rotation_angles}, and \texttt{out}. The first one, \texttt{offsets} the values of $\vec{v}_\text{lab}/v_\text{max}$. As discussed above in the coordinate system interlude, the coordinate system of these is oriented the same as the coordinate system of \texttt{distribution\_expansion}. Each element of offsets is therefore a 3-vector expressed as \cppinline{std::array<double, 3>}. We could therefore write, for example
 \begin{minted}{c++}
-    std::vector<std::array<double, 3>> boosts = {
+    std::vector<std::array<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}
     };
 \end{minted}
 Technically the type of the argument is \cppinline{std::span<std::array<double, 3>>}, so any range which is convertible to a span is acceptable.
 
-The \texttt{era} parameter is a collection of Earth rotation angles in radians for each value of \texttt{boosts}. Its type is \cppinline{std::span<double>}, so we could take
+The \texttt{rotation_angles} parameter is a collection of rotation angles in radians for each value of \texttt{offsets}. Its type is \cppinline{std::span<double>}, so we could take
 \begin{minted}{c++}
-    std::vector<std::array<double, 3>> boosts = {
+    std::vector<std::array<double, 3>> offsets = {
         0.0, 0.5*std::numbers::pi, std::numbers::pi
     };
 \end{minted}
 
-Finally, \texttt{out} contains the output values, i.e., the (non)transverse angle integrated Radon transforms. It is a 2D-array of transverse--nontransverse pairs, represented by the multidimensional view \cppinline{zest::MDSpan<std::array<double, 2>, 2>}, with dimensions equal to the size of \texttt{boosts} and the size of \texttt{min\_speeds}. Thus we can define it as
+Finally, \texttt{out} contains the output values, i.e., the (non)transverse angle integrated Radon transforms. It is a 2D-array of transverse--nontransverse pairs, represented by the multidimensional view \cppinline{zest::MDSpan<std::array<double, 2>, 2>}, with dimensions equal to the size of \texttt{offsets} and the size of \texttt{min\_speeds}. Thus we can define it as
 \begin{minted}{c++}
-    std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> out_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> out(
-            out_buffer.data(), {boosts.size(), min_speeds.size()});
+            out_buffer.data(), {offsets.size(), shells.size()});
 \end{minted}
 
 \end{document}
