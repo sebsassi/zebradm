@@ -17,9 +17,40 @@ and also
 
 The inner integral is over the unit ball :math:`B = \{\vec{x}\in\mathbb{R}^3 \mid \|\vec{x}\|\leq 1\}`, and the outer integral is over the sphere $S^2$.
 
-These integrals are, in the context of this library called the *angle-integrated Radon* and *transverse Radon transform*, respectively. This naming is so because the inner integral of the first equation is precisely the conventional three-dimensional Radon transform of the function :math:`f(\vec{x} + \vec{x}_0)`. The functions :math:`f(\vec{x})` and :math:`S(w,\hat{n})` may, in general, be defined in coordinate systems that differ by an arbitrary rotation, although this library currently only implements solutions where they differ by a rotation about the :math:`z`-axis.
+These integrals are, in the context of this library called the *angle-integrated Radon* and *transverse Radon transform*, respectively. This naming is so because the inner integral of the first equation is precisely the conventional three-dimensional Radon transform of the function :math:`f(\vec{x} + \vec{x}_0)`. The parameter :math:`\vec{x}_0` here is an arbitrary offset applied on the distribution. The functions :math:`f(\vec{x})` and :math:`S(w,\hat{n})` may, in general, be defined in coordinate systems that differ by an arbitrary rotation, although this library currently only implements solutions where they differ by a rotation about the :math:`z`-axis.
 
-As described in more detail in the article, intergals of this form occur in computation of expected dark matter event rates in dark matter direct detection experiments, and this library has been designed for that purpose. In this context :math:`f(vec{x})` represents the dark matter velocity distribution with :math:`\vec{x}` effectively corresponding to the dark matter velocity in the laboratory frame, and :math:`\vec{x}_0` representing the velocity of the laboratory frame relative to the average motion of the dark matter. The unit vector :math:`\hat{n}` corresponds to the direction of momentum transfer in dark matter scattering, and :math:`w` corresponds to an energy parameter whose definition depends on the context. The function :math:`S(w,\hat{n})`, in turn, corresponds to a detector response function.
+As described in more detail in the article, intergals of this form occur in computation of expected dark matter event rates in dark matter direct detection experiments. In this context :math:`f(vec{x})` represents the dark matter velocity distribution with :math:`\vec{x}` effectively corresponding to the dark matter velocity in the laboratory frame, and :math:`\vec{x}_0` representing the velocity of the laboratory frame relative to the average motion of the dark matter. The unit vector :math:`\hat{n}` corresponds to the direction of momentum transfer in dark matter scattering, and :math:`w` corresponds to an energy parameter whose definition depends on the context. The function :math:`S(w,\hat{n})`, in turn, corresponds to a detector response function.
+
+Radon transforms
+----------------
+
+The Radon transform is a map, which maps a function :math:`f` defined on :math:`\mathbb{R}^n` onto the space of :math:`(n-1)`-dimensional hyperplanes on :math:`\mathbb{R}^n`. In 3D, this means mapping the function :math:`f` onto the space of planes on :math:`\mathbb{R}^3`. The Radon transform in this case is given by the integral formula
+
+.. math::
+
+   \mathcal{R}[f](w,\hat{n}) = \int_\mathbb{R}^3 \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x,
+
+where :math:`\delta` is the Dirac delta-function. The delta-function forces the integration to be over a plane whose normal vector is :math:`\hat{n}`, and whose distance from the origin is :math:`w`. These two parameters together uniquely define a plane in :math:`\mathbb{R}^3`.
+
+The function :math:`f` doesn't have to be supported on entirity of :math:`\mathbb{R}^3`. If :math:`f` is nonzero only on some measurable subset :math:`U \subset \mathbb{R}^3`, the we may define
+
+.. math::
+
+   \mathcal{R}[f](w,\hat{n}) = \int_U \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x.
+
+This library, in particular, assumes that :math:`f` is zero outside the unit ball. For practical purposes in terms of computation with finite precision floating point numbers, this is not much of a restriction at all. For example, any square-integrable function on :math:`\mathbb{R}^3` can be clamped to zero beyond some finite radius :math:`R` such that its Radon transform will remain the same up to some precision. Then the coordinates can be rescaled such that :math:`R\rightarrow 1`. Most numerical problems in :math:`\mathbb{R}^3` can therefore be restricted to a ball without losses, and in terms of functions supported on a ball, the rescaling lets us assume a unit ball without loss of generality.
+
+Since this library deals with angle-integrated Radon transforms, i.e., interals of the Radon transform over the unit vectors :math:`\hat{n}`, it is useful to think of the planes as the tangent planes of spherical shells of radius :math:`w` at the points :math:`w\hat{n}`. Then the angle-integrated Radon transform maps :math:`f` onto these spherical shells parametrized by :math:`w`. Due to this identification, the parameter :math:`w` is known as the *shell* parameter, or ``shell`` for short in the code.
+
+An important property of Radon transforms is that if we use :math:`f` to define a new offset function :math:`f_{\vec{x}_0}(\vec{x})=f(\vec{x}+\vec{x}_0)`, then
+
+.. math::
+
+    \mathcal{R}[f_{\vec{x}_0}](w,\hat{n})=\mathcal{R}[f](w+\vec{x}_0\cdot\hat{n},\hat{n}).
+
+Therefore handling Radon transforms of functions with arbitrary offsets is straightforward to deal with.
+
+It is worth noting that if :math:`f` is zero outside of the unit ball, then the Radon transform is zero for :math:`w > 1`, because none of the planes tangent to the outer shells intersect the unit ball. If we take into account the arbitrary offset :math:`\vec{x}_0`, then this implies that the Radon transform is zero for :math:`|w + \vec{x}_0\cdot\hat{n}| > 1`. This means that the angle-integrated Radon transform is nonzero only for the shell parameters :math:`w \leq 1 + x_0`, where :math:`x_0` is the length of :math:`\vec{x}_0`.
 
 Zernike expansions
 ------------------

@@ -35,6 +35,78 @@ namespace zebra
 template <typename ElementType>
 using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
+class SHExpansionVector
+{
+public:
+    using element_type = std::array<double, 2>;
+    using value_type = element_type;
+    using size_type = std::size_t;
+    using index_type = std::size_t;
+    using View = SHExpansionVectorSpan<element_type>;
+    using ConstView = SHExpansionVectorSpan<const element_type>;
+    using SubSpan = SHExpansionSpan<element_type>;
+    using ConstSubSpan = SHExpansionSpan<const element_type>;
+
+    [[nodiscard]] static constexpr size_type size(size_type extent, size_type order)
+    {
+        return extent*SubspanType::size(order);
+    }
+
+    SHExpansionVector() = default;
+
+    SHExpansionVector(size_type extent, size_type order) noexcept:
+        m_data(size(extent, order)), m_subspan_size(SubspanType::size(order)), m_order(order), m_extent(extent) {}
+   
+    [[nodiscard]] operator View() noexcept
+    {
+         return View(
+            m_data.size(), m_size, m_subspan_size, m_order, m_extent);
+    }
+
+    [[nodiscard]] operator ConstView() const noexcept
+    {
+        return ConstView(
+            m_data.size(), m_size, m_subspan_size, m_order, m_extent);
+    }
+    
+    [[nodiscard]] size_type size() const noexcept
+    {
+        return m_data.size();
+    }
+    
+    [[nodiscard]] size_type subspan_size() const noexcept
+    {
+        return m_subspan_size;
+    }
+
+    [[nodiscard]] size_type extent() const noexcept
+    {
+        return m_extent;
+    }
+
+    [[nodiscard]] std::span<element_type> flatten() const noexcept
+    {
+        return std::span<element_type>(m_data, m_size);
+    }
+
+    SubspanType operator()(index_type i)
+    {
+        return SubspanType(m_data + i*m_subspan_size, m_order);
+    }
+
+    auto operator[](index_type i)
+    {
+        return (*this)(i);
+    }
+
+private:
+    std::vector<std::array<double, 2>> m_data;
+    size_type m_size = {};
+    size_type m_subspan_size = {};
+    size_type m_order = {};
+    size_type m_extent = {};
+};
+
 class ResponseTransformer
 {
 public:
@@ -54,6 +126,14 @@ public:
             };
             m_transformer.transform(surface_func, out[i]);
         }
+    }
+
+    template <typename RespType>
+    SHExpansionVector transform(RespType&& resp, std::span<const double> shells, std::size_t order)
+    {
+        SHExpansionVector res(shells.size(), order);
+        transform(resp, shells, res);
+        return res;
     }
 private:
     zest::st::SHTransformerGeo<> m_transformer;

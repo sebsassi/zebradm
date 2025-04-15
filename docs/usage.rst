@@ -38,7 +38,7 @@ In order to use the integrator, we will need to prepare the data needed to compu
 .. code:: cpp
 
     constexpr std::array<double, 3> dispersion = {0.5, 0.6, 0.7};
-    auto dist_func = [&](double r, double lon, double colat)
+    auto dist_func = [&](double lon, double colat, double r)
     {
         const std::array<double, 3> x = {
             r*std::sin(colat)*std::cos(lon), r*std::sin(colat)*std::sin(lon), r*std::cos(colat)
@@ -61,7 +61,7 @@ The next problem is to define our response function. For purposes of this demons
 .. code:: cpp
 
     constexpr std::array<double, 3> a = {0.5, 0.5, 0.5};
-    auto resp_func = [&](double min_speed, double lon, double colat)
+    auto resp_func = [&](double shell, double lon, double colat)
     {
         const std::array<double, 3> dir = {
             std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)
@@ -70,6 +70,57 @@ The next problem is to define our response function. For purposes of this demons
         return std::exp(-min_speed*(zdm::linalg(dir, a)));
     };
 
-The argument ``min_speed`` here is same as the parameter :math:`w` used in the theoretical description, which in dark matter direct detection literature is often denoted :math:`v_\text{min}`. In nuclear scattering of dark matter this is the minimum speed needed from dark matter to give the nucleus recoil momentum equal to the momentum transfer.
+The argument ``shell`` here is same as the shell parameter :math:`w` (see the section on theoretical background), which in dark matter direct detection literature is often denoted :math:`v_\text{min}`. In nuclear scattering of dark matter this is the minimum speed needed from dark matter to give the nucleus recoil momentum equal to the momentum transfer.
+
+The angle-integrated Radon transform in this library is defined on a collection of shell parameters. We therefore need to decide upon the collection of shell parameters. As discussed in the theoretical background section, the geometry of the situation means that if our distribution has offset :math:`\vec{x}_0`, then the angle-integrated Radon transform goes to zero for :math:`w > 1 + x_0`. Therefore, to determine an appropriate maximum value for the shell parameter, we will need to determine our offsets. In a real problem the offsets would come from somewhere. For example, in the context of dark matter direct detection they are the velocities of the laboratory relative to the dark matter distribution. For purposes of this example, we will generate a random list of vectors of some length
+
+.. code:: cpp
+
+    #include <random>
+
+    std::vector<std::array<double, 3>> generate_offsets(std::size_t count, double offset_len)
+    {
+        std::mt19937 gen;
+        std::uniform_real_distribution rng_dist{0.0, 1.0};
+
+        std::vector<std::array<double, 3>> offsets(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            const double ct = 2.0*rng_dist(gen) - 1.0;
+            const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
+            const double az = 2.0*std::numbers::pi*rng_dist(gen);
+            offsets[i] = {offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct};
+        }
+        
+        return offsets;
+    }
+
+Alongside this, we can create a similar function that generates a vector of shell parameters
+
+.. code:: cpp
+
+    std::vector<double> generate_shells(std::size_t count, double offset_len)
+    {
+        const double max_shell = 1.0 + offset_len;
+
+        std::vector<double> shells(count);
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            shells[i] = max_shell*double(i)/double(count - 1);
+        }
+
+        return shells;
+    }
+
+Then we can generate the offsets and shells
+
+.. code:: cpp
+
+    constexpr double offset_len = 0.5;
+    constexpr double offset_count = 10;
+    constexpr double shell_count = 50;
+
+    std::vector<std::array<double, 3>> offsets = generate_offsets(offset_count, offset_len);
+    std::vector<double> shells = generate_shells(shell_count, offset_len);
 
 
