@@ -43,14 +43,14 @@ public:
 
     template <typename RespType>
     void transform(
-        RespType&& resp, std::span<const double> min_speeds, SHExpansionVectorSpan<std::array<double, 2>> out)
+        RespType&& resp, std::span<const double> shells, SHExpansionVectorSpan<std::array<double, 2>> out)
     {
-        for (std::size_t i = 0; i < min_speeds.size(); ++i)
+        for (std::size_t i = 0; i < shells.size(); ++i)
         {
-            const double min_speed = min_speeds[i];
+            const double shell = shells[i];
             auto surface_func = [&](double lon, double colat) -> double
             {
-                return resp(min_speed, lon, colat);
+                return resp(shell, lon, colat);
             };
             m_transformer.transform(surface_func, out[i]);
         }

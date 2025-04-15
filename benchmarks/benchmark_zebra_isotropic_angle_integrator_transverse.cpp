@@ -26,7 +26,8 @@ SOFTWARE.
 #include "nanobench.h"
 
 void benchmark_zebra_isotropic_angle_integrator_transverse(
-    ankerl::nanobench::Bench& bench, const char* name, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds, std::size_t order)
+    ankerl::nanobench::Bench& bench, const char* name, double offset_len,
+    std::size_t num_offsets, std::size_t num_shells, std::size_t order)
 {
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
@@ -35,28 +36,28 @@ void benchmark_zebra_isotropic_angle_integrator_transverse(
     for (auto& element : distribution.flatten())
         element = {dist(gen), dist(gen)};
 
-    std::vector<std::array<double, 3>> boosts(num_boosts);
-    for (auto& element : boosts)
+    std::vector<std::array<double, 3>> offsets(num_offsets);
+    for (auto& element : offsets)
     {
         const double ct = 2.0*dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*dist(gen);
         element = {
-            boost_len*st*std::cos(az), boost_len*st*std::sin(az), ct
+            offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct
         };
     }
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
-    std::vector<std::array<double, 2>> out_buffer(num_boosts*num_min_speeds);
-    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    std::vector<std::array<double, 2>> out_buffer(num_offsets*num_shells);
+    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::zebra::IsotropicTransverseAngleIntegrator integrator(order);
     bench.run(name, [&](){
         integrator.integrate(
-                distribution, boosts, min_speeds, out);
+                distribution, offsets, shells, out);
     });
 }
 
@@ -69,13 +70,13 @@ int main([[maybe_unused]] int argc, char** argv)
     if (argc < 4)
         throw std::runtime_error(
             "Requires arguments:\n"
-            "   boost_len:      length of boost vector (float)\n"
-            "   num_boosts:     number of boost vectors (positive integer)\n"
-            "   num_min_speeds: number of min_speed values (positive integer)");
+            "   offset_len:     length of offset vector (float)\n"
+            "   num_offsets:    number of offset vectors (positive integer)\n"
+            "   num_shells:     number of shell values (positive integer)");
 
-    const double boost_len = atof(argv[1]);
-    const std::size_t num_boosts = atoi(argv[2]);
-    const std::size_t num_min_speeds = atoi(argv[3]);
+    const double offset_len = atof(argv[1]);
+    const std::size_t num_offsets = atoi(argv[2]);
+    const std::size_t num_shells = atoi(argv[3]);
 
     std::vector<std::size_t> order_vec = {
         2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200
@@ -87,11 +88,11 @@ int main([[maybe_unused]] int argc, char** argv)
         char name[32] = {};
         std::sprintf(name, "%lu", order);
         benchmark_zebra_isotropic_angle_integrator_transverse(
-                bench, name, boost_len, num_boosts, num_min_speeds, order);
+                bench, name, offset_len, num_offsets, num_shells, order);
     }
 
     char fname[128] = {};
-    std::sprintf(fname, "zebra_isotropic_transverse_angle_integrator_bench_%.2f_%lu_%lu.json", boost_len, num_boosts, num_min_speeds);
+    std::sprintf(fname, "zebra_isotropic_transverse_angle_integrator_bench_%.2f_%lu_%lu.json", offset_len, num_offsets, num_shells);
 
     std::ofstream output{};
     output.open(fname);

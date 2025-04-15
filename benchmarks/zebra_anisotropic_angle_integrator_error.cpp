@@ -45,21 +45,22 @@ inline double absolute_error(double test, double reference)
 
 void zebra_evaluate(
     DistributionSpherical dist, Response resp, std::size_t dist_order,
-    std::size_t resp_order, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds, std::span<const double> eras, zest::MDSpan<double, 2> out)
+    std::size_t resp_order, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles,
+    zest::MDSpan<double, 2> out)
 {
     zest::zt::RealZernikeExpansionNormalGeo distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
+        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {min_speeds.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
+    response(response_buffer.data(), {shells.size()}, resp_order);
+    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, boosts, eras, min_speeds, out);
+            distribution, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename S, typename F>
@@ -76,7 +77,10 @@ void print(
 }
 
 void fill_reference(
-    DistributionSpherical dist, Response resp, std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<double, 2> reference)
+    DistributionSpherical dist, Response resp,
+    std::span<const std::array<double, 3>> offsets,
+    std::span<const double > rotation_angles,
+    std::span<const double> shells, zest::MDSpan<double, 2> reference)
 {
     std::printf("Initalizing reference... ");
     std::fflush(stdout);
@@ -84,17 +88,23 @@ void fill_reference(
     constexpr std::size_t reference_resp_order = 800;
 
     zebra_evaluate(
-        dist, resp, reference_dist_order, reference_resp_order, boosts, min_speeds, eras, reference);
+            dist, resp, reference_dist_order, reference_resp_order, offsets,
+            shells, rotation_angles, reference);
     std::printf("Done\n");
 }
 
 void angle_integrator_error(
-    std::span<const std::array<double, 3>> boosts, std::span<const double > eras, std::span<const double> min_speeds, zest::MDSpan<double, 2> reference, DistributionSpherical dist, [[maybe_unused]] const char* dist_name, Response resp, [[maybe_unused]] const char* resp_name, std::size_t dist_order, std::size_t resp_order, [[maybe_unused]] bool use_relative_error)
+    std::span<const std::array<double, 3>> offsets,
+    std::span<const double> rotation_angles, std::span<const double> shells,
+    zest::MDSpan<double, 2> reference, DistributionSpherical dist,
+    [[maybe_unused]] const char* dist_name, Response resp,
+    [[maybe_unused]] const char* resp_name, std::size_t dist_order,
+    std::size_t resp_order, [[maybe_unused]] bool use_relative_error)
 {
-    std::vector<double> out_buffer(boosts.size()*min_speeds.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    std::vector<double> out_buffer(offsets.size()*shells.size());
+    zest::MDSpan<double, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
     zebra_evaluate(
-            dist, resp, dist_order, resp_order, boosts, min_speeds, eras, out);
+            dist, resp, dist_order, resp_order, offsets, shells, rotation_angles, out);
 
     char fname[512] = {};
     if (use_relative_error)
@@ -112,33 +122,35 @@ void angle_integrator_error(
 }
 
 void angle_integrator_errors(
-    DistributionSpherical dist, const char* dist_name, Response resp, const char* resp_name, bool relative_error, double boost_len, std::size_t num_boosts, std::size_t num_min_speeds)
+    DistributionSpherical dist, const char* dist_name, Response resp,
+    const char* resp_name, bool relative_error, double offset_len,
+    std::size_t num_offsets, std::size_t num_shells)
 {
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> boosts(num_boosts);
-    std::vector<double> eras(num_boosts);
-    for (std::size_t i = 0; i < num_boosts; ++i)
+    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<double> rotation_angles(num_offsets);
+    for (std::size_t i = 0; i < num_offsets; ++i)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);
-        boosts[i] = {
-            boost_len*st*std::cos(az), boost_len*st*std::sin(az), ct
+        offsets[i] = {
+            offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct
         };
-        eras[i] = 2.0*std::numbers::pi*rng_dist(gen);
+        rotation_angles[i] = 2.0*std::numbers::pi*rng_dist(gen);
     }
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
-    std::vector<double> reference_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> reference_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {boosts.size(), min_speeds.size()});
+            reference_buffer.data(), {offsets.size(), shells.size()});
 
-    fill_reference(dist, resp, boosts, eras, min_speeds, reference);
+    fill_reference(dist, resp, offsets, rotation_angles, shells, reference);
 
     const std::vector<std::size_t> dist_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
     const std::vector<std::size_t> resp_orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180,200,240,280,320,400,480};
@@ -151,7 +163,8 @@ void angle_integrator_errors(
         {
             std::printf("%lu %lu\n", dist_order, resp_order);
             angle_integrator_error(
-                    boosts, eras, min_speeds, reference, dist, dist_name, resp, resp_name, dist_order, resp_order, relative_error);
+                    offsets, rotation_angles, shells, reference, dist, dist_name,
+                    resp, resp_name, dist_order, resp_order, relative_error);
         }
     }
 }
@@ -184,15 +197,15 @@ int main([[maybe_unused]] int argc, char** argv)
             "Requires arguments:\n"
             "   dist_ind:       index of distribution {0,1,2,3,4}\n"
             "   resp_ind:       index of response {0,1}\n"
-            "   boost_len:      length of boost vector (float)\n"
-            "   num_boosts:     number of boost vectors (positive integer)\n"
-            "   num_min_speeds: number of min_speed values (positive integer)");
+            "   offset_len:     length of offset vector (float)\n"
+            "   num_offsets:    number of offset vectors (positive integer)\n"
+            "   num_shells:     number of shell values (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
     const std::size_t resp_ind = atoi(argv[2]);
-    const double boost_len = atof(argv[3]);
-    const std::size_t num_boosts = atoi(argv[4]);
-    const std::size_t num_min_speeds = atoi(argv[5]);
+    const double offset_len = atof(argv[3]);
+    const std::size_t num_offsets = atoi(argv[4]);
+    const std::size_t num_shells = atoi(argv[5]);
 
     const Labeled<DistributionSpherical> dist = distributions[dist_ind];
     const Labeled<Response> resp = responses[resp_ind];
@@ -200,5 +213,5 @@ int main([[maybe_unused]] int argc, char** argv)
 
     angle_integrator_errors(
         dist.object, dist.label, resp.object, resp.label, relative_error, 
-        boost_len, num_boosts, num_min_speeds);
+        offset_len, num_offsets, num_shells);
 }

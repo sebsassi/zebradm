@@ -48,17 +48,17 @@ constexpr std::array<double, 2> absolute_error(
 }
 
 void angle_integrator_error(
-    std::span<const std::array<double, 3>> boosts, std::span<const double > min_speeds, zest::MDSpan<std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool use_relative_error)
+    std::span<const std::array<double, 3>> offsets, std::span<const double > shells, zest::MDSpan<std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool use_relative_error)
 {
     zest::zt::RealZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo(order).transform(
             dist, 1.0, order);
 
-    std::vector<std::array<double, 2>> out_buffer(boosts.size()*min_speeds.size());
-    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {boosts.size(), min_speeds.size()});
+    std::vector<std::array<double, 2>> out_buffer(offsets.size()*shells.size());
+    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::zebra::IsotropicTransverseAngleIntegrator integrator(order);
-    integrator.integrate(distribution, boosts, min_speeds, out);
+    integrator.integrate(distribution, offsets, shells, out);
 
     char fname_nt[512] = {};
     char fname_t[512] = {};
@@ -78,9 +78,9 @@ void angle_integrator_error(
     output_t.open(fname_t);
     output_nt << std::scientific << std::setprecision(16);
     output_t << std::scientific << std::setprecision(16);
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::array<double, 2> error = {};
             if (reference(i, j)[0] != 0.0 && reference(i, j)[1] != 0.0)
@@ -101,46 +101,46 @@ void angle_integrator_error(
 
 void angle_integrator_errors(
     DistributionSpherical dist, const char* name, bool relative_error,
-    double boost_len, std::size_t num_boosts, std::size_t num_min_speeds)
+    double offset_len, std::size_t num_offsets, std::size_t num_shells)
 {
     constexpr std::size_t reference_order = 200;
 
-    const double max_min_speed = 1.0 + boost_len;
+    const double max_shell = 1.0 + offset_len;
 
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> boosts(num_boosts);
-    for (std::size_t i = 0; i < num_boosts; ++i)
+    std::vector<std::array<double, 3>> offsets(num_offsets);
+    for (std::size_t i = 0; i < num_offsets; ++i)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
         const double st = std::sqrt((1.0 - ct)*(1.0 + ct));
         const double az = 2.0*std::numbers::pi*rng_dist(gen);
-        boosts[i] = {
-            boost_len*st*std::cos(az), boost_len*st*std::sin(az), ct
+        offsets[i] = {
+            offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct
         };
     }
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*max_min_speed/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*max_shell/double(num_shells - 1);
 
     zest::zt::RealZernikeExpansion reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_order).transform(
             dist, 1.0, reference_order);
     
-    std::vector<std::array<double, 2>> reference_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> reference_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> reference(
-            reference_buffer.data(), {boosts.size(), min_speeds.size()});
+            reference_buffer.data(), {offsets.size(), shells.size()});
     
     zdm::zebra::IsotropicTransverseAngleIntegrator integrator(reference_order);
-    integrator.integrate(reference_distribution, boosts, min_speeds, reference);
+    integrator.integrate(reference_distribution, offsets, shells, reference);
 
     std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
 
     for (std::size_t order : orders)
         angle_integrator_error(
-                boosts, min_speeds, reference, dist, name, order, 
+                offsets, shells, reference, dist, name, order, 
                 relative_error);
 }
 
@@ -166,16 +166,16 @@ int main([[maybe_unused]] int argc, char** argv)
         throw std::runtime_error(
             "Requires arguments:\n"
             "   dist_ind:       index of distribution {0,1,2,3,4}\n"
-            "   boost_len:      length of boost vector (float)\n"
-            "   num_boosts:     number of boost vectors (positive integer)\n"
-            "   num_min_speeds: number of min_speed values (positive integer)");
+            "   offset_len:      length of offset vector (float)\n"
+            "   num_offsets:     number of offset vectors (positive integer)\n"
+            "   num_shells: number of shell values (positive integer)");
 
     const std::size_t dist_ind = atoi(argv[1]);
-    const double boost_len = atof(argv[2]);
-    const std::size_t num_boosts = atoi(argv[3]);
-    const std::size_t num_min_speeds = atoi(argv[4]);
+    const double offset_len = atof(argv[2]);
+    const std::size_t num_offsets = atoi(argv[3]);
+    const std::size_t num_shells = atoi(argv[4]);
 
     const Labeled<DistributionSpherical> dist = distributions[dist_ind];
     angle_integrator_errors(
-            dist.object, dist.label, relative_error, boost_len, num_boosts, num_min_speeds);
+            dist.object, dist.label, relative_error, offset_len, num_offsets, num_shells);
 }

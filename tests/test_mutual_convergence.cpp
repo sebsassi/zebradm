@@ -40,19 +40,19 @@ double quadratic_form(
 
 template <typename DistType>
 void test_mutual_convergence_isotropic(
-    DistType&& dist, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds)
+    DistType&& dist, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells)
 {
-    std::vector<double> integrator_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> integrator_test(
-            integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            integrator_test_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate(dist, boosts, min_speeds, 0.0, 1.0e-9, integrator_test);
+    integrator.integrate(dist, offsets, shells, 0.0, 1.0e-9, integrator_test);
 
-    std::vector<double> transformer_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> transformer_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> transformer_test(
-            transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            transformer_test_buffer.data(), {offsets.size(), shells.size()});
 
     constexpr std::size_t order = 200;
     zest::zt::RealZernikeExpansionNormalGeo distribution
@@ -60,12 +60,12 @@ void test_mutual_convergence_isotropic(
                 dist, 1.0, order);
 
     zdm::zebra::IsotropicAngleIntegrator(order).integrate(
-            distribution, boosts, min_speeds, transformer_test);
+            distribution, offsets, shells, transformer_test);
 
     std::printf("integrator\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", integrator_test(i, j));
         }
@@ -73,9 +73,9 @@ void test_mutual_convergence_isotropic(
     }
 
     std::printf("\ntransformer\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", transformer_test(i, j));
         }
@@ -83,9 +83,9 @@ void test_mutual_convergence_isotropic(
     }
 
     std::printf("\nrelative error\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
         }
@@ -96,19 +96,19 @@ void test_mutual_convergence_isotropic(
 
 template <typename DistType>
 void test_mutual_convergence_transverse_isotropic(
-    DistType&& dist, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds)
+    DistType&& dist, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells)
 {
-    std::vector<std::array<double, 2>> integrator_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> integrator_test(
-            integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            integrator_test_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate_transverse(dist, boosts, min_speeds, 0.0, 1.0e-9, integrator_test);
+    integrator.integrate_transverse(dist, offsets, shells, 0.0, 1.0e-9, integrator_test);
 
-    std::vector<std::array<double, 2>> transformer_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> transformer_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> transformer_test(
-            transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            transformer_test_buffer.data(), {offsets.size(), shells.size()});
 
     constexpr std::size_t order = 200;
     zest::zt::RealZernikeExpansionNormalGeo distribution
@@ -116,12 +116,12 @@ void test_mutual_convergence_transverse_isotropic(
                 dist, 1.0, order);
 
     zdm::zebra::IsotropicTransverseAngleIntegrator(order).integrate(
-            distribution, boosts, min_speeds, transformer_test);
+            distribution, offsets, shells, transformer_test);
 
     std::printf("integrator\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e}", integrator_test(i, j)[0], integrator_test(i, j)[1]);
         }
@@ -129,9 +129,9 @@ void test_mutual_convergence_transverse_isotropic(
     }
 
     std::printf("\ntransformer\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e}", transformer_test(i, j)[0], transformer_test(i, j)[1]);
         }
@@ -139,9 +139,9 @@ void test_mutual_convergence_transverse_isotropic(
     }
 
     std::printf("\nrelative error\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e}", 1.0 - integrator_test(i, j)[0]/transformer_test(i, j)[0], 1.0 - integrator_test(i, j)[1]/transformer_test(i, j)[1]);
         }
@@ -154,19 +154,19 @@ void test_mutual_convergence_transverse_isotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds, std::span<const double> eras)
+    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles)
 {
-    std::vector<double> integrator_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> integrator_test(
-            integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            integrator_test_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate(dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate(dist, resp, offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
 
-    std::vector<double> transformer_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<double> transformer_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<double, 2> transformer_test(
-            transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            transformer_test_buffer.data(), {offsets.size(), shells.size()});
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
@@ -175,18 +175,18 @@ void test_mutual_convergence_anisotropic(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
+        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {min_speeds.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
+    response(response_buffer.data(), {shells.size()}, resp_order);
+    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, boosts, eras, min_speeds, transformer_test);
+            distribution, response, offsets, rotation_angles, shells, transformer_test);
 
     std::printf("integrator\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", integrator_test(i, j));
         }
@@ -194,9 +194,9 @@ void test_mutual_convergence_anisotropic(
     }
 
     std::printf("\ntransformer\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", transformer_test(i, j));
         }
@@ -204,9 +204,9 @@ void test_mutual_convergence_anisotropic(
     }
 
     std::printf("\nrelative error\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("%.16e ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
         }
@@ -217,19 +217,19 @@ void test_mutual_convergence_anisotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_transverse_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> boosts,
-    std::span<const double> min_speeds, std::span<const double> eras)
+    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles)
 {
-    std::vector<std::array<double, 2>> integrator_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> integrator_test(
-            integrator_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            integrator_test_buffer.data(), {offsets.size(), shells.size()});
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate_transverse(dist, resp, boosts, eras, min_speeds, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate_transverse(dist, resp, offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
 
-    std::vector<std::array<double, 2>> transformer_test_buffer(boosts.size()*min_speeds.size());
+    std::vector<std::array<double, 2>> transformer_test_buffer(offsets.size()*shells.size());
     zest::MDSpan<std::array<double, 2>, 2> transformer_test(
-            transformer_test_buffer.data(), {boosts.size(), min_speeds.size()});
+            transformer_test_buffer.data(), {offsets.size(), shells.size()});
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
@@ -238,19 +238,19 @@ void test_mutual_convergence_transverse_anisotropic(
                 dist, 1.0, dist_order);
 
     std::vector<std::array<double, 2>> response_buffer(
-        min_speeds.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
+        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {min_speeds.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, min_speeds, response);
+    response(response_buffer.data(), {shells.size()}, resp_order);
+    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicTransverseAngleIntegrator(dist_order, resp_order)
         .integrate(
-            distribution, response, boosts, eras, min_speeds, transformer_test);
+            distribution, response, offsets, rotation_angles, shells, transformer_test);
 
     std::printf("integrator\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e} ", integrator_test(i, j)[0], integrator_test(i, j)[1]);
         }
@@ -258,9 +258,9 @@ void test_mutual_convergence_transverse_anisotropic(
     }
 
     std::printf("\ntransformer\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e} ", transformer_test(i, j)[0], transformer_test(i, j)[1]);
         }
@@ -268,9 +268,9 @@ void test_mutual_convergence_transverse_anisotropic(
     }
 
     std::printf("\nrelative error\n");
-    for (std::size_t i = 0; i < boosts.size(); ++i)
+    for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        for (std::size_t j = 0; j < min_speeds.size(); ++j)
+        for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::printf("{%.16e, %.16e} ", 1.0 - integrator_test(i, j)[0]/transformer_test(i, j)[0], 1.0 - integrator_test(i, j)[1]/transformer_test(i, j)[1]);
         }
@@ -298,35 +298,35 @@ int main()
         return std::exp(-0.5*quadratic_form(sigma, v));
     };
 
-    [[maybe_unused]] auto test_response = []([[maybe_unused]] double min_speed, [[maybe_unused]] double lon, [[maybe_unused]] double colat) -> double
+    [[maybe_unused]] auto test_response = []([[maybe_unused]] double shell, [[maybe_unused]] double lon, [[maybe_unused]] double colat) -> double
     {
         constexpr double slope = 10.0;
         const std::array<double, 3> dir
             = zdm::coordinates::spherical_to_cartesian_phys(lon, colat);
-        return 0.5*(1.0 + std::tanh(slope*(dir[0] + (2.0/1.5)*min_speed - 1.0)));
+        return 0.5*(1.0 + std::tanh(slope*(dir[0] + (2.0/1.5)*shell - 1.0)));
     };
 
-    [[maybe_unused]] auto smooth_exponential = [](double min_speed, double longitude, double colatitude)
+    [[maybe_unused]] auto smooth_exponential = [](double shell, double longitude, double colatitude)
     {
         static const std::array<double, 3> ref_dir
             = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
         const std::array<double, 3> dir
             = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
         constexpr double rate = 2.0;
-        const double u2 = min_speed*min_speed;
+        const double u2 = shell*shell;
         const double u4 = u2*u2;
         return (u4/(1 + u4))*std::exp(rate*(zdm::dot(dir, ref_dir)));
     };
 
     /*
-    const std::vector<std::array<double, 3>> boosts = {
+    const std::vector<std::array<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {-0.5, 0.0, 0.0}, {0.0, -0.5, 0.0}, {0.0, 0.0, 0.5}
     };
 
-    const std::vector<double> eras = {
+    const std::vector<double> rotation_angles = {
         0.0, 0.0, 0.0, 0.0, 0.0,
         0.5*std::numbers::pi, 0.5*std::numbers::pi, 0.5*std::numbers::pi, 0.5*std::numbers::pi, 0.5*std::numbers::pi,
         std::numbers::pi, std::numbers::pi, std::numbers::pi, std::numbers::pi, std::numbers::pi,
@@ -334,31 +334,31 @@ int main()
     };
     */
 
-   const std::vector<std::array<double, 3>> boosts = {
+   const std::vector<std::array<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0},
         {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}
     };
 
-    const std::vector<double> eras = {
+    const std::vector<double> rotation_angles = {
         0.0*std::numbers::pi, 0.25*std::numbers::pi, 0.5*std::numbers::pi, 0.75*std::numbers::pi, 1.0*std::numbers::pi, 1.25*std::numbers::pi, 1.5*std::numbers::pi, 1.75*std::numbers::pi,
         0.0*std::numbers::pi, 0.25*std::numbers::pi, 0.5*std::numbers::pi, 0.75*std::numbers::pi, 1.0*std::numbers::pi, 1.25*std::numbers::pi, 1.5*std::numbers::pi, 1.75*std::numbers::pi
     };
 
-    const std::vector<double> min_speeds = {
+    const std::vector<double> shells = {
         /*0.0, */0.15//, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    //test_mutual_convergence_isotropic(gaussian, boosts, min_speeds);
-    //test_mutual_convergence_isotropic(aniso_gaussian, boosts, min_speeds);
+    //test_mutual_convergence_isotropic(gaussian, offsets, shells);
+    //test_mutual_convergence_isotropic(aniso_gaussian, offsets, shells);
 
-    //test_mutual_convergence_transverse_isotropic(gaussian, boosts, min_speeds);
-    //test_mutual_convergence_transverse_isotropic(aniso_gaussian, boosts, min_speeds);
+    //test_mutual_convergence_transverse_isotropic(gaussian, offsets, shells);
+    //test_mutual_convergence_transverse_isotropic(aniso_gaussian, offsets, shells);
 
-    //test_mutual_convergence_anisotropic(gaussian, smooth_exponential, boosts, min_speeds, eras);
-    test_mutual_convergence_anisotropic(aniso_gaussian, smooth_exponential, boosts, min_speeds, eras);
+    //test_mutual_convergence_anisotropic(gaussian, smooth_exponential, offsets, shells, rotation_angles);
+    test_mutual_convergence_anisotropic(aniso_gaussian, smooth_exponential, offsets, shells, rotation_angles);
 
     //test_mutual_convergence_transverse_anisotropic(
-    //        gaussian, test_response, boosts, min_speeds, eras);
+    //        gaussian, test_response, offsets, shells, rotation_angles);
     //test_mutual_convergence_transverse_anisotropic(
-    //        aniso_gaussian, test_response, boosts, min_speeds, eras);
+    //        aniso_gaussian, test_response, offsets, shells, rotation_angles);
 }

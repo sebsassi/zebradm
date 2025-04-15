@@ -31,27 +31,27 @@ SOFTWARE.
 
 void benchmark_response_grid_construction(
     ankerl::nanobench::Bench& bench, const char* name,
-    Response resp, double boost_len, std::size_t num_min_speeds, std::size_t order)
+    Response resp, double offset_len, std::size_t num_shells, std::size_t order)
 {
     const std::size_t grid_size = zest::st::SphereGLQGridSpan<double>::size(order);
-    std::vector<double> grids(num_min_speeds*grid_size);
+    std::vector<double> grids(num_shells*grid_size);
 
     zest::st::SphereGLQGrid<double> grid(order);
     zest::st::SphereGLQGridPoints<> points(order);
     zest::st::GLQTransformerGeo transformer(order);
 
-    std::vector<double> min_speeds(num_min_speeds);
-    for (std::size_t i = 0; i < num_min_speeds; ++i)
-        min_speeds[i] = double(i)*(boost_len + 1.0)/double(num_min_speeds - 1);
+    std::vector<double> shells(num_shells);
+    for (std::size_t i = 0; i < num_shells; ++i)
+        shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
     bench.run(name, [&](){
-        for (std::size_t i = 0; i < num_min_speeds; ++i)
+        for (std::size_t i = 0; i < num_shells; ++i)
         {
             zest::st::SphereGLQGridSpan<double>
             grid(grids.data() + i*grid_size, order);
             auto f = [&](double lon, double colat)
             {
-                return resp(min_speeds[i], lon, colat);
+                return resp(shells[i], lon, colat);
             };
 
             points.generate_values(grid, f);
@@ -60,7 +60,8 @@ void benchmark_response_grid_construction(
 }
 
 void run_benchmarks(
-    Response resp, const char* resp_name, std::span<const std::size_t> orders, double boost_len, std::size_t num_min_speeds)
+    Response resp, const char* resp_name, std::span<const std::size_t> orders,
+    double offset_len, std::size_t num_shells)
 {
     ankerl::nanobench::Bench bench{};
     bench.performanceCounters(true);
@@ -73,11 +74,11 @@ void run_benchmarks(
         char name[32] = {};
         std::sprintf(name, "%lu", order);
         benchmark_response_grid_construction(
-                bench, name, resp, boost_len, num_min_speeds, order);
+                bench, name, resp, offset_len, num_shells, order);
     }
 
     char fname[512] = {};
-    std::sprintf(fname, "response_grid_construction_bench_%s_%.2f_%lu.json", resp_name, boost_len, num_min_speeds);
+    std::sprintf(fname, "response_grid_construction_bench_%s_%.2f_%lu.json", resp_name, offset_len, num_shells);
 
     std::ofstream output{};
     output.open(fname);
@@ -103,12 +104,12 @@ int main([[maybe_unused]] int argc, char** argv)
         throw std::runtime_error(
             "Requires argument:\n"
             "   resp_ind:   index of response {0,1}\n"
-            "   boost_len:  length of boost vector (float)\n"
-            "   num_min_speeds: number of min_speed values (positive integer)");
+            "   offset_len:  length of offset vector (float)\n"
+            "   num_shells: number of shell values (positive integer)");
 
     const std::size_t resp_ind = atoi(argv[1]);
-    const double boost_len = atof(argv[2]);
-    const std::size_t num_min_speeds = atoi(argv[3]);
+    const double offset_len = atof(argv[2]);
+    const std::size_t num_shells = atoi(argv[3]);
 
     std::vector<std::size_t> orders = {
         2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480
@@ -116,5 +117,5 @@ int main([[maybe_unused]] int argc, char** argv)
 
     const Labeled<Response> dist = responses[resp_ind];
 
-    run_benchmarks(dist.object, dist.label, orders, boost_len, num_min_speeds);
+    run_benchmarks(dist.object, dist.label, orders, offset_len, num_shells);
 }

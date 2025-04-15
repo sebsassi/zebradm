@@ -804,7 +804,7 @@ bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
-    auto gen_x = [](double r, double lon, double colat){
+    auto gen_x = [](double lon, double colat, double r){
         return r*std::sin(colat)*std::cos(lon);
     };
     zest::zt::BallGLQGridPoints points(out_order);
@@ -874,7 +874,7 @@ bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
-    auto gen_x = [](double r, double lon, double colat){
+    auto gen_x = [](double lon, double colat, double r){
         return r*std::sin(colat)*std::cos(lon);
     };
     zest::zt::BallGLQGridPoints points(out_order);
@@ -944,7 +944,7 @@ bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
-    auto gen_y = [](double r, double lon, double colat){
+    auto gen_y = [](double lon, double colat, double r){
         return r*std::sin(colat)*std::sin(lon);
     };
     zest::zt::BallGLQGridPoints points(out_order);
@@ -1014,7 +1014,7 @@ bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
-    auto gen_z = [](double r, [[maybe_unused]] double lon, double colat){
+    auto gen_z = []([[maybe_unused]] double lon, double colat, double r){
         return r*std::cos(colat);
     };
     zest::zt::BallGLQGridPoints points(out_order);
@@ -1084,7 +1084,7 @@ bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
     zest::zt::BallGLQGrid reference_grid
         = transformer.backward_transform(reference_out, out_order);
 
-    auto gen_z = [](double r, [[maybe_unused]] double lon, double colat){
+    auto gen_z = []([[maybe_unused]] double lon, double colat, double r){
         return r*std::cos(colat);
     };
     zest::zt::BallGLQGridPoints points(out_order);
@@ -1155,7 +1155,7 @@ bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
         = transformer.backward_transform(reference_out, out_order);
 
     auto gen_r2 = [](
-        double r, [[maybe_unused]] double lon, [[maybe_unused]] double colat)
+        [[maybe_unused]] double lon, [[maybe_unused]] double colat, double r)
     { return r*r; };
     zest::zt::BallGLQGridPoints points(out_order);
     zest::zt::BallGLQGrid r2 = points.generate_values(gen_r2, out_order);
