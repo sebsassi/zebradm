@@ -23,6 +23,7 @@ SOFTWARE.
 
 #include <cstddef>
 #include <array>
+#include <span>
 
 namespace zdm
 {
@@ -191,7 +192,7 @@ public:
         m_data(span.data()), m_size(extent*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
 
     constexpr SuperSpan(
-        data_handle_type data, size_type size, size_type subspan_size, std::size_t subspan_size_param, size_type extent) noexcept:
+        data_handle_type data, size_type size, size_type subspan_size, size_type subspan_size_param, size_type extent) noexcept:
         m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
 
     [[nodiscard]] constexpr operator ConstView() const noexcept

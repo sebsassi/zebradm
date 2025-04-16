@@ -11,7 +11,7 @@ The first order of business is to initialize our integrator
 
 .. code:: cpp
 
-    #include "zebradm/zebra_angle_integrator.hpp"
+    #include <zebradm/zebra_angle_integrator.hpp>
 
     int main()
     {
@@ -37,6 +37,9 @@ In order to use the integrator, we will need to prepare the data needed to compu
 
 .. code:: cpp
 
+    #include <cmath>
+    #include <array>
+
     constexpr std::array<double, 3> dispersion = {0.5, 0.6, 0.7};
     auto dist_func = [&](double lon, double colat, double r)
     {
@@ -53,8 +56,13 @@ The business of Zernike and spherical harmonic transforms and expansions is hand
 
 .. code:: cpp
 
+    #include <zest/zernike_glq_transformer.hpp>
+    
+    constexpr double radius = 2.0;
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerNormalGeo(dist_order).transform(dist_func);
+        = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, resp_order);
+
+The Zernike functions are defined on the unit ball, but we can obviously scale any ball to a unit ball. The ``radius`` parameter here does exactly that. It is the radius of the ball on which our function is defined, so that :cpp:type:`zest::zt:ZernikeTransformer` can do the scaling for you.
 
 The next problem is to define our response function. For purposes of this demonstration, we use an arbitrary function
 
@@ -77,6 +85,7 @@ The angle-integrated Radon transform in this library is defined on a collection 
 .. code:: cpp
 
     #include <random>
+    #include <vector>
 
     std::vector<std::array<double, 3>> generate_offsets(std::size_t count, double offset_len)
     {
@@ -105,9 +114,7 @@ Alongside this, we can create a similar function that generates a vector of shel
 
         std::vector<double> shells(count);
         for (std::size_t i = 0; i < count; ++i)
-        {
             shells[i] = max_shell*double(i)/double(count - 1);
-        }
 
         return shells;
     }
@@ -123,4 +130,46 @@ Then we can generate the offsets and shells
     std::vector<std::array<double, 3>> offsets = generate_offsets(offset_count, offset_len);
     std::vector<double> shells = generate_shells(shell_count, offset_len);
 
+Now that we actually have the shells, we can compute the spherical harmonic transforms of the shells on the response functions. For this purpose, the header ``zebradm/zebra_util.hpp`` provides the container :cpp:type:`zdm::zebra::SHExpansionVector` for storing a collection of spherical harmonic expansions in a single buffer, as well as the class :cpp:type:`zdm::zebra::ResponseTransformer` for computing the spherical harmonic expansions.
 
+.. code:: cpp
+
+    zdm::zebra::SHExpansionVector response 
+        = zdm::zebra::ResponseTransformer{}.transform(resp_func, shells, resp_order);
+
+At this point we are almost ready to use the integrator. We still need two things, however. First is a vector of rotation angles for each offset, because not only can the distribution be defined in coordinates with an arbitrary offset, but it can also have a rotation relative to the coordinates in which the response is defined.
+
+In principle, the distribution and response functions could be defined in coordinate systems which differ from each other by an arbitrary 3D rotation. However, arbitrary 3D rotations of spherical harmonic expansions are expensive, so the transformer has been limited to doing rotations about the z-axis per offset. With that said, nothing stops you from applying arbitrary global rotations on the expansions of the distribution and response before handing them off to the integrator.
+
+With that said, here we can just create a nice full rotation
+
+.. code:: cpp
+
+    #include <numbers>
+
+    std::vector<double> generate_rotation_angles(std::size_t offset_count)
+    {
+        std::vector<double> rotation_angles(offset_count);
+        for (std::size_t i = 0; i < offset_count; ++i)
+            rotation_angles[i] = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
+    }
+
+and then generate the rotation angles
+
+.. code:: cpp
+
+    std::vector<double> rotation_angles = generate_rotation_angles(offset_count);
+
+Now, the last remaining thing we need is a buffer to put the results in
+
+.. code:: cpp
+
+    #include <zest/md_array.hpp>
+
+    zest::MDArray<double, 2> out({offset_count, shell_count});
+
+With this, we finally have everything in place to integrate the angle-integrated Radon transform
+
+.. code:: cpp
+
+    integrator.integrate(distribution, response, offsets, rotation_angles, shells, out);

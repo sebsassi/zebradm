@@ -27,6 +27,8 @@ SOFTWARE.
 #include <zest/real_sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
+#include "types.hpp"
+
 namespace zdm
 {
 namespace zebra
@@ -49,24 +51,24 @@ public:
 
     [[nodiscard]] static constexpr size_type size(size_type extent, size_type order)
     {
-        return extent*SubspanType::size(order);
+        return extent*SubSpan::size(order);
     }
 
     SHExpansionVector() = default;
 
     SHExpansionVector(size_type extent, size_type order) noexcept:
-        m_data(size(extent, order)), m_subspan_size(SubspanType::size(order)), m_order(order), m_extent(extent) {}
+        m_data(size(extent, order)), m_subspan_size(SubSpan::size(order)), m_order(order), m_extent(extent) {}
    
     [[nodiscard]] operator View() noexcept
     {
          return View(
-            m_data.size(), m_size, m_subspan_size, m_order, m_extent);
+            m_data.data(), m_size, m_subspan_size, m_order, m_extent);
     }
 
     [[nodiscard]] operator ConstView() const noexcept
     {
         return ConstView(
-            m_data.size(), m_size, m_subspan_size, m_order, m_extent);
+            m_data.data(), m_size, m_subspan_size, m_order, m_extent);
     }
     
     [[nodiscard]] size_type size() const noexcept
@@ -84,14 +86,19 @@ public:
         return m_extent;
     }
 
-    [[nodiscard]] std::span<element_type> flatten() const noexcept
+    [[nodiscard]] std::span<element_type> flatten() noexcept
     {
-        return std::span<element_type>(m_data, m_size);
+        return std::span<element_type>(m_data);
     }
 
-    SubspanType operator()(index_type i)
+    [[nodiscard]] std::span<const element_type> flatten() const noexcept
     {
-        return SubspanType(m_data + i*m_subspan_size, m_order);
+        return std::span<const element_type>(m_data);
+    }
+
+    SubSpan operator()(index_type i)
+    {
+        return SubSpan(m_data.data() + i*m_subspan_size, m_order);
     }
 
     auto operator[](index_type i)
