@@ -31,11 +31,6 @@ SOFTWARE.
 
 namespace zdm
 {
-namespace zebra
-{
-
-template <typename ElementType>
-using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
 class SHExpansionVector
 {
@@ -113,6 +108,12 @@ private:
     size_type m_order = {};
     size_type m_extent = {};
 };
+
+namespace zebra
+{
+
+template <typename ElementType>
+using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
 class ResponseTransformer
 {

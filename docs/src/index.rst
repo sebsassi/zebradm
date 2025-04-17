@@ -6,3 +6,5 @@ ZebraDM -- Zernike-based Radon transforms
    :caption: Contents:
 
    getting_started
+   introduction
+   usage

@@ -29,6 +29,10 @@ SOFTWARE.
 namespace zdm
 {
 
+using SHExpansion = zest::st::RealSHExpansionGeo;
+
+using ZernikeExpansion = zest::zt::RealZernikeExpansionNormalGeo;
+
 template <typename ElementType>
 using SHExpansionSpan = zest::st::RealSHSpanGeo<ElementType>;
 
