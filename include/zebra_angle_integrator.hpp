@@ -60,8 +60,6 @@ public:
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-
         @param distribution Zernike expansion of distribution
         @param offsets offsets of the distribution
         @param shells distances of integration planes from the origin
@@ -88,8 +86,6 @@ public:
     
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
-
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution Zernike expansion of the distribution
         @param offset offset of the distribution
@@ -157,9 +153,6 @@ public:
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-        @tparam Resp callable accepting three `double`s and returning `double`
-
         @param distribution Zernike expansion of the distribution
         @param response spherical harmonic expansions of response on `shells`
         @param offsets offsets of the distribution
@@ -213,9 +206,6 @@ public:
     /**
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
-
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-        @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution Zernike expansion of the distribution
         @param response spherical harmonic expansions of response on `shells`
@@ -301,8 +291,6 @@ public:
         @brief Angle integrated transverse and nontransverse Radon transform of a
         velocity disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-
         @param distribution Zernike expansion of the distribution
         @param offsets offsets of the distribution
         @param shells distances of integration planes from the origin
@@ -330,8 +318,6 @@ public:
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
         velocity disitribution on an offset unit ball.
-
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
 
         @param distribution Zernike expansion of the distribution
         @param offset offset of the distribution
@@ -405,9 +391,6 @@ public:
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-        @tparam Resp callable accepting three `double`s and returning `double`
-
         @param distribution Zernike expansion of the distribution
         @param response spherical harmonic expansions of response on `shells`
         @param offsets offsets of the distribution
@@ -461,9 +444,6 @@ public:
     /**
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
-
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
-        @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution Zernike expansion of the distribution
         @param response spherical harmonic expansions of response on `shells`

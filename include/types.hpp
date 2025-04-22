@@ -29,16 +29,37 @@ SOFTWARE.
 namespace zdm
 {
 
+/**
+    @brief Alias for `zest::st::RealSHExpansionGeo`
+*/
 using SHExpansion = zest::st::RealSHExpansionGeo;
 
+/**
+    @brief Alias for `zest::st::RealSHZernikeExpansionGeo`
+*/
 using ZernikeExpansion = zest::zt::RealZernikeExpansionNormalGeo;
 
+/**
+    @brief Alias for `zest::st::RealSHSpanGeo<ElementType>`
+
+    @tparam ElementType
+*/
 template <typename ElementType>
 using SHExpansionSpan = zest::st::RealSHSpanGeo<ElementType>;
 
+/**
+    @brief Alias for `zest::st::SuperSpan<SHExpansionSpan<ElementType>>`
+
+    @tparam ElementType
+*/
 template <typename ElementType>
 using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
 
+/**
+    @brief Alias for `zest::st::RealZernikeSpanNormalGeo<ElementType>`
+
+    @tparam ElementType
+*/
 template <typename ElementType>
 using ZernikeExpansionSpan = zest::zt::RealZernikeSpanNormalGeo<ElementType>;
 

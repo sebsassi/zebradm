@@ -93,7 +93,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
     distribution(0,0,0) = {1.0/std::sqrt(3.0), 0.0};
 
     std::vector<std::array<double, 2>> resp_buffer(shells.size()*zest::st::RealSHExpansionGeo::size(order));
-    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {shells.size()}, order);
+    zdm::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {shells.size()}, order);
     for (std::size_t i = 0; i < shells.size(); ++i)
         resp[i](0,0) = {1.0, 0.0};
 
@@ -198,7 +198,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
                 shm_dist, 1.0, order);
 
     std::vector<std::array<double, 2>> resp_buffer(shells.size()*zest::st::RealSHExpansionGeo::size(order));
-    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {shells.size()}, order);
+    zdm::SHExpansionVectorSpan<std::array<double, 2>> resp(resp_buffer.data(), {shells.size()}, order);
     for (std::size_t i = 0; i < shells.size(); ++i)
         resp[i](0,0) = {1.0, 0.0};
 

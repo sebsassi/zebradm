@@ -55,32 +55,33 @@ namespace coordinates
 /**
     @brief Convert spherical to Cartesian coordinates in geography convention.
 
-    @param spherical vector of spherical coordinates in order [longitude, latitude, length]
+    @param longitude longitude angle in radians \f$ [0, 2\pi] \f$
+    @param latitude latitude in radians \f$ [-\pi/2, \pi/2] \f$
+    @param length length of vector
 
     @return vector of Cartesian coordinates
 */
 [[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_geo(
-    const std::array<double, 3>& spherical) noexcept
+    double longitude, double latitude, double length) noexcept
 {
-    const auto& [azimuth, altitude, length] = spherical;
-    const std::array<double, 2> vert_rot = {std::cos(altitude), std::sin(altitude)};
+    const std::array<double, 2> vert_rot = {std::cos(latitude), std::sin(latitude)};
     return {
-        length*vert_rot[0]*std::cos(azimuth), length*vert_rot[0]*std::sin(azimuth), length*vert_rot[1]
+        length*vert_rot[0]*std::cos(longitude), length*vert_rot[0]*std::sin(longitude), length*vert_rot[1]
     };
 }
 
 /**
     @brief Convert spherical angles to Cartesian coordinates in physics convention.
 
-    @param longitude longitude angle in radians [0, 2pi]
-    @param latitude latitude in radians [-pi/2, pi/2]
+    @param longitude longitude angle in radians \f$ [0, 2\pi] \f$
+    @param latitude latitude in radians \f$ [-\pi/2, \pi/2] \f$
 
     @return vector of Cartesian coordinates
 */
 [[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_geo(
     double longitude, double latitude) noexcept
 {
-    const std::array<double, 2> vert_rot = {std::cos(latitude), std::sin(colatitude)};
+    const std::array<double, 2> vert_rot = {std::cos(latitude), std::sin(latitude)};
     return {vert_rot[0]*std::cos(longitude), vert_rot[0]*std::sin(longitude), vert_rot[1]};
 }
 
@@ -89,7 +90,7 @@ namespace coordinates
 
     @param cartesian vector of Cartesian coordinates
 
-    @return spherical harmonic coordinates using in order [azimuth, colatitude, length]
+    @return spherical harmonic coordinates in order [azimuth, colatitude, length]
 */
 [[nodiscard]] constexpr std::array<double, 3> cartesian_to_spherical_phys(
     const std::array<double, 3>& cartesian) noexcept
@@ -107,14 +108,15 @@ namespace coordinates
 /**
     @brief Convert spherical to Cartesian coordinates in physics convention.
 
-    @param spherical vector of spherical coordinates in order [azimuth, colatitude, length]
+    @param longitude longitude angle in radians \f$ [0, 2\pi] \f$
+    @param colatitude colatitude in radians \f$ [0, \pi] \f$
+    @param length length of vector
 
     @return vector of Cartesian coordinates
 */
 [[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_phys(
-    const std::array<double, 3>& spherical) noexcept
+    double azimuth, double colatitude, double length) noexcept
 {
-    const auto& [azimuth, colatitude, length] = spherical;
     const std::array<double, 2> vert_rot = {std::sin(colatitude), std::cos(colatitude)};
     return {
         length*vert_rot[0]*std::cos(azimuth), length*vert_rot[0]*std::sin(azimuth), length*vert_rot[1]
@@ -124,8 +126,8 @@ namespace coordinates
 /**
     @brief Convert spherical angles to Cartesian coordinates in physics convention.
 
-    @param azimuth azimuthal angle in radians [0, 2pi]
-    @param colatitude colatitude in radians [0, pi]
+    @param azimuth azimuthal angle in radians \f$ [0, 2\pi] \f$
+    @param colatitude colatitude in radians \f$ [0, pi] \f$
 
     @return vector of Cartesian coordinates
 */

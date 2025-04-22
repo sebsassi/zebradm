@@ -57,7 +57,7 @@ void angle_integrator_error(
 
     std::vector<std::array<double, 2>> response_buffer(
         shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
+    zdm::SHExpansionVectorSpan<std::array<double, 2>>
     response(response_buffer.data(), {shells.size()}, resp_order);
     zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
@@ -120,7 +120,7 @@ void fill_reference(
     
     std::vector<std::array<double, 2>> reference_response_buffer(
         shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zdm::zebra::SHExpansionVectorSpan<std::array<double, 2>>
+    zdm::SHExpansionVectorSpan<std::array<double, 2>>
     reference_response(reference_response_buffer.data(), {shells.size()}, reference_resp_order);
     zdm::zebra::ResponseTransformer(reference_resp_order).transform(resp, shells, reference_response);
     

@@ -8,3 +8,5 @@ ZebraDM -- Zernike-based Radon transforms
    getting_started
    introduction
    usage
+   dm_example
+   reference

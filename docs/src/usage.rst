@@ -1,15 +1,15 @@
-Integrating a Radon transform
-=============================
+Usage -- Integrating a Radon transform
+======================================
 
 This section goes through the core parts of the library and its usage via an example of evaluating
 the angle-integrated Radon transform of a distribution with a response function.
 
 The angle integration is implemented in four core classes:
 
-*:cpp:type:`zdm::zebra::IsotropicAngleIntegrator`
-*:cpp:type:`zdm::zebra::AnisotropicAngleIntegrator`
-*:cpp:type:`zdm::zebra::IsotropicTransverseAngleIntegrator`
-*:cpp:type:`zdm::zebra::AnisotropicTransverseAngleIntegrator`
+* :cpp:type:`zdm::zebra::IsotropicAngleIntegrator`
+* :cpp:type:`zdm::zebra::AnisotropicAngleIntegrator`
+* :cpp:type:`zdm::zebra::IsotropicTransverseAngleIntegrator`
+* :cpp:type:`zdm::zebra::AnisotropicTransverseAngleIntegrator`
 
 The classes with ``Transverse`` compute the angle-integrated transverse Radon transform in addition
 to the nontransverse case, whereas the others only compute the nontransverse case. The classes
@@ -45,7 +45,7 @@ parameters ``dist_order`` and ``resp_order`` are the orders of the Zernike and s
 expansions of the distribution and response functions, respectively. One can also default
 initialize the integrator
 
-.. math::
+.. code:: cpp
 
     zdm::zebra::AnisotropicAngleIntegrator integrator{};
 
@@ -80,7 +80,7 @@ denoting the Cartesian three-vector ``x``. Defining the distribution function as
 additional parameters can be taken as captures, as is the case with ``dispersion`` here.
 
 The business of Zernike and spherical harmonic transforms and expansions is handled by the library
-`zest <https://github.com/sebsassi/zest>`. We can use zest's :cpp:type:`zest::zt::ZernikeTransformer`
+`zest <https://github.com/sebsassi/zest>`_. We can use zest's :cpp:type:`zest::zt::ZernikeTransformer`
 to accomplish this. As a more general purpose library, zest supports multiple conventions for
 normalization and the Condon--Shortley phase. In ZebraDM the conventions are chosen to be such that
 the spherical harmonics are :math:`4\pi`-normalized and defined without the Condon--Shortley phase,
@@ -95,11 +95,11 @@ We can use this to easily get the Zernike expansion of our distribution
     
     constexpr double radius = 2.0;
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, resp_order);
+        = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, dist_order);
 
 The Zernike functions are defined on the unit ball, but we can obviously scale any ball to a unit
 ball. The ``radius`` parameter here does exactly that. It is the radius of the ball on which our
-function is defined, so that :cpp:type:`zest::zt:ZernikeTransformer` can do the scaling for you.
+function is defined, so that :cpp:type:`zest::zt::ZernikeTransformer` can do the scaling for you.
 
 The next problem is to define our response function. For purposes of this demonstration, we use an
 arbitrary function
@@ -201,7 +201,7 @@ harmonic expansions are expensive, so the transformer has been limited to doing 
 z-axis per offset. With that said, nothing stops you from applying arbitrary global rotations on
 the expansions of the distribution and response before handing them off to the integrator. You can
 rotate Zernike and spherical harmonic transforms by arbitrary Euler angles with the
-:cpp:type:`zest::Rotor`` class
+:cpp:type:`zest::Rotor` class
 
 .. code:: cpp
 
@@ -246,7 +246,7 @@ Now, the last remaining thing we need is a buffer to put the results in
     zest::MDArray<double, 2> out({offset_count, shell_count});
 
 If we were dealing with one of the ``Transverse`` integrators, then then we would have to use
-:ccp:type:`std::array<double, 2>` as the element type of ``out`` instead to store the
+:cpp:type:`std::array\<double, 2>` as the element type of ``out`` instead to store the
 nontransverse--transverse pair.
 
 With this, we finally have everything in place to integrate the angle-integrated Radon transform
@@ -254,6 +254,29 @@ With this, we finally have everything in place to integrate the angle-integrated
 .. code:: cpp
 
     integrator.integrate(distribution, response, offsets, rotation_angles, shells, out);
+
+Now, this is almost it. However, there is one point which need to be accounted for. Earlier we set
+the parameter ``radius = 2.0`` indicating to the Zernike transformer that our distribution is
+defined in a ball of radius two. However, the Radon transform is always evaluated on the unit ball.
+This means that if we defined the unit ball coordinates :math:`\vec{x} = \vec{r}/R`, where :math:`R`
+is our radius, then
+
+.. math::
+
+    \mathcal{R}[f](w,\hat{n})
+        = \int\delta(\vec{r}\cdot\hat{n} - w)f(\vec{r})\,d^3r = R^2\int\delta(\vec{x}\cdot\hat{n} - w/R)f(R\vec{x})\,d^3x.
+
+That is, in practice, not only do we need to divide our original shell parameters by the radius
+(which we didn't do here because we just generated the scaled parameters directly), but we also
+have to multiply our result by the radius squared
+
+.. code:: cpp
+
+    for (auto& element : out.flatten())
+        element *= radius*radius;
+
+If we were also evaluating the transverse Radon transform, we would likewise have to multiply it by
+the fourth power of the radius.
 
 And this is it. We have successfully computed the angle-integrated Radon transform of of our
 distribution, combined with an anisotropic response function, for a set of shells and offset--angle
@@ -346,7 +369,7 @@ pairs. In summary, here is the full source code of our program
             = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, dist_order);
 
         constexpr std::size_t resp_order = 60;
-        zdm::zebra::SHExpansionVector response 
+        zdm::SHExpansionVector response 
             = zdm::zebra::ResponseTransformer{}.transform(resp_func, shells, resp_order);
 
         constexpr std::array<double, 3> euler_angles = {
@@ -361,6 +384,9 @@ pairs. In summary, here is the full source code of our program
 
         zest::MDArray<double, 2> out({offset_count, shell_count});
         integrator.integrate(distribution, response, offsets, rotation_angles, shells, out);
+
+        for (auto& element : out.flatten())
+            element *= radius*radius;
 
         for (std::size_t i = 0; i < out.extent(0); ++i)
         {

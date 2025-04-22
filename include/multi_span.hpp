@@ -28,6 +28,9 @@ SOFTWARE.
 namespace zdm
 {
 
+namespace detail
+{
+
 template <std::size_t M, typename FieldType>
 auto last(FieldType a) noexcept
 {
@@ -46,27 +49,34 @@ auto prod(FieldType a) noexcept
     return res;
 }
 
-/*
-View over contiguous multidimensional data with arbitrary layout in the last dimensions.
+} // namespace detail
 
-Given `SubSpanType` describing contiguous data with arbitrary layout, `MultiSuperSpan` describes a multidimensional array view over such data. For example, if `SubSpanType` describes a triangular data
-```
-(0,0)
-(1,0) (1,1)
-```
-then `MultiSuperSpan<SubSpanType, 2>` can be used to describe a 2D array of such data
-```
-(0,0,0,0)            (0,1,0,0)          
-(0,0,1,0) (0,0,1,1)  (0,1,1,0) (0,1,1,1) 
+/**
+    @brief Multidimensional view over contiguous data with arbitrary layout in the last dimensions.
 
-(1,0,0,0)            (1,1,0,0)          
-(1,0,1,0) (1,0,1,1)  (1,1,1,0) (1,1,1,1)
+    @tparam SubspanType view describing multidimensional data
+    @tparam rank number of dimensions in the outer view
 
-(2,0,0,0)            (2,1,0,0)          
-(2,0,1,0) (2,0,1,1)  (2,1,1,0) (2,1,1,1)
-```
+    Given `SubspanType` describing contiguous data with arbitrary layout, `MultiSuperSpan`
+    describes a multidimensional array view over such data. For example, if `SubspanType` describes
+    triangular data.
+    ```
+    (0,0)
+    (1,0) (1,1)
+    ```
+    then `MultiSuperSpan<SubSpanType, 2>` can be used to describe a 2D array of such data
+    ```
+    (0,0,0,0)            (0,1,0,0)          
+    (0,0,1,0) (0,0,1,1)  (0,1,1,0) (0,1,1,1) 
+
+    (1,0,0,0)            (1,1,0,0)          
+    (1,0,1,0) (1,0,1,1)  (1,1,1,0) (1,1,1,1)
+
+    (2,0,0,0)            (2,1,0,0)          
+    (2,0,1,0) (2,0,1,1)  (2,1,1,0) (2,1,1,1)
+    ```
 */
-template <typename SubspanType, std::size_t ndim>
+template <typename SubspanType, std::size_t rank>
 class MultiSuperSpan
 {
 public:
@@ -75,18 +85,18 @@ public:
     using size_type = std::size_t;
     using index_type = std::size_t;
     using data_handle_type = element_type*;
-    using ConstView = MultiSuperSpan<typename SubspanType::ConstView, ndim>;
+    using ConstView = MultiSuperSpan<typename SubspanType::ConstView, rank>;
 
     constexpr MultiSuperSpan(
-        element_type* data, const std::array<std::size_t, ndim>& extents, std::size_t subspan_size_param) noexcept:
+        element_type* data, const std::array<std::size_t, rank>& extents, std::size_t subspan_size_param) noexcept:
         m_data(data), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
     
     constexpr MultiSuperSpan(
-        std::span<element_type> span, const std::array<std::size_t, ndim>& extents, std::size_t subspan_size_param) noexcept:
+        std::span<element_type> span, const std::array<std::size_t, rank>& extents, std::size_t subspan_size_param) noexcept:
         m_data(span.data()), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     constexpr MultiSuperSpan(
-        data_handle_type data, size_type size, std::size_t subspan_size, std::size_t subspan_size_param, const std::array<std::size_t, ndim>& extents) noexcept:
+        data_handle_type data, size_type size, std::size_t subspan_size, std::size_t subspan_size_param, const std::array<std::size_t, rank>& extents) noexcept:
         m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     [[nodiscard]] constexpr operator ConstView() const noexcept
@@ -105,7 +115,7 @@ public:
         return m_subspan_size;
     }
 
-    [[nodiscard]] std::span<const std::size_t, ndim> extents() const noexcept
+    [[nodiscard]] std::span<const std::size_t, rank> extents() const noexcept
     {
         return m_extents;
     }
@@ -116,7 +126,7 @@ public:
     }
 
     template <typename... Ts>
-        requires (sizeof...(Ts) == ndim)
+        requires (sizeof...(Ts) == rank)
     SubspanType operator()(Ts... inds)
     {
         std::size_t ind = idx(inds...);
@@ -124,12 +134,12 @@ public:
     }
 
     template <typename... Ts>
-        requires (sizeof...(Ts) < ndim)
-    MultiSuperSpan<SubspanType, ndim - sizeof...(Ts)> operator()(Ts... inds)
+        requires (sizeof...(Ts) < rank)
+    MultiSuperSpan<SubspanType, rank - sizeof...(Ts)> operator()(Ts... inds)
     {
         std::size_t ind = idx(inds...);
-        std::array<std::size_t, ndim - sizeof...(Ts)> extents = last<ndim - sizeof...(Ts)>(m_extents);
-        return MultiSuperSpan<SubspanType, ndim - sizeof...(Ts)>(m_data + ind*prod(extents)*m_subspan_size, extents, m_subspan_size_param);
+        std::array<std::size_t, rank - sizeof...(Ts)> extents = last<rank - sizeof...(Ts)>(m_extents);
+        return MultiSuperSpan<SubspanType, rank - sizeof...(Ts)>(m_data + ind*prod(extents)*m_subspan_size, extents, m_subspan_size_param);
     }
 
     auto operator[](std::size_t i)
@@ -147,7 +157,7 @@ private:
     template <std::size_t N, typename... Ts>
     std::size_t idx_impl(std::size_t ind, std::size_t next, Ts... inds)
     {
-        if constexpr (N < ndim)
+        if constexpr (N < rank)
             return idx_impl<N + 1>(ind*m_extents[N] + next, inds...);
         else
             return ind;
@@ -163,9 +173,33 @@ private:
     size_type m_size;
     std::size_t m_subspan_size;
     std::size_t m_subspan_size_param;
-    std::array<std::size_t, ndim> m_extents;
+    std::array<std::size_t, rank> m_extents;
 };
 
+/**
+    @brief View over contiguous data with arbitrary layout in the last dimensions.
+
+    @tparam SubspanType view describing multidimensional data
+
+    Given `SubspanType` describing contiguous data with arbitrary layout, `SuperSpan`
+    describes a multidimensional array view over such data. For example, if `SubspanType` describes
+    triangular data.
+    ```
+    (0,0)
+    (1,0) (1,1)
+    ```
+    then `SuperSpan<SubSpanType>` can be used to describe a 2D array of such data
+    ```
+    (0,0,0)          
+    (0,1,0) (0,1,1)
+
+    (1,0,0)          
+    (1,1,0) (1,1,1)
+
+    (2,0,0)          
+    (2,1,0) (2,1,1)
+    ```
+*/
 template <typename SubspanType>
 class SuperSpan
 {

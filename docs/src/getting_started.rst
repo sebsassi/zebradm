@@ -7,9 +7,9 @@ Installation
 Before we can start with the installation of the library, we need to take care of its dependencies.
 There are two:
 
-- [zest](https://github.com/sebsassi/zest) (REQUIRED) is a companion library, which provides
+- `zest <https://github.com/sebsassi/zest>`_ (REQUIRED) is a companion library, which provides
   utilities for performing Zernike and spherical harmonic transforms.
-- [cubage](https://github.com/sebsassi/cubage) (OPTIONAL) provides capabilities for
+- `cubage <https://github.com/sebsassi/cubage>`_ (OPTIONAL) provides capabilities for
   multidimensional numerical integration. This library is only used by the numerical integration
   implementation of the Radon transforms, which are implemented for comparison.
 

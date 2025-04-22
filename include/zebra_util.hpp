@@ -32,6 +32,10 @@ SOFTWARE.
 namespace zdm
 {
 
+/**
+    @brief Container that packs multiple spherical harmonic expansions of the same order into one
+    buffer.
+*/
 class SHExpansionVector
 {
 public:
@@ -112,15 +116,24 @@ private:
 namespace zebra
 {
 
-template <typename ElementType>
-using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
-
+/**
+    @brief Class for spherical harmonic expansion of response functions on multiple shells.
+*/
 class ResponseTransformer
 {
 public:
     ResponseTransformer() = default;
     explicit ResponseTransformer(std::size_t order): m_transformer(order) {}
 
+    /**
+        @brief Take spherical harmonic transform of a response function.
+
+        @tparam RespType type of response function
+
+        @param resp response function
+        @param shells shells the spherical harmonic transforms are evaluated on
+        @param out spherical harmonic expansions of the response
+    */
     template <typename RespType>
     void transform(
         RespType&& resp, std::span<const double> shells, SHExpansionVectorSpan<std::array<double, 2>> out)
@@ -136,6 +149,17 @@ public:
         }
     }
 
+    /**
+        @brief Take spherical harmonic transform of a response function.
+
+        @tparam RespType type of response function
+
+        @param resp response function
+        @param shells shells the spherical harmonic transforms are evaluated on
+        @param order order of spherical harmonic expansions
+
+        @return spherical harmonic expansions of the response
+    */
     template <typename RespType>
     SHExpansionVector transform(RespType&& resp, std::span<const double> shells, std::size_t order)
     {

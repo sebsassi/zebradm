@@ -37,7 +37,7 @@ void benchmark_distribution_zernike_grid_construction(
     zest::zt::BallGLQGrid<double> grid(order);
     auto dist_spherical = [&](double lon, double colat, double r)
     {
-        return dist(zdm::coordinates::spherical_to_cartesian_phys({lon, colat, r}));
+        return dist(zdm::coordinates::spherical_to_cartesian_phys(lon, colat, r));
     };
     bench.run(name, [&](){
         points.generate_values(grid, dist_spherical);

@@ -1,8 +1,8 @@
-Theoretical background
-======================
+Theory -- Zernike-based Radon transforms
+========================================
 
 The motivation and theory of the Zernike-based Radon transforms is described in detail in the
-article `arxiv:xxxx.xxxx <https://example.com>`, which introduces this method. This sections aims
+article `arxiv:xxxx.xxxx <https://example.com>`_, which introduces this method. This sections aims
 to give a brief introduction to the topic and the methods emplyed by this library.
 
 In short, ZebraDM is a library that exists primarily for fast evaluation of integrals of the form
@@ -36,7 +36,7 @@ defined in coordinate systems that differ by an arbitrary rotation, although thi
 only implements solutions where they differ by a rotation about the :math:`z`-axis.
 
 As described in more detail in the article, intergals of this form occur in computation of expected
-dark matter event rates in dark matter direct detection experiments. In this context :math:`f(vec{x})`
+dark matter event rates in dark matter direct detection experiments. In this context :math:`f(\vec{x})`
 represents the dark matter velocity distribution with :math:`\vec{x}` effectively corresponding to
 the dark matter velocity in the laboratory frame, and :math:`\vec{x}_0` representing the velocity
 of the laboratory frame relative to the average motion of the dark matter. The unit vector
@@ -113,13 +113,13 @@ unit ball. Thus
     f(\vec{x}) = \sum_{nlm} f_{nlm}Z_{nlm}(\vec{x}).
 
 Transformations of Zernike functions into the expansion coefficients are implemented in a companion
-library `zest <https://github.com/sebsassi/zest>`. Zernike functions are described in further
+library `zest <https://github.com/sebsassi/zest>`_. Zernike functions are described in further
 detail in the documentation of zest. For purposes of this library, their most important property is
 that their Radon transform has a closed-form expression
 
 .. math::
 
-    \mathcal{R}[Z_{nlm}](w,\unitv{n}) = \frac{2\pi}{(n + 1)(n + 2)}(1 - w^2)C_n^{3/2}(w)Y_{lm}(\unitv{n}).
+    \mathcal{R}[Z_{nlm}](w,\hat{n}) = \frac{2\pi}{(n + 1)(n + 2)}(1 - w^2)C_n^{3/2}(w)Y_{lm}(\hat{n}).
 
 Here :math:`C_n^{3/2}(w)` are so-called Gegenbauer polynomials. It is possible to express the term
 :math:`(1 - w^2)C_n^{3/2}(w)` as a linear combination of two Legendre polynomials. Given this, the
@@ -127,7 +127,7 @@ Radon transform of the shifted function :math:`f(\vec{x} + \vec{x}_0)` is
 
 .. math::
 
-    \mathcal{R}[f](w,\unitv{n}) = 2\pi\sum_{nlm}f'_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\unitv{n}).
+    \mathcal{R}[f](w,\hat{n}) = 2\pi\sum_{nlm}f'_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).
 
 where
 
@@ -150,7 +150,7 @@ directions :math:`\hat{n}`. To this end, it is important to notice that all depe
 
 .. math::
 
-    P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\unitv{n}).
+    P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).
 
 A mild complication is the potential presence of the response function :math:`S(w,\hat{n})`. This
 is dealt with via the observation that we have a collection of functions
@@ -172,13 +172,13 @@ where :math:`R` and :math:`R'` denote rotations applied on the functions, we end
 
 .. math::
 
-    S(w,\hat{n})\mathcal{R}[f](w,\unitv{n}) = 2\pi\sum_{nlm}f^S_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\unitv{n}).
+    S(w,\hat{n})\mathcal{R}[f](w,\hat{n}) = 2\pi\sum_{nlm}f^S_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).
 
 The outcome is therefore that we only ever need to integrate
 
 .. math::
 
-   \int P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\unitv{n})\,d\Omega.
+   \int P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n})\,d\Omega.
 
 This integral simplifies if the integration coordinates can be chosen such that the :math:`z`-axis
 is in the direction of :math:`\vec{x}_0`, which requires rotation of the coefficients
