@@ -11,7 +11,8 @@ There are two:
   utilities for performing Zernike and spherical harmonic transforms.
 - `cubage <https://github.com/sebsassi/cubage>`_ (OPTIONAL) provides capabilities for
   multidimensional numerical integration. This library is only used by the numerical integration
-  implementation of the Radon transforms, which are implemented for comparison.
+  implementation of the Radon transforms, which are implemented for comparison. If you are not
+  planning on building the included benchmarks, you likely have no need for this.
 
 For all practical purposes, zest is the only dependency you need to care about. Its installation
 process is straightforward and similar to this library.

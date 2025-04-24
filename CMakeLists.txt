@@ -84,8 +84,14 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 find_package(cubage CONFIG)
+if((NOT cubage_FOUND) AND (BUILD_BENCHMARKS OR BUILD_TESTING))
+    message(FATAL_ERROR "cubage not found: benchmarks or tests cannot be built without cubage")
+else()
+    target_link_libraries(zebradm PUBLIC cubage::cubage)
+endif()
+
 find_package(zest CONFIG REQUIRED)
-target_link_libraries(zebradm PUBLIC cubage::cubage zest::zest)
+target_link_libraries(zebradm PUBLIC zest::zest)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     enable_testing()
