@@ -54,7 +54,7 @@ transform in this case is given by the integral formula
 
 .. math::
 
-   \mathcal{R}[f](w,\hat{n}) = \int_\mathbb{R}^3 \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x,
+   \mathcal{R}[f](w,\hat{n}) = \int_{\mathbb{R}^3} \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x,
 
 where :math:`\delta` is the Dirac delta-function. The delta-function forces the integration to be
 over a plane whose normal vector is :math:`\hat{n}`, and whose distance from the origin is

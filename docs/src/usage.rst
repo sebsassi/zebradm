@@ -63,14 +63,16 @@ distribution, so we will define one
     #include <cmath>
     #include <array>
 
-    constexpr std::array<double, 3> dispersion = {0.5, 0.6, 0.7};
+    constexpr std::array<double, 3> var = {0.5, 0.6, 0.7};
     auto dist_func = [&](double lon, double colat, double r)
     {
         const std::array<double, 3> x = {
-            r*std::sin(colat)*std::cos(lon), r*std::sin(colat)*std::sin(lon), r*std::cos(colat)
+            r*std::sin(colat)*std::cos(lon),
+            r*std::sin(colat)*std::sin(lon),
+            r*std::cos(colat)
         };
 
-        return std::exp(-(x[0]*x[0]/dispersion[0]) + x[1]*x[1]/dispersion[1] + x[2]*x[2]/dispersion[2]);
+        return std::exp(-(x[0]*x[0]/var[0]) + x[1]*x[1]/var[1] + x[2]*x[2]/var[2]);
     };
 
 This is a C++ lambda function describing an anisotropic Gaussian distribution. The function takes
@@ -94,8 +96,9 @@ We can use this to easily get the Zernike expansion of our distribution
     #include <zest/zernike_glq_transformer.hpp>
     
     constexpr double radius = 2.0;
+    zest::zt::RealZernikeExpansionNormalGeo zernike_transformer{};
     zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, dist_order);
+        = zernike_transformer{}.transform(dist_func, radius, dist_order);
 
 The Zernike functions are defined on the unit ball, but we can obviously scale any ball to a unit
 ball. The ``radius`` parameter here does exactly that. It is the radius of the ball on which our
@@ -110,7 +113,9 @@ arbitrary function
     auto resp_func = [&](double shell, double lon, double colat)
     {
         const std::array<double, 3> dir = {
-            std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)
+            std::sin(colat)*std::cos(lon),
+            std::sin(colat)*std::sin(lon),
+            std::cos(colat)
         };
 
         return std::exp(-min_speed*(zdm::linalg(dir, a)));
@@ -176,7 +181,8 @@ Then we can generate the offsets and shells
     constexpr double offset_count = 10;
     constexpr double shell_count = 50;
 
-    std::vector<std::array<double, 3>> offsets = generate_offsets(offset_count, offset_len);
+    std::vector<std::array<double, 3>> offsets
+        = generate_offsets(offset_count, offset_len);
     std::vector<double> shells = generate_shells(shell_count, offset_len);
 
 Now that we actually have the shells, we can compute the spherical harmonic transforms of the
@@ -187,8 +193,9 @@ for computing the spherical harmonic expansions.
 
 .. code:: cpp
 
+    zdm::zebra::ResponseTransformer response_transformer{};
     zdm::SHExpansionVector response 
-        = zdm::zebra::ResponseTransformer{}.transform(resp_func, shells, resp_order);
+        = response_transformer.transform(resp_func, shells, resp_order);
 
 At this point we are almost ready to use the integrator. We still need two things, however. First
 is a vector of rotation angles for each offset, because not only can the distribution be defined in
@@ -228,7 +235,8 @@ With that said, here we can just create a nice full rotation
     {
         std::vector<double> rotation_angles(offset_count);
         for (std::size_t i = 0; i < offset_count; ++i)
-            rotation_angles[i] = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
+            rotation_angles[i]
+                = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
     }
 
 and then generate the rotation angles
@@ -253,7 +261,8 @@ With this, we finally have everything in place to integrate the angle-integrated
 
 .. code:: cpp
 
-    integrator.integrate(distribution, response, offsets, rotation_angles, shells, out);
+    integrator.integrate(
+            distribution, response, offsets, rotation_angles, shells, out);
 
 Now, this is almost it. However, there is one point which need to be accounted for. Earlier we set
 the parameter ``radius = 2.0`` indicating to the Zernike transformer that our distribution is
@@ -297,7 +306,8 @@ pairs. In summary, here is the full source code of our program
 
     #include <zebradm/zebra_angle_integrator.hpp>
 
-    std::vector<std::array<double, 3>> generate_offsets(std::size_t count, double offset_len)
+    std::vector<std::array<double, 3>>
+    generate_offsets(std::size_t count, double offset_len)
     {
         std::mt19937 gen;
         std::uniform_real_distribution rng_dist{0.0, 1.0};
@@ -318,7 +328,8 @@ pairs. In summary, here is the full source code of our program
     {
         std::vector<double> rotation_angles(offset_count);
         for (std::size_t i = 0; i < offset_count; ++i)
-            rotation_angles[i] = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
+            rotation_angles[i]
+                = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
     }
 
 
@@ -335,21 +346,25 @@ pairs. In summary, here is the full source code of our program
 
     int main()
     {
-        constexpr std::array<double, 3> dispersion = {0.5, 0.6, 0.7};
+        constexpr std::array<double, 3> var = {0.5, 0.6, 0.7};
         auto dist_func = [&](double lon, double colat, double r)
         {
             const std::array<double, 3> x = {
-                r*std::sin(colat)*std::cos(lon), r*std::sin(colat)*std::sin(lon), r*std::cos(colat)
+                r*std::sin(colat)*std::cos(lon),
+                r*std::sin(colat)*std::sin(lon),
+                r*std::cos(colat)
             };
 
-            return std::exp(-(x[0]*x[0]/dispersion[0]) + x[1]*x[1]/dispersion[1] + x[2]*x[2]/dispersion[2]);
+            return std::exp(-(x[0]*x[0]/var[0]) + x[1]*x[1]/var[1] + x[2]*x[2]/var[2]);
         };
 
         constexpr std::array<double, 3> a = {0.5, 0.5, 0.5};
         auto resp_func = [&](double shell, double lon, double colat)
         {
             const std::array<double, 3> dir = {
-                std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)
+                std::sin(colat)*std::cos(lon),
+                std::sin(colat)*std::sin(lon),
+                std::cos(colat)
             };
 
             return std::exp(-min_speed*(zdm::linalg(dir, a)));
@@ -359,18 +374,21 @@ pairs. In summary, here is the full source code of our program
         constexpr double offset_count = 10;
         constexpr double shell_count = 50;
 
-        std::vector<std::array<double, 3>> offsets = generate_offsets(offset_count, offset_len);
+        std::vector<std::array<double, 3>> offsets
+            = generate_offsets(offset_count, offset_len);
         std::vector<double> rotation_angles = generate_rotation_angles(offset_count);
         std::vector<double> shells = generate_shells(shell_count, offset_len);
 
         constexpr double radius = 2.0;
         constexpr std::size_t dist_order = 30;
+        zest::zt::ZernikeTransformerNormalGeo zernike_transformer{};
         zest::zt::RealZernikeExpansionNormalGeo distribution
-            = zest::zt::ZernikeTransformerNormalGeo{}.transform(dist_func, radius, dist_order);
+            = zernike_transformer.transform(dist_func, radius, dist_order);
 
         constexpr std::size_t resp_order = 60;
+        zdm::zebra::ResponseTransformer response_transformer{};
         zdm::SHExpansionVector response 
-            = zdm::zebra::ResponseTransformer{}.transform(resp_func, shells, resp_order);
+            = response_transformer.transform(resp_func, shells, resp_order);
 
         constexpr std::array<double, 3> euler_angles = {
             std::numbers::pi/2, std::numbers::pi/3, std::numbers::pi/4
@@ -383,7 +401,8 @@ pairs. In summary, here is the full source code of our program
         zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
 
         zest::MDArray<double, 2> out({offset_count, shell_count});
-        integrator.integrate(distribution, response, offsets, rotation_angles, shells, out);
+        integrator.integrate(
+                distribution, response, offsets, rotation_angles, shells, out);
 
         for (auto& element : out.flatten())
             element *= radius*radius;

@@ -63,19 +63,25 @@ functions are implemented in practice. These magic functions are as follows
 
 .. code:: cpp
 
-    std::vector<double> time_interval(std::string_view start, std::string_view end, std::size_t count);
+    std::vector<double>
+    time_interval(std::string_view start, std::string_view end, std::size_t count);
 
-    std::vecto<std::array<double, 3>> compute_lab_velocities_equatorial(std::span<double> times);
+    std::vecto<std::array<double, 3>>
+    compute_lab_velocities_equatorial(std::span<double> times);
     
     std::vector<double> compute_earth_rotation_angles(std::span<double> times);
     zdm::Matrix<double, 3, 3> rotation_matrix_from_equatorial_to_galactic();
     std::array<double, 3> euler_angles_from_lab_to_polar(double lon, double lat);
 
-    std::vector<std::array<double, 2>> compute_eft_responses(std::span<double> momentum_transfers);
+    std::vector<std::array<double, 2>>
+    compute_eft_responses(std::span<double> momentum_transfers);
     
-    zdm::SHExpansionVector get_detector_response(std::span<double> momentum_transfers, std::size_t resp_order);
+    zdm::SHExpansionVector
+    get_detector_response(
+        std::span<double> momentum_transfers, std::size_t resp_order);
 
     DistributionParams get_distribution_params();
+    
     double velocity_distribution(
         const std::array<double, 3>& velocity, const DistributionParams& params);
 
@@ -163,8 +169,9 @@ This is straightforward enough to implement here
         std::size_t count)
     {
         const double v_minmax = v_lab_max + v_esc;
-        const double emax = std::sqrt(2.0*reduced_mass/nuclear_mass)*v_minmax*v_minmax;
-        
+        const double emax
+            = std::sqrt(2.0*reduced_mass/nuclear_mass)*v_minmax*v_minmax;
+
         std::vector<double> energies(count);
         for (std::size_t i = 0; i < count; ++i)
             energies[i] = emax*double(i)/double(count - 1);
@@ -172,7 +179,8 @@ This is straightforward enough to implement here
         return energies;
     }
 
-    std::vector<double> vmin_from(std::span<double> energies, double reduced_mass, double nuclear_mass)
+    std::vector<double> vmin_from(
+        std::span<double> energies, double reduced_mass, double nuclear_mass)
     {
         const double prefactor = nuclear_mass/(2.0*reduced_mass);
 
@@ -183,7 +191,8 @@ This is straightforward enough to implement here
         return vmin;
     }
 
-    std:.vector<double> momentum_transfers_from(std::span<double> energies, double nuclear mass)
+    std::vector<double> momentum_transfers_from(
+        std::span<double> energies, double nuclear mass)
     {
         const double prefactor = 2.0*nuclear_mass;
 
@@ -217,7 +226,8 @@ Now we can generate the :math:`v_\text{min}` and momentum transfer values we are
     std::vector<double> energies = generate_energies(
         reduced_mass, nuclear_mass, maximum_lab_velocity(v_lab_eq), v_esc, 50);
     std::vector<double> v_min = vmin_from(energies, reduced_mass, nuclear_mass);
-    std::vector<double> momentum_transfers = momentum_transfer_from(energies, nuclear_mass);
+    std::vector<double> momentum_transfers
+        = momentum_transfer_from(energies, nuclear_mass);
 
 Distribution and response
 -------------------------
@@ -259,8 +269,9 @@ We can then take the Zernike transform of the wrapped distribution
 
 .. code:: cpp
 
+    zest::ZernikeTransformerNormalGeo zernike_transformer{};
     zdm::ZernikeExpansion dist
-        = zest::ZernikeTransformerNormalGeo{}.transform(wrapped_distribution, v_esc, dist_order);
+        = zernike_transformer.transform(wrapped_distribution, v_esc, dist_order);
 
 Giving ``v_esc`` as the second paramter here essentially tells the transformer that the velocity
 distribution is zero for velocities greater than the escape velocity, so that it can internally
