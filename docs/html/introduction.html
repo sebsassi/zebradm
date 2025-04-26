@@ -1,0 +1,505 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Usage – Integrating a Radon transform" href="usage.html" /><link rel="prev" title="Getting started" href="getting_started.html" />
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+        <title>Theory – Zernike-based Radon transforms - zebradm 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">zebradm 0.1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">zebradm 0.1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Theory – Zernike-based Radon transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage – Integrating a Radon transform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dm_example.html">Example: DM–nucleon scattering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference.html">Library reference</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/introduction.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="theory-zernike-based-radon-transforms">
+<h1>Theory – Zernike-based Radon transforms<a class="headerlink" href="#theory-zernike-based-radon-transforms" title="Link to this heading">¶</a></h1>
+<p>The motivation and theory of the Zernike-based Radon transforms is described in detail in the
+article <a class="reference external" href="https://example.com">arxiv:xxxx.xxxx</a>, which introduces this method. This sections aims
+to give a brief introduction to the topic and the methods emplyed by this library.</p>
+<p>In short, ZebraDM is a library that exists primarily for fast evaluation of integrals of the form</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\overline{\mathcal{R}}[f](w,\vec{x}_0)
+   = \int_{S^2} S(w,\hat{n})\int_{B} f(\vec{x} + \vec{x}_0)\delta(\vec{x}\cdot\hat{n} - w) \,d^3x\,d\Omega,\]</div>
+</div>
+<p>and also</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\overline{\mathcal{R}^\perp}[f](w,\vec{x}_0)
+  = \int_{S^2} S(w,\hat{n})\int_{B}(x^2 - (\vec{x}\cdot\hat{n})^2)f(\vec{x} + \vec{x}_0)\delta(\vec{x}\cdot\hat{n} - w) \,d^3x\,d\Omega.\]</div>
+</div>
+<p>The inner integral is over the unit ball</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[B = \{\vec{x}\in\mathbb{R}^3 \mid \|\vec{x}\|\leq 1\},\]</div>
+</div>
+<p>and the outer integral is over the sphere <span class="math notranslate nohighlight">\(S^2\)</span>.</p>
+<p>These integrals are, in the context of this library called the <em>angle-integrated Radon</em> and
+<em>transverse Radon transform</em>, respectively. This naming is so because the inner integral of the
+first equation is precisely the conventional three-dimensional Radon transform of the function
+<span class="math notranslate nohighlight">\(f(\vec{x} + \vec{x}_0)\)</span>. The parameter <span class="math notranslate nohighlight">\(\vec{x}_0\)</span> here is an arbitrary offset applied
+on the distribution. The functions <span class="math notranslate nohighlight">\(f(\vec{x})\)</span> and <span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span> may, in general, be
+defined in coordinate systems that differ by an arbitrary rotation, although this library currently
+only implements solutions where they differ by a rotation about the <span class="math notranslate nohighlight">\(z\)</span>-axis.</p>
+<p>As described in more detail in the article, intergals of this form occur in computation of expected
+dark matter event rates in dark matter direct detection experiments. In this context <span class="math notranslate nohighlight">\(f(\vec{x})\)</span>
+represents the dark matter velocity distribution with <span class="math notranslate nohighlight">\(\vec{x}\)</span> effectively corresponding to
+the dark matter velocity in the laboratory frame, and <span class="math notranslate nohighlight">\(\vec{x}_0\)</span> representing the velocity
+of the laboratory frame relative to the average motion of the dark matter. The unit vector
+<span class="math notranslate nohighlight">\(\hat{n}\)</span> corresponds to the direction of momentum transfer in dark matter scattering, and
+<span class="math notranslate nohighlight">\(w\)</span> corresponds to an energy parameter whose definition depends on the context. The function
+<span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span>, in turn, corresponds to a detector response function.</p>
+<section id="radon-transforms">
+<h2>Radon transforms<a class="headerlink" href="#radon-transforms" title="Link to this heading">¶</a></h2>
+<p>The Radon transform is a map, which maps a function <span class="math notranslate nohighlight">\(f\)</span> defined on <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span> onto
+the space of <span class="math notranslate nohighlight">\((n-1)\)</span>-dimensional hyperplanes on <span class="math notranslate nohighlight">\(\mathbb{R}^n\)</span>. In 3D, this means
+mapping the function <span class="math notranslate nohighlight">\(f\)</span> onto the space of planes on <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span>. The Radon
+transform in this case is given by the integral formula</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathcal{R}[f](w,\hat{n}) = \int_{\mathbb{R}^3} \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x,\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(\delta\)</span> is the Dirac delta-function. The delta-function forces the integration to be
+over a plane whose normal vector is <span class="math notranslate nohighlight">\(\hat{n}\)</span>, and whose distance from the origin is
+<span class="math notranslate nohighlight">\(w\)</span>. These two parameters together uniquely define a plane in <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span>.</p>
+<p>The function <span class="math notranslate nohighlight">\(f\)</span> doesn’t have to be supported on entirity of <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span>. If
+<span class="math notranslate nohighlight">\(f\)</span> is nonzero only on some measurable subset <span class="math notranslate nohighlight">\(U \subset \mathbb{R}^3\)</span>, the we may
+define</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathcal{R}[f](w,\hat{n}) = \int_U \delta(\vec{x}\cdot\hat{n} - w)f(\vec{x})\,d^3x.\]</div>
+</div>
+<p>This library, in particular, assumes that <span class="math notranslate nohighlight">\(f\)</span> is zero outside the unit ball. For practical
+purposes in terms of computation with finite precision floating point numbers, this is not much of
+a restriction at all. For example, any square-integrable function on <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span> can be
+clamped to zero beyond some finite radius <span class="math notranslate nohighlight">\(R\)</span> such that its Radon transform will remain the
+same up to some precision. Then the coordinates can be rescaled such that <span class="math notranslate nohighlight">\(R\rightarrow 1\)</span>.
+Most numerical problems in <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span> can therefore be restricted to a ball without
+losses, and in terms of functions supported on a ball, the rescaling lets us assume a unit ball
+without loss of generality.</p>
+<p>Since this library deals with angle-integrated Radon transforms, i.e., interals of the Radon
+transform over the unit vectors <span class="math notranslate nohighlight">\(\hat{n}\)</span>, it is useful to think of the planes as the tangent
+planes of spherical shells of radius <span class="math notranslate nohighlight">\(w\)</span> at the points <span class="math notranslate nohighlight">\(w\hat{n}\)</span>. Then the
+angle-integrated Radon transform maps <span class="math notranslate nohighlight">\(f\)</span> onto these spherical shells parametrized
+by <span class="math notranslate nohighlight">\(w\)</span>. Due to this identification, the parameter <span class="math notranslate nohighlight">\(w\)</span> is known as the <em>shell</em>
+parameter, or <code class="docutils literal notranslate"><span class="pre">shell</span></code> for short in the code.</p>
+<p>An important property of Radon transforms is that if we use <span class="math notranslate nohighlight">\(f\)</span> to define a new offset
+function <span class="math notranslate nohighlight">\(f_{\vec{x}_0}(\vec{x})=f(\vec{x}+\vec{x}_0)\)</span>, then</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathcal{R}[f_{\vec{x}_0}](w,\hat{n})=\mathcal{R}[f](w+\vec{x}_0\cdot\hat{n},\hat{n}).\]</div>
+</div>
+<p>Therefore handling Radon transforms of functions with arbitrary offsets is straightforward to deal
+with.</p>
+<p>It is worth noting that if <span class="math notranslate nohighlight">\(f\)</span> is zero outside of the unit ball, then the Radon transform is
+zero for <span class="math notranslate nohighlight">\(w &gt; 1\)</span>, because none of the planes tangent to the outer shells intersect the unit
+ball. If we take into account the arbitrary offset <span class="math notranslate nohighlight">\(\vec{x}_0\)</span>, then this implies that the
+Radon transform is zero for <span class="math notranslate nohighlight">\(|w + \vec{x}_0\cdot\hat{n}| &gt; 1\)</span>. This means that the
+angle-integrated Radon transform is nonzero only for the shell parameters <span class="math notranslate nohighlight">\(w \leq 1 + x_0\)</span>,
+where <span class="math notranslate nohighlight">\(x_0\)</span> is the length of <span class="math notranslate nohighlight">\(\vec{x}_0\)</span>.</p>
+</section>
+<section id="zernike-expansions">
+<h2>Zernike expansions<a class="headerlink" href="#zernike-expansions" title="Link to this heading">¶</a></h2>
+<p>The core idea behind the methods of this library is the expansion of the function <span class="math notranslate nohighlight">\(f(\vec{x})\)</span>
+in a basis of so-called Zernike functions <span class="math notranslate nohighlight">\(Z_{nlm}(\vec{x})\)</span>, which are orthogonal on the
+unit ball. Thus</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f(\vec{x}) = \sum_{nlm} f_{nlm}Z_{nlm}(\vec{x}).\]</div>
+</div>
+<p>Transformations of Zernike functions into the expansion coefficients are implemented in a companion
+library <a class="reference external" href="https://github.com/sebsassi/zest">zest</a>. Zernike functions are described in further
+detail in the documentation of zest. For purposes of this library, their most important property is
+that their Radon transform has a closed-form expression</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathcal{R}[Z_{nlm}](w,\hat{n}) = \frac{2\pi}{(n + 1)(n + 2)}(1 - w^2)C_n^{3/2}(w)Y_{lm}(\hat{n}).\]</div>
+</div>
+<p>Here <span class="math notranslate nohighlight">\(C_n^{3/2}(w)\)</span> are so-called Gegenbauer polynomials. It is possible to express the term
+<span class="math notranslate nohighlight">\((1 - w^2)C_n^{3/2}(w)\)</span> as a linear combination of two Legendre polynomials. Given this, the
+Radon transform of the shifted function <span class="math notranslate nohighlight">\(f(\vec{x} + \vec{x}_0)\)</span> is</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\mathcal{R}[f](w,\hat{n}) = 2\pi\sum_{nlm}f'_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).\]</div>
+</div>
+<p>where</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f'_{nlm} = \frac{1}{2n+3}f_{nlm} - \frac{1}{2n-1}f_{n-2,lm},\]</div>
+</div>
+<p>where the second term is neglected for <span class="math notranslate nohighlight">\(n = 0,1\)</span> and <span class="math notranslate nohighlight">\(f_{nlm} = 0\)</span> for <span class="math notranslate nohighlight">\(n &gt; L\)</span>
+and <span class="math notranslate nohighlight">\(l &gt; n\)</span>. This formula for <span class="math notranslate nohighlight">\(f'_{nlm}\)</span> essentially defines the Radon transform in the
+Zernike coefficient space.</p>
+</section>
+<section id="angle-integrals">
+<h2>Angle integrals<a class="headerlink" href="#angle-integrals" title="Link to this heading">¶</a></h2>
+<p>Although the Radon transform formula for the Zernike coefficients is useful by itself and is also
+implemented in this library, a majority of this library is focused on computing integrals of the
+Radon transform (potentially multiplied by a response function <span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span>) over the
+directions <span class="math notranslate nohighlight">\(\hat{n}\)</span>. To this end, it is important to notice that all dependence on
+<span class="math notranslate nohighlight">\(\hat{n}\)</span> in the Radon transform is in the basis functions</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).\]</div>
+</div>
+<p>A mild complication is the potential presence of the response function <span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span>. This
+is dealt with via the observation that we have a collection of functions</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f'_n(\hat{n}) = \sum_{lm}f'_{nlm}Y_{lm}(\hat{n}).\]</div>
+</div>
+<p>These functions can be multiplied by <span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span>. However, as mentioned above,
+<span class="math notranslate nohighlight">\(f'_n(\hat{n})\)</span> and <span class="math notranslate nohighlight">\(S(w,\hat{n})\)</span> may be defined in coordinate systems differing by a
+rotation. Therefore, in practice, they first need to be rotated to a matching coordinate system. In
+any case, defining</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f^S_n(w,\hat{n}) = f_n^{(R)}(\hat{n})S^{(R')}(w,\hat{n}),\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(R\)</span> and <span class="math notranslate nohighlight">\(R'\)</span> denote rotations applied on the functions, we end up back at</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[S(w,\hat{n})\mathcal{R}[f](w,\hat{n}) = 2\pi\sum_{nlm}f^S_{nlm}P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n}).\]</div>
+</div>
+<p>The outcome is therefore that we only ever need to integrate</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\int P_n(w + \vec{x}_0\cdot\hat{n})Y_{lm}(\hat{n})\,d\Omega.\]</div>
+</div>
+<p>This integral simplifies if the integration coordinates can be chosen such that the <span class="math notranslate nohighlight">\(z\)</span>-axis
+is in the direction of <span class="math notranslate nohighlight">\(\vec{x}_0\)</span>, which requires rotation of the coefficients
+<span class="math notranslate nohighlight">\(f^S_{nlm}\)</span>. With that the problem reduces to the evaluation of</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[A_{nl}(w,x_0) = \int_{-1}^1P_n(w + x_0z)P_l(z)\,dz,\]</div>
+</div>
+<p>such that</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\overline{\mathcal{R}}[f](w,\vec{x}_0) = 2\pi\sum_{nlm}f^{S;R''}_{nlm}A_{nl}(w,x_0).\]</div>
+</div>
+<p>Here <span class="math notranslate nohighlight">\(R''\)</span> denotes the rotation to the integration coordinates.</p>
+<p>Integration of the transverse Radon transform proceeeds much in the same way, except there the
+additional term <span class="math notranslate nohighlight">\(x^2 - (\vec{x}\cdot\hat{n})^2\)</span> needs to be dealt with. The problem can be
+reduced to integration of multiple conventional Radon transforms by means of some recursion
+relations of Zernike functions, after which the computation proceeds much in the same way as
+discussed above.</p>
+<p>A notable fact is that in the decomposition of the transverse Radon transform to conventional Radon
+transforms, one of them happens to be the just <span class="math notranslate nohighlight">\(\mathcal{R}[f]\)</span>. Therefore, evaluation of the
+transverse Radon transform of <span class="math notranslate nohighlight">\(f(\vec{x})\)</span> always gives the nontransverse Radon transform for
+free. The library takes advantage of this fact, and so methods that evaluate the angle-integrated
+transverse Radon transform always return both the nontransverse, and the transverse result.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="usage.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Usage – Integrating a Radon transform</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="getting_started.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Getting started</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Sebastian Sassi
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Theory – Zernike-based Radon transforms</a><ul>
+<li><a class="reference internal" href="#radon-transforms">Radon transforms</a></li>
+<li><a class="reference internal" href="#zernike-expansions">Zernike expansions</a></li>
+<li><a class="reference internal" href="#angle-integrals">Angle integrals</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
