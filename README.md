@@ -102,3 +102,7 @@ compiler defaults to C++20.
 If the transverse Radon transform is not needed, the class `zebra::IsotropicAngleIntegrator` is
 provided. If an anisotropic response to recoils is needed, corresponding anisotropic classes are
 also provided.
+
+## Documentation
+
+HTML and PDF documentation are available in the `docs` directory.
