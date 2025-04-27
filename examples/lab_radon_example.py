@@ -17,6 +17,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 # SOFTWARE.
+#
+# This example showcases the performance of the Zernike-based Radon transform
+# in an interactive way. For every change of the parameters, it calls the C++
+# program `lab_radon_example` (found in `lab_radon_example.cpp`, which needs to
+# be compiled first for this program to work), which computes a simplified toy
+# version of the dark matter direct detection event rate.
 import argparse
 import subprocess
 import io

@@ -47,7 +47,7 @@ constexpr double reduced_mass(double m1, double m2)
     return m1*m2/(m1 + m2);
 }
 
-constexpr zdm::Matrix<double, 3, 3> galactic_to_equatorial_rotation()
+zdm::Matrix<double, 3, 3> galactic_to_equatorial_rotation()
 {
     constexpr double NGP_dec = 27.084*std::numbers::pi/180.0;
     constexpr double NGP_ra = 192.729*std::numbers::pi/180.0;
@@ -88,7 +88,7 @@ std::vector<std::array<double, 3>> calculate_vlab(double vdisp, double tmin, dou
     return vlab;
 }
 
-std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, double vdisp, double emax)
+std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, [[maybe_unused]] double vdisp, double emax)
 {
     const double emin = 0.0;
     const double red_mass = reduced_mass(dm_mass, nucleus_mass);
@@ -105,7 +105,7 @@ std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, double v
 }
 
 // Left distribution unnormalized in this toy example
-constexpr double distribution_norm(double vdisp, double vesc)
+constexpr double distribution_norm([[maybe_unused]] double vdisp, [[maybe_unused]] double vesc)
 {
     return 1.0;
 }
@@ -141,7 +141,7 @@ std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
     [[maybe_unused]] auto velocity_distribution = [&](
         const std::array<double, 3>& v)
     {
-        constexpr zdm::Matrix<double, 3, 3> equ_to_gal
+        const zdm::Matrix<double, 3, 3> equ_to_gal
             = zdm::transpose(galactic_to_equatorial_rotation());
         constexpr std::array<std::array<double, 3>, 3> sigma = {
             std::array<double, 3>{3.0, 1.4, 0.5},
@@ -172,18 +172,16 @@ std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
     return {out_buffer, shape};
 }
 
-int main(int argc, char** argv)
+int main([[maybe_unused]] int argc, char** argv)
 {
     const double vmax = atof(argv[1]);
     const double vdisp = atof(argv[2]);
-    const std::size_t dist_order = atoi(argv[3]);
+    const std::size_t dist_order = std::size_t(atoi(argv[3]));
     const double dm_mass = atof(argv[4]);
     const double nucleus_mass = atof(argv[5]);
     const double tmin = atof(argv[6]);
     const double tmax = atof(argv[7]);
     const double emax = atof(argv[8]);
-
-    constexpr double amu_to_gev = 0.9315;
 
     const auto& [out_buffer, shape] = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, tmin, tmax, emax);
 

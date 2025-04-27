@@ -20,10 +20,6 @@ macro(create_test TESTNAME)
     target_include_directories(${TESTNAME}.test
         PRIVATE ${PROJECT_SOURCE_DIR}/include
     )
-    target_compile_options(${TESTNAME}.test
-        PRIVATE
-            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
-    )
     target_link_libraries(${TESTNAME}.test zebradm)
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME}.test)
 endmacro()
@@ -32,10 +28,6 @@ macro(create_experiment EXPNAME)
     add_executable(${EXPNAME}.exp ${EXPNAME}.cpp)
     target_include_directories(${EXPNAME}.exp
         PRIVATE ${PROJECT_SOURCE_DIR}/include
-    )
-    target_compile_options(${EXPNAME}.exp
-        PRIVATE
-            $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Werror;-g;-O3>
     )
     target_link_libraries(${EXPNAME}.exp zebradm)
 endmacro()

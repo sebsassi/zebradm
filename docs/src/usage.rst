@@ -216,16 +216,18 @@ rotate Zernike and spherical harmonic transforms by arbitrary Euler angles with 
 
     #include <zest/rotor.hpp>
 
+    zest::WignerdPiHalfCollection wigner(resp_order);
     zest::Rotor rotor(resp_order);
     constexpr std::array<double, 3> euler_angles = {
         std::numbers::pi/2, std::numbers::pi/3, std::numbers::pi/4
     };
 
     for (std::size_t i = 0; i < response.extent(); ++i)
-        rotor.rotate(response[i], euler_angles, zest::RotatioType::coordinate);
+        rotor.rotate(response[i], wigner, euler_angles, zest::RotatioType::coordinate);
 
-The last argument here tells the rotor whether we are rotating the coordinate system (active), or
-the object (passive). You can read more about this in the zest documentation.
+The variable ``wigner`` holds some constant Wigner D-matrices needed for the rotation. The last
+argument in turn tells the rotor whether we are rotating the coordinate system (active), or the
+object (passive). You can read more about this in the zest documentation.
 
 With that said, here we can just create a nice full rotation
 
@@ -237,6 +239,7 @@ With that said, here we can just create a nice full rotation
         for (std::size_t i = 0; i < offset_count; ++i)
             rotation_angles[i]
                 = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
+        return rotation_angles;
     }
 
 and then generate the rotation angles
@@ -305,6 +308,7 @@ pairs. In summary, here is the full source code of our program
     #include <zest/rotor.hpp>
 
     #include <zebradm/zebra_angle_integrator.hpp>
+    #include <zebradm/linalg.hpp>
 
     std::vector<std::array<double, 3>>
     generate_offsets(std::size_t count, double offset_len)
@@ -330,6 +334,7 @@ pairs. In summary, here is the full source code of our program
         for (std::size_t i = 0; i < offset_count; ++i)
             rotation_angles[i]
                 = 2.0*std::numbers::pi*double(i)/double(offset_count - 1);
+        return rotation_angles;
     }
 
 
@@ -367,12 +372,12 @@ pairs. In summary, here is the full source code of our program
                 std::cos(colat)
             };
 
-            return std::exp(-min_speed*(zdm::linalg(dir, a)));
+            return std::exp(-shell*(zdm::dot(dir, a)));
         };
 
         constexpr double offset_len = 0.5;
-        constexpr double offset_count = 10;
-        constexpr double shell_count = 50;
+        constexpr std::size_t offset_count = 10;
+        constexpr std::size_t shell_count = 50;
 
         std::vector<std::array<double, 3>> offsets
             = generate_offsets(offset_count, offset_len);
@@ -394,9 +399,10 @@ pairs. In summary, here is the full source code of our program
             std::numbers::pi/2, std::numbers::pi/3, std::numbers::pi/4
         };
 
+        zest::WignerdPiHalfCollection wigner(resp_order);
         zest::Rotor rotor(resp_order);
         for (std::size_t i = 0; i < response.extent(); ++i)
-            rotor.rotate(response[i], euler_angles, zest::RotatioType::coordinate);
+            rotor.rotate(response[i], wigner, euler_angles, zest::RotationType::coordinate);
 
         zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
 
@@ -410,7 +416,7 @@ pairs. In summary, here is the full source code of our program
         for (std::size_t i = 0; i < out.extent(0); ++i)
         {
             for (std::size_t j = 0; j < out.extent(0); ++j)
-                std::printf("%.7e", out[i,j]);
+                std::printf("%.7e", out(i,j));
             std::printf("\n");
         }
     }

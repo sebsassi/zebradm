@@ -244,9 +244,10 @@ spherical harmonic expansions
 
 .. code:: cpp
 
+    zest::WignerdPiHalfCollection wigner(std::max(resp_order, dist_order));
     zest::Rotor rotor(std::max(resp_order, disp_order));
     for (std::size_t i = 0; resp.extent(); ++i)
-        rotor.rotate(resp[i], lab_to_polar, zest::RotationType::coordinate);
+        rotor.rotate(resp[i], wigner, lab_to_polar, zest::RotationType::coordinate);
 
 When it comes to the velocity distribution, we need it to have a specific function signature, which
 only takes as arguments the spherical coordinates of the velocity itself. The easiest way to do this
