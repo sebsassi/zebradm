@@ -38,17 +38,21 @@ amu_to_gev = 0.9315
 class RadonPlotter:
     def __init__(self):
         self.fig = plt.figure()
-        self.ax1 = self.fig.add_subplot(2, 1, 1)
-        self.ax2 = self.fig.add_subplot(2, 1, 2)
+        self.ax1 = self.fig.add_axes([0.05, 0.55, 0.9, 0.3])
+        self.ax2 = self.fig.add_axes([0.05, 0.2, 0.9, 0.3])
 
-        self.ax1.set_title("Demonstration only; data not accurate", pad=16, fontsize="xx-large", c="tab:red")
+        self.e_count = 50
+        self.t_count = 24
+
+        title_text = f"Mock event rates for {self.t_count} times and {self.e_count} energies; not meant to be realistic"
+        self.ax1.set_title(title_text, pad=16, wrap=True, fontsize="xx-large", c="tab:red")
 
         self.ax1.callbacks.connect("xlim_changed", self.update_ax)
         self.ax2.callbacks.connect("xlim_changed", self.update_ax)
 
-        self.ax_vmax = self.fig.add_axes([0.20, 0.15, 0.60, 0.03])
-        self.ax_vdisp = self.fig.add_axes([0.20, 0.1, 0.60, 0.03])
-        self.ax_dist_order = self.fig.add_axes([0.20, 0.05, 0.60, 0.03])
+        self.ax_vmax = self.fig.add_axes([0.20, 0.12, 0.60, 0.03])
+        self.ax_vdisp = self.fig.add_axes([0.20, 0.08, 0.60, 0.03])
+        self.ax_dist_order = self.fig.add_axes([0.20, 0.04, 0.60, 0.03])
         self.ax_dm_mass = self.fig.add_axes([0.20, 0.0, 0.60, 0.03])
 
         self.ax_xe = self.fig.add_axes([0.95, 0.0, 0.05, 0.03])
@@ -82,9 +86,9 @@ class RadonPlotter:
         self.tmax = 8565
         self.emin = 0.0
         self.emax = 2000
-        self.energies = np.linspace(0.0, self.emax, 50)
-        self.times = np.linspace(self.tmin, self.tmax, 24)
-
+        self.energies = np.linspace(0.0, self.emax, self.e_count)
+        self.times = np.linspace(self.tmin, self.tmax, self.t_count)
+        
         self.slider_vmax = widgets.Slider(
             ax=self.ax_vmax, label=r"$v_{esc}$", valmin=500, valmax=600, valinit=self.vmax)
         self.slider_vdisp = widgets.Slider(
