@@ -118,7 +118,7 @@ int main()
     for (std::size_t i = 0; i < out.extent(0); ++i)
     {
         for (std::size_t j = 0; j < out.extent(0); ++j)
-            std::printf("%.7e", out(i,j));
+            std::printf("%.7e ", out(i,j));
         std::printf("\n");
     }
 }

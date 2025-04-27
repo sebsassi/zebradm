@@ -71,7 +71,7 @@ zdm::Matrix<double, 3, 3> galactic_to_equatorial_rotation()
 }
 
 // Mock vlab; not accurate
-std::vector<std::array<double, 3>> calculate_vlab(double vdisp, double tmin, double tmax)
+std::vector<std::array<double, 3>> calculate_vlab(double vesc, double vdisp, double tmin, double tmax)
 {
     constexpr double tilt = (23.0/180.0)*std::numbers::pi;
     constexpr double speed = 28.0;
@@ -84,11 +84,12 @@ std::vector<std::array<double, 3>> calculate_vlab(double vdisp, double tmin, dou
         const double time = tmin + (tmax - tmin)*(double(i)/double(count - 1UL));
         const double anomaly = (2.0*std::numbers::pi/365.25)*time;
         vlab[i] = zdm::add(vsol, {speed*std::cos(anomaly), speed*std::sin(anomaly)*std::cos(tilt), std::sin(tilt)});
+        vlab[i] = zdm::div(vlab[i], vesc);
     }
     return vlab;
 }
 
-std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, [[maybe_unused]] double vdisp, double emax)
+std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
 {
     const double emin = 0.0;
     const double red_mass = reduced_mass(dm_mass, nucleus_mass);
@@ -99,6 +100,7 @@ std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, [[maybe_
     {
         const double energy = emin + (emax - emin)*(double(i)/double(count - 1UL));
         vmin[i] = std::sqrt(nucleus_mass*energy/(2.0*red_mass*red_mass));
+        vmin[i] /= vesc;
     }
 
     return vmin;
@@ -152,10 +154,10 @@ std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
     };
 
     const std::vector<std::array<double, 3>> vlab
-        = calculate_vlab(vdisp, tmin, tmax);
+        = calculate_vlab(vesc, vdisp, tmin, tmax);
     
     const std::vector<double> vmin
-        = calculate_vmin(nucleus_mass, dm_mass, vdisp, emax);
+        = calculate_vmin(nucleus_mass, dm_mass, vesc, vdisp, emax);
 
     // zebradm
     // zest
@@ -168,6 +170,9 @@ std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
 
     zdm::zebra::IsotropicAngleIntegrator radon_integrator(dist_order);
     radon_integrator.integrate(dist_expansion, vlab, vmin, out);
+
+    for (auto& element : out.flatten())
+        element *= vesc*vesc;
 
     return {out_buffer, shape};
 }
@@ -186,6 +191,7 @@ int main([[maybe_unused]] int argc, char** argv)
     const auto& [out_buffer, shape] = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, tmin, tmax, emax);
 
     zest::MDSpan<const double, 2> out(out_buffer.data(), shape);
+        
 
     //const char* fname = "lab_radon_example.dat";
     //print_to_file(fname, out);

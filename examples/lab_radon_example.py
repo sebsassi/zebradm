@@ -41,6 +41,8 @@ class RadonPlotter:
         self.ax1 = self.fig.add_subplot(2, 1, 1)
         self.ax2 = self.fig.add_subplot(2, 1, 2)
 
+        self.ax1.set_title("Demonstration only; data not accurate", pad=16, fontsize="xx-large", c="tab:red")
+
         self.ax1.callbacks.connect("xlim_changed", self.update_ax)
         self.ax2.callbacks.connect("xlim_changed", self.update_ax)
 
@@ -79,7 +81,7 @@ class RadonPlotter:
         self.tmin = 8200
         self.tmax = 8565
         self.emin = 0.0
-        self.emax = 200
+        self.emax = 2000
         self.energies = np.linspace(0.0, self.emax, 50)
         self.times = np.linspace(self.tmin, self.tmax, 24)
 
@@ -118,8 +120,13 @@ class RadonPlotter:
         self.rate_energy = self.compute_radon()
         self.rate = integrate.simpson(self.rate_energy, self.energies)
 
-        self.pcmesh = self.ax1.pcolormesh(self.rate_energy, vmin=0.0)
+        self.pcmesh = self.ax1.pcolormesh(self.times, self.energies, self.rate_energy.T, vmin=0.0)
         self.line, = self.ax2.plot(self.times, self.rate)
+
+        self.ax1.set_xlim(self.times[0], self.times[-1])
+        self.ax1.set_ylim(0.0, self.emax)
+        
+        self.ax2.set_xlim(self.times[0], self.times[-1])
     
     def update_vmax(self, val):
         self.vmax = val
@@ -153,7 +160,8 @@ class RadonPlotter:
 
     def update_ax(self, ax):
         self.tmin, self.tmax = ax.get_xlim()
-        self.emin, self.emax = ax.get_ylim()
+        if (ax == self.ax1):
+            self.emin, self.emax = ax.get_ylim()
         self.emin = 0.0
         self.emax = max(0.0, self.emax)
         self.update()
@@ -163,13 +171,15 @@ class RadonPlotter:
             self.rate_energy = self.compute_radon()
             self.rate = integrate.simpson(self.rate_energy, self.energies)
 
-            self.pcmesh.set_array(self.rate_energy.ravel())
+            self.pcmesh.set_array(self.rate_energy.T)
             self.line.set_data(self.times, self.rate)
             self.fig.canvas.draw()
     
     def compute_radon(self):
+        print(f"vmax: {self.vmax}, vdisp: {self.vdisp}, order: {self.dist_order}, DM mass: {self.dm_mass}, Nucleus mass: {self.nucleus_mass[self.element]}, tmin: {self.tmin}, tmax: {self.tmax}, emax: {self.emax}")
         p = subprocess.run(f"./lab_radon_example {self.vmax} {self.vdisp} {int(self.dist_order)} {self.dm_mass} {self.nucleus_mass[self.element]} {self.tmin} {self.tmax} {self.emax}", capture_output=True, text=True, shell=True)
-        return np.loadtxt(io.StringIO(p.stdout))
+        data = np.loadtxt(io.StringIO(p.stdout))
+        return data
 
 
 if __name__ == "__main__":
