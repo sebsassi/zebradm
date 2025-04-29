@@ -18,7 +18,7 @@ momentum transfer to the nucleus, and
     v_\text{min} = \frac{q}{2\mu_\text{DM,N}},
 
 with :math:`\mu_\text{DM,N}` is the reduced mass of the DM--nucleus system. See the article
-`arxiv:xxxx.xxxx <https://example.com>`_ for a detailed discussion.
+`arxiv:2504.19714 <https://arxiv.org/abs/2504.19714>`_ for a detailed discussion.
 
 The functions :math:`F(q^2)` and :math:`F_\perp(q^2)` depend on the effective theory couplings of
 dark matter to nucleons, and on the nuclear response functions. We do not concern ourselves with

@@ -18,7 +18,7 @@ momentum transfer to the nucleus, and
     v_\text{min} = \frac{q}{2\mu_\text{DM,N}},
 
 with :math:`\mu_\text{DM,N}` is the reduced mass of the DM--nucleus system. See the article
-`arxiv:xxxx.xxxx <https://example.com>`_ for a detailed discussion.
+`arxiv:2504.19714 <https://arxiv.org/abs/2504.19714>`_ for a detailed discussion.
 
 The functions :math:`F(q^2)` and :math:`F_\perp(q^2)` depend on the effective theory couplings of
 dark matter to nucleons, and on the nuclear response functions. We do not concern ourselves with
@@ -244,9 +244,10 @@ spherical harmonic expansions
 
 .. code:: cpp
 
+    zest::WignerdPiHalfCollection wigner(std::max(resp_order, dist_order));
     zest::Rotor rotor(std::max(resp_order, disp_order));
     for (std::size_t i = 0; resp.extent(); ++i)
-        rotor.rotate(resp[i], lab_to_polar, zest::RotationType::coordinate);
+        rotor.rotate(resp[i], wigner, lab_to_polar, zest::RotationType::coordinate);
 
 When it comes to the velocity distribution, we need it to have a specific function signature, which
 only takes as arguments the spherical coordinates of the velocity itself. The easiest way to do this

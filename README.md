@@ -1,10 +1,10 @@
-[![arXiv](https://img.shields.io/badge/arXiv-xxxx.xxxx-green?labelColor=red)](https://example.com)
+[![arXiv](https://img.shields.io/badge/arXiv-2504.19714-green?labelColor=red)](https://arxiv.org/abs/2504.19714)
 
 # ZebraDM - fast Zernike based Radon transforms for DM event rate computations
 
 ZebraDM is a modern C++ library that provides tools for performing dark matter direct detection
 event rate computations using the fast Zernike based Radon transform introduced in
-[arXiv:xxxx.xxxx](https://example.com).
+[arXiv:2504.19714](https://arxiv.org/abs/2504.19714).
 
 ## Theoretical background
 
@@ -15,12 +15,12 @@ is available, the problem of computing event rates can be reduced from integrati
 expansion coefficients. This has numerous advantages: fast convergence of the basis expansion,
 fewer function evaluations, array operations consisting of easy-to-vectorize branchless loops of
 addition and multiplication, and so on. The theoretical background is further described in
-[arXiv:xxxx.xxxx](https://example.com).
+[arXiv:2504.19714](https://arxiv.org/abs/2504.19714).
 
 ## About this library
 
 Currently, this library provides functionality for performing the fast Zernike based Radon
-transform described in [arXiv:xxxx.xxxx](https://example.com), and a miscellaneous assortment of
+transform described in [arXiv:2504.19714](https://arxiv.org/abs/2504.19714), and a miscellaneous assortment of
 other basic utilities. This library acts as a reference implementation for these methods.
 
 ## Build and installation

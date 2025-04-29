@@ -2,7 +2,7 @@ Theory -- Zernike-based Radon transforms
 ========================================
 
 The motivation and theory of the Zernike-based Radon transforms is described in detail in the
-article `arxiv:xxxx.xxxx <https://example.com>`_, which introduces this method. This sections aims
+article `arxiv:2504.19714 <https://arxiv.org/abs/2504.19714>`_, which introduces this method. This sections aims
 to give a brief introduction to the topic and the methods emplyed by this library.
 
 In short, ZebraDM is a library that exists primarily for fast evaluation of integrals of the form
