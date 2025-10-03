@@ -26,9 +26,42 @@ SOFTWARE.
 
 namespace zdm
 {
-    
-template <typename T, std::size_t N, std::size_t M>
-using Matrix = std::array<std::array<T, M>, N>;
+
+enum class MatrixLayout
+{
+    row_major,
+    column_major
+};
+
+template <typename T, std::size_t N>
+using Vector = std::array<T, N>;
+
+template <typename T, std::size_t N, std::size_t M, MatrixLayout layout_param = MatrixLayout::column_major>
+struct Matrix
+{
+    using value_type = T;
+    using index_type = std::size_t;
+
+    static constexpr MatrixLayout layout = layout_param;
+    std::array<T, N*M> array;
+
+    constexpr T& operator[](std::size_t i, std::size_t j)
+    {
+        if (layout == MatrixLayout::row_major)
+            return array[M*i + j];
+        else
+            return array[N*j + i];
+    }
+
+    constexpr const T& operator[](std::size_t i, std::size_t j) const
+    {
+        if (layout == MatrixLayout::row_major)
+            return array[M*i + j];
+        else
+            return array[N*j + i];
+    }
+
+};
 
 namespace detail
 {
@@ -303,45 +336,46 @@ constexpr std::array<T, N>& div_assign(std::array<T, N>& a, const T& b) noexcept
     return a;
 }
 
-template <typename T, std::size_t N, std::size_t M>
+template <typename T, std::size_t N, std::size_t M, MatrixLayout layout>
 [[nodiscard]] constexpr std::array<T, N>
-matmul(const Matrix<T, N, M>& mat, const std::array<T, M>& vec) noexcept
+matmul(const Matrix<T, N, M, layout>& mat, const std::array<T, M>& vec) noexcept
 {
     std::array<T, N> res{};
     for (std::size_t i = 0; i < N; ++i)
-        res[i] = dot(mat[i], vec);
-    
+    {
+        for (std::size_t j = 0; j < M; ++j)
+            res[i] += mat[i, j]*vec[j];
+    }
+
     return res;
 }
 
-template <typename T, std::size_t N, std::size_t M, std::size_t L>
-[[nodiscard]] constexpr Matrix<T, N, L>
-matmul(const Matrix<T, N, M>& a, const Matrix<T, M, L>& b) noexcept
+template <typename T, std::size_t N, std::size_t M, std::size_t L, MatrixLayout layout>
+[[nodiscard]] constexpr Matrix<T, N, L, layout>
+matmul(const Matrix<T, N, M, layout>& a, const Matrix<T, M, L, layout>& b) noexcept
 {
-    Matrix<T, N, L> res{};
+    Matrix<T, N, L, layout> res{};
     for (std::size_t i = 0; i < N; ++i)
     {
         for (std::size_t j = 0; j < L; ++j)
         {
-            std::array<T, M> bj;
             for (std::size_t k = 0; k < M; ++k)
-                bj[k] = b[k][j];
-            res[i][j] = dot(a[i], bj);
+                res[i, j] += a[i, k]*b[k, j];
         }
     }
-    
+
     return res;
 }
 
-template <typename T, std::size_t N, std::size_t M>
-[[nodiscard]] constexpr Matrix<T, M, N>
-transpose(const Matrix<T, N, M>& matrix)
+template <typename T, std::size_t N, std::size_t M, MatrixLayout layout>
+[[nodiscard]] constexpr Matrix<T, M, N, layout>
+transpose(const Matrix<T, N, M, layout>& matrix)
 {
-    Matrix<T, M, N> res{};
+    Matrix<T, M, N, layout> res{};
     for (std::size_t i = 0; i < N; ++i)
     {
         for (std::size_t j = 0; j < M; ++j)
-            res[j][i] = matrix[i][j];
+            res[j, i] = matrix[i, j];
     }
     return res;
 }
