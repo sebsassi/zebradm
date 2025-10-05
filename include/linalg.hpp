@@ -33,34 +33,579 @@ enum class MatrixLayout
     column_major
 };
 
+enum class EulerOrder
+{
+    xzx,
+    xyx,
+    yxy,
+    yzy,
+    zyz,
+    zxz
+};
+
+enum class TaitBryanOrder
+{
+    xzy,
+    xyz,
+    yxz,
+    yzx,
+    zyx,
+    zxy
+};
+
+enum class RotationConvention
+{
+    intrinsic,
+    extrinsic
+};
+
+enum class TransformAction
+{
+    active,
+    passive
+};
+
 template <typename T, std::size_t N>
 using Vector = std::array<T, N>;
 
-template <typename T, std::size_t N, std::size_t M, MatrixLayout layout_param = MatrixLayout::column_major>
+template <
+    typename T, std::size_t N, std::size_t M,
+    TransformAction action_param = TransformAction::passive,
+    MatrixLayout layout_param = MatrixLayout::column_major
+>
 struct Matrix
 {
     using value_type = T;
     using index_type = std::size_t;
+    using size_type = std::size_t;
 
+    static constexpr TransformAction action = action_param;
     static constexpr MatrixLayout layout = layout_param;
     std::array<T, N*M> array;
 
-    constexpr T& operator[](std::size_t i, std::size_t j)
+    [[nodiscard]] constexpr T& operator[](std::size_t i, std::size_t j) noexcept
     {
-        if (layout == MatrixLayout::row_major)
+        if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
         else
             return array[N*j + i];
     }
 
-    constexpr const T& operator[](std::size_t i, std::size_t j) const
+    [[nodiscard]] constexpr const T& operator[](std::size_t i, std::size_t j) const noexcept
     {
-        if (layout == MatrixLayout::row_major)
+        if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
         else
             return array[N*j + i];
     }
+};
 
+template <
+    typename T, std::size_t N,
+    TransformAction action_param = TransformAction::passive,
+    MatrixLayout layout_param = MatrixLayout::column_major
+>
+class RotationMatrix
+{
+public:
+    using value_type = T;
+    using index_type = std::size_t;
+    using size_type = std::size_t;
+
+    static constexpr TransformAction action = action_param;
+    static constexpr MatrixLayout layout = layout_param;
+
+    template <
+        typename U,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 2, action, layout> from_angle(U angle) noexcept
+    {
+        const U cos_angle = std::cos(angle);
+        const U sin_angle = std::sin(angle);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                cos_angle, -sin_angle,
+                sin_angle, cos_angle
+            });
+        else
+            return RotationMatrix({
+                cos_angle, sin_angle,
+                -sin_angle, cos_angle
+            });
+    }
+
+    template <
+        typename U,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout> axis_x(U angle) noexcept
+    {
+        const U ca = std::cos(angle);
+        const U sa = std::sin(angle);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 1.0,  0.0,  0.0,
+                 0.0,  ca,  -sa,
+                 0.0,  sa,   ca
+            });
+        else
+            return RotationMatrix({
+                 1.0,  0.0,  0.0,
+                 0.0,  ca,   sa,
+                 0.0, -sa,   ca
+            });
+    }
+
+    template <
+        typename U,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout> axis_y(U angle) noexcept
+    {
+        const U ca = std::cos(angle);
+        const U sa = std::sin(angle);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca,   0.0, -sa,
+                 0.0,  1.0,  0.0,
+                 sa,   0.0,  ca
+            });
+        else
+            return RotationMatrix({
+                 ca,   0.0,  sa,
+                 0.0,  1.0,  0.0,
+                -sa,   0.0,  ca
+            });
+    }
+
+    template <
+        typename U,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout> axis_z(U angle) noexcept
+    {
+        const U ca = std::cos(angle);
+        const U sa = std::sin(angle);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca,  -sa,   0.0,
+                 sa,   ca,   0.0,
+                 0.0,  0.0,  1.0
+            });
+        else
+            return RotationMatrix({
+                 ca,   sa,   0.0,
+                -sa,   ca,   0.0,
+                 0.0,  0.0,  1.0
+            });
+    }
+
+    template <
+        typename U,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout> 
+    axis(std::array<U, 3> axis, U angle) noexcept
+    {
+        axis = normalize(axis);
+        const U x = axis[0];
+        const U y = axis[1];
+        const U z = axis[2];
+        const U xx = axis[0]*axis[0];
+        const U yy = axis[1]*axis[1];
+        const U zz = axis[2]*axis[2];
+        const U xy = axis[0]*axis[1];
+        const U xz = axis[0]*axis[2];
+        const U yz = axis[1]*axis[2];
+        const U cos_angle = std::cos(angle);
+        const U sin_angle = std::sin(angle);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) - z*sin_angle, xz*(1.0 - cos_angle) + y*sin_angle,
+                xy*(1.0 - cos_angle) + z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) - x*sin_angle,
+                xz*(1.0 - cos_angle) - y*sin_angle, yz*(1.0 - cos_angle) + x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
+            });
+        else
+            return RotationMatrix({
+                xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) + z*sin_angle, xz*(1.0 - cos_angle) - y*sin_angle,
+                xy*(1.0 - cos_angle) - z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) + x*sin_angle,
+                xz*(1.0 - cos_angle) + y*sin_angle, yz*(1.0 - cos_angle) - x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
+            });
+    }
+    
+    // NOTE: composite rotations are in order of matrix multiplication, e.g.
+    // `composite_axes_xyz(alpha, beta, gamma)` corresponds to the rotation
+    // `R_x(alpha)R_y(beta)R_z(gamma)`. This notably means that the order of
+    // angles is reveresed relative to the usual Euler angles, where `alpha`
+    // would denote the angle of the first rotation
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_xy(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_xz(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_yx(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_yz(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_zx(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_zy(U alpha, U beta) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                // TODO
+            });
+        else
+            return RotationMatrix({
+                // TODO
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_xyx(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 cb,                sb*sg,             cg*sb,
+                 sa*sb,             ca*cg - cb*sa*sg, -ca*sg - cb*cg*sa,
+                -ca*sb,             cg*sa + ca*cb*sg,  ca*cb*cg - sa*sg
+            });
+        else
+            return RotationMatrix({
+                 cb,                sa*sb,            -ca*sb,
+                 sb*sg,             ca*cg - cb*sa*sg,  cg*sa + ca*cb*sg,
+                 cg*sb,            -ca*sg - cb*cg*sa,  ca*cb*cg - sa*sg
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_xzx(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 cb,               -cg*sb,             sb*sg,
+                 ca*sb,             ca*cb*cg - sa*sg, -cg*sa - ca*cb*sg,
+                 sa*sb,             ca*sg + cb*cg*sa,  ca*cg - cb*sa*sg
+            });
+        else
+            return RotationMatrix({
+                 cb,                ca*sb,             sa*sb,
+                -cg*sb,             ca*cb*cg - sa*sg,  ca*sg + cb*cg*sa,
+                 sb*sg,            -cg*sa - ca*cb*sg,  ca*cg - cb*sa*sg
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_yxy(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca*cg - cb*sa*sg,  sa*sb,             ca*sg + cb*cg*sa,
+                 sb*sg,             cb,               -cg*sb,
+                -cg*sa - ca*cg*sg,  ca*sb,             ca*cb*cg - ca*sg
+            });
+        else
+            return RotationMatrix({
+                 ca*cg - cb*sa*sg,  sb*sg,            -cg*sa - ca*cg*sg,
+                 sa*sb,             cb,                ca*sb,
+                 ca*sg + cb*cg*sa, -cg*sb,             ca*cb*cg - ca*sg
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_yzy(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca*cb*cg - sa*sg, -ca*sb,             cg*sa + ca*cb*sg,
+                 cg*sb,             cb,                sb*sg,
+                -ca*sg - cb*cg*sa,  sa*sb,             ca*cg - cb*sa*sg
+            });
+        else
+            return RotationMatrix({
+                 ca*cb*cg - sa*sg,  cg*sb,            -ca*sg - cb*cg*sa,
+                -ca*sb,             cb,                sa*sb,
+                 cg*sa + ca*cb*sg,  sb*sg,             ca*cg - cb*sa*sg
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_zxz(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca*cg - cb*sa*sg, -ca*sg - cb*cg*sa,  sa*sb,
+                 cg*sa + ca*cb*sg,  ca*cb*cg - sa*sg, -ca*sb,
+                 sb*sg,             cg*sb,             cb
+            });
+        else
+            return RotationMatrix({
+                 ca*cg - cb*sa*sg,  cg*sa + ca*cb*sg,  sb*sg,
+                -ca*sg - cb*cg*sa,  ca*cb*cg - sa*sg,  cg*sb,
+                 sa*sb,            -ca*sb,             cb
+            });
+    }
+
+    template <
+        typename U, EulerOrder order,
+        TransformAction action = TransformAction::passive,
+        MatrixLayout layout = MatrixLayout::column_major
+    >
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    composite_axes_zyz(U alpha, U beta, U gamma) noexcept
+    {
+        const U ca = std::cos(alpha);
+        const U sa = std::sin(alpha);
+        const U cb = std::cos(beta);
+        const U sb = std::sin(beta);
+        const U cg = std::cos(gamma);
+        const U sg = std::sin(gamma);
+        if constexpr (
+                (layout == MatrixLayout::row_major && action == TransformAction::active)
+                || (layout == MatrixLayout::column_major && action == TransformAction::passive))
+            return RotationMatrix({
+                 ca*cb*cg - sa*sg, -cg*sa - ca*cb*sg,  ca*sb,
+                 ca*sg + cb*cg*sa,  ca*cg - cb*sa*sg,  sa*sb,
+                -cg*sb,             sb*sg,             cb
+            });
+        else
+            return RotationMatrix({
+                 ca*cb*cg - sa*sg,  ca*sg + cb*cg*sa, -cg*sb,
+                -cg*sa - ca*cb*sg,  ca*cg - cb*sa*sg,  sb*sg,
+                 ca*sb,             sa*sb,             cb
+            });
+    }
+
+    [[nodiscard]] constexpr T&
+    operator[](std::size_t i, std::size_t j) noexcept { return matrix[i, j]; }
+
+    [[nodiscard]] constexpr const T&
+    operator[](std::size_t i, std::size_t j) const noexcept { return matrix[i, j]; }
+
+private:
+    RotationMatrix(std::array<T, N*N> array): matrix{array} {}
+
+    Matrix<T, N, N, action, layout> matrix;
+};
+
+template <typename T, std::size_t N, MatrixLayout layout_param = MatrixLayout::column_major>
+class AffineMatrix
+{
+public:
+    using value_type = T;
+    using index_type = std::size_t;
+    using size_type = std::size_t;
+
+    static constexpr MatrixLayout layout = layout_param;
+
+    [[nodiscard]] constexpr T& operator[](std::size_t i, std::size_t j) noexcept { return matrix[i, j]; }
+    [[nodiscard]] constexpr const T& operator[](std::size_t i, std::size_t j) const noexcept { return matrix[i, j]; }
+
+private:
+    Matrix<T, N, N, layout> matrix;
 };
 
 namespace detail
