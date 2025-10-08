@@ -63,6 +63,20 @@ concept vector_like = std::same_as<decltype(std::tuple_size_v<T>), typename T::s
         { vector[i] } -> std::same_as<std::add_lvalue_reference_t<typename T::value_type>>;
     };
 
+template <typename T>
+concept vector_transform = vector_like<typename T::domain_type>
+    && vector_like<typename T::codomain_type>
+    && requires (T x, typename T::domain_type v)
+    {
+        { x(v) } -> std::same_as<T::codomain_type>;
+    };
+
+template <typename T>
+concept parametric_vector_transform = requires (T x, typename T::value_type t, typename T::vector_type v)
+    {
+        { x(t) } -> vector_transform<U>;
+    };
+
 template <typename T, std::size_t N>
 using Vector = std::array<T, N>;
 
@@ -76,6 +90,7 @@ struct Matrix
     using value_type = T;
     using index_type = std::size_t;
     using size_type = std::size_t;
+    using transpose_type = Matrix<T, N, M, action_param, layout_param>;
 
     static constexpr TransformAction action = action_param;
     static constexpr MatrixLayout layout = layout_param;
@@ -88,7 +103,8 @@ struct Matrix
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr Matrix<U, K, K, action, layout> identity()
+    [[nodiscard]] static constexpr Matrix<U, K, K, action, layout>
+    identity() noexcept
     {
         Matrix<U, K, K, action, layout> res{};
         for (std::size_t i = 0; i < K; ++i)
@@ -96,7 +112,8 @@ struct Matrix
         return res;
     }
 
-    [[nodiscard]] constexpr T& operator[](std::size_t i, std::size_t j) noexcept
+    [[nodiscard]] constexpr T&
+    operator[](std::size_t i, std::size_t j) noexcept
     {
         if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
@@ -104,7 +121,8 @@ struct Matrix
             return array[N*j + i];
     }
 
-    [[nodiscard]] constexpr const T& operator[](std::size_t i, std::size_t j) const noexcept
+    [[nodiscard]] constexpr const T&
+    operator[](std::size_t i, std::size_t j) const noexcept
     {
         if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
@@ -124,6 +142,7 @@ public:
     using value_type = T;
     using index_type = std::size_t;
     using size_type = std::size_t;
+    using transpose_type = RotationMatrix;
 
     static constexpr TransformAction action = action_param;
     static constexpr MatrixLayout layout = layout_param;
@@ -137,7 +156,8 @@ public:
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr RotationMatrix<U, 2, action, layout> from_angle(U angle) noexcept
+    [[nodiscard]] static constexpr RotationMatrix<U, 2, action, layout>
+    from_angle(U angle) noexcept
     {
         const U cos_angle = std::cos(angle);
         const U sin_angle = std::sin(angle);
@@ -160,7 +180,8 @@ public:
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout> coordinate_axis(U angle) noexcept
+    [[nodiscard]] static constexpr RotationMatrix<U, 3, action, layout>
+    coordinate_axis(U angle) noexcept
     {
         if constexpr (axis == Axis::x)
             return axis_x(angle);
@@ -278,9 +299,10 @@ public:
     [[nodiscard]] constexpr const T&
     operator[](std::size_t i, std::size_t j) const noexcept { return m_matrix[i, j]; }
 
-    [[nodiscard]] constexpr RotationMatrix inverse() const noexcept
+    [[nodiscard]] constexpr RotationMatrix
+    inverse() const noexcept
     {
-        return RotationMatrix(transpose(*m_matrix));
+        return transpose(*m_matrix);
     }
 
 private:
@@ -900,12 +922,13 @@ public:
     using value_type = T;
     using index_type = std::size_t;
     using size_type = std::size_t;
+    using transpose_type = Matrix<T, N + 1, N + 1, action_param, layout_param>;
 
     static constexpr TransformAction action = action_param;
     static constexpr MatrixLayout layout = layout_param;
     static constexpr std::array<size_type, 2> shape = {N + 1, N + 1};
 
-    constexpr explicit RigidMatrix() = default;
+    constexpr RigidMatrix() = default;
     constexpr explicit RigidMatrix(std::array<T, (N + 1)*(N + 1)> array): m_matrix{array} {}
 
     template <
@@ -913,8 +936,8 @@ public:
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout> from(
-        RotationMatrix<U, M, action, layout> rotation, std::array<U, M> translation) noexcept
+    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout>
+    from(RotationMatrix<U, M, action, layout> rotation, std::array<U, M> translation) noexcept
     {
         RigidMatrix<U, M, action, layout> res;
         for (std::size_t i = 0; i < M; ++i)
@@ -932,8 +955,8 @@ public:
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout> from(
-        RotationMatrix<U, M, action, layout> rotation) noexcept
+    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout>
+    from(RotationMatrix<U, M, action, layout> rotation) noexcept
     {
         RigidMatrix<U, M, action, layout> res;
         for (std::size_t i = 0; i < M; ++i)
@@ -950,8 +973,8 @@ public:
         TransformAction action = TransformAction::passive,
         MatrixLayout layout = MatrixLayout::column_major
     >
-    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout> from(
-        std::array<U, M> translation) noexcept
+    [[nodiscard]] static constexpr RigidMatrix<U, M, action, layout>
+    from(std::array<U, M> translation) noexcept
     {
         RigidMatrix<U, M, action, layout> res;
         for (std::size_t i = 0; i < M; ++i)
@@ -966,9 +989,31 @@ public:
     [[nodiscard]] constexpr const T&
     operator[](std::size_t i, std::size_t j) const noexcept { return m_matrix[i, j]; }
 
-    [[nodiscard]] constexpr RigidMatrix inverse() const noexcept
+    [[nodiscard]] constexpr RotationMatrix<value_type, N, action, layout>
+    extract_rotation() const noexcept
     {
-        const auto res = RigidMatrix::from(extract_rotation().inverse());
+        RotationMatrix<value_type, N, action, layout> res{};
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            for (std::size_t j = 0; j < N; ++j)
+                res[i, j] = m_matrix[i, j];
+        }
+        return res;
+    }
+
+    [[nodiscard]] constexpr std::array<value_type, N>
+    extract_translation() const noexcept
+    {
+        std::array<value_type, N> res{};
+        for (std::size_t i = 0; i < N; ++i)
+            res[i] = m_matrix[i, N];
+        return res;
+    }
+
+    [[nodiscard]] constexpr RigidMatrix
+    inverse() const noexcept
+    {
+        const auto inverse_rotation = extract_rotation().inverse();
         return RigidMatrix::from(inverse_rotation, matmul(inverse_rotation, extract_translation()));
     }
 
@@ -1094,6 +1139,8 @@ template <vector_like T>
 template <vector_like T>
 [[nodiscard]] inline T length(const T& a) noexcept
 {
+    // NOTE: This function should be constexpr when clang decides to support
+    // constexpr math.
     return std::sqrt(dot(a, a));
 }
 
@@ -1297,11 +1344,12 @@ matmul(const T& a, const U& b) noexcept
     return res;
 }
 
-template <typename T>
-[[nodiscard]] constexpr Matrix<T, T::shape[1], T::shape[0], T::layout>
-transpose(const T& matrix)
+template <matrix_like T>
+    requires requires { typename T::transpose_type; }
+[[nodiscard]] constexpr T::transpose_type
+transpose(const T& matrix) noexcept
 {
-    Matrix<T, T::shape[1], T::shape[0], T::layout> res{};
+    typename T::transpose_type res{};
     for (std::size_t i = 0; i < T::shape[0]; ++i)
     {
         for (std::size_t j = 0; j < T::shape[1]; ++j)
@@ -1311,7 +1359,7 @@ transpose(const T& matrix)
 }
 
 template <vector_like T>
-[[nodiscard]] constexpr T normalize(const T& a) noexcept
+[[nodiscard]] inline T normalize(const T& a) noexcept
 {
     const typename T::value_type norm = length(a);
     if (norm == typename T::value_type{}) return T{};
