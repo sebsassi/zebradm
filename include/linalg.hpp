@@ -1263,6 +1263,23 @@ matmul(const T& mat, const U& vec) noexcept
     return res;
 }
 
+template <matrix_like T>
+    requires (T::shape[0] == T::shape[1])
+[[nodiscard]] constexpr T
+matmul(const T& a, const T& b) noexcept
+{
+    constexpr auto dimension = T::shape[0];
+    T res{};
+    for (std::size_t i = 0; i < dimension; ++i)
+    {
+        for (std::size_t j = 0; j < dimension; ++j)
+        {
+            for (std::size_t k = 0; k < dimension; ++k)
+                res[i, j] += a[i, k]*b[k, j];
+        }
+    }
+}
+
 template <matrix_like T, matrix_like U>
 [[nodiscard]] constexpr Matrix<T, T::shape[0], U::shape[1], T::layout>
 matmul(const T& a, const U& b) noexcept
