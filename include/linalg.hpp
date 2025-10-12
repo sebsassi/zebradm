@@ -63,20 +63,6 @@ concept vector_like = std::same_as<decltype(std::tuple_size_v<T>), typename T::s
         { vector[i] } -> std::same_as<std::add_lvalue_reference_t<typename T::value_type>>;
     };
 
-template <typename T>
-concept vector_transform = vector_like<typename T::domain_type>
-    && vector_like<typename T::codomain_type>
-    && requires (T x, typename T::domain_type v)
-    {
-        { x(v) } -> std::same_as<T::codomain_type>;
-    };
-
-template <typename T>
-concept parametric_vector_transform = requires (T x, typename T::value_type t, typename T::vector_type v)
-    {
-        { x(t) } -> vector_transform<U>;
-    };
-
 template <typename T, std::size_t N>
 using Vector = std::array<T, N>;
 
@@ -1019,6 +1005,48 @@ public:
 
 private:
     Matrix<T, N + 1, N + 1, action, layout> m_matrix = Matrix<T, N, N, action, layout>::identity();
+};
+
+template <
+    typename T, std::size_t N,
+    TransformAction action_param = TransformAction::passive,
+    MatrixLayout matrix_layout_param = MatrixLayout::column_major
+>
+class RigidTransform
+{
+    using value_type = T;
+    using size_type = std::size_t;
+    using vector_type = std::array<T, N>;
+    using matrix_type = Matrix<T, N, N, action_param, matrix_layout_param>;
+
+    static constexpr TransformAction action = action_param;
+    static constexpr MatrixLayout matrix_layout = matrix_layout_param;
+
+    constexpr RigidTransform() = default;
+    constexpr explicit RigidTransform(
+        RotationMatrix<T, N, action, matrix_layout> rotation, std::array<T, N> translation):
+        m_rotation{rotation}, m_translation{translation} {}
+
+    [[nodiscard]] constexpr vector_type operator()(const vector_type& vector) const noexcept
+    {
+        return matmul(m_rotation, vector) + m_translation;
+    }
+
+    template <matrix_like M>
+    [[nodiscard]] constexpr matrix_type operator()(const M& matrix) const noexcept
+    {
+        return matmul(m_rotation, matmul(matrix, transpose(m_rotation)));
+    }
+
+    [[nodiscard]] constexpr const RotationMatrix<T, N, action, matrix_layout>&
+    rotation_matrix() const noexcept { return m_rotation; }
+
+    [[nodiscard]] constexpr const std::array<T, N>&
+    translation() const noexcept { return m_translation; }
+
+private:
+    RotationMatrix<T, N, N, action, matrix_layout> m_rotation{};
+    std::array<T, N> m_translation;
 };
 
 namespace detail
