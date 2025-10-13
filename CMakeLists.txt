@@ -40,7 +40,7 @@ target_include_directories(zebradm
         ${PROJECT_SOURCE_DIR}/src
 )
 
-target_compile_features(zebradm PUBLIC cxx_std_20)
+target_compile_features(zebradm PUBLIC cxx_std_23)
 
 include(GNUInstallDirs)
 install(DIRECTORY include/ DESTINATION include/zebradm)

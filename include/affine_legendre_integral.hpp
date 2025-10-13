@@ -109,14 +109,19 @@ public:
     [[nodiscard]] constexpr std::span<element_type>
     operator[](index_type l) const noexcept
     {
-        return std::span<element_type>(
-                m_span.begin() + Layout::idx(m_extra_extent,l,0), Layout::line_length(m_extra_extent,l));
+        return (*this)(l);
     }
 
     [[nodiscard]] constexpr element_type&
     operator()(index_type l, index_type m) const noexcept
     {
         return m_span[Layout::idx(m_extra_extent,l,m)];
+    }
+
+    [[nodiscard]] constexpr element_type&
+    operator[](index_type l, index_type m) const noexcept
+    {
+        return (*this)(l, m);
     }
 
 private:

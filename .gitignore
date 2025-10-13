@@ -31,3 +31,12 @@ compile_commands.json
 
 # caches
 .cache
+
+# CMake
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+
+# Make
+Makefile
+Makefile2

@@ -142,9 +142,10 @@ public:
         return MultiSuperSpan<SubspanType, rank - sizeof...(Ts)>(m_data + ind*prod(extents)*m_subspan_size, extents, m_subspan_size_param);
     }
 
-    auto operator[](std::size_t i)
+    template <typename... Ts>
+    auto operator[](Ts... inds)
     {
-        return (*this)(i);
+        return (*this)(inds...);
     }
 
 private:

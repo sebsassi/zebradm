@@ -31,7 +31,7 @@ SOFTWARE.
 #include <zest/md_span.hpp>
 
 #include "linalg.hpp"
-#include "align_z.hpp"
+// #include "align_z.hpp"
 
 #include "cubage/array_arithmetic.hpp"
 #include "cubage/hypercube_integrator.hpp"
@@ -285,8 +285,7 @@ public:
     {
         const double offset_len = length(offset);
         if (shell > 1.0 + offset_len) return 0.0;
-        const Matrix<double, 3, 3> align_z_transp
-            = detail::rotation_matrix_align_z_transp(normalize(offset));
+        const auto align_z_transp = RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
         auto integrand = [&](const std::array<double, 3>& coords)
         {
@@ -347,8 +346,7 @@ public:
     {
         const double offset_len = length(offset);
         if (shell > 1.0 + offset_len) return {};
-        const Matrix<double, 3, 3> align_z_transp
-            = detail::rotation_matrix_align_z_transp(normalize(offset));
+        const auto align_z_transp = RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
         const double shell_sq = shell*shell;
         auto integrand = [&](const std::array<double, 3>& coords)
@@ -433,19 +431,14 @@ public:
         if (shell - offset_len > 1.0) return 0.0;
 
         // Rotation from `distribution` coordinates to `response` coordinates.
-        const Matrix<double, 3, 3> dist_to_resp = {
-            std::array<double, 3>{std::cos(rotation_angle), std::sin(rotation_angle), 0.0},
-            std::array<double, 3>{-std::sin(rotation_angle), std::cos(rotation_angle), 0.0},
-            std::array<double, 3>{0.0, 0.0, 1.0}
-        };
+        const auto dist_to_resp = RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const Matrix<double, 3, 3> offset_to_dist
-            = detail::rotation_matrix_align_z_transp(normalize(offset));
+        const auto offset_to_dist = RotationMatrix<double, 3>::align_z_inverse(offset);
         
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const Matrix<double, 3, 3> offset_to_resp
+        const RotationMatrix<double, 3> offset_to_resp
             = matmul(dist_to_resp, offset_to_dist);
 
         auto integrand = [&](const std::array<double, 2>& coords)
@@ -537,19 +530,13 @@ public:
         if (shell - offset_len > 1.0) return {};
 
         // Rotation from `distribution` coordinates to `response` coordinates.
-        const Matrix<double, 3, 3> dist_to_resp = {
-            std::array<double, 3>{std::cos(rotation_angle), std::sin(rotation_angle), 0.0},
-            std::array<double, 3>{-std::sin(rotation_angle), std::cos(rotation_angle), 0.0},
-            std::array<double, 3>{0.0, 0.0, 1.0}
-        };
+        const auto dist_to_resp = RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const Matrix<double, 3, 3> offset_to_dist
-            = detail::rotation_matrix_align_z_transp(normalize(offset));
-        
+        const auto offset_to_dist = RotationMatrix<double, 3>::align_z_inverse(offset);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const Matrix<double, 3, 3> offset_to_resp
+        const RotationMatrix<double, 3> offset_to_resp
             = matmul(dist_to_resp, offset_to_dist);
 
         auto integrand = [&](const std::array<double, 2>& coords)
@@ -601,8 +588,7 @@ private:
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return 0.0;
 
-        const Matrix<double, 3, 3> to_dist_coords
-            = detail::rotation_matrix_align_z_transp(normal_dist);
+        const auto to_dist_coords = RotationMatrix<double, 3>::align_z_inverse(normal_dist);
         auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];
@@ -636,8 +622,7 @@ private:
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return {};
 
-        const Matrix<double, 3, 3> to_dist_coords
-            = detail::rotation_matrix_align_z_transp(normal_dist);
+        const auto to_dist_coords = RotationMatrix<double, 3>::align_z_inverse(normal_dist);
         auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];

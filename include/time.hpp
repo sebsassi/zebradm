@@ -220,6 +220,13 @@ struct TimeZoneOffset
     std::int32_t sign = 1;
     std::uint32_t hour;
     std::uint32_t min;
+
+    [[nodiscard]] constexpr bool operator==(const TimeZoneOffset&) const noexcept = default;
+    
+    [[nodiscard]] constexpr auto operator<=>(const TimeZoneOffset& other) const noexcept
+    {
+        return sign*std::int32_t(hour + 60*min) <=> other.sign*int32_t(other.hour + 60*other.min);
+    }
 };
 
 /**
@@ -242,7 +249,7 @@ struct Time
     std::uint16_t min;
     std::uint16_t sec;
 
-    [[nodiscard]] constexpr auto operator<=>(const Time&) const = default;
+    [[nodiscard]] constexpr auto operator<=>(const Time&) const noexcept = default;
 
     /**
         @brief Apply a time zone offset to a time.
@@ -456,8 +463,8 @@ parse_time(std::string_view input, std::string_view format)
         = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     constexpr std::array<std::array<std::uint32_t, 12>, 2> last_day_of_month
         = {
-            {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-            {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+            std::array<std::uint32_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+            std::array<std::uint32_t, 12>{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
         };
 
     detail::DateParseState parse_state = {};
@@ -739,7 +746,7 @@ parse_time(std::string_view input, std::string_view format)
 [[nodiscard]] constexpr std::expected<double, DateParseError>
 ut1_j2000_from_date(std::string_view date, std::string_view format)
 {
-    constexpr Time epoch_j2000 = {2000, 0, 1, 12, 0, 0};
+    constexpr Time epoch_j2000 = {2000, 1, 1, 12, 0, 0};
     return parse_time(date, format)
         .transform([&](auto val){ return (1.0/86400)*double(seconds_since_epoch<epoch_j2000>(val.first)); });
 }

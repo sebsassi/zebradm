@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+using namespace std::literals;
+
 void test_leap_year()
 {
     assert(zdm::is_leap_year(0) == true);
@@ -242,11 +244,11 @@ bool test_parse_time_zone_offset_gives_correct_result(std::string_view input, zd
 
 void test_parse_time_zone_offset()
 {
-    assert(zdm::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset);
-    assert(zdm::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset);
-    assert(zdm::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset);
-    assert(zdm::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset);
-    assert(zdm::detail::parse_time_zone_offset("12:00"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset);
+    assert(zdm::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset));
+    assert(zdm::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset));
+    assert(zdm::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset));
+    assert(zdm::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset));
+    assert(zdm::detail::parse_time_zone_offset("12:00"sv) == std::unexpected(zdm::DateParseError::invalid_time_zone_offset));
 
     assert(test_parse_time_zone_offset_gives_correct_result("Z"sv, zdm::TimeZoneOffset{}, ""sv));
     assert(test_parse_time_zone_offset_gives_correct_result("Zhello"sv, zdm::TimeZoneOffset{}, "hello"sv));
@@ -402,7 +404,7 @@ void test_parse_time()
 
     assert(zdm::parse_time("49 50"sv, "%S %S"sv) == std::unexpected(zdm::DateParseError::duplicate_format_specifiers));
     assert(zdm::parse_time("61"sv, "%M"sv) == std::unexpected(zdm::DateParseError::invalid_second));
-    assert(zdm::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::DateParseError::expected_minutes));
+    assert(zdm::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::DateParseError::invalid_minute));
 
     assert(zdm::parse_time("2000 2001"sv, "%Y %Y"sv) == std::unexpected(zdm::DateParseError::duplicate_format_specifiers));
     assert(zdm::parse_time("two thousand"sv, "%Y"sv) == std::unexpected(zdm::DateParseError::expected_digits));
@@ -459,7 +461,7 @@ void test_parse_time()
 
     assert(test_parse_time_is_correct("55"sv, "%S"sv, zdm::Time{0, 0, 0, 0, 0, 55}, ""sv));
 
-    assert(test_parse_time_is_correct("2000"sv, "%Y"sv, zdm::Time{2000, 0, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("2000"sv, "%Y"sv, zdm::Time{2000, 0, 0, 0, 0, 0}, ""sv));
 
     assert(test_parse_time_is_correct("09:00 AM"sv, "at %H:%M %p"sv, zdm::Time{0, 0, 0, 9, 0, 0}, ""sv));
     assert(test_parse_time_is_correct("12:00 AM"sv, "at %H:%M %p"sv, zdm::Time{0, 0, 0, 0, 0, 0}, ""sv));
