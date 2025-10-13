@@ -6,6 +6,8 @@ ZebraDM is a modern C++ library that provides tools for performing dark matter d
 event rate computations using the fast Zernike based Radon transform introduced in
 [arXiv:2504.19714](https://arxiv.org/abs/2504.19714).
 
+**This library is very much a work in progress.**
+
 ## Theoretical background
 
 Dark matter double differential event rate integrals can be expressed as Radon transforms of the
@@ -42,9 +44,11 @@ cmake --build build
 cmake --install build --prefix <install directory>
 ```
 
-Note: this library aims to use the C++20 standard. Therefore, a sufficiently modern compiler is
-required. At least GGC 13 or Clang 17 is recommended. The library may compile at any point with
-compilers down to GCC 11 and Clang 14, but no guarantees are made about this.
+*Note: this library currently uses the C++20 standard, though future versions will use C++23. It
+therefore requires a sufficiently modern compiler.*
+
+*This libray is developed on and for Linux platforms. If yo're on Windows and need to use MSVC,
+you're on your own.*
 
 ## Usage
 
