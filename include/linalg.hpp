@@ -57,6 +57,7 @@ concept matrix_like = std::is_arithmetic_v<typename T::value_type>
     && std::same_as<std::remove_const_t<decltype(T::shape)>, std::array<typename T::size_type, 2>>
     && requires (T matrix, typename T::size_type i, T::size_type j)
     {
+        typename T::transpose_type;
         { matrix[i, j] } -> std::same_as<std::add_lvalue_reference_t<typename T::value_type>>;
     };
 
@@ -84,7 +85,7 @@ struct Matrix
     using value_type = T;
     using index_type = std::size_t;
     using size_type = std::size_t;
-    using transpose_type = Matrix<T, N, M, action_param, layout_param>;
+    using transpose_type = Matrix<T, M, N, action_param, layout_param>;
 
     static constexpr TransformAction action = action_param;
     static constexpr MatrixLayout layout = layout_param;
@@ -472,7 +473,6 @@ matmul(const T& a, const U& b) noexcept
 }
 
 template <matrix_like T>
-    requires requires { typename T::transpose_type; }
 [[nodiscard]] constexpr T::transpose_type
 transpose(const T& matrix) noexcept
 {
@@ -496,7 +496,7 @@ template <vector_like T>
 }
 
 template <
-    arithmetic T, std::size_t N,
+    std::floating_point T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout layout_param = MatrixLayout::column_major
 >
@@ -1246,7 +1246,7 @@ private:
 };
 
 template <
-    arithmetic T, std::size_t N,
+    std::floating_point T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout layout_param = MatrixLayout::column_major>
 class RigidMatrix
@@ -1340,7 +1340,7 @@ private:
 };
 
 template <
-    arithmetic T, std::size_t N,
+    std::floating_point T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout matrix_layout_param = MatrixLayout::column_major
 >
