@@ -27,6 +27,10 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+endif()
+
 add_library(zebradm
     src/zebra_angle_integrator_core.cpp src/zebra_angle_integrator.cpp src/zebra_parallel_angle_integrator.cpp src/legendre.cpp src/affine_legendre.cpp
     src/affine_legendre_integral.cpp src/radon_integrator.cpp src/radon_util.cpp src/zebra_radon.cpp src/zernike_recursions.cpp

@@ -50,24 +50,32 @@ enum class TransformAction
 };
 
 template <typename T>
-concept matrix_like = std::same_as<std::remove_const_t<decltype(T::shape)>, std::array<typename T::size_type, 2>>
+concept arithmetic = std::is_arithmetic_v<T>;
+
+template <typename T>
+concept matrix_like = std::is_arithmetic_v<typename T::value_type>
+    && std::same_as<std::remove_const_t<decltype(T::shape)>, std::array<typename T::size_type, 2>>
     && requires (T matrix, typename T::size_type i, T::size_type j)
     {
         { matrix[i, j] } -> std::same_as<std::add_lvalue_reference_t<typename T::value_type>>;
     };
 
 template <typename T>
-concept vector_like = std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, typename T::size_type>
+concept square_matrix_like = matrix_like<T> && (T::shape[0] == T::shape[1]);
+
+template <typename T>
+concept vector_like = std::is_arithmetic_v<typename T::value_type>
+    && std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, typename T::size_type>
     && requires (T vector, typename T::size_type i)
     {
         { vector[i] } -> std::same_as<std::add_lvalue_reference_t<typename T::value_type>>;
     };
 
-template <typename T, std::size_t N>
+template <arithmetic T, std::size_t N>
 using Vector = std::array<T, N>;
 
 template <
-    typename T, std::size_t N, std::size_t M,
+    arithmetic T, std::size_t N, std::size_t M,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout layout_param = MatrixLayout::column_major
 >
@@ -91,6 +99,12 @@ struct Matrix
         for (std::size_t i = 0; i < N; ++i)
             res[i, i] = 1.0;
         return res;
+    }
+    
+    [[nodiscard]] constexpr bool
+    operator==(const Matrix& other) const noexcept
+    {
+        return array == other.array;
     }
 
     [[nodiscard]] constexpr T&
@@ -227,6 +241,7 @@ template <vector_like T>
 }
 
 template <vector_like T>
+    requires std::floating_point<typename T::value_type>
 [[nodiscard]] inline T::value_type length(const T& a) noexcept
 {
     // NOTE: This function should be constexpr when clang decides to support
@@ -386,7 +401,26 @@ constexpr T& div_assign(T& a, const typename T::value_type& b) noexcept
     return a;
 }
 
+
 template <matrix_like T, vector_like U>
+    requires std::same_as<typename T::value_type, typename U::value_type>
+        && (T::shape[0] != T::shape[1]) && (T::shape[1] == std::tuple_size_v<U>)
+[[nodiscard]] constexpr std::array<typename U::value_type, T::shape[0]>
+matmul(const T& mat, const U& vec) noexcept
+{
+    std::array<typename U::value_type, T::shape[0]> res{};
+    for (std::size_t i = 0; i < T::shape[0]; ++i)
+    {
+        for (std::size_t j = 0; j < T::shape[1]; ++j)
+            res[i] += mat[i, j]*vec[j];
+    }
+
+    return res;
+}
+
+template <square_matrix_like T, vector_like U>
+    requires std::same_as<typename T::value_type, typename U::value_type>
+        && (T::shape[1] == std::tuple_size_v<U>)
 [[nodiscard]] constexpr U
 matmul(const T& mat, const U& vec) noexcept
 {
@@ -400,8 +434,7 @@ matmul(const T& mat, const U& vec) noexcept
     return res;
 }
 
-template <matrix_like T>
-    requires (T::shape[0] == T::shape[1])
+template <square_matrix_like T>
 [[nodiscard]] constexpr T
 matmul(const T& a, const T& b) noexcept
 {
@@ -420,10 +453,12 @@ matmul(const T& a, const T& b) noexcept
 }
 
 template <matrix_like T, matrix_like U>
-[[nodiscard]] constexpr Matrix<T, T::shape[0], U::shape[1], T::layout>
+    requires std::same_as<typename T::value_type, typename U::value_type>
+        && (T::shape[1] == U::shape[0])
+[[nodiscard]] constexpr Matrix<typename T::value_type, T::shape[0], U::shape[1], T::action, T::layout>
 matmul(const T& a, const U& b) noexcept
 {
-    Matrix<T, T::shape[0], U::shape[1], T::layout> res{};
+    Matrix<typename T::value_type, T::shape[0], U::shape[1], T::action, T::layout> res{};
     for (std::size_t i = 0; i < T::shape[0]; ++i)
     {
         for (std::size_t j = 0; j < U::shape[1]; ++j)
@@ -451,6 +486,7 @@ transpose(const T& matrix) noexcept
 }
 
 template <vector_like T>
+    requires std::floating_point<typename T::value_type>
 [[nodiscard]] inline T normalize(const T& a) noexcept
 {
     const typename T::value_type norm = length(a);
@@ -460,7 +496,7 @@ template <vector_like T>
 }
 
 template <
-    typename T, std::size_t N,
+    arithmetic T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout layout_param = MatrixLayout::column_major
 >
@@ -609,19 +645,22 @@ public:
             const double scale = 1.0/r2;
             const double u_xx_norm = u_xx*scale;
             const double u_yy_norm = u_yy*scale;
+            const double r_xx = u_yy_norm + unit_vec[2]*u_xx_norm;
+            const double r_yy = u_xx_norm + unit_vec[2]*u_yy_norm;
+            const double r_xy = -(1.0 - unit_vec[2])*(u_xy*scale);
             if constexpr (
                     (layout == MatrixLayout::row_major && action == TransformAction::active)
                     || (layout == MatrixLayout::column_major && action == TransformAction::passive))
                 return RotationMatrix({
-                     u_yy_norm + unit_vec[2]*u_xx_norm, -(1.0 - unit_vec[2])*(u_xy*scale),   unit_vec[0],
-                    -(1.0 - unit_vec[2])*(u_xy*scale),   u_xx_norm + unit_vec[2]*u_yy_norm,  unit_vec[1],
-                    -unit_vec[0],                       -unit_vec[1],                        unit_vec[2]
+                     r_xx,         r_xy,        -unit_vec[0],
+                     r_xy,         r_yy,        -unit_vec[1],
+                     unit_vec[0],  unit_vec[1],  unit_vec[2]
                 });
             else
                 return RotationMatrix({
-                     u_yy_norm + unit_vec[2]*u_xx_norm, -(1.0 - unit_vec[2])*(u_xy*scale),  -unit_vec[0],
-                    -(1.0 - unit_vec[2])*(u_xy*scale),   u_xx_norm + unit_vec[2]*u_yy_norm, -unit_vec[1],
-                     unit_vec[0],                        unit_vec[1],                        unit_vec[2]
+                     r_xx,         r_xy,         unit_vec[0],
+                     r_xy,         r_yy,         unit_vec[1],
+                    -unit_vec[0], -unit_vec[1],  unit_vec[2]
                 });
         }
         else
@@ -629,15 +668,15 @@ public:
                     (layout == MatrixLayout::row_major && action == TransformAction::active)
                     || (layout == MatrixLayout::column_major && action == TransformAction::passive))
                 return RotationMatrix({
-                     unit_vec[2],  0.0,          unit_vec[0],
-                     0.0,          1.0,          unit_vec[1],
-                    -unit_vec[0], -unit_vec[1],  unit_vec[2],
-                });
-            else
-                return RotationMatrix({
                      unit_vec[2],  0.0,         -unit_vec[0],
                      0.0,          1.0,         -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2],
+                });
+            else
+                return RotationMatrix({
+                     unit_vec[2],  0.0,          unit_vec[0],
+                     0.0,          1.0,          unit_vec[1],
+                    -unit_vec[0], -unit_vec[1],  unit_vec[2],
                 });
     }
 
@@ -654,19 +693,22 @@ public:
             const double scale = 1.0/r2;
             const double u_xx_norm = u_xx*scale;
             const double u_yy_norm = u_yy*scale;
+            const double r_xx = u_yy_norm + unit_vec[2]*u_xx_norm;
+            const double r_yy = u_xx_norm + unit_vec[2]*u_yy_norm;
+            const double r_xy = -(1.0 - unit_vec[2])*(u_xy*scale);
             if constexpr (
                     (layout == MatrixLayout::row_major && action == TransformAction::active)
                     || (layout == MatrixLayout::column_major && action == TransformAction::passive))
                 return RotationMatrix({
-                     u_yy_norm + unit_vec[2]*u_xx_norm, -(1.0 - unit_vec[2])*(u_xy*scale),  -unit_vec[0],
-                    -(1.0 - unit_vec[2])*(u_xy*scale),   u_xx_norm + unit_vec[2]*u_yy_norm, -unit_vec[1],
-                     unit_vec[0],                        unit_vec[1],                        unit_vec[2]
+                     r_xx,         r_xy,         unit_vec[0],
+                     r_xy,         r_yy,         unit_vec[1],
+                    -unit_vec[0], -unit_vec[1],  unit_vec[2]
                 });
             else
                 return RotationMatrix({
-                     u_yy_norm + unit_vec[2]*u_xx_norm, -(1.0 - unit_vec[2])*(u_xy*scale),   unit_vec[0],
-                    -(1.0 - unit_vec[2])*(u_xy*scale),   u_xx_norm + unit_vec[2]*u_yy_norm,  unit_vec[1],
-                    -unit_vec[0],                       -unit_vec[1],                        unit_vec[2]
+                     r_xx,         r_xy,        -unit_vec[0],
+                     r_xy,         r_yy,        -unit_vec[1],
+                     unit_vec[0],  unit_vec[1],  unit_vec[2]
                 });
         }
         else
@@ -674,15 +716,15 @@ public:
                     (layout == MatrixLayout::row_major && action == TransformAction::active)
                     || (layout == MatrixLayout::column_major && action == TransformAction::passive))
                 return RotationMatrix({
-                     unit_vec[2],  0.0,         -unit_vec[0],
-                     0.0,          1.0,         -unit_vec[1],
-                     unit_vec[0],  unit_vec[1],  unit_vec[2],
-                });
-            else
-                return RotationMatrix({
                      unit_vec[2],  0.0,          unit_vec[0],
                      0.0,          1.0,          unit_vec[1],
                     -unit_vec[0], -unit_vec[1],  unit_vec[2],
+                });
+            else
+                return RotationMatrix({
+                     unit_vec[2],  0.0,         -unit_vec[0],
+                     0.0,          1.0,         -unit_vec[1],
+                     unit_vec[0],  unit_vec[1],  unit_vec[2],
                 });
     }
 
@@ -1204,7 +1246,7 @@ private:
 };
 
 template <
-    typename T, std::size_t N,
+    arithmetic T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout layout_param = MatrixLayout::column_major>
 class RigidMatrix
@@ -1298,7 +1340,7 @@ private:
 };
 
 template <
-    typename T, std::size_t N,
+    arithmetic T, std::size_t N,
     TransformAction action_param = TransformAction::passive,
     MatrixLayout matrix_layout_param = MatrixLayout::column_major
 >
