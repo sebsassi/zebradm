@@ -321,7 +321,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
         m_rotated_trans_geg_zernike_exp.flatten().begin());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
-        dot(offset, offset), m_geg_zernike_exp.flatten());
+        la::dot(offset, offset), m_geg_zernike_exp.flatten());
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
         -2.0*offset[0], m_geg_zernike_exp_x.flatten());

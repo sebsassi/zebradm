@@ -46,7 +46,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 [[maybe_unused]] double angle_integrated_const_dist_radon(
     double shell, const std::array<double, 3>& offset)
 {
-    const double offset_len = zdm::length(offset);
+    const double offset_len = zdm::la::length(offset);
     const double v = offset_len;
     const double v2 = v*v;
     const double w = shell;
@@ -134,7 +134,7 @@ double angle_integrated_radon_shm(
     const std::array<double, 3>& offset, double shell, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
-    const double offset_len = zdm::length(offset);
+    const double offset_len = zdm::la::length(offset);
     const double erf_part
         = std::erf(std::min(1.0,shell + offset_len)/disp_speed)
         - std::erf((shell - offset_len)/disp_speed);
@@ -152,7 +152,7 @@ bool test_angle_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
     auto shm_dist = [&](const std::array<double, 3>& velocity){
-        const double speed = zdm::length(velocity);
+        const double speed = zdm::la::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };

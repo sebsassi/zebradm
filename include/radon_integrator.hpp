@@ -283,9 +283,9 @@ public:
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = length(offset);
+        const double offset_len = la::length(offset);
         if (shell > 1.0 + offset_len) return 0.0;
-        const auto align_z_transp = RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
         auto integrand = [&](const std::array<double, 3>& coords)
         {
@@ -302,7 +302,7 @@ public:
             };
 
             // `align_z_transp` rotates `point` back into the original coordinates.
-            return 0.5*(1 + zmax)*v*distribution(matmul(align_z_transp, point) + offset);
+            return 0.5*(1 + zmax)*v*distribution(la::matmul(align_z_transp, point) + offset);
         };
 
         Integrator3D<double>::Limits limits = {
@@ -344,9 +344,9 @@ public:
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = length(offset);
+        const double offset_len = la::length(offset);
         if (shell > 1.0 + offset_len) return {};
-        const auto align_z_transp = RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
         const double shell_sq = shell*shell;
         auto integrand = [&](const std::array<double, 3>& coords)
@@ -364,7 +364,7 @@ public:
             };
 
             // `align_z_transp` rotates `velocity` back into the original coordinates.
-            const double integrand = 0.5*(1 + zmax)*v*distribution(matmul(align_z_transp, point) + offset);
+            const double integrand = 0.5*(1 + zmax)*v*distribution(la::matmul(align_z_transp, point) + offset);
             return std::array<double, 2>{
                 integrand, (v*v - shell_sq)*integrand
             };
@@ -427,19 +427,19 @@ public:
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = length(offset);
+        const double offset_len = la::length(offset);
         if (shell - offset_len > 1.0) return 0.0;
 
         // Rotation from `distribution` coordinates to `response` coordinates.
-        const auto dist_to_resp = RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
+        const auto dist_to_resp = la::RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const auto offset_to_dist = RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
         
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const RotationMatrix<double, 3> offset_to_resp
-            = matmul(dist_to_resp, offset_to_dist);
+        const la::RotationMatrix<double, 3> offset_to_resp
+            = la::matmul(dist_to_resp, offset_to_dist);
 
         auto integrand = [&](const std::array<double, 2>& coords)
         {
@@ -454,11 +454,11 @@ public:
 
             // `normal` is in the same coordinates as `response`
             const std::array<double, 3> normal_resp
-                = matmul(offset_to_resp, normal);
+                = la::matmul(offset_to_resp, normal);
             
             // `normal_dist` is in the same coordinates as `distribution`
             const std::array<double, 3> normal_dist
-                = matmul(offset_to_dist, normal);
+                = la::matmul(offset_to_dist, normal);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
@@ -526,18 +526,18 @@ public:
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = length(offset);
+        const double offset_len = la::length(offset);
         if (shell - offset_len > 1.0) return {};
 
         // Rotation from `distribution` coordinates to `response` coordinates.
-        const auto dist_to_resp = RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
+        const auto dist_to_resp = la::RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const auto offset_to_dist = RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const RotationMatrix<double, 3> offset_to_resp
-            = matmul(dist_to_resp, offset_to_dist);
+        const la::RotationMatrix<double, 3> offset_to_resp
+            = la::matmul(dist_to_resp, offset_to_dist);
 
         auto integrand = [&](const std::array<double, 2>& coords)
         {
@@ -552,11 +552,11 @@ public:
 
             // `normal_resp` is in the same coordinates as `response`
             const std::array<double, 3> normal_resp
-                = matmul(offset_to_resp, normal);
+                = la::matmul(offset_to_resp, normal);
             
             // `normal_dist` is in the same coordinates as `distribution`
             const std::array<double, 3> normal_dist
-                = matmul(offset_to_dist, normal);
+                = la::matmul(offset_to_dist, normal);
             
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
@@ -584,11 +584,11 @@ private:
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
-            = shell + dot(offset_dist, normal_dist);
+            = shell + la::dot(offset_dist, normal_dist);
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return 0.0;
 
-        const auto to_dist_coords = RotationMatrix<double, 3>::align_z_inverse(normal_dist);
+        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
         auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];
@@ -601,7 +601,7 @@ private:
             };
 
             // `align_z_transp` rotates `point` back into distribution coordinates
-            return v*distribution(matmul(to_dist_coords, point));
+            return v*distribution(la::matmul(to_dist_coords, point));
         };
 
         Integrator2D<double>::Limits limits = {
@@ -618,11 +618,11 @@ private:
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
-            = shell + dot(offset_dist, normal_dist);
+            = shell + la::dot(offset_dist, normal_dist);
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return {};
 
-        const auto to_dist_coords = RotationMatrix<double, 3>::align_z_inverse(normal_dist);
+        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
         auto integrand = [&](const std::array<double, 2>& coords)
         {
             const double v = coords[0];
@@ -635,11 +635,11 @@ private:
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), radon_parameter
             };
             const std::array<double, 3> point_dist
-                = matmul(to_dist_coords, point);
+                = la::matmul(to_dist_coords, point);
             const std::array<double, 3> point_offset
                 = point_dist - offset_dist;
 
-            const double p_offset_sq = dot(point_offset, point_offset);
+            const double p_offset_sq = la::dot(point_offset, point_offset);
             const double p_offset_perp_sq = p_offset_sq - shell*shell;
 
             // `align_z_transp` rotates `point` back into distribution coordinates

@@ -283,7 +283,7 @@ int main()
 {
     [[maybe_unused]] auto gaussian = [](const std::array<double, 3>& v){
         constexpr double disp = 0.4;
-        const double speed = zdm::length(v);
+        const double speed = zdm::la::length(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);
     };
@@ -309,13 +309,13 @@ int main()
     [[maybe_unused]] auto smooth_exponential = [](double shell, double longitude, double colatitude)
     {
         static const std::array<double, 3> ref_dir
-            = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
+            = zdm::la::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
         const std::array<double, 3> dir
             = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
         constexpr double rate = 2.0;
         const double u2 = shell*shell;
         const double u4 = u2*u2;
-        return (u4/(1 + u4))*std::exp(rate*(zdm::dot(dir, ref_dir)));
+        return (u4/(1 + u4))*std::exp(rate*(zdm::la::dot(dir, ref_dir)));
     };
 
     /*

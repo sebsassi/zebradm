@@ -25,7 +25,7 @@ double angle_integrated_radon_shm(
     const std::array<double, 3>& offset, double shell, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
-    const double offset_len = zdm::length(offset);
+    const double offset_len = zdm::la::length(offset);
     const double erf_part
         = std::erf(std::min(1.0,shell + offset_len)/disp_speed)
         - std::erf((shell - offset_len)/disp_speed);
@@ -43,7 +43,7 @@ void test_radon_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
     auto shm_dist = [&](const std::array<double, 3>& velocity){
-        const double speed = zdm::length(velocity);
+        const double speed = zdm::la::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
@@ -103,7 +103,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
     auto shm_dist = [&](const std::array<double, 3>& velocity){
-        const double speed = zdm::length(velocity);
+        const double speed = zdm::la::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };

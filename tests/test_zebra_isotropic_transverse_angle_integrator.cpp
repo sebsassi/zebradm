@@ -46,7 +46,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 std::array<double, 2> angle_integrated_const_dist_radon_pair(
     double shell, const std::array<double, 3>& offset)
 {
-    const double offset_len = zdm::length(offset);
+    const double offset_len = zdm::la::length(offset);
     const double v = offset_len;
     const double v2 = v*v;
     const double w = shell;
