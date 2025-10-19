@@ -68,7 +68,7 @@ double IsotropicAngleIntegratorCore::integrate(
     TrapezoidSpan<double>
     aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
             shell, offset_len, rotated_geg_zernike_exp.order());
-    
+
     double res = 0;
     for (std::size_t n = 0; n < rotated_geg_zernike_exp.order(); ++n)
     {
@@ -93,7 +93,7 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
     TrapezoidSpan<double>
     aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
             shell, offset_len, rotated_trans_geg_zernike_exp.order());
-    
+
     std::array<double, 2> res = {0.0, 0.0};
 
     // transverse contribution
@@ -110,7 +110,7 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
     {
         auto rotated_geg_n = rotated_geg_zernike_exp[n];
         auto aff_leg_ylm_integrals_n = aff_leg_ylm_integrals[n];
-        
+
         for (std::size_t l = n & 1; l <= n; l += 2)
         {
             const double nontrans
@@ -130,7 +130,7 @@ IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
     TrapezoidSpan<double> integrals(
             m_aff_leg_ylm_integrals.data(), geg_order, 0);
     m_aff_leg_integrals.integrals(integrals, shell, offset_len);
-    
+
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         auto integrals_n = integrals[n];
@@ -186,39 +186,10 @@ std::vector<T> linspace(T start, T stop, std::size_t count)
     const T step = (stop - start)/T(count - 1);
     for (std::size_t i = 0; i < count - 1; ++i)
         res[i] = start + T(i)*step;
-    
+
     res[count - 1] = stop;
 
     return res;
-}
-
-void save_debug_grid(
-    const char* fname_prefix,
-    zest::st::RealSHSpanGeo<const std::array<double, 2>> sh_exp, double offset_az, double offset_colat, const std::array<double, 3> euler_angles)
-{
-    constexpr std::size_t num_lon = 100;
-    constexpr std::size_t num_lat = 50;
-    std::vector<double> longitudes = linspace(
-            0.0, 2.0*std::numbers::pi, num_lon);
-    std::vector<double> colatitudes = linspace(
-            0.0, std::numbers::pi, num_lat);
-    std::vector<double> grid
-        = zest::st::GridEvaluator().evaluate(sh_exp, longitudes, colatitudes);
-    
-    zest::MDSpan<double, 2> values_span(grid.data(), {num_lon, num_lat});
-
-    constexpr double to_deg = 180.0/std::numbers::pi;
-
-    char fname[512];
-    std::sprintf(fname, "%s_%.0f_%.0f_rot_%.0f_%.0f_%.0f.dat", fname_prefix, to_deg*offset_az, to_deg*offset_colat, to_deg*euler_angles[0], to_deg*euler_angles[1], to_deg*euler_angles[2]);
-    std::ofstream fs(fname);
-    for (std::size_t i = 0; i < values_span.extents()[0]; ++i)
-    {
-        for (std::size_t j = 0; j < values_span.extents()[1]; ++j)
-            fs << values_span(i,j) << ' ';
-        fs << '\n';
-    }
-    fs.close();
 }
 
 double AnisotropicAngleIntegratorCore::integrate(
@@ -241,10 +212,6 @@ double AnisotropicAngleIntegratorCore::integrate(
 
     m_rotor.rotate(
             m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
-    #ifndef NDEBUG
-        save_debug_grid(
-            "rotated_response", m_rotated_response_exp, offset_az, offset_colat, euler_angles);
-    #endif
 
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
@@ -295,10 +262,6 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
 
     m_rotor.rotate(
             m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
-    #ifndef NDEBUG
-        save_debug_grid(
-            "rotated_response_trans", m_rotated_response_exp, offset_az, offset_colat, euler_angles);
-    #endif
 
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
@@ -360,7 +323,7 @@ AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
     TrapezoidSpan<double> integrals(
             m_aff_leg_ylm_integrals.data(), geg_order, extra_extent);
     m_aff_leg_integrals.integrals(integrals, shell, offset_len);
-    
+
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         auto integrals_n = integrals[n];

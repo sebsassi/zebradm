@@ -177,7 +177,7 @@ void test_mutual_convergence_anisotropic(
     std::vector<std::array<double, 2>> response_buffer(
         shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {shells.size()}, resp_order);
+    response(response_buffer.data(), shells.size(), resp_order);
     zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
@@ -240,7 +240,7 @@ void test_mutual_convergence_transverse_anisotropic(
     std::vector<std::array<double, 2>> response_buffer(
         shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
     zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {shells.size()}, resp_order);
+    response(response_buffer.data(), shells.size(), resp_order);
     zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
 
     zdm::zebra::AnisotropicTransverseAngleIntegrator(dist_order, resp_order)
@@ -348,17 +348,17 @@ int main()
         /*0.0, */0.15//, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    //test_mutual_convergence_isotropic(gaussian, offsets, shells);
-    //test_mutual_convergence_isotropic(aniso_gaussian, offsets, shells);
+    test_mutual_convergence_isotropic(gaussian, offsets, shells);
+    test_mutual_convergence_isotropic(aniso_gaussian, offsets, shells);
 
-    //test_mutual_convergence_transverse_isotropic(gaussian, offsets, shells);
-    //test_mutual_convergence_transverse_isotropic(aniso_gaussian, offsets, shells);
+    test_mutual_convergence_transverse_isotropic(gaussian, offsets, shells);
+    test_mutual_convergence_transverse_isotropic(aniso_gaussian, offsets, shells);
 
-    //test_mutual_convergence_anisotropic(gaussian, smooth_exponential, offsets, shells, rotation_angles);
+    test_mutual_convergence_anisotropic(gaussian, smooth_exponential, offsets, shells, rotation_angles);
     test_mutual_convergence_anisotropic(aniso_gaussian, smooth_exponential, offsets, shells, rotation_angles);
 
-    //test_mutual_convergence_transverse_anisotropic(
-    //        gaussian, test_response, offsets, shells, rotation_angles);
-    //test_mutual_convergence_transverse_anisotropic(
-    //        aniso_gaussian, test_response, offsets, shells, rotation_angles);
+    test_mutual_convergence_transverse_anisotropic(
+           gaussian, test_response, offsets, shells, rotation_angles);
+    test_mutual_convergence_transverse_anisotropic(
+           aniso_gaussian, test_response, offsets, shells, rotation_angles);
 }

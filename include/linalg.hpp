@@ -764,15 +764,15 @@ public:
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
                 return RotationMatrix({
-                     r_xx,         r_xy,        -unit_vec[0],
-                     r_xy,         r_yy,        -unit_vec[1],
-                     unit_vec[0],  unit_vec[1],  unit_vec[2]
-                });
-            else
-                return RotationMatrix({
                      r_xx,         r_xy,         unit_vec[0],
                      r_xy,         r_yy,         unit_vec[1],
                     -unit_vec[0], -unit_vec[1],  unit_vec[2]
+                });
+            else
+                return RotationMatrix({
+                     r_xx,         r_xy,        -unit_vec[0],
+                     r_xy,         r_yy,        -unit_vec[1],
+                     unit_vec[0],  unit_vec[1],  unit_vec[2]
                 });
         }
         else
@@ -780,15 +780,15 @@ public:
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
                 return RotationMatrix({
-                     unit_vec[2],  0.0,         -unit_vec[0],
-                     0.0,          1.0,         -unit_vec[1],
-                     unit_vec[0],  unit_vec[1],  unit_vec[2],
-                });
-            else
-                return RotationMatrix({
                      unit_vec[2],  0.0,          unit_vec[0],
                      0.0,          1.0,          unit_vec[1],
                     -unit_vec[0], -unit_vec[1],  unit_vec[2],
+                });
+            else
+                return RotationMatrix({
+                     unit_vec[2],  0.0,         -unit_vec[0],
+                     0.0,          1.0,         -unit_vec[1],
+                     unit_vec[0],  unit_vec[1],  unit_vec[2],
                 });
     }
 
@@ -812,15 +812,15 @@ public:
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
                 return RotationMatrix({
-                     r_xx,         r_xy,         unit_vec[0],
-                     r_xy,         r_yy,         unit_vec[1],
-                    -unit_vec[0], -unit_vec[1],  unit_vec[2]
-                });
-            else
-                return RotationMatrix({
                      r_xx,         r_xy,        -unit_vec[0],
                      r_xy,         r_yy,        -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2]
+                });
+            else
+                return RotationMatrix({
+                     r_xx,         r_xy,         unit_vec[0],
+                     r_xy,         r_yy,         unit_vec[1],
+                    -unit_vec[0], -unit_vec[1],  unit_vec[2]
                 });
         }
         else
@@ -828,15 +828,15 @@ public:
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
                 return RotationMatrix({
-                     unit_vec[2],  0.0,          unit_vec[0],
-                     0.0,          1.0,          unit_vec[1],
-                    -unit_vec[0], -unit_vec[1],  unit_vec[2],
-                });
-            else
-                return RotationMatrix({
                      unit_vec[2],  0.0,         -unit_vec[0],
                      0.0,          1.0,         -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2],
+                });
+            else
+                return RotationMatrix({
+                     unit_vec[2],  0.0,          unit_vec[0],
+                     0.0,          1.0,          unit_vec[1],
+                    -unit_vec[0], -unit_vec[1],  unit_vec[2],
                 });
     }
 
