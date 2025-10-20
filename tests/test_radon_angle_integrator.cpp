@@ -22,7 +22,7 @@ SOFTWARE.
 #include "radon_integrator.hpp"
 
 double angle_integrated_radon_shm(
-    const std::array<double, 3>& offset, double shell, double disp_speed)
+    const zdm::la::Vector<double, 3>& offset, double shell, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     const double offset_len = zdm::la::length(offset);
@@ -42,13 +42,13 @@ double angle_integrated_radon_shm(
 void test_radon_integrator_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const std::array<double, 3>& velocity){
+    auto shm_dist = [&](const zdm::la::Vector<double, 3>& velocity){
         const double speed = zdm::la::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
     };
 
-    std::vector<std::array<double, 3>> offsets = {
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -102,7 +102,7 @@ void test_radon_integrator_is_accurate_for_shm()
 void test_radon_integrator_resp_is_accurate_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const std::array<double, 3>& velocity){
+    auto shm_dist = [&](const zdm::la::Vector<double, 3>& velocity){
         const double speed = zdm::la::length(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
@@ -113,7 +113,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         return 1.0;
     };
-    const std::vector<std::array<double, 3>> offsets = {
+    const std::vector<zdm::la::Vector<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };

@@ -24,20 +24,8 @@ SOFTWARE.
 #include "zebra_angle_integrator.hpp"
 
 #include "coordinate_transforms.hpp"
-
-double quadratic_form(
-    const std::array<std::array<double, 3>, 3>& arr,
-    const std::array<double, 3>& vec)
-{
-    double res = 0.0;
-    for (std::size_t i = 0; i < 3; ++i)
-    {
-        for (std::size_t j = 0; j < 3; ++j)
-            res += vec[i]*arr[i][j]*vec[j];
-    }
-
-    return res;
-}
+#include "zebra_util.hpp"
+#include "matrix.hpp"
 
 void relative_error(
     zest::MDSpan<double, 2> err, zest::MDSpan<const double, 2> a, zest::MDSpan<const double, 2> b)
@@ -54,7 +42,7 @@ void relative_error(
 template <typename DistType, typename RespType>
 void zebra_evaluate(
     DistType&& dist, RespType&& resp, std::size_t dist_order,
-    std::size_t resp_order, std::span<const std::array<double, 3>> offsets,
+    std::size_t resp_order, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles, zest::MDSpan<double, 2> out)
 {
     zest::zt::RealZernikeExpansionNormalGeo distribution
@@ -73,7 +61,7 @@ void zebra_evaluate(
 
 template <typename DistType, typename RespType>
 void zebra_convergence(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, std::span<const double> rotation_angles)
+    DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets, std::span<const double> shells, std::span<const double> rotation_angles)
 {
     constexpr std::size_t dist_order = 200;
     constexpr std::size_t resp_order = 800;
@@ -136,14 +124,14 @@ inline double smooth_step(double x, double slope)
 
 int main()
 {
-    [[maybe_unused]] auto aniso_gaussian = [](const std::array<double, 3>& v)
+    [[maybe_unused]] auto aniso_gaussian = [](const zdm::la::Vector<double, 3>& v)
     {
-        constexpr std::array<std::array<double, 3>, 3> sigma = {
-            std::array<double, 3>{3.0, 1.4, 0.5},
-            std::array<double, 3>{1.4, 0.3, 2.1},
-            std::array<double, 3>{0.5, 2.1, 1.7}
+        constexpr zdm::la::Matrix<double, 3, 3> sigma = {
+            3.0, 1.4, 0.5,
+            1.4, 0.3, 2.1,
+            0.5, 2.1, 1.7
         };
-        return std::exp(-0.5*quadratic_form(sigma, v));
+        return std::exp(-0.5*zdm::la::quadratic_form(sigma, v));
     };
 
     [[maybe_unused]] auto smooth_dots = [](double shell, double longitude, double colatitude)
@@ -172,7 +160,7 @@ int main()
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     std::vector<double> rotation_angles(num_offsets);
     for (std::size_t i = 0; i < num_offsets; ++i)
     {

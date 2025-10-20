@@ -21,12 +21,9 @@ SOFTWARE.
 */
 #include "zebra_angle_integrator_core.hpp"
 
-#include <fstream>
-
 #include <zest/grid_evaluator.hpp>
 
 #include "coordinate_transforms.hpp"
-
 #include "radon_util.hpp"
 
 namespace zdm
@@ -176,27 +173,11 @@ void AnisotropicAngleIntegratorCore::resize(
     m_rotated_exp.resize(top_order);
 }
 
-template <std::floating_point T>
-std::vector<T> linspace(T start, T stop, std::size_t count)
-{
-    if (count == 0) return {};
-    if (count == 1) return {start};
-
-    std::vector<T> res(count);
-    const T step = (stop - start)/T(count - 1);
-    for (std::size_t i = 0; i < count - 1; ++i)
-        res[i] = start + T(i)*step;
-
-    res[count - 1] = stop;
-
-    return res;
-}
-
 double AnisotropicAngleIntegratorCore::integrate(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-    const std::array<double, 3>& offset, double rotation_angle, double shell, 
-    zest::WignerdPiHalfCollection wigner_d_pi2)
+    const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+    const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
@@ -245,8 +226,8 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
     SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
     zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-    const std::array<double, 3>& offset, double rotation_angle, double shell, 
-    zest::WignerdPiHalfCollection wigner_d_pi2)
+    const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+    const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);

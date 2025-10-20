@@ -46,7 +46,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 }
 
 [[maybe_unused]] double angle_integrated_const_dist_radon(
-    double shell, const std::array<double, 3>& offset)
+    double shell, const zdm::la::Vector<double, 3>& offset)
 {
     const double offset_len = zdm::la::length(offset);
     const double v = offset_len;
@@ -67,7 +67,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 
 bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
 {
-    std::vector<std::array<double, 3>> offsets = {
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
         {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
@@ -139,7 +139,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
 }
 
 double angle_integrated_radon_shm(
-    const std::array<double, 3>& offset, double shell, double disp_speed)
+    const zdm::la::Vector<double, 3>& offset, double shell, double disp_speed)
 {
     constexpr double sqrt_pi = 1.0/std::numbers::inv_sqrtpi;
     const double offset_len = zdm::la::length(offset);
@@ -165,7 +165,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
         return std::exp(-ratio*ratio);
     };
 
-    std::vector<std::array<double, 3>> offsets = {
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };

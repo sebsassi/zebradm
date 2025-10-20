@@ -44,7 +44,7 @@ double horner(const std::array<T, N>& coeffs, T x)
 }
 
 std::array<double, 2> angle_integrated_const_dist_radon_pair(
-    double shell, const std::array<double, 3>& offset)
+    double shell, const zdm::la::Vector<double, 3>& offset)
 {
     const double offset_len = zdm::la::length(offset);
     const double v = offset_len;
@@ -74,7 +74,7 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
 
 bool test_transverse_angle_integrator_is_correct_for_constant_dist()
 {
-    std::vector<std::array<double, 3>> offsets = {
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
         {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };

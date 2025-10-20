@@ -21,18 +21,17 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
 #include <array>
+#include <vector>
 
-#include <zest/rotor.hpp>
 #include <zest/real_sh_expansion.hpp>
+#include <zest/rotor.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
-#include "linalg.hpp"
-#include "affine_legendre.hpp"
+#include "vector.hpp"
 #include "affine_legendre_integral.hpp"
-#include "zonal_glq_transformer.hpp"
 #include "types.hpp"
+#include "zonal_glq_transformer.hpp"
 
 namespace zdm
 {
@@ -88,15 +87,15 @@ public:
     [[nodiscard]] double integrate(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-        const std::array<double, 3>& offset, double rotation_angle, double shell, 
-        zest::WignerdPiHalfCollection wigner_d_pi2);
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+        const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
         SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
         zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
-        const std::array<double, 3>& offset, double rotation_angle, double shell, 
-        zest::WignerdPiHalfCollection wigner_d_pi2);
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+        const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(

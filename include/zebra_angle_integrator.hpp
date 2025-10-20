@@ -22,21 +22,20 @@ SOFTWARE.
 #pragma once
 
 #include <array>
-#include <vector>
-#include <span>
 #include <limits>
+#include <span>
+#include <vector>
 
 #include <zest/md_span.hpp>
+#include <zest/rotor.hpp>
+#include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_expansion.hpp>
 #include <zest/zernike_glq_transformer.hpp>
-#include <zest/sh_glq_transformer.hpp>
-#include <zest/rotor.hpp>
 
-#include "linalg.hpp"
+#include "vector.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
-#include "zebra_util.hpp"
 
 namespace zdm
 {
@@ -81,7 +80,7 @@ public:
     */
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        std::span<const std::array<double, 3>> offsets,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::MDSpan<double, 2> out);
     
     /**
@@ -108,12 +107,12 @@ public:
     */
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<double> out);
     
 private:
     void integrate(
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
@@ -198,7 +197,7 @@ public:
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        std::span<const std::array<double, 3>> offsets,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::MDSpan<double, 2> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
@@ -249,14 +248,14 @@ public:
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, zest::MDSpan<double, 2> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     void integrate(
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::size_t geg_order,
         std::size_t top_order, std::span<double> out);
 
@@ -312,7 +311,7 @@ public:
     */
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        std::span<const std::array<double, 3>> offsets,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::MDSpan<std::array<double, 2>, 2> out);
     
     /**
@@ -340,12 +339,12 @@ public:
     */
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<std::array<double, 2>> out);
     
 private:
     void integrate(
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
@@ -436,7 +435,7 @@ public:
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        std::span<const std::array<double, 3>> offsets,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::MDSpan<std::array<double, 2>, 2> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
@@ -487,14 +486,14 @@ public:
     void integrate(
         ZernikeExpansionSpan<const std::array<double, 2>> distribution,
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     void integrate(
         SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;

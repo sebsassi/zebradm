@@ -1,4 +1,6 @@
 #include "linalg.hpp"
+#include "matrix.hpp"
+#include "vector.hpp"
 
 #include <cassert>
 #include <numbers>
@@ -16,6 +18,12 @@ bool is_close(const std::array<double, N>& a, const std::array<double, N>& b, do
     for (std::size_t i = 0; i < N; ++i)
         res = res && is_close(a[i], b[i], error);
     return res;
+}
+
+template <std::size_t N>
+bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double, N>& b, double error)
+{
+    return is_close(std::array<double, N>(a), std::array<double, N>(b), error);
 }
 
 template <zdm::la::square_matrix_like T>
@@ -47,164 +55,164 @@ bool test_matrix_column_major_layout_is_correct()
 
 bool test_vector_dot_product_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
     return zdm::la::dot(v1, v2) == 1*5 + 2*7 + 3*11;
 }
 
 bool test_vector_vector_add_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
-    return zdm::la::add(v1, v2) == std::array<int, 3>{6, 9, 14};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
+    return zdm::la::add(v1, v2) == zdm::la::Vector<int, 3>{6, 9, 14};
 }
 
 bool test_vector_vector_sub_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
-    return zdm::la::sub(v1, v2) == std::array<int, 3>{-4, -5, -8};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
+    return zdm::la::sub(v1, v2) == zdm::la::Vector<int, 3>{-4, -5, -8};
 }
 
 bool test_vector_vector_mul_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
-    return zdm::la::mul(v1, v2) == std::array<int, 3>{5, 14, 33};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
+    return zdm::la::mul(v1, v2) == zdm::la::Vector<int, 3>{5, 14, 33};
 }
 
 bool test_vector_vector_div_is_correct()
 {
-    std::array<int, 3> v1 = {5, 14, 33};
-    std::array<int, 3> v2 = {5, 7, 11};
-    return zdm::la::div(v1, v2) == std::array<int, 3>{1, 2, 3};
+    zdm::la::Vector<int, 3> v1 = {5, 14, 33};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
+    return zdm::la::div(v1, v2) == zdm::la::Vector<int, 3>{1, 2, 3};
 }
 
 bool test_vector_vector_add_assign_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
     zdm::la::add_assign(v1, v2);
-    return v1 == std::array<int, 3>{6, 9, 14};
+    return v1 == zdm::la::Vector<int, 3>{6, 9, 14};
 }
 
 bool test_vector_vector_sub_assign_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
     zdm::la::sub_assign(v1, v2);
-    return v1 == std::array<int, 3>{-4, -5, -8};
+    return v1 == zdm::la::Vector<int, 3>{-4, -5, -8};
 }
 
 bool test_vector_vector_mul_assign_is_correct()
 {
-    std::array<int, 3> v1 = {1, 2, 3};
-    std::array<int, 3> v2 = {5, 7, 11};
+    zdm::la::Vector<int, 3> v1 = {1, 2, 3};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
     zdm::la::mul_assign(v1, v2);
-    return v1 == std::array<int, 3>{5, 14, 33};
+    return v1 == zdm::la::Vector<int, 3>{5, 14, 33};
 }
 
 bool test_vector_vector_div_assign_is_correct()
 {
-    std::array<int, 3> v1 = {5, 14, 33};
-    std::array<int, 3> v2 = {5, 7, 11};
+    zdm::la::Vector<int, 3> v1 = {5, 14, 33};
+    zdm::la::Vector<int, 3> v2 = {5, 7, 11};
     zdm::la::div_assign(v1, v2);
-    return v1 == std::array<int, 3>{1, 2, 3};
+    return v1 == zdm::la::Vector<int, 3>{1, 2, 3};
 }
 
 bool test_vector_scalar_add_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
-    return zdm::la::add(v, a) == std::array<int, 3>{3, 4, 5};
+    return zdm::la::add(v, a) == zdm::la::Vector<int, 3>{3, 4, 5};
 }
 
 bool test_vector_scalar_sub_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
-    return zdm::la::sub(v, a) == std::array<int, 3>{-1, 0, 1};
+    return zdm::la::sub(v, a) == zdm::la::Vector<int, 3>{-1, 0, 1};
 }
 
 bool test_vector_scalar_mul_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
-    return zdm::la::mul(v, a) == std::array<int, 3>{2, 4, 6};
+    return zdm::la::mul(v, a) == zdm::la::Vector<int, 3>{2, 4, 6};
 }
 
 bool test_vector_scalar_div_is_correct()
 {
-    std::array<int, 3> v = {2, 4, 6};
+    zdm::la::Vector<int, 3> v = {2, 4, 6};
     int a = 2;
-    return zdm::la::div(v, a) == std::array<int, 3>{1, 2, 3};
+    return zdm::la::div(v, a) == zdm::la::Vector<int, 3>{1, 2, 3};
 }
 
 bool test_vector_scalar_add_assign_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
     zdm::la::add_assign(v, a);
-    return v == std::array<int, 3>{3, 4, 5};
+    return v == zdm::la::Vector<int, 3>{3, 4, 5};
 }
 
 bool test_vector_scalar_sub_assign_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
     zdm::la::sub_assign(v, a);
-    return v == std::array<int, 3>{-1, 0, 1};
+    return v == zdm::la::Vector<int, 3>{-1, 0, 1};
 }
 
 bool test_vector_scalar_mul_assign_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
     zdm::la::mul_assign(v, a);
-    return v == std::array<int, 3>{2, 4, 6};
+    return v == zdm::la::Vector<int, 3>{2, 4, 6};
 }
 
 bool test_vector_scalar_div_assign_is_correct()
 {
-    std::array<int, 3> v = {2, 4, 6};
+    zdm::la::Vector<int, 3> v = {2, 4, 6};
     int a = 2;
     zdm::la::div_assign(v, a);
-    return v == std::array<int, 3>{1, 2, 3};
+    return v == zdm::la::Vector<int, 3>{1, 2, 3};
 }
 
 bool test_scalar_vector_add_is_correct()
 {
-    std::array<int, 3> v = {1, 2, 3};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
     int a = 2;
-    return zdm::la::add(a, v) == std::array<int, 3>{3, 4, 5};
+    return zdm::la::add(a, v) == zdm::la::Vector<int, 3>{3, 4, 5};
 }
 
 bool test_scalar_vector_sub_is_correct()
 {
     int a = 2;
-    std::array<int, 3> v = {1, 2, 3};
-    return zdm::la::sub(a, v) == std::array<int, 3>{1, 0, -1};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
+    return zdm::la::sub(a, v) == zdm::la::Vector<int, 3>{1, 0, -1};
 }
 
 bool test_scalar_vector_mul_is_correct()
 {
     int a = 2;
-    std::array<int, 3> v = {1, 2, 3};
-    return zdm::la::mul(a, v) == std::array<int, 3>{2, 4, 6};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
+    return zdm::la::mul(a, v) == zdm::la::Vector<int, 3>{2, 4, 6};
 }
 
 bool test_scalar_vector_div_is_correct()
 {
     int a = 6;
-    std::array<int, 3> v = {6, 3, 2};
-    return zdm::la::div(a, v) == std::array<int, 3>{1, 2, 3};
+    zdm::la::Vector<int, 3> v = {6, 3, 2};
+    return zdm::la::div(a, v) == zdm::la::Vector<int, 3>{1, 2, 3};
 }
 
 bool test_matrix_vector_matmul_column_major_is_correct()
 {
     zdm::la::Matrix<int, 2, 3, zdm::la::Action::passive, zdm::la::MatrixLayout::column_major> m = {{1, 4, 2, 5, 3, 6}};
-    std::array<int, 3> v = {1, 2, 3};
-    return zdm::la::matmul(m, v) == std::array<int, 2>{14, 32};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
+    return zdm::la::matmul(m, v) == zdm::la::Vector<int, 2>{14, 32};
 }
 
 bool test_matrix_matrix_matmul_column_major_is_correct()
@@ -217,8 +225,8 @@ bool test_matrix_matrix_matmul_column_major_is_correct()
 bool test_matrix_vector_matmul_row_major_is_correct()
 {
     zdm::la::Matrix<int, 2, 3, zdm::la::Action::passive, zdm::la::MatrixLayout::row_major> m = {{1, 2, 3, 4, 5, 6}};
-    std::array<int, 3> v = {1, 2, 3};
-    return zdm::la::matmul(m, v) == std::array<int, 2>{14, 32};
+    zdm::la::Vector<int, 3> v = {1, 2, 3};
+    return zdm::la::matmul(m, v) == zdm::la::Vector<int, 2>{14, 32};
 }
 
 bool test_matrix_matrix_matmul_row_major_is_correct()
@@ -251,16 +259,16 @@ template <zdm::la::MatrixLayout layout>
 bool test_passive_rotation_matrix_2x2_from_angle_90_nearly_maps_pxpy_to_mypx(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 2, zdm::la::Action::passive, layout>::from_angle(0.5*std::numbers::pi);
-    const std::array<double, 2> v = {1.0, 2.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 2>{2.0, -1.0}, error);
+    const zdm::la::Vector<double, 2> v = {1.0, 2.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 2>{2.0, -1.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_active_rotation_matrix_2x2_from_angle_90_nearly_maps_pxpy_to_pymx(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 2, zdm::la::Action::active, layout>::from_angle(0.5*std::numbers::pi);
-    const std::array<double, 2> v = {1.0, 2.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 2>{-2.0, 1.0}, error);
+    const zdm::la::Vector<double, 2> v = {1.0, 2.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 2>{-2.0, 1.0}, error);
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
@@ -288,7 +296,7 @@ template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_coordinate_axis_x_keeps_x_constant()
 {
     const auto r = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::x>(1.3);
-    const std::array<double, 3> v = {1.0, 0.0, 0.0};
+    const zdm::la::Vector<double, 3> v = {1.0, 0.0, 0.0};
     return zdm::la::matmul(r, v) == v;
 }
 
@@ -296,7 +304,7 @@ template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_coordinate_axis_y_keeps_y_constant()
 {
     const auto r = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::y>(1.3);
-    const std::array<double, 3> v = {0.0, 1.0, 0.0};
+    const zdm::la::Vector<double, 3> v = {0.0, 1.0, 0.0};
     return zdm::la::matmul(r, v) == v;
 }
 
@@ -304,7 +312,7 @@ template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_coordinate_axis_z_keeps_z_constant()
 {
     const auto r = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::z>(1.3);
-    const std::array<double, 3> v = {0.0, 0.0, 1.0};
+    const zdm::la::Vector<double, 3> v = {0.0, 0.0, 1.0};
     return zdm::la::matmul(r, v) == v;
 }
 
@@ -312,48 +320,48 @@ template <zdm::la::MatrixLayout layout>
 bool test_passive_rotation_matrix_3x3_coordinate_axis_x_angle_90_nearly_maps_pxpypz_to_pxmzpy(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::passive, layout>::template coordinate_axis<zdm::Axis::x>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{1.0, 3.0, -2.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{1.0, 3.0, -2.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_passive_rotation_matrix_3x3_coordinate_axis_y_angle_90_nearly_maps_pxpypz_to_pzpymx(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::passive, layout>::template coordinate_axis<zdm::Axis::y>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{-3.0, 2.0, 1.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{-3.0, 2.0, 1.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_passive_rotation_matrix_3x3_coordinate_axis_z_angle_90_nearly_maps_pxpypz_to_mypxpz(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::passive, layout>::template coordinate_axis<zdm::Axis::z>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{2.0, -1.0, 3.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{2.0, -1.0, 3.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_active_rotation_matrix_3x3_coordinate_axis_x_angle_90_nearly_maps_pxpypz_to_pxpzmy(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::active, layout>::template coordinate_axis<zdm::Axis::x>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{1.0, -3.0, 2.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{1.0, -3.0, 2.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_active_rotation_matrix_3x3_coordinate_axis_y_angle_90_nearly_maps_pxpypz_to_mzpypx(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::active, layout>::template coordinate_axis<zdm::Axis::y>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{3.0, 2.0, -1.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{3.0, 2.0, -1.0}, error);
 }
 
 template <zdm::la::MatrixLayout layout>
 bool test_active_rotation_matrix_3x3_coordinate_axis_z_angle_90_nearly_maps_pxpypz_to_pymxpz(double error)
 {
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::active, layout>::template coordinate_axis<zdm::Axis::z>(0.5*std::numbers::pi);
-    const std::array<double, 3> v = {1.0, 2.0, 3.0};
-    return is_close(zdm::la::matmul(r, v), std::array<double, 3>{-2.0, 1.0, 3.0}, error);
+    const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
+    return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{-2.0, 1.0, 3.0}, error);
 }
 
 bool test_passive_rotation_matrix_3x3_coordinate_axis_x_is_nearly_orthogonal(double error)
@@ -386,7 +394,7 @@ bool test_rotation_matrix_3x3_coordinate_axis_z_is_nearly_orthogonal(double erro
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_axis_x_nearly_equals_coordinate_axis_x(double error)
 {
-    const auto axis = std::array<double, 3>{1.0, 0.0, 0.0};
+    const auto axis = zdm::la::Vector<double, 3>{1.0, 0.0, 0.0};
     const auto r1 = zdm::la::RotationMatrix<double, 3, action, layout>::axis(axis, 1.3);
     const auto r2 = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::x>(1.3);
     return is_close(std::array<double, 9>(r1), std::array<double, 9>(r2), error);
@@ -395,7 +403,7 @@ bool test_rotation_matrix_3x3_axis_x_nearly_equals_coordinate_axis_x(double erro
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_axis_y_nearly_equals_coordinate_axis_y(double error)
 {
-    const auto axis = std::array<double, 3>{0.0, 1.0, 0.0};
+    const auto axis = zdm::la::Vector<double, 3>{0.0, 1.0, 0.0};
     const auto r1 = zdm::la::RotationMatrix<double, 3, action, layout>::axis(axis, 1.3);
     const auto r2 = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::y>(1.3);
     return is_close(std::array<double, 9>(r1), std::array<double, 9>(r2), error);
@@ -404,7 +412,7 @@ bool test_rotation_matrix_3x3_axis_y_nearly_equals_coordinate_axis_y(double erro
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_axis_z_nearly_equals_coordinate_axis_z(double error)
 {
-    const auto axis = std::array<double, 3>{0.0, 0.0, 1.0};
+    const auto axis = zdm::la::Vector<double, 3>{0.0, 0.0, 1.0};
     const auto r1 = zdm::la::RotationMatrix<double, 3, action, layout>::axis(axis, 1.3);
     const auto r2 = zdm::la::RotationMatrix<double, 3, action, layout>::template coordinate_axis<zdm::Axis::z>(1.3);
     return is_close(std::array<double, 9>(r1), std::array<double, 9>(r2), error);
@@ -413,7 +421,7 @@ bool test_rotation_matrix_3x3_axis_z_nearly_equals_coordinate_axis_z(double erro
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool test_rotation_matrix_3x3_axis_is_nearly_orthogonal(double error)
 {
-    const auto axis = std::array<double, 3>{0.5, -0.7, 0.2};
+    const auto axis = zdm::la::Vector<double, 3>{0.5, -0.7, 0.2};
     const auto r = zdm::la::RotationMatrix<double, 3, action, layout>::axis(axis, 1.3);
     return is_nearly_orthogonal(r, error);
 }

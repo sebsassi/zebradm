@@ -21,19 +21,17 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
-#include <span>
-#include <functional>
+#include <array>
 #include <cmath>
 #include <limits>
-#include <array>
+#include <span>
 
 #include <zest/md_span.hpp>
 
-#include "linalg.hpp"
+#include "vector.hpp"
+#include "matrix.hpp"
 // #include "align_z.hpp"
 
-#include "cubage/array_arithmetic.hpp"
 #include "cubage/hypercube_integrator.hpp"
 
 #include "coordinate_transforms.hpp"
@@ -51,7 +49,7 @@ public:
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
 
         @param distribution distribution function
         @param offsets offsets of the distribution
@@ -76,7 +74,7 @@ public:
     */
     template <typename Dist>
     void integrate(
-        Dist&& distribution, std::span<const std::array<double, 3>> offsets,
+        const Dist& distribution, std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, double abserr, double relerr,
         zest::MDSpan<double, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
@@ -94,7 +92,7 @@ public:
         @brief Angle integrated transverse and nontransverse Radon transform of a
         velocity disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
 
         @param distribution distribution function
         @param offsets offsets of the distribution
@@ -119,7 +117,7 @@ public:
     */
     template <typename Dist>
     void integrate_transverse(
-        Dist&& distribution, std::span<const std::array<double, 3>> offsets,
+        const Dist& distribution, std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, double abserr, double relerr,
         zest::MDSpan<std::array<double, 2>, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
@@ -137,7 +135,7 @@ public:
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution distribution function
@@ -178,8 +176,8 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate(
-        Dist&& distribution, Resp&& response,
-        std::span<const std::array<double, 3>> offsets,
+        const Dist& distribution, const Resp& response,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         double abserr, double relerr, zest::MDSpan<double, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
@@ -197,7 +195,7 @@ public:
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity
         disitribution on an offset unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution distribution function
@@ -208,7 +206,7 @@ public:
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
         @param out output values as 2D array of shape `{offsets.size(), shells.size()}`
-        
+
         The 3D Radon transform is defined as an integral over a plane in the 3D space.
         Any given plane is uniquely determined by its unit normal vector, and its
         distance to the origin, defined by the plane's nearest point to the origin.
@@ -238,8 +236,8 @@ public:
     */
     template <typename Dist, typename Resp>
     void integrate_transverse(
-        Dist&& distribution, Resp&& response,
-        std::span<const std::array<double, 3>> offsets,
+        const Dist& distribution, const Resp& response,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
@@ -252,11 +250,11 @@ public:
                         shells[j], abserr, relerr, max_subdiv);
         }
     }
-    
+
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
 
         @param distribution distribution function
         @param offset offset of the distribution
@@ -279,7 +277,7 @@ public:
     */
     template <typename Dist>
     [[nodiscard]] double integrate(
-        Dist&& distribution, const std::array<double, 3>& offset, double shell,
+        const Dist& distribution, const la::Vector<double, 3>& offset, double shell,
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -287,7 +285,7 @@ public:
         if (shell > 1.0 + offset_len) return 0.0;
         const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
-        auto integrand = [&](const std::array<double, 3>& coords)
+        auto integrand = [&](const la::Vector<double, 3>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -297,12 +295,12 @@ public:
             const double v_perp = v*std::sqrt((1.0 - z)*(1.0 + z));
 
             // `point` is in coordinates with z-axis in direction of `offset`.
-            const std::array<double, 3> point = {
+            const la::Vector<double, 3> point = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), v*z
             };
 
             // `align_z_transp` rotates `point` back into the original coordinates.
-            return 0.5*(1 + zmax)*v*distribution(la::matmul(align_z_transp, point) + offset);
+            return 0.5*(1 + zmax)*v*distribution(align_z_transp*point + offset);
         };
 
         Integrator3D<double>::Limits limits = {
@@ -312,12 +310,12 @@ public:
         return (2.0*std::numbers::pi)*isotropic_integrator.integrate(
                 integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
-    
+
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
         velocity disitribution on an offset unit ball.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
 
         @param distribution distribution function
         @param offset offset of the distribution
@@ -340,7 +338,7 @@ public:
     */
     template <typename Dist>
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        Dist&& distribution, const std::array<double, 3>& offset, double shell,
+        const Dist& distribution, const la::Vector<double, 3>& offset, double shell,
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -349,7 +347,7 @@ public:
         const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
         const double offset_len_sq = offset_len*offset_len;
         const double shell_sq = shell*shell;
-        auto integrand = [&](const std::array<double, 3>& coords)
+        auto integrand = [&](const la::Vector<double, 3>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -359,30 +357,30 @@ public:
             const double v_perp = v*std::sqrt((1.0 - z)*(1.0 + z));
 
             // `point` is in coordinates with z-axis in direction of `offset`.
-            const std::array<double, 3> point = {
+            const la::Vector<double, 3> point = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), v*z
             };
 
             // `align_z_transp` rotates `velocity` back into the original coordinates.
-            const double integrand = 0.5*(1 + zmax)*v*distribution(la::matmul(align_z_transp, point) + offset);
-            return std::array<double, 2>{
+            const double integrand = 0.5*(1 + zmax)*v*distribution(align_z_transp*point + offset);
+            return la::Vector<double, 2>{
                 integrand, (v*v - shell_sq)*integrand
             };
         };
 
-        Integrator3D<std::array<double, 2>>::Limits limits = {
+        Integrator3D<la::Vector<double, 2>>::Limits limits = {
             {shell, 0.0, -1.0},
             {1.0 + offset_len, 2.0*std::numbers::pi, 1.0}
         };
         return (2.0*std::numbers::pi)*transverse_integrator.integrate(
                 integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
-    
+
     /**
         @brief Angle integrated Radon transform of a disitribution on a offset unit ball,
         combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution distribution function
@@ -422,8 +420,8 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] double integrate(
-        Dist&& distribution, Resp&& response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const Dist& distribution, const Resp& response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -435,31 +433,28 @@ public:
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
         const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
-        
+
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const la::RotationMatrix<double, 3> offset_to_resp
-            = la::matmul(dist_to_resp, offset_to_dist);
+        const la::RotationMatrix<double, 3> offset_to_resp = dist_to_resp*offset_to_dist;
 
-        auto integrand = [&](const std::array<double, 2>& coords)
+        auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
             const double z = coords[1];
             const double perp = std::sqrt((1.0 - z)*(1.0 + z));
 
             // `normal` is in coordinates with z-axis in direction of `offset`.
-            const std::array<double, 3> normal = {
+            const la::Vector<double, 3> normal = {
                 perp*std::cos(azimuth), perp*std::sin(azimuth), z 
             };
 
             // `normal` is in the same coordinates as `response`
-            const std::array<double, 3> normal_resp
-                = la::matmul(offset_to_resp, normal);
-            
+            const la::Vector<double, 3> normal_resp = offset_to_resp*normal;
+
             // `normal_dist` is in the same coordinates as `distribution`
-            const std::array<double, 3> normal_dist
-                = la::matmul(offset_to_dist, normal);
-            
+            const la::Vector<double, 3> normal_dist = offset_to_dist*normal;
+
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
             const double resp = response(shell, resp_az, resp_colat);
@@ -476,12 +471,12 @@ public:
         return angle_integrator.integrate(
                 integrand, limits, abserr, relerr, max_subdiv).value.val;
     }
-    
+
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a velocity
         disitribution on an offset unit ball, combined with an angle-dependent response.
 
-        @tparam Dist callable accepting a `std::array<double, 3>` and returning `double`
+        @tparam Dist callable accepting a `zdm::la::Vector<double, 3>` and returning `double`
         @tparam Resp callable accepting three `double`s and returning `double`
 
         @param distribution distribution function
@@ -491,7 +486,7 @@ public:
         @param shell distance of integration planes from the origin
         @param abserr desired absolute error passed to integrator
         @param relerr desired relative error passed to integrator
-        
+
         The 3D Radon transform is defined as an integral over a plane in the 3D space.
         Any given plane is uniquely determined by its unit normal vector, and its
         distance to the origin, defined by the plane's nearest point to the origin.
@@ -521,8 +516,8 @@ public:
     */
     template <typename Dist, typename Resp>
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        Dist&& distribution, Resp&& response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        const Dist& distribution, const Resp& response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
@@ -536,40 +531,37 @@ public:
         const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
-        const la::RotationMatrix<double, 3> offset_to_resp
-            = la::matmul(dist_to_resp, offset_to_dist);
+        const la::RotationMatrix<double, 3> offset_to_resp = dist_to_resp*offset_to_dist;
 
-        auto integrand = [&](const std::array<double, 2>& coords)
+        auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double azimuth = coords[0];
             const double z = coords[1];
             const double perp = std::sqrt((1.0 - z)*(1.0 + z));
 
             // `normal` is in coordinates with z-axis in direction of `offset`.
-            const std::array<double, 3> normal = {
+            const la::Vector<double, 3> normal = {
                 perp*std::cos(azimuth), perp*std::sin(azimuth), z 
             };
 
             // `normal_resp` is in the same coordinates as `response`
-            const std::array<double, 3> normal_resp
-                = la::matmul(offset_to_resp, normal);
-            
+            const la::Vector<double, 3> normal_resp = offset_to_resp*normal;
+
             // `normal_dist` is in the same coordinates as `distribution`
-            const std::array<double, 3> normal_dist
-                = la::matmul(offset_to_dist, normal);
-            
+            const la::Vector<double, 3> normal_dist = offset_to_dist*normal;
+
             const auto& [resp_az, resp_colat, resp_mag]
                 = coordinates::cartesian_to_spherical_phys(normal_resp);
             const double resp = response(shell, resp_az, resp_colat);
 
-            const std::array<double, 2> integral = transverse_radon_integral(
+            const la::Vector<double, 2> integral = transverse_radon_integral(
                     distribution, offset, shell, normal_dist, abserr, relerr, max_subdiv);
-            return std::array<double, 2>{resp*integral[0], resp*integral[1]};
+            return resp*integral;
         };
 
         const double zmin = std::max(-(1.0 + shell)/offset_len, -1.0);
         const double zmax = std::min((1.0 - shell)/offset_len, 1.0);
-        Integrator2D<std::array<double, 2>>::Limits limits = {
+        Integrator2D<la::Vector<double, 2>>::Limits limits = {
             {0.0, zmin}, {2.0*std::numbers::pi, zmax}
         };
         return transverse_angle_integrator.integrate(
@@ -579,8 +571,8 @@ public:
 private:
     template <typename Dist>
     double radon_integral(
-        Dist&& distribution, const std::array<double, 3>& offset_dist,
-        double shell, const std::array<double, 3>& normal_dist,
+        const Dist& distribution, const la::Vector<double, 3>& offset_dist,
+        double shell, const la::Vector<double, 3>& normal_dist,
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
@@ -589,19 +581,19 @@ private:
         if (w > 1.0) return 0.0;
 
         const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
-        auto integrand = [&](const std::array<double, 2>& coords)
+        auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
             const double v_perp = std::sqrt((v - radon_parameter)*(v + radon_parameter));
 
             // `point` is in coordinates with z-axis in direction of `normal`.
-            const std::array<double, 3> point = {
+            const la::Vector<double, 3> point = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), radon_parameter
             };
 
             // `align_z_transp` rotates `point` back into distribution coordinates
-            return v*distribution(la::matmul(to_dist_coords, point));
+            return v*distribution(to_dist_coords*point);
         };
 
         Integrator2D<double>::Limits limits = {
@@ -612,9 +604,9 @@ private:
     }
 
     template <typename Dist>
-    std::array<double, 2> transverse_radon_integral(
-        Dist&& distribution, const std::array<double, 3>& offset_dist,
-        double shell, const std::array<double, 3>& normal_dist,
+    la::Vector<double, 2> transverse_radon_integral(
+        const Dist& distribution, const la::Vector<double, 3>& offset_dist,
+        double shell, const la::Vector<double, 3>& normal_dist,
         double abserr, double relerr, std::size_t max_subdiv)
     {
         const double radon_parameter
@@ -623,7 +615,7 @@ private:
         if (w > 1.0) return {};
 
         const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
-        auto integrand = [&](const std::array<double, 2>& coords)
+        auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double v = coords[0];
             const double azimuth = coords[1];
@@ -631,23 +623,21 @@ private:
                 = std::sqrt((v - radon_parameter)*(v + radon_parameter));
 
             // `point` is in coordinates with z-axis in direction of `normal`.
-            const std::array<double, 3> point = {
+            const la::Vector<double, 3> point = {
                 v_perp*std::cos(azimuth), v_perp*std::sin(azimuth), radon_parameter
             };
-            const std::array<double, 3> point_dist
-                = la::matmul(to_dist_coords, point);
-            const std::array<double, 3> point_offset
-                = point_dist - offset_dist;
+            const la::Vector<double, 3> point_dist = to_dist_coords*point;
+            const la::Vector<double, 3> point_offset = point_dist - offset_dist;
 
             const double p_offset_sq = la::dot(point_offset, point_offset);
             const double p_offset_perp_sq = p_offset_sq - shell*shell;
 
             // `align_z_transp` rotates `point` back into distribution coordinates
             const double dist = distribution(point_dist);
-            return std::array<double, 2>{v*dist, v*p_offset_perp_sq*dist};
+            return la::Vector<double, 2>{v*dist, v*p_offset_perp_sq*dist};
         };
 
-        Integrator2D<std::array<double, 2>>::Limits limits = {
+        Integrator2D<la::Vector<double, 2>>::Limits limits = {
             {w, 0.0}, {1.0, 2.0*std::numbers::pi}
         };
         return transverse_radon_integrator.integrate(
@@ -655,20 +645,20 @@ private:
     }
 
     template <typename T>
-    using Integrator2D = cubage::HypercubeIntegrator<std::array<double, 2>, T>;
+    using Integrator2D = cubage::HypercubeIntegrator<la::Vector<double, 2>, T>;
     template <typename T>
-    using Integrator3D = cubage::HypercubeIntegrator<std::array<double, 3>, T>;
+    using Integrator3D = cubage::HypercubeIntegrator<la::Vector<double, 3>, T>;
     template <typename T>
-    using Integrator4D = cubage::HypercubeIntegrator<std::array<double, 4>, T>;
+    using Integrator4D = cubage::HypercubeIntegrator<la::Vector<double, 4>, T>;
 
     Integrator3D<double> isotropic_integrator;
     Integrator2D<double> radon_integrator;
     Integrator2D<double> angle_integrator;
     Integrator4D<double> anisotropic_integrator;
-    Integrator3D<std::array<double, 2>> transverse_integrator;
-    Integrator2D<std::array<double, 2>> transverse_radon_integrator;
-    Integrator2D<std::array<double, 2>> transverse_angle_integrator;
+    Integrator3D<la::Vector<double, 2>> transverse_integrator;
+    Integrator2D<la::Vector<double, 2>> transverse_radon_integrator;
+    Integrator2D<la::Vector<double, 2>> transverse_angle_integrator;
 };
 
-} // namspace integrate
+} // namespace integrate
 } // namespace zdm

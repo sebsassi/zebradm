@@ -23,6 +23,7 @@ SOFTWARE.
 #include "zebra_angle_integrator.hpp"
 
 #include "coordinate_transforms.hpp"
+#include "zebra_util.hpp"
 
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,
@@ -40,7 +41,7 @@ double quadratic_form(
 
 template <typename DistType>
 void test_mutual_convergence_isotropic(
-    DistType&& dist, std::span<const std::array<double, 3>> offsets,
+    DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
     std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
@@ -96,7 +97,7 @@ void test_mutual_convergence_isotropic(
 
 template <typename DistType>
 void test_mutual_convergence_transverse_isotropic(
-    DistType&& dist, std::span<const std::array<double, 3>> offsets,
+    DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
     std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
@@ -154,7 +155,7 @@ void test_mutual_convergence_transverse_isotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets,
+    DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
     std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
@@ -217,7 +218,7 @@ void test_mutual_convergence_anisotropic(
 
 template <typename DistType, typename RespType>
 void test_mutual_convergence_transverse_anisotropic(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets,
+    DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
     std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
@@ -334,7 +335,7 @@ int main()
     };
     */
 
-   const std::vector<std::array<double, 3>> offsets = {
+   const std::vector<zdm::la::Vector<double, 3>> offsets = {
         {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.0, 0.0},
         {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {-0.5, 0.0, 0.0}
     };

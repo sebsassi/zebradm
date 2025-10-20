@@ -23,14 +23,14 @@ SOFTWARE.
 
 #include <zest/md_span.hpp>
 #include <zest/rotor.hpp>
+#include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_conventions.hpp>
 #include <zest/zernike_expansion.hpp>
-#include <zest/sh_glq_transformer.hpp>
 
 #include "coordinate_transforms.hpp"
 
-#include "zebra_radon.hpp"
 #include "radon_util.hpp"
+#include "zebra_radon.hpp"
 
 namespace zdm
 {
@@ -60,7 +60,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
 
 void IsotropicAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-    std::span<const std::array<double, 3>> offsets,
+    std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> shells, zest::MDSpan<double, 2> out)
 {
     resize(distribution.order());
@@ -71,7 +71,7 @@ void IsotropicAngleIntegrator::integrate(
 
 void IsotropicAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-    const std::array<double, 3>& offset, std::span<const double> shells,
+    const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
     resize(distribution.order());
@@ -80,7 +80,7 @@ void IsotropicAngleIntegrator::integrate(
 }
 
 void IsotropicAngleIntegrator::integrate(
-    const std::array<double, 3>& offset, std::span<const double> shells,
+    const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
     std::ranges::copy(
@@ -161,7 +161,7 @@ void AnisotropicAngleIntegrator::resize(
 void AnisotropicAngleIntegrator::integrate(
    ZernikeExpansionSpan<const std::array<double, 2>> distribution,
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    std::span<const std::array<double, 3>> offsets,
+    std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
     zest::MDSpan<double, 2> out, std::size_t trunc_order)
 {
@@ -182,7 +182,7 @@ void AnisotropicAngleIntegrator::integrate(
 void AnisotropicAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    const std::array<double, 3>& offset, double rotation_angle,
+    const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, zest::MDSpan<double, 2> out,
     std::size_t trunc_order)
 {
@@ -199,7 +199,7 @@ void AnisotropicAngleIntegrator::integrate(
 
 void AnisotropicAngleIntegrator::integrate(
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    const std::array<double, 3>& offset, double rotation_angle,
+    const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::size_t geg_order,
     std::size_t top_order, std::span<double> out)
 {
@@ -273,7 +273,7 @@ void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
 
 void IsotropicTransverseAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-    std::span<const std::array<double, 3>> offsets, std::span<const double> shells,
+    std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::MDSpan<std::array<double, 2>, 2> out)
 {
     resize(distribution.order());
@@ -292,7 +292,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
 
 void IsotropicTransverseAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-    const std::array<double, 3>& offset, std::span<const double> shells,
+    const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
     resize(distribution.order());
@@ -309,7 +309,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
 }
 
 void IsotropicTransverseAngleIntegrator::integrate(
-    const std::array<double, 3>& offset, std::span<const double> shells,
+    const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
     std::ranges::copy(
@@ -413,7 +413,7 @@ void AnisotropicTransverseAngleIntegrator::resize(
 void AnisotropicTransverseAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    std::span<const std::array<double, 3>> offsets,
+    std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
     zest::MDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
 {
@@ -438,7 +438,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 void AnisotropicTransverseAngleIntegrator::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> distribution,
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    const std::array<double, 3>& offset, double rotation_angle,
+    const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out,
     std::size_t trunc_order)
 {
@@ -461,7 +461,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
 
 void AnisotropicTransverseAngleIntegrator::integrate(
     SHExpansionVectorSpan<const std::array<double, 2>> response,
-    const std::array<double, 3>& offset, double rotation_angle,
+    const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
     using ZernikeSpan = zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>;
