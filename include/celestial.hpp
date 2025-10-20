@@ -52,7 +52,7 @@ struct GalacticOrientation
         constexpr auto chaining = la::Chaining::intrinsic;
 
         return la::RotationMatrix<double, 3>::from_euler_angles<convention, chaining>(
-                ncp_lon, ngp_dec - 0.5*std::numbers::pi, ngp_ra - std::numbers::pi);
+                ncp_lon, 0.5*std::numbers::pi - ngp_dec, std::numbers::pi - ngp_ra);
     }
 };
 
