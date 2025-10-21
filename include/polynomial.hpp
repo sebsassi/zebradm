@@ -52,13 +52,13 @@ template <typename FieldType, std::size_t Order>
 struct Monomial
 {
     using Field = FieldType;
-    constexpr std::size_t order = Order;
+    static constexpr std::size_t order = Order;
     FieldType coeff;
 };
 
 template <std::ranges::sized_range R, typename DomainType>
     requires can_multiply<std::ranges::range_value_t<R>, DomainType>
-auto horner_eval(R&& coeffs, DomainType x)
+auto horner_eval(const R& coeffs, DomainType x)
 {
     using FieldType = std::ranges::range_value_t<R>;
     using ResType = decltype((*std::begin(coeffs))*x);
@@ -72,16 +72,24 @@ template <typename FieldType, std::size_t Order>
 struct Polynomial
 {
     using Field = FieldType;
-    constexpr std::size_t order = Order;
+    static constexpr std::size_t order = Order;
 
     constexpr Polynomial() = default;
-    constexpr Polynomial(const std::array<FieldType, Order + 1>& coeffs_) : coeffs(coeffs_) {}
+    explicit constexpr Polynomial(const std::array<FieldType, Order + 1>& coeffs_): coeffs(coeffs_) {}
+
+    template <typename... Types>
+        requires (std::convertible_to<Types, Field> && ...)
+    constexpr Polynomial(Types... coeffs_): coeffs{FieldType(coeffs_)...} {}
 
     template <typename DomainType>
         requires vector_over<Field, DomainType> || vector_over<DomainType, Field>
     [[nodiscard]] constexpr FieldType operator()(DomainType x) const noexcept
     {
-        return horner_eval(coeffs, x);
+        if constexpr (order == 1)
+            return coeffs[0];
+        else
+            return horner_eval(coeffs, x);
+
     }
 
     template <typename DomainType, std::size_t N>
@@ -100,7 +108,10 @@ struct Polynomial
 
     [[nodiscard]] constexpr auto derivative() const noexcept
     {
-        if constexpr (Order == 0) return Polynomial<FieldType, 0>();
+        if constexpr (order < 2)
+            return Polynomial<FieldType, 0>();
+        else if constexpr (order == 2)
+            return Polynomial<FieldType, 1>(std::array<FieldType, 1>{coeffs[1]});
         else
         {
             Polynomial<FieldType, Order - 1> deriv;
