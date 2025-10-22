@@ -3,8 +3,8 @@
 #include <numbers>
 
 #include "matrix.hpp"
-#include "time.hpp"
 #include "polynomial.hpp"
+#include "time.hpp"
 
 namespace zdm
 {

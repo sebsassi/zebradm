@@ -83,7 +83,7 @@ struct Matrix
         return res;
     }
 
-    [[nodiscard]] constexpr explicit
+    [[nodiscard]] explicit constexpr 
     operator std::array<T, N*M>() const noexcept { return array; }
 
     [[nodiscard]] constexpr bool
@@ -386,7 +386,7 @@ public:
                      unit_vec[0],  unit_vec[1],  unit_vec[2]
                 });
         }
-        else
+        else [[unlikely]]
             if constexpr (
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
@@ -434,7 +434,7 @@ public:
                     -unit_vec[0], -unit_vec[1],  unit_vec[2]
                 });
         }
-        else
+        else [[unlikely]]
             if constexpr (
                     (layout == MatrixLayout::row_major && action == Action::active)
                     || (layout == MatrixLayout::column_major && action == Action::passive))
@@ -1141,7 +1141,7 @@ public:
     static constexpr MatrixLayout matrix_layout = matrix_layout_param;
 
     constexpr RigidTransform() = default;
-    constexpr explicit RigidTransform(
+    explicit constexpr RigidTransform(
         RotationMatrix<T, N, action, matrix_layout> rotation, std::array<T, N> translation):
         m_rotation{rotation}, m_translation{translation} {}
 
@@ -1163,7 +1163,7 @@ public:
     }
 
     [[nodiscard]] constexpr const RotationMatrix<T, N, action, matrix_layout>&
-    rotation_matrix() const noexcept { return m_rotation; }
+    rotation() const noexcept { return m_rotation; }
 
     [[nodiscard]] constexpr const std::array<T, N>&
     translation() const noexcept { return m_translation; }
