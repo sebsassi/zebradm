@@ -63,7 +63,7 @@ double IsotropicAngleIntegratorCore::integrate(
     ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
     double offset_len, double shell)
 {
-    if (shell > 1.0 + offset_len) return 0.0;
+    if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
     TrapezoidSpan<double>
     aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
@@ -86,7 +86,7 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
     ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
     double offset_len, double shell)
 {
-    if (shell > 1.0 + offset_len) return {0.0, 0.0};
+    if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
 
     const double shell_sq = shell*shell;
 
@@ -229,7 +229,7 @@ double AnisotropicAngleIntegratorCore::integrate(
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
-    if (shell > 1.0 + offset_len) return 0.0;
+    if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const std::array<double, 3> euler_angles
@@ -283,7 +283,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
-    if (shell > 1.0 + offset_len) return {0.0, 0.0};
+    if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const std::array<double, 3> euler_angles
