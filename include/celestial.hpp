@@ -60,4 +60,20 @@ private:
     la::RigidTransform<double, 3> m_transform;
 };
 
+class ECSToICRS
+{
+public:
+    constexpr ECSToICRS() = default;
+
+    la::RigidTransform<double, 3> operator()([[maybe_unused]] double t) { return transform(); }
+    la::RigidTransform<double, 3> operator()() { return transform(); }
+
+private:
+    [[nodiscard]] static constexpr la::RigidTransform<double, 3>
+    transform() noexcept
+    {
+
+    }
+};
+
 } // namespace zdm
