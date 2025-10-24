@@ -356,7 +356,7 @@ public:
     }
 
     [[nodiscard]] static RotationMatrix
-    align_z(const std::array<double, 3>& vector) noexcept requires (N == 3)
+    align_z(const Vector<double, 3>& vector) noexcept requires (N == 3)
     {
         const std::array<double, 3> unit_vec = normalize(vector);
         const double u_xx = unit_vec[0]*unit_vec[0];
@@ -404,7 +404,7 @@ public:
     }
 
     [[nodiscard]] static RotationMatrix
-    align_z_inverse(const std::array<double, 3>& vector) noexcept requires (N == 3)
+    align_z_inverse(const Vector<double, 3>& vector) noexcept requires (N == 3)
     {
         const std::array<double, 3> unit_vec = normalize(vector);
         const double u_xx = unit_vec[0]*unit_vec[0];
@@ -1192,6 +1192,34 @@ compose(
     return RigidTransform<T, N, action, matrix_layout>(
         b.rotation()*a.rotation(),
         b.rotation()*a.translation() + b.translation());
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const RotationMatrix<T, N, action, matrix_layout>& rotation,
+    const RigidTransform<T, N, action, matrix_layout>& rigid_transform) noexcept
+{
+    return RigidTransform<T, N, action, matrix_layout>(
+        rigid_transform.rotation()*rotation, rigid_transform.translation());
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
+    const RotationMatrix<T, N, action, matrix_layout>& rotation) noexcept
+{
+    return RigidTransform<T, N, action, matrix_layout>(
+        rotation*rigid_transform.rotation(), rotation*rigid_transform.translation());
 }
 
 } // namespace la

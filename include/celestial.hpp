@@ -8,6 +8,14 @@
 namespace zdm
 {
 
+enum class CoordinateSystem
+{
+    GCS,
+    ICRS,
+    ITRS,
+    HCS
+};
+
 template <typename ParametricTransform, typename OutputType>
 concept outputs = requires (ParametricTransform x, typename ParametricTransform::value_type t)
     {
@@ -94,6 +102,9 @@ private:
     }
 };
 
+// ICRS and BCRS share the same orientation and origin
+using ECSToBCRS = ECSToICRS;
+
 class ICRSToGCRS
 {
 public:
@@ -102,7 +113,7 @@ public:
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double t) const noexcept
     {
-        const la::Vector<double, 3> earth_velocity = zdm::earth_orbit(t).reference_cs_velocity();
+        const la::Vector<double, 3> earth_velocity = earth.orbit(t).reference_cs_velocity();
         return la::RigidTransform<double, 3>(
             la::RotationMatrix<double, 3>::identity(),
             ecs_to_icrs().rotation()*(-earth_velocity));
@@ -112,8 +123,53 @@ private:
     static constexpr auto ecs_to_icrs = ECSToICRS{};
 };
 
-class GCRSToITRS;
+class GCRSToITRS
+{
+public:
+    constexpr GCRSToITRS() = default;
 
-class ITRSToHCS;
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()(double t) const noexcept
+    {
+        const double cip_x = cip[0]((1.0/36525.0)*t);
+        const double cip_y = cip[1]((1.0/36525.0)*t);
+        const double cip_r = std::hypot(cip_x, cip_y);
+        const double cip_z = std::sqrt((1.0 + cip_r)*(1.0 - cip_r));
+        const la::Vector<double, 3> cip = {cip_x, cip_y, cip_z};
+        const auto align_cip = la::RotationMatrix<double, 3>::align_z(cip);
+
+        // The polynomial deevelopment of the CIO locator is neglected here.
+        const double cio_locator = -0.5*cip_x*cip_y;
+        const double day_fraction = t - std::floor(t);
+        const auto to_tirs = la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(earth.rotation_angle(day_fraction) - cio_locator);
+
+        // Polar motion is neglected: ITRS = TIRS.
+        return la::RigidTransform<double, 3>(to_tirs*align_cip, la::Vector<double, 3>{});
+    }
+};
+
+class ITRSToHCS
+{
+public:
+    constexpr ITRSToHCS() = default;
+    constexpr ITRSToHCS(double longitude, double latitude): m_transform(transform(longitude, latitude)) {}
+
+    [[nodiscard]] la::RigidTransform<double, 3> operator()([[maybe_unused]] double t) const noexcept { return m_transform; }
+    [[nodiscard]] la::RigidTransform<double, 3> operator()() const noexcept { return m_transform; }
+
+private:
+    [[nodiscard]] static la::RigidTransform<double, 3>
+    transform(double longitude, double latitude) noexcept
+    {
+        constexpr auto chaining = la::Chaining::intrinsic;
+        const auto rotation = la::RotationMatrix<double, 3>::composite_axes<Axis::z, Axis::y, chaining>(std::numbers::pi + longitude, -latitude);
+
+        const la::Vector<double, 3> translation = {0.0, -earth.surface_speed(latitude), 0.0};
+
+        return la::RigidTransform<double, 3>(rotation, translation);
+    }
+
+    la::RigidTransform<double, 3> m_transform;
+};
 
 } // namespace zdm

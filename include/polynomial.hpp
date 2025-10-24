@@ -33,11 +33,15 @@ namespace zdm
 template <typename T, typename F>
 concept vector_over = requires (T x, F a)
 {
+    x *= a;
+    x /= a;
     { x*a } -> std::same_as<T>;
     { a*x } -> std::same_as<T>;
 }
 && requires (T x, T y)
 {
+    x += y;
+    x -= y;
     {x + y} -> std::same_as<T>;
     {x - y} -> std::same_as<T>;
 };
@@ -85,7 +89,7 @@ struct Polynomial
         requires vector_over<Field, DomainType> || vector_over<DomainType, Field>
     [[nodiscard]] constexpr FieldType operator()(DomainType x) const noexcept
     {
-        if constexpr (order == 1)
+        if constexpr (order == 0)
             return coeffs[0];
         else
             return horner_eval(coeffs, x);
@@ -108,10 +112,10 @@ struct Polynomial
 
     [[nodiscard]] constexpr auto derivative() const noexcept
     {
-        if constexpr (order < 2)
+        if constexpr (order < 1)
             return Polynomial<FieldType, 0>();
-        else if constexpr (order == 2)
-            return Polynomial<FieldType, 1>(std::array<FieldType, 1>{coeffs[1]});
+        else if constexpr (order == 1)
+            return Polynomial<FieldType, 0>(std::array<FieldType, 1>{coeffs[1]});
         else
         {
             Polynomial<FieldType, Order - 1> deriv;
@@ -159,11 +163,11 @@ template <typename P, typename Q>
     constexpr std::size_t min_order = std::min(P::order, Q::order);
     constexpr std::size_t max_order = std::max(P::order, Q::order);
 
-    Polynomial<typename P::FieldType, order> res{};
-    for (std::size_t i = 0; i < min_order; ++i)
+    Polynomial<typename P::FieldType, max_order> res{};
+    for (std::size_t i = 0; i <= min_order; ++i)
         res.coeffs[i] = p.coeffs[i] + q.coeffs[i];
     
-    for (std::size_t i = min_order; i < max_order; ++i)
+    for (std::size_t i = min_order + 1; i <= max_order; ++i)
     {
         if constexpr (P::order > Q::order)
             res.coeffs[i] = p.coeffs[i];
@@ -183,10 +187,10 @@ template <typename P, typename Q>
     constexpr std::size_t max_order = std::max(P::order, Q::order);
 
     Polynomial<typename P::FieldType, max_order> res{};
-    for (std::size_t i = 0; i < min_order; ++i)
+    for (std::size_t i = 0; i <= min_order; ++i)
         res.coeffs[i] = p.coeffs[i] - q.coeffs[i];
-    
-    for (std::size_t i = min_order; i < max_order; ++i)
+ 
+    for (std::size_t i = min_order + 1; i <= max_order; ++i)
     {
         if constexpr (P::order > Q::order)
             res.coeffs[i] = p.coeffs[i];
@@ -197,22 +201,25 @@ template <typename P, typename Q>
     return res;
 }
 
-template <typename P, typename Q>
-    requires std::same_as<P, Monomial<typename P::Field, P::order>>
-        && std::same_as<Q, Polynomial<typename Q::Field, Q::order>>
-[[nodiscard]] constexpr auto operator*(const P& p, const Q& q) noexcept
+template <typename M, typename P>
+    requires std::same_as<M, Monomial<typename M::Field, M::order>>
+        && std::same_as<P, Polynomial<typename P::Field, P::order>>
+[[nodiscard]] constexpr auto operator*(const M& m, const P& p) noexcept
 {
-    Polynomial<typename P::FieldType, P::Order + Q::order> res{};
-    /* TODO */
+    Polynomial<typename M::FieldType, M::Order + P::order> res{};
+    for (std::size_t i = M::order; i <= M::order + P::order; ++i)
+        res.coeffs[i] = m.coeff*p.coeffs[i - M::order];
+    return res;
 }
 
-template <typename P, typename Q>
+template <typename P, typename M>
     requires std::same_as<P, Polynomial<typename P::Field, P::order>>
-        && std::same_as<Q, Monomial<typename Q::Field, Q::order>>
-[[nodiscard]] constexpr auto operator*(const P& p, const Q& q) noexcept
+        && std::same_as<M, Monomial<typename M::Field, M::order>>
+[[nodiscard]] constexpr auto operator*(const P& p, const M& m) noexcept
 {
-    Polynomial<typename P::FieldType, P::Order + Q::order> res{};
-    /* TODO */
+    Polynomial<typename M::FieldType, M::Order + P::order> res{};
+    for (std::size_t i = M::order; i <= M::order + P::order; ++i)
+        res.coeffs[i] = m.coeff*p.coeffs[i - M::order];
 }
 
 template <typename P, typename Q>
@@ -291,7 +298,7 @@ struct DynamicPolynomial
     {
         if (coeffs.size() < 2)
             return DynamicPolynomial<FieldType>(1UL);
-        else (coeffs.size() >= 2)
+        else if (coeffs.size() >= 2)
         {
             DynamicPolynomial<FieldType> deriv(coeffs.size() - 1);
             for (std::size_t i = 1; i < coeffs.size(); ++i)
