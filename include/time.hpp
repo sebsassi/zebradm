@@ -8,11 +8,14 @@
 #include <string_view>
 #include <vector>
 
+#include "utility.hpp"
+
 namespace zdm
 {
 
 enum class DateParseError
 {
+    success,
     incomplete_format_string,
     incomplete_time_string,
     character_mismatch,
@@ -183,7 +186,7 @@ day_of_year(std::int32_t year, std::uint32_t month, std::uint32_t day_of_month) 
     @return month number (1-12) and day of month (1-31).
 */
 [[nodiscard]] constexpr std::pair<std::uint32_t, std::uint32_t>
-month_of_year(std::int32_t year, std::uint32_t day_of_year)
+month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
 {
     constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
@@ -248,6 +251,9 @@ struct Time
     std::uint16_t hour;
     std::uint16_t min;
     std::uint16_t sec;
+    std::uint16_t msec;
+
+    [[nodiscard]] constexpr bool operator==(const Time&) const noexcept = default;
 
     [[nodiscard]] constexpr auto operator<=>(const Time&) const noexcept = default;
 
@@ -294,19 +300,20 @@ struct Time
             std::uint16_t(day_of_month_offset),
             std::uint16_t(hour_of_offset_year % 60),
             std::uint16_t(minute_of_offset_year % 60),
-            std::uint16_t(second_of_offset_year % 60)
+            std::uint16_t(second_of_offset_year % 60),
+            msec
         };
     }
 
     /**
-        @brief Convert a time to seconds since the zero point of the time struct.
+        @brief Convert a time to milliseconds since the zero point of the time struct.
     */
     [[nodiscard]] constexpr std::int64_t
-    to_seconds() const noexcept
+    to_milliseconds() const noexcept
     {
         std::uint32_t month = mon;
         std::uint32_t day_of_month = mday;
-        return days_until(year)*86400LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400LL + hour*3600LL + min*60LL + sec;
+        return days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL + hour*3600000LL + min*60000LL + sec*1000LL;
     }
 };
 
@@ -320,10 +327,10 @@ struct Time
     @return number of seconds since the epoch.
 */
 template <Time epoch>
-[[nodiscard]] constexpr std::int64_t seconds_since_epoch(Time time) noexcept
+[[nodiscard]] constexpr std::int64_t milliseconds_since_epoch(Time time) noexcept
 {
-    constexpr std::int64_t epoch_seconds = epoch.to_seconds();
-    return time.to_seconds() - epoch_seconds;
+    constexpr std::int64_t epoch_seconds = epoch.to_milliseconds();
+    return time.to_milliseconds() - epoch_seconds;
 }
 
 namespace detail
@@ -454,18 +461,16 @@ parse_time(std::string_view input, std::string_view format)
 {
     constexpr std::array<detail::FormatSpecifier, 256> format_map = detail::format_specifier_map();
 
-    constexpr std::array<std::string_view, 12> month_names
-        = {
-            "January", "February", "March", "April", "May", "June", "July", "August",
-            "September", "October", "November", "December"
-        };
+    constexpr std::array<std::string_view, 12> month_names = {
+        "January", "February", "March", "April", "May", "June", "July", "August",
+        "September", "October", "November", "December"
+    };
     constexpr std::array<std::string_view, 12> month_names_abbrv
         = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    constexpr std::array<std::array<std::uint32_t, 12>, 2> last_day_of_month
-        = {
-            std::array<std::uint32_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-            std::array<std::uint32_t, 12>{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-        };
+    constexpr std::array<std::array<std::uint32_t, 12>, 2> last_day_of_month = {
+        std::array<std::uint32_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+        std::array<std::uint32_t, 12>{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+    };
 
     detail::DateParseState parse_state = {};
     Time time = {};
@@ -737,19 +742,49 @@ parse_time(std::string_view input, std::string_view format)
     @param date
     @param format string specifying the format of the date string.
 
-    @return UT1 time since the J2000 epoch in days, or a `DateParseError`.
+    @return UT1 time since the epoch in days, or a `DateParseError`.
 
     @note The format string supports only a subset of common time format
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
+template <Time epoch>
 [[nodiscard]] constexpr std::expected<double, DateParseError>
-ut1_j2000_from_date(std::string_view date, std::string_view format)
+ut1_from_date(std::string_view date, std::string_view format)
 {
-    constexpr Time epoch_j2000 = {2000, 1, 1, 12, 0, 0};
     return parse_time(date, format)
-        .transform([&](auto val){ return (1.0/86400)*double(seconds_since_epoch<epoch_j2000>(val.first)); });
+        .transform([&](auto val){ return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(val.first)); });
 }
+
+template <Time epoch>
+[[nodiscard]] constexpr DateParseError
+ut1_interval(
+    std::span<double>& interval, std::string_view start_date, std::string_view end_date,
+    std::string_view format)
+{
+    if (interval.size() == 0) return DateParseError::success;
+
+    const auto start_res = ut1_from_date<epoch>(start_date, format);
+    if (!start_res.has_value())
+        return start_res.error();
+
+    const double start_time = *start_res;
+
+    if (interval.size() == 1)
+    {
+        interval.front() = start_time;
+        return DateParseError::success;
+    }
+
+    const auto end_res = ut1_from_date<epoch>(end_date, format);
+    if (!end_res.has_value())
+        return std::unexpected(end_res.error());
+
+    const double end_time = *end_res;
+
+    linspace(interval, start_time, end_time);
+}
+
 
 /**
     @brief Generate an interval of UT1 times (in days) since J2000 epoch from date
@@ -767,33 +802,39 @@ ut1_j2000_from_date(std::string_view date, std::string_view format)
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
+template <Time epoch>
 [[nodiscard]] std::expected<std::vector<double>, DateParseError>
-ut1_j2000_interval(std::string_view start_date, std::string_view end_date, std::size_t count, std::string_view format)
+ut1_interval(
+    std::string_view start_date, std::string_view end_date, std::size_t count,
+    std::string_view format)
 {
     if (count == 0) return {};
 
-    const auto start_res = ut1_j2000_from_date(start_date, format);
+    const auto start_res = ut1_from_date<epoch>(start_date, format);
     if (!start_res.has_value())
         return std::unexpected(start_res.error());
 
     const double start_time = *start_res;
     
-    if (count == 1) return std::vector{start_time};
+    if (count == 1) return linspace(start_time, start_time, count);
 
-    const auto end_res = ut1_j2000_from_date(end_date, format);
+    const auto end_res = ut1_from_date<epoch>(end_date, format);
     if (!end_res.has_value())
         return std::unexpected(end_res.error());
 
     const double end_time = *end_res;
 
-    const double dt = (start_time - end_time)/double(count - 1);
-
-    std::vector<double> result(count);
-    for (std::size_t i = 0; i < count - 1; ++i)
-        result[i] = start_time + dt*double(i);
-    result[count - 1] = end_time;
-
-    return result;
+    return linspace(start_time, end_time, count);
 }
+
+constexpr Time j2000_utc = {
+    .year = 2000,
+    .mon = 1,
+    .mday = 1,
+    .hour = 11,
+    .min = 58,
+    .sec = 55,
+    .msec = 816
+};
 
 } // namespace zdm

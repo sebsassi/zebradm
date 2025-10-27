@@ -62,7 +62,8 @@ struct Monomial
 
 template <std::ranges::sized_range R, typename DomainType>
     requires can_multiply<std::ranges::range_value_t<R>, DomainType>
-auto horner_eval(const R& coeffs, DomainType x)
+[[nodiscard]] constexpr auto
+horner_eval(const R& coeffs, DomainType x) noexcept
 {
     using FieldType = std::ranges::range_value_t<R>;
     using ResType = decltype((*std::begin(coeffs))*x);
@@ -87,7 +88,8 @@ struct Polynomial
 
     template <typename DomainType>
         requires vector_over<Field, DomainType> || vector_over<DomainType, Field>
-    [[nodiscard]] constexpr FieldType operator()(DomainType x) const noexcept
+    [[nodiscard]] constexpr FieldType
+    operator()(DomainType x) const noexcept
     {
         if constexpr (order == 0)
             return coeffs[0];
@@ -96,21 +98,8 @@ struct Polynomial
 
     }
 
-    template <typename DomainType, std::size_t N>
-        requires vector_over<Field, DomainType>
-    [[nodiscard]] constexpr std::array<FieldType, N>
-    operator()(std::array<DomainType, N> x) const noexcept
-    {
-        std::array<FieldType, N> res{};
-        for (const FieldType& coeff : coeffs | std::views::reverse)
-        {
-            for (std::size_t i = 0; i < N; ++i)
-                res[i] = coeff + res[i]*x[i];
-        }
-        return res;
-    }
-
-    [[nodiscard]] constexpr auto derivative() const noexcept
+    [[nodiscard]] constexpr auto
+    derivative() const noexcept
     {
         if constexpr (order < 1)
             return Polynomial<FieldType, 0>();
@@ -146,8 +135,8 @@ struct Polynomial
 };
 
 template <typename FieldType, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<FieldType, Order> operator-(
-    const Polynomial<FieldType, Order>& p) noexcept
+[[nodiscard]] constexpr Polynomial<FieldType, Order>
+operator-(const Polynomial<FieldType, Order>& p) noexcept
 {
     Polynomial<FieldType, Order> res{};
     for (std::size_t i = 0; i < res.coeffs.size(); ++i)
@@ -158,7 +147,8 @@ template <typename FieldType, std::size_t Order>
 template <typename P, typename Q>
     requires std::same_as<P, Polynomial<typename P::Field, P::order>>
         && std::same_as<Q, Polynomial<typename Q::Field, Q::order>>
-[[nodiscard]] constexpr auto operator+(const P& p, const Q& q) noexcept
+[[nodiscard]] constexpr auto
+operator+(const P& p, const Q& q) noexcept
 {
     constexpr std::size_t min_order = std::min(P::order, Q::order);
     constexpr std::size_t max_order = std::max(P::order, Q::order);
@@ -181,7 +171,8 @@ template <typename P, typename Q>
 template <typename P, typename Q>
     requires std::same_as<P, Polynomial<typename P::Field, P::order>>
         && std::same_as<Q, Polynomial<typename Q::Field, Q::order>>
-[[nodiscard]] constexpr auto operator-(const P& p, const Q& q) noexcept
+[[nodiscard]] constexpr auto
+operator-(const P& p, const Q& q) noexcept
 {
     constexpr std::size_t min_order = std::min(P::order, Q::order);
     constexpr std::size_t max_order = std::max(P::order, Q::order);
@@ -204,7 +195,8 @@ template <typename P, typename Q>
 template <typename M, typename P>
     requires std::same_as<M, Monomial<typename M::Field, M::order>>
         && std::same_as<P, Polynomial<typename P::Field, P::order>>
-[[nodiscard]] constexpr auto operator*(const M& m, const P& p) noexcept
+[[nodiscard]] constexpr auto
+operator*(const M& m, const P& p) noexcept
 {
     Polynomial<typename M::FieldType, M::Order + P::order> res{};
     for (std::size_t i = M::order; i <= M::order + P::order; ++i)
@@ -215,7 +207,8 @@ template <typename M, typename P>
 template <typename P, typename M>
     requires std::same_as<P, Polynomial<typename P::Field, P::order>>
         && std::same_as<M, Monomial<typename M::Field, M::order>>
-[[nodiscard]] constexpr auto operator*(const P& p, const M& m) noexcept
+[[nodiscard]] constexpr auto
+operator*(const P& p, const M& m) noexcept
 {
     Polynomial<typename M::FieldType, M::Order + P::order> res{};
     for (std::size_t i = M::order; i <= M::order + P::order; ++i)
@@ -225,15 +218,16 @@ template <typename P, typename M>
 template <typename P, typename Q>
     requires std::same_as<P, Polynomial<typename P::Field, P::order>>
         && std::same_as<Q, Polynomial<typename Q::Field, Q::order>>
-[[nodiscard]] constexpr auto operator*(const P& p, const Q& q) noexcept
+[[nodiscard]] constexpr auto
+operator*(const P& p, const Q& q) noexcept
 {
     Polynomial<typename P::FieldType, P::Order + Q::order> res{};
     /* TODO */
 }
 
 template <typename FieldType, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<FieldType, Order> operator*(
-    const FieldType a, const Polynomial<FieldType, Order>& p) noexcept
+[[nodiscard]] constexpr Polynomial<FieldType, Order>
+operator*(const FieldType a, const Polynomial<FieldType, Order>& p) noexcept
 {
     Polynomial<FieldType, Order> res{};
     for (std::size_t i = 0; i < res.coeffs.size(); ++i)
@@ -242,8 +236,8 @@ template <typename FieldType, std::size_t Order>
 }
 
 template <typename FieldType, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<FieldType, Order> operator*(
-    const Polynomial<FieldType, Order>& p, const FieldType a) noexcept
+[[nodiscard]] constexpr Polynomial<FieldType, Order>
+operator*(const Polynomial<FieldType, Order>& p, const FieldType a) noexcept
 {
     Polynomial<FieldType, Order> res{};
     for (std::size_t i = 0; i < res.coeffs.size(); ++i)
@@ -252,8 +246,8 @@ template <typename FieldType, std::size_t Order>
 }
 
 template <typename FieldType, std::size_t Order, std::size_t TruncOrder>
-[[nodiscard]] constexpr Polynomial<FieldType, TruncOrder> truncate(
-    const Polynomial<FieldType, Order>& p)
+[[nodiscard]] constexpr Polynomial<FieldType, TruncOrder>
+truncate(const Polynomial<FieldType, Order>& p)
 {
     /* TODO */
 }
@@ -272,7 +266,8 @@ struct DynamicPolynomial
 
     template<typename DomainType>
         requires std::integral<DomainType> || std::floating_point<DomainType>
-    [[nodiscard]] FieldType operator()(DomainType x) const noexcept
+    [[nodiscard]] FieldType
+    operator()(DomainType x) const noexcept
     {
         FieldType res{};
         for (const FieldType& coeff : coeffs | std::views::reverse)
@@ -280,21 +275,8 @@ struct DynamicPolynomial
         return res;
     }
 
-    template<typename DomainType, std::size_t N>
-        requires std::integral<DomainType> || std::floating_point<DomainType>
-    [[nodiscard]] std::array<FieldType, N>
-    operator()(std::array<DomainType, N> x) const noexcept
-    {
-        std::array<FieldType, N> res{};
-        for (const FieldType& coeff : coeffs | std::views::reverse)
-        {
-            for (std::size_t i = 0; i < N; ++i)
-                res[i] = coeff + res[i]*x[i];
-        }
-        return res;
-    }
-
-    [[nodiscard]] auto derivative() const noexcept
+    [[nodiscard]] auto
+    derivative() const noexcept
     {
         if (coeffs.size() < 2)
             return DynamicPolynomial<FieldType>(1UL);
@@ -303,8 +285,7 @@ struct DynamicPolynomial
             DynamicPolynomial<FieldType> deriv(coeffs.size() - 1);
             for (std::size_t i = 1; i < coeffs.size(); ++i)
             {
-                if constexpr (std::is_integral<FieldType>::value
-                        || std::is_floating_point<FieldType>::value)
+                if constexpr (std::integral<FieldType> || std::floating_point<FieldType>)
                     deriv.coeffs[i - 1] = FieldType(i)*coeffs[i];
                 else
                     deriv.coeffs[i - 1] = i*coeffs[i];
@@ -313,8 +294,8 @@ struct DynamicPolynomial
         }
     }
 
-    [[nodiscard]] std::size_t order() const noexcept
-    { return coeffs.size() - std::min(1, coeffs.size()); }
+    [[nodiscard]] std::size_t
+    order() const noexcept { return coeffs.size() - std::min(1, coeffs.size()); }
 
     std::vector<FieldType> coeffs;
 };

@@ -1,19 +1,31 @@
 #pragma once
 
+#include <span>
 #include <vector>
 
 template <std::floating_point T>
-std::vector<T> linspace(T start, T stop, std::size_t count)
+constexpr void
+linspace(std::span<T>& interval, T start, T stop) noexcept
 {
-    if (count == 0) return {};
-    if (count == 1) return {start};
+    if (interval.size() == 0) return;
+    if (interval.size() == 1)
+    {
+        interval.front() = start;
+        return;
+    }
 
+    const T step = (stop - start)/T(interval.size() - 1);
+    for (std::size_t i = 0; i < interval.size(); ++i)
+        interval[i] = start + T(i)*step;
+
+    interval.back() = stop;
+}
+
+template <std::floating_point T>
+[[nodiscard]] std::vector<T>
+linspace(T start, T stop, std::size_t count)
+{
     std::vector<T> res(count);
-    const T step = (stop - start)/T(count - 1);
-    for (std::size_t i = 0; i < count - 1; ++i)
-        res[i] = start + T(i)*step;
-
-    res[count - 1] = stop;
-
+    linspace(std::span<T>(res), start, stop);
     return res;
 }

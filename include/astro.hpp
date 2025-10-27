@@ -55,16 +55,6 @@ struct GalacticOrientation
     }
 };
 
-// Value of Karim and Mamajek (2017)
-constexpr GalacticOrientation orientation_km_2017 = {
-    .ngp_dec = 27.084*std::numbers::pi/180.0,
-    .ngp_ra = 192.729*std::numbers::pi/180.0,
-    .ncp_lon = 122.928*std::numbers::pi/180.0
-};
-
-// Value of Schönrich, Binney, and Dehnen (2010)
-constexpr la::Vector<double, 3> peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
-
 struct OrbitOrientation
 {
     double inclination;
@@ -211,6 +201,16 @@ struct Planet
     }
 };
 
+// Value of Karim and Mamajek (2017)
+constexpr GalacticOrientation orientation_km_2017 = {
+    .ngp_dec = 27.084*std::numbers::pi/180.0,
+    .ngp_ra = 192.729*std::numbers::pi/180.0,
+    .ncp_lon = 122.928*std::numbers::pi/180.0
+};
+
+// Value of Schönrich, Binney, and Dehnen (2010)
+constexpr la::Vector<double, 3> peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
+
 /**
     @brief Constant parameters defining Earth.
 
@@ -267,9 +267,9 @@ constexpr Planet earth = Planet<3, 3, 3, 3, 3>{
             .mean_motion = 1.720212416151879e-02
         },
         .epoch = {
-            .year = 2000, 
+            .year = 2000,
             .mon = 1,
-            .mday = 1, 
+            .mday = 1,
             .hour = 12,
             .min = 0,
             .sec = 0
