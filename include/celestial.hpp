@@ -61,7 +61,7 @@ public:
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         astro::GalacticOrientation orientation = astro::orientation_km_2017):
         m_transform(
-            orientation.gcs_to_icrs(),
+            orientation.gcs_to_reference_cs(),
             peculiar_velocity + la::Vector<double, 3>{0.0, circular_velocity, 0.0}) {};
 
     la::RigidTransform<double, 3> operator()([[maybe_unused]] double t) { return m_transform; }

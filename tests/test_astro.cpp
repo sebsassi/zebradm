@@ -25,7 +25,7 @@ bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double,
 
 bool test_gcs_to_icrs_maps_z_nearly_to_north_galactic_pole(double error)
 {
-    const zdm::la::Vector ngp_pos = zdm::astro::orientation_km_2017.gcs_to_icrs()*zdm::la::Vector{0.0, 0.0, 1.0};
+    const zdm::la::Vector ngp_pos = zdm::astro::orientation_km_2017.gcs_to_reference_cs()*zdm::la::Vector{0.0, 0.0, 1.0};
     const zdm::la::Vector true_ngp_pos = {
         std::cos(zdm::astro::orientation_km_2017.ngp_ra)*std::cos(zdm::astro::orientation_km_2017.ngp_dec),
         std::sin(zdm::astro::orientation_km_2017.ngp_ra)*std::cos(zdm::astro::orientation_km_2017.ngp_dec),
@@ -46,7 +46,7 @@ bool test_gcs_to_icrs_maps_x_approximately_to_sag_a_star_pos(double error)
     // OUP, pp. 472–481, 2017. doi:10.1093/mnras/stw2772.
     const double sag_a_star_offset = -std::atan2(17.0, 8200.0);
 
-    const zdm::la::Vector approximate_sag_a_star_pos = zdm::astro::orientation_km_2017.gcs_to_icrs()*zdm::la::Vector{std::cos(sag_a_star_offset), 0.0, std::sin(sag_a_star_offset)};
+    const zdm::la::Vector approximate_sag_a_star_pos = zdm::astro::orientation_km_2017.gcs_to_reference_cs()*zdm::la::Vector{std::cos(sag_a_star_offset), 0.0, std::sin(sag_a_star_offset)};
 
     // Sagittarius A* position from Reid and Brunthaler (2004):
     // Reid, M. J. and Brunthaler, A., “The Proper Motion of Sagittarius A*.
