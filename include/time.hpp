@@ -13,6 +13,9 @@
 namespace zdm
 {
 
+namespace time
+{
+
 enum class DateParseError
 {
     success,
@@ -836,5 +839,7 @@ constexpr Time j2000_utc = {
     .sec = 55,
     .msec = 816
 };
+
+} // namespace time
 
 } // namespace zdm

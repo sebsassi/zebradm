@@ -8,6 +8,9 @@
 namespace zdm
 {
 
+namespace celestial
+{
+
 enum class CoordinateSystem
 {
     GCS,
@@ -55,8 +58,8 @@ class GCSToICRS
 public:
     constexpr GCSToICRS(
         double circular_velocity,
-        const la::Vector<double, 3>& peculiar_velocity = peculiar_velocity_sbd_2010,
-        GalacticOrientation orientation = orientation_km_2017):
+        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        astro::GalacticOrientation orientation = astro::orientation_km_2017):
         m_transform(
             orientation.gcs_to_icrs(),
             peculiar_velocity + la::Vector<double, 3>{0.0, circular_velocity, 0.0}) {};
@@ -113,7 +116,7 @@ public:
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double t) const noexcept
     {
-        const la::Vector<double, 3> earth_velocity = earth.orbit(t).reference_cs_velocity();
+        const la::Vector<double, 3> earth_velocity = astro::earth.orbit(t).reference_cs_velocity();
         return la::RigidTransform<double, 3>(
             la::RotationMatrix<double, 3>::identity(),
             ecs_to_icrs().rotation()*(-earth_velocity));
@@ -131,8 +134,8 @@ public:
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double t) const noexcept
     {
-        const double cip_x = cip[0]((1.0/36525.0)*t);
-        const double cip_y = cip[1]((1.0/36525.0)*t);
+        const double cip_x = astro::cip[0]((1.0/36525.0)*t);
+        const double cip_y = astro::cip[1]((1.0/36525.0)*t);
         const double cip_r = std::hypot(cip_x, cip_y);
         const double cip_z = std::sqrt((1.0 + cip_r)*(1.0 - cip_r));
         const la::Vector<double, 3> cip = {cip_x, cip_y, cip_z};
@@ -141,7 +144,7 @@ public:
         // The polynomial deevelopment of the CIO locator is neglected here.
         const double cio_locator = -0.5*cip_x*cip_y;
         const double day_fraction = t - std::floor(t);
-        const auto to_tirs = la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(earth.rotation_angle(day_fraction) - cio_locator);
+        const auto to_tirs = la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.rotation_angle(day_fraction) - cio_locator);
 
         // Polar motion is neglected: ITRS = TIRS.
         return la::RigidTransform<double, 3>(to_tirs*align_cip, la::Vector<double, 3>{});
@@ -164,12 +167,14 @@ private:
         constexpr auto chaining = la::Chaining::intrinsic;
         const auto rotation = la::RotationMatrix<double, 3>::composite_axes<Axis::z, Axis::y, chaining>(std::numbers::pi + longitude, -latitude);
 
-        const la::Vector<double, 3> translation = {0.0, -earth.surface_speed(latitude), 0.0};
+        const la::Vector<double, 3> translation = {0.0, -astro::earth.surface_speed(latitude), 0.0};
 
         return la::RigidTransform<double, 3>(rotation, translation);
     }
 
     la::RigidTransform<double, 3> m_transform;
 };
+
+} // namespace celestial
 
 } // namespace zdm

@@ -151,6 +151,10 @@ struct Vector
     operator/=(Vector& a, const value_type& b) noexcept { return div_assign(a, b); }
 };
 
+template <arithmetic T, typename... Ts>
+    requires (std::same_as<T, Ts> && ...)
+Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
+
 } // namespace la
 
 } // namespace zdm

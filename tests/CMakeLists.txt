@@ -34,6 +34,7 @@ endmacro()
 
 create_test(test_linalg)
 create_test(test_time)
+create_test(test_astro)
 create_test(test_radon_angle_integrator)
 create_test(test_legendre_recursion)
 create_test(test_affine_legendre)

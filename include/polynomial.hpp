@@ -134,6 +134,10 @@ struct Polynomial
     std::array<FieldType, Order + 1> coeffs;
 };
 
+template <typename FieldType, typename... Types>
+    requires (std::same_as<FieldType, Types> && ...)
+Polynomial(FieldType, Types...) -> Polynomial<FieldType, sizeof...(Types)>;
+
 template <typename FieldType, std::size_t Order>
 [[nodiscard]] constexpr Polynomial<FieldType, Order>
 operator-(const Polynomial<FieldType, Order>& p) noexcept
