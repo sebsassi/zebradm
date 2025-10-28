@@ -244,6 +244,25 @@ private:
     }
 };
 
+/**
+    @brief Time evolution of the mean orientation parameters of an orbit.
+
+    @tparam N Order of polynomial expansion for inclination.
+    @tparam M Order of polynomial expansion for longitude of the ascending node.
+    @tparam P Order of polynomial expansion for longitude of periapsis.
+
+    The time evolution of classical orbital elements is typically given by
+    short and long period variations, which lead to an evolution described
+    on short time scales by a compbination of a polynomial expansion and
+    trigonomertic terms describing shorter period variations. The trigonometric
+    terms for Earth's orbit are on the order of arcseconds, and therefore
+    the evolution here is described by only the mean, polynomial evolution.
+
+    References:
+    -   J. L. Simon, et al., “Numerical expressions for precession formulae and
+        mean elements for the Moon and the planets.”, Astronomy and
+        Astrophysics, vol. 282, EDP, p. 663, 1994.
+*/
 template<std::size_t N, std::size_t M, std::size_t P>
 struct DynamicalOrbitOrientation
 {
@@ -251,6 +270,14 @@ struct DynamicalOrbitOrientation
     Polynomial<double, M> longitude_of_the_ascending_node;
     Polynomial<double, P> longitude_of_periapsis;
 
+    /**
+        @brief Orientation of the orbit at a point in time.
+
+        @param days_since_epoch Days since the epoch for which the evolution
+        is defined.
+
+        @return Orientation of the orbit at the specified time.
+    */
     [[nodiscard]] constexpr OrbitOrientation
     operator()(double days_since_epoch) const noexcept
     {
@@ -266,6 +293,24 @@ struct DynamicalOrbitOrientation
 template <std::size_t N, std::size_t M, std::size_t P>
 DynamicalOrbitOrientation(Polynomial<double, N>, Polynomial<double, M>, Polynomial<double, P>) -> DynamicalOrbitOrientation<N, M, P>;
 
+/**
+    @brief Time evolution of the shape and motion parameters of an orbit.
+
+    @tparam N Order of polynomial expansion for eccentricity.
+    @tparam M Order of polynomial expansion for mean longitude.
+
+    The time evolution of classical orbital elements is typically given by
+    short and long period variations, which lead to an evolution described
+    on short time scales by a compbination of a polynomial expansion and
+    trigonomertic terms describing shorter period variations. The trigonometric
+    terms for Earth's orbit are on the order of arcseconds, and therefore
+    the evolution here is described by only the mean, polynomial evolution.
+
+    References:
+    -   J. L. Simon, et al., “Numerical expressions for precession formulae and
+        mean elements for the Moon and the planets.”, Astronomy and
+        Astrophysics, vol. 282, EDP, p. 663, 1994.
+*/
 template <std::size_t N, std::size_t M>
 struct KeplerOrbit
 {
@@ -290,6 +335,33 @@ struct KeplerOrbit
 template <std::size_t N, std::size_t M>
 KeplerOrbit(Polynomial<double, N>, Polynomial<double, M>, double, double) -> KeplerOrbit<N, N>;
 
+/**
+    @brief Orbit of a celestial body.
+
+    @tparam N Order of polynomial expansion for inclination.
+    @tparam M Order of polynomial expansion for longitude of the ascending node.
+    @tparam P Order of polynomial expansion for longitude of periapsis.
+    @tparam K Order of polynomial expansion for eccentricity.
+    @tparam L Order of polynomial expansion for mean longitude.
+
+    The state of an body on an elliptical orbit is specified by the orientation
+    and shape of the orbit, in conjunction with the position and motion of the
+    body along the orbit. For a perturbed orbit, both the orientation and shape
+    of the orbit vary over time.
+
+    This structure describes the evolution of a perturbed orbit over time using
+    a parametrization of the orbit in terms of the orientaton parameters
+    (inclination, longitude of the ascending node, and longitude of
+    perihelion), shape parameters (eccentricity and semi-major axis), the
+    position (mean longitude) of the body along the orbit, and the speed (mean
+    motion) of the body.
+
+    The evolution of the orbital elements due to perturbations is descbribed
+    here purely by polyunomial expressions, leaving out short period
+    variations, which for relevant orbits (namely, the Earth's) are on the
+    order of arc seconds, which is less than the accuracy required for the
+    purposes of this library.
+*/
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
 struct Orbit
 {

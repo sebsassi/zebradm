@@ -53,16 +53,16 @@ private:
     std::tuple<Types...> m_transforms;
 };
 
-class GCSToICRS
+class GCStoICRS
 {
 public:
-    constexpr GCSToICRS(
+    constexpr GCStoICRS(
         double circular_velocity,
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         astro::GalacticOrientation orientation = astro::orientation_km_2017):
         m_transform(
             orientation.gcs_to_reference_cs(),
-            peculiar_velocity + la::Vector<double, 3>{0.0, circular_velocity, 0.0}) {};
+            orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0})) {};
 
     la::RigidTransform<double, 3> operator()([[maybe_unused]] double t) { return m_transform; }
     la::RigidTransform<double, 3> operator()() { return m_transform; }
@@ -71,13 +71,13 @@ private:
     la::RigidTransform<double, 3> m_transform;
 };
 
-class ECSToICRS
+class ECStoICRS
 {
 public:
-    constexpr ECSToICRS() = default;
+    constexpr ECStoICRS() = default;
 
     [[nodiscard]] constexpr la::RigidTransform<double, 3>
-    operator()([[maybe_unused]] double t) const noexcept { return transform(); }
+    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return transform(); }
 
     [[nodiscard]] constexpr la::RigidTransform<double, 3>
     operator()() const noexcept { return transform(); }
@@ -106,36 +106,37 @@ private:
 };
 
 // ICRS and BCRS share the same orientation and origin
-using ECSToBCRS = ECSToICRS;
+using ECStoBCRS = ECStoICRS;
 
-class ICRSToGCRS
+class ICRStoGCRS
 {
 public:
-    constexpr ICRSToGCRS() = default;
+    constexpr ICRStoGCRS() = default;
 
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double t) const noexcept
+    operator()(double days_since_j2000) const noexcept
     {
-        const la::Vector<double, 3> earth_velocity = astro::earth.orbit(t).reference_cs_velocity();
+        const la::Vector<double, 3> earth_velocity
+            = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
         return la::RigidTransform<double, 3>(
             la::RotationMatrix<double, 3>::identity(),
             ecs_to_icrs().rotation()*(-earth_velocity));
     }
 
 private:
-    static constexpr auto ecs_to_icrs = ECSToICRS{};
+    static constexpr auto ecs_to_icrs = ECStoICRS{};
 };
 
-class GCRSToITRS
+class GCRStoITRS
 {
 public:
-    constexpr GCRSToITRS() = default;
+    constexpr GCRStoITRS() = default;
 
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double t) const noexcept
+    operator()(double days_since_j2000) const noexcept
     {
-        const double cip_x = astro::cip[0]((1.0/36525.0)*t);
-        const double cip_y = astro::cip[1]((1.0/36525.0)*t);
+        const double cip_x = astro::cip[0]((1.0/36525.0)*days_since_j2000);
+        const double cip_y = astro::cip[1]((1.0/36525.0)*days_since_j2000);
         const double cip_r = std::hypot(cip_x, cip_y);
         const double cip_z = std::sqrt((1.0 + cip_r)*(1.0 - cip_r));
         const la::Vector<double, 3> cip = {cip_x, cip_y, cip_z};
@@ -143,7 +144,7 @@ public:
 
         // The polynomial deevelopment of the CIO locator is neglected here.
         const double cio_locator = -0.5*cip_x*cip_y;
-        const double day_fraction = t - std::floor(t);
+        const double day_fraction = days_since_j2000 - std::floor(days_since_j2000);
         const auto to_tirs = la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.rotation_angle(day_fraction) - cio_locator);
 
         // Polar motion is neglected: ITRS = TIRS.
@@ -151,14 +152,18 @@ public:
     }
 };
 
-class ITRSToHCS
+class ITRStoHCS
 {
 public:
-    constexpr ITRSToHCS() = default;
-    constexpr ITRSToHCS(double longitude, double latitude): m_transform(transform(longitude, latitude)) {}
+    constexpr ITRStoHCS() = default;
+    constexpr ITRStoHCS(double longitude, double latitude):
+        m_transform(transform(longitude, latitude)) {}
 
-    [[nodiscard]] la::RigidTransform<double, 3> operator()([[maybe_unused]] double t) const noexcept { return m_transform; }
-    [[nodiscard]] la::RigidTransform<double, 3> operator()() const noexcept { return m_transform; }
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return m_transform; }
+
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()() const noexcept { return m_transform; }
 
 private:
     [[nodiscard]] static la::RigidTransform<double, 3>
