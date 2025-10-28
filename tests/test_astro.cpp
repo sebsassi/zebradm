@@ -67,19 +67,42 @@ bool test_gcs_to_icrs_maps_x_approximately_to_sag_a_star_pos(double error)
     return is_close(approximate_sag_a_star_pos, true_sag_a_star_pos, error);
 }
 
-bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-    const zdm::astro::OrbitOrientation& orientation, const zdm::la::Vector<double, 3> true_orbital_plane_normal, double error)
-{
-    const zdm::la::Vector orbital_plane_normal = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{0.0, 0.0, 1.0};
-    return is_close(orbital_plane_normal, true_orbital_plane_normal, error);
-}
-
 bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
-    const zdm::astro::OrbitOrientation& orientation, const zdm::la::Vector<double, 3> true_orbital_plane_x, double error)
+    const zdm::astro::OrbitOrientation& orientation, double error)
 {
     const zdm::la::Vector orbital_plane_x = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{1.0, 0.0, 0.0};
-    std::println("{}\n{}", orbital_plane_x, true_orbital_plane_x);
+    const double argument_of_periapsis = orientation.longitude_of_periapsis - orientation.longitude_of_the_ascending_node;
+    const zdm::la::Vector true_orbital_plane_x = {
+        std::cos(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis) - std::sin(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
+        std::sin(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis) + std::cos(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
+        std::sin(orientation.inclination)*std::sin(argument_of_periapsis)
+    };
     return is_close(orbital_plane_x, true_orbital_plane_x, error);
+}
+
+bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+    const zdm::astro::OrbitOrientation& orientation, double error)
+{
+    const zdm::la::Vector orbital_plane_y = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{0.0, 1.0, 0.0};
+    const double argument_of_periapsis = orientation.longitude_of_periapsis - orientation.longitude_of_the_ascending_node;
+    const zdm::la::Vector true_orbital_plane_y = {
+       -std::cos(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis) - std::sin(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
+       -std::sin(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis) + std::cos(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
+        std::sin(orientation.inclination)*std::cos(argument_of_periapsis)
+    };
+    return is_close(orbital_plane_y, true_orbital_plane_y, error);
+}
+
+bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+    const zdm::astro::OrbitOrientation& orientation, double error)
+{
+    const zdm::la::Vector orbital_plane_z = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{0.0, 0.0, 1.0};
+    const zdm::la::Vector true_orbital_plane_z = {
+        std::sin(orientation.inclination)*std::sin(orientation.longitude_of_the_ascending_node),
+        -std::sin(orientation.inclination)*std::cos(orientation.longitude_of_the_ascending_node),
+        std::cos(orientation.inclination)
+    };
+    return is_close(orbital_plane_z, true_orbital_plane_z, error);
 }
 
 int main()
@@ -87,21 +110,48 @@ int main()
     assert(test_gcs_to_icrs_maps_z_nearly_to_north_galactic_pole(1.0e-15));
     assert(test_gcs_to_icrs_maps_x_approximately_to_sag_a_star_pos(1.0e-4));
 
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-        zdm::astro::OrbitOrientation{0.4, 0.0, 0.0}, {0.0, std::sin(-0.4), std::cos(-0.4)}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-        zdm::astro::OrbitOrientation{0.0, 1.5, 0.0}, {0.0, 0.0, 1.0}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-        zdm::astro::OrbitOrientation{0.0, 0.0, 2.3}, {0.0, 0.0, 1.0}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-        zdm::astro::OrbitOrientation{0.4, 1.5, 0.0}, {std::sin(-0.4)*std::cos(1.5 + 0.5*std::numbers::pi), std::sin(-0.4)*std::sin(1.5 + 0.5*std::numbers::pi), std::cos(0.4)}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_normal(
-        zdm::astro::OrbitOrientation{0.4, 0.0, 2.3}, {0.0, std::sin(-0.4), std::cos(-0.4)}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.0, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 2.3}, 1.0e-15));
 
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
-        zdm::astro::OrbitOrientation{0.4, 0.0, 0.0}, {1.0, 0.0, 0.0}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
-        zdm::astro::OrbitOrientation{0.0, 1.5, 0.0}, {1.0, 0.0, 0.0}, 1.0e-15));
-    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
-        zdm::astro::OrbitOrientation{0.0, 0.0, 2.3}, {std::cos(2.3), std::sin(2.3), 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.0, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 2.3}, 1.0e-15));
+
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.0, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 0.0}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.4, 0.0, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.0, 1.5, 2.3}, 1.0e-15));
+    assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
+        zdm::astro::OrbitOrientation{0.4, 1.5, 2.3}, 1.0e-15));
 }
