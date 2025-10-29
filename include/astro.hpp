@@ -379,12 +379,28 @@ struct Orbit
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
 Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::Time) -> Orbit<N, M, P, K, L>;
 
+/**
+    @brief Ellipsoid describing a planteray body.
+
+    Planets are approximately described by ellipsoids which are symmetric about
+    their axis of revolution. The ellipsoid here is parmetrized by the
+    equatorial radius, and the inverse flattening of the ellipse.
+*/
 struct Ellipsoid
 {
     double inverse_flattening;
     double equatorial_radius;
 };
 
+/**
+    @brief A planet specified by its orbit, shape and rate of rotation.
+
+    @tparam N Order of polynomial expansion for inclination.
+    @tparam M Order of polynomial expansion for longitude of the ascending node.
+    @tparam P Order of polynomial expansion for longitude of periapsis.
+    @tparam K Order of polynomial expansion for eccentricity.
+    @tparam L Order of polynomial expansion for mean longitude.
+*/
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
 struct Planet
 {

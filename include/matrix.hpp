@@ -1134,21 +1134,20 @@ class RigidTransform
 public:
     using value_type = T;
     using size_type = std::size_t;
-    using vector_type = std::array<T, N>;
-    using matrix_type = Matrix<T, N, N, action_param, matrix_layout_param>;
+    using vector_type = Vector<T, N>;
+    using rotation_matrix_type = RotationMatrix<T, N, action_param, matrix_layout_param>;
 
     static constexpr Action action = action_param;
     static constexpr MatrixLayout matrix_layout = matrix_layout_param;
 
     constexpr RigidTransform() = default;
-    explicit constexpr RigidTransform(
-        RotationMatrix<T, N, action, matrix_layout> rotation, std::array<T, N> translation):
+    explicit constexpr RigidTransform(rotation_matrix_type rotation, vector_type translation):
         m_rotation{rotation}, m_translation{translation} {}
 
     [[nodiscard]] static constexpr RigidTransform
     identity() noexcept
     {
-        return RigidTransform(RotationMatrix<T, N, action, matrix_layout>::identity, std::array<T, N>{});
+        return RigidTransform(rotation_matrix_type::identity(), vector_type{});
     }
 
     [[nodiscard]] constexpr vector_type operator()(const vector_type& vector) const noexcept
@@ -1157,15 +1156,15 @@ public:
     }
 
     template <matrix_like M>
-    [[nodiscard]] constexpr matrix_type operator()(const M& matrix) const noexcept
+    [[nodiscard]] constexpr auto operator()(const M& matrix) const noexcept
     {
         return matmul(m_rotation, matmul(matrix, transpose(m_rotation)));
     }
 
-    [[nodiscard]] constexpr const RotationMatrix<T, N, action, matrix_layout>&
+    [[nodiscard]] constexpr const rotation_matrix_type&
     rotation() const noexcept { return m_rotation; }
 
-    [[nodiscard]] constexpr const std::array<T, N>&
+    [[nodiscard]] constexpr const vector_type&
     translation() const noexcept { return m_translation; }
 
     [[nodiscard]] constexpr RigidTransform
@@ -1175,8 +1174,8 @@ public:
     }
 
 private:
-    RotationMatrix<T, N, action, matrix_layout> m_rotation;
-    std::array<T, N> m_translation;
+    rotation_matrix_type m_rotation;
+    vector_type m_translation;
 };
 
 template <
@@ -1220,6 +1219,60 @@ compose(
 {
     return RigidTransform<T, N, action, matrix_layout>(
         rotation*rigid_transform.rotation(), rotation*rigid_transform.translation());
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const Vector<T, N>& translation,
+    const RigidTransform<T, N, action, matrix_layout>& rigid_transform)
+{
+    return RigidTransform<T, N, action, matrix_layout>(
+        rigid_transform.rotation(), rigid_transform.translation() + rigid_transform.rotation()*translation);
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
+    const Vector<T, N>& translation)
+{
+    return RigidTransform<T, N, action, matrix_layout>(
+        rigid_transform.rotation(), rigid_transform.translation() + translation);
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const RotationMatrix<T, N, action, matrix_layout>& rotation,
+    const Vector<T, N>& translation)
+{
+    return RigidTransform<T, N, action, matrix_layout>(rotation, translation);
+}
+
+template <
+    std::floating_point T, std::size_t N,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+[[nodiscard]] constexpr auto
+compose(
+    const Vector<T, N>& translation,
+    const RotationMatrix<T, N, action, matrix_layout>& rotation)
+{
+    return RigidTransform<T, N, action, matrix_layout>(rotation, rotation*translation);
 }
 
 } // namespace la
