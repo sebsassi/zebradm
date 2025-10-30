@@ -19,21 +19,22 @@ enum class CoordinateSystem
     HCS
 };
 
-template <typename T, typename TransformType>
-concept parametric_transform_on = requires (T x, typename TransformType::value_type t)
+template <typename T, typename ValueType, typename TransformType>
+concept parametric_transform_on = requires (T x, ValueType t)
     {
         { x(t) } -> std::same_as<TransformType>;
     };
 
-template <typename T>
-concept noop_transform = parametric_transform_on<T, void>;
+template <typename T, typename ValueType>
+concept noop_transform = parametric_transform_on<T, ValueType, void>;
 
-template <typename T, typename... TransformTypes>
-concept parametric_transform_on_one_of = (parametric_transform_on<T, TransformTypes> || ...);
+template <typename T, typename ValueType, typename... TransformTypes>
+concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, TransformTypes> || ...);
 
 template <typename T, typename RigidTransformType>
 concept parametric_rigid_transform
-    = parametric_transform_on_one_of<T,
+    = noop_transform<T, typename RigidTransformType::value_type>
+    || parametric_transform_on_one_of<T, typename RigidTransformType::value_type,
         RigidTransformType,
         typename RigidTransformType::rotation_matrix_type,
         typename RigidTransformType::vector_type>;
@@ -49,7 +50,7 @@ concept parametric_rigid_transform
     This helper class may be used to compose together any combination of
     objects which qualify as a parametric rigid transform. Specifically,
     given the value type `T` and a dimension `N`, if a type `U` defines a
-    call operator `operator()`, which takes an argument of type `T`, and
+    call operator `operator()(T t)`, which takes an argument of type `T`, and
     returns either a `RigidTransform<T, N>`, `RotationMatrix<T, N>`,
     `Vector<T, N>`, or `void`, then it qualifies as a parametric rigid
     transform.
@@ -86,7 +87,7 @@ public:
         {
             auto res = rigid_transform_type::identity();
             ([&]{
-                if constexpr (!noop_transform<Types>)
+                if constexpr (!noop_transform<Types, typename rigid_transform_type::value_type>)
                     res = la::compose(res, transforms(parameter));
             }(), ...);
             return res;
@@ -95,6 +96,37 @@ public:
 
 private:
     std::tuple<Types...> m_transforms;
+};
+
+/**
+    @brief A helper for writing ineverses of parametric rigid transforms.
+
+    @tparam T Rigid transform type to be inverted.
+
+    This helper class may be used to define classes which are inverses of
+    existing parametric rigid transforms. The call operator of this class is
+    simply a wrapper around the call operator of `T`, which calls the `inverse`
+    member function on the result of the call operator, as defined for the
+    `RigidTransform` class.
+*/
+template <typename T>
+    requires (parametric_rigid_transform<T, typename T::rigid_transform_type>)
+class InverseRigidTransform
+{
+public:
+    using rigid_transform_type = typename T::rigid_transform_type;
+
+    template <typename... Args>
+    InverseRigidTransform(Args&&... args): m_transform(std::forward<Args>(args)...) {}
+
+    [[nodiscard]] rigid_transform_type
+    operator()(const rigid_transform_type::value_type parameter) const noexcept
+    {
+        return m_transform(parameter).inverse();
+    }
+
+private:
+    T m_transform;
 };
 
 /**
@@ -132,6 +164,8 @@ private:
 class GCStoICRS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     GCStoICRS(
         double circular_velocity,
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
@@ -181,7 +215,7 @@ private:
     the J2000 value of the obliquity, and its x-axis is given by the J2000 
     direction of the vernal equinox.
 
-    The ICRS is the standard reference celestial reference system defined to be
+    The ICRS is the standard reference celestial coordinate system defined to be
     nonrotating and centered at the barycenter of the solar system. By
     convention, its orientation approximately matches that of the traditonally
     used equatorial coordinate system at the J2000 epoch.
@@ -194,6 +228,8 @@ private:
 class ECStoICRS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     constexpr ECStoICRS() = default;
 
     /**
@@ -263,8 +299,8 @@ using ECStoBCRS = ECStoICRS;
     at Earth's geocenter. This also means that the GCRS is boosted by Earth's
     orbital velocity with respect to the ICRS.
 
-    The ICRS is the standard reference celestial reference system defined to be
-    nonrotating and centered at the barycenter of the solar system. By
+    The ICRS is the standard reference celestial coordinate system defined to
+    be nonrotating and centered at the barycenter of the solar system. By
     convention, its orientation approximately matches that of the traditonally
     used equatorial coordinate system at the J2000 epoch.
 
@@ -276,6 +312,8 @@ using ECStoBCRS = ECStoICRS;
 class ICRStoGCRS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     constexpr ICRStoGCRS() = default;
 
     /**
@@ -301,24 +339,25 @@ private:
     @brief Transformation from the Geocentric Celestial Reference System (GCRS)
     to the Celestial Intermediate Reference System (CIRS).
 
-    The Celestial Intermediate Reference System is an intermediate coordinate
-    system in the transformation from the GCRS to the International Terrestrial
-    Reference System (ITRS), which defines the standard coordinates for
-    Earth-based observations. The GCRS to ITRS transformation is broken into
-    three parts to separate the celestial precession and nutation of the ITRS
-    pole in the GCRS due to gravitational effects and the polar motion due to
-    terrestrial effects. This leads to the definiton of the Celestial
-    Intermediate Pole (CIP), which is the pole of the intermediate coordinate
-    systems. Thus, the CIRS is the intermediate coordinate system which has CIP
-    as its pole, but does not rotate along with the Earth.
+    The Celestial Intermediate Reference System (CIRS) is an intermediate
+    coordinate system in the transformation from the Geocentric Celestial
+    Reference System (GCRS) to the International Terrestrial Reference System
+    (ITRS), which defines the standard coordinates for Earth-based
+    observations. The GCRS to ITRS transformation is broken into three parts to
+    separate the celestial precession and nutation of the ITRS pole in the GCRS
+    due to gravitational effects and the polar motion due to terrestrial
+    effects. This leads to the definiton of the Celestial Intermediate Pole
+    (CIP), which is the pole of the intermediate coordinate systems. Thus, the
+    CIRS is the intermediate coordinate system which has CIP as its pole, but
+    does not rotate along with the Earth.
 
     The GCRS is a geocentric variaton of the International Celestial Reference
     System (ICRS), which has the geocenter of Earth as its origin, in contrast
     to the ICRS, which is placed at the solar system barycenter. The ICRS is
-    the standard reference celestial reference system defined to be nonrotating
-    and centered at the barycenter of the solar system. By convention, its
-    orientation approximately matches that of the traditonally used equatorial
-    coordinate system at the J2000 epoch.
+    the standard reference celestial coordinate system defined to be
+    nonrotating and centered at the barycenter of the solar system. By
+    convention, its orientation approximately matches that of the traditonally
+    used equatorial coordinate system at the J2000 epoch.
 
     References:
     -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
@@ -328,8 +367,17 @@ private:
 class GCRStoCIRS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     constexpr GCRStoCIRS() = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return GCRS to CIRS transform at the given time.
+    */
     [[nodiscard]] la::RotationMatrix<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
@@ -343,11 +391,58 @@ public:
     }
 };
 
+/**
+    @brief Transformation from the Celestial Intermediate Reference System
+    (CIRS) to the Terrestrial Intermediate Reference System (TIRS).
+
+    The Celestial Intermediate Reference System (CIRS) is an intermediate
+    coordinate system in the transformation from the Geocentric Celestial
+    Reference System (GCRS) to the International Terrestrial Reference System
+    (ITRS), which defines the standard coordinates for Earth-based
+    observations. The GCRS to ITRS transformation is broken into three parts to
+    separate the celestial precession and nutation of the ITRS pole in the GCRS
+    due to gravitational effects and the polar motion due to terrestrial
+    effects. This leads to the definiton of the Celestial Intermediate Pole
+    (CIP), which is the pole of the intermediate coordinate systems. Thus, the
+    CIRS is the intermediate coordinate system which has the CIP as its pole,
+    but does not rotate along with the Earth.
+
+    The Terrestrial Intermediate Reference System (TIRS) is a coordinate system
+    obtained from the CIRS by a rotation with the Earth Rotation Angle (ERA).
+    The International Terrestrial Reference System (ITRS) is obtained from it
+    by applying polar motion.
+
+    The GCRS is a geocentric variaton of the International Celestial Reference
+    System (ICRS), which has the geocenter of Earth as its origin, in contrast
+    to the ICRS, which is placed at the solar system barycenter. The ICRS is
+    the standard reference celestial coordinate system defined to be nonrotating
+    and centered at the barycenter of the solar system. By convention, its
+    orientation approximately matches that of the traditonally used equatorial
+    coordinate system at the J2000 epoch.
+
+    The ITRS is the standard reference terrestrial coordinate system, defined
+    such that its coordinates only have minor variations over time from
+    geophysical causes such as tectonic activity or tidal deformations.
+
+    References:
+    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
+        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
+        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+*/
 class CIRStoTIRS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     constexpr CIRStoTIRS() = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return CIRS to TIRS transform at the given time.
+    */
     [[nodiscard]] la::RotationMatrix<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
@@ -356,15 +451,93 @@ public:
     }
 };
 
+/**
+    @brief Transformation from the Terrestrial Intermediate Reference System
+    (TIRS) to the International Terrestrial Reference System (TIRS).
+
+    This transformation is designated as an identity transformation, because
+    it only includes polar motion, which is negligible for the purposes of
+    this library. It is only meant be used in composition chains to be explicit
+    (see `CompositeRigidTransform`), and thus has a call operator which returns
+    `void`. In standalone use of these transformations, one can assume that
+    TIRS = ITRS, and use the relevant transforms directly, e.g. `CIRStoTIRS`
+    followed by `ITRStoHCS` would correspond to a CIRS to HCS transform.
+
+    The International Terrestrial Reference System (ITRS) is the standard
+    reference terrestrial coordinate system, defined such that its coordinates
+    only have minor variations over time from geophysical causes such as
+    tectonic activity or tidal deformations.
+
+    The Terrestrial Intermediate Reference System (TIRS) is an intermediate
+    coordinate system in the transformation between the ITRS and the
+    Geocentric Celestial Reference System (GCRS). The GCRS to ITRS
+    transformation is broken into three parts to separate the celestial
+    precession and nutation of the ITRS pole in the GCRS due to gravitational
+    effects and the polar motion due to terrestrial effects. This leads to the
+    definiton of the Celestial Intermediate Pole (CIP), which is the pole of the
+    intermediate coordinate systems. Thus, the TIRS is the intermediate
+    coordinate system which rotates with the Earth and has the CIP as its pole.
+    Specifically, the TIRS is transformed to the ITRS after application of polar
+    motion.
+
+    The GCRS is a geocentric variaton of the International Celestial Reference
+    System (ICRS), which has the geocenter of Earth as its origin, in contrast
+    to the ICRS, which is placed at the solar system barycenter. The ICRS is
+    the standard reference celestial coordinate system defined to be nonrotating
+    and centered at the barycenter of the solar system. By convention, its
+    orientation approximately matches that of the traditonally used equatorial
+    coordinate system at the J2000 epoch.
+
+    References:
+    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
+        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
+        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+*/
 class TIRStoITRS
 {
 public:
-    void operator()([[maybe_unused]] double days_since_j2000) {}
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
+    constexpr TIRStoITRS() = default;
+
+    /**
+        @brief A void returning call operator that does nothing.
+    */
+    constexpr void operator()([[maybe_unused]] double days_since_j2000) const noexcept {}
 };
 
+/**
+    @brief Transformaton from the International Terrestrial Reference System
+    (ITRS) to a Horizontal Coordinate System (HCS) at a point on Earth's
+    surface.
+
+    The International Terrestrial Reference System (ITRS) is the standard
+    reference terrestrial coordinate system, defined such that its coordinates
+    only have minor variations over time from geophysical causes such as
+    tectonic activity or tidal deformations.
+
+    A Horizontal Coordinate System (HCS) is a local coordianate system on
+    Earth's surface, defined with its z-axis in the zenith direction, and its
+    x-axis pointing north. Being on Earth's surface, a HCS transformation
+    involves involves a boost by the local surface velocity due to Earth's
+    rotation.
+
+    The zenith in this context is to be understood as the normal vector of the
+    reference ellipsoid for a given latitude-longitude pair. This
+    transformation does not account for local variations in the gravitational
+    potential. North in this context is to be understood as the direction of
+    the geographical north pole.
+
+    References:
+    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
+        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
+        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+*/
 class ITRStoHCS
 {
 public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
     constexpr ITRStoHCS() = default;
     constexpr ITRStoHCS(double longitude, double latitude):
         m_transform(transform(longitude, latitude)) {}
@@ -388,6 +561,104 @@ private:
     }
 
     la::RigidTransform<double, 3> m_transform;
+};
+
+class GCStoHCS
+{
+public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
+    GCStoHCS(
+        double longitude, double latitude, double circular_velocity,
+        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
+        m_transform(
+            GCStoICRS(circular_velocity, peculiar_velocity, galactic_orientation),
+            ICRStoGCRS(),
+            GCRStoCIRS(),
+            CIRStoTIRS(),
+            TIRStoITRS(),
+            ITRStoHCS(longitude, latitude)) {}
+
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+
+private:
+    CompositeRigidTransform<double, 3,
+        GCStoICRS,
+        ICRStoGCRS,
+        GCRStoCIRS,
+        CIRStoTIRS,
+        TIRStoITRS,
+        ITRStoHCS
+    > m_transform;
+};
+
+class GCStoCIRS
+{
+public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
+    GCStoCIRS(
+        double circular_velocity,
+        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
+        m_transform(
+            GCStoICRS(circular_velocity, peculiar_velocity, galactic_orientation),
+            ICRStoGCRS(),
+            GCRStoCIRS()) {}
+
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+
+private:
+    CompositeRigidTransform<double, 3,
+        GCStoICRS,
+        ICRStoGCRS,
+        GCRStoCIRS
+    > m_transform;
+};
+
+class CIRStoHCS
+{
+public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
+    CIRStoHCS(double longitude, double latitude):
+        m_transform(
+            CIRStoTIRS(),
+            TIRStoITRS(),
+            ITRStoHCS(longitude, latitude)) {}
+
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+
+private:
+    CompositeRigidTransform<double, 3,
+        CIRStoTIRS,
+        TIRStoITRS,
+        ITRStoHCS
+    > m_transform;
+};
+
+class TIRStoHCS
+{
+public:
+    using rigid_transform_type = la::RigidTransform<double, 3>;
+
+    TIRStoHCS(double longitude, double latitude):
+        m_transform(
+            TIRStoITRS(),
+            ITRStoHCS(longitude, latitude)) {}
+
+    [[nodiscard]] la::RigidTransform<double, 3>
+    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+
+private:
+    CompositeRigidTransform<double, 3,
+        TIRStoITRS,
+        ITRStoHCS
+    > m_transform;
 };
 
 } // namespace celestial
