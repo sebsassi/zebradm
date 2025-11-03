@@ -11,14 +11,6 @@ namespace zdm
 namespace celestial
 {
 
-enum class CoordinateSystem
-{
-    GCS,
-    ICRS,
-    ITRS,
-    HCS
-};
-
 template <typename T, typename ValueType, typename TransformType>
 concept parametric_transform_on = requires (T x, ValueType t)
     {
@@ -66,12 +58,12 @@ concept parametric_rigid_transform
 */
 template <std::floating_point T, std::size_t N, typename... Types>
     requires (parametric_rigid_transform<Types, la::RigidTransform<T, N>> && ...)
-class CompositeRigidTransform
+class Composite
 {
 public:
     using rigid_transform_type = la::RigidTransform<T, N>;
 
-    CompositeRigidTransform(const Types&... transforms): m_transforms(transforms...) {}
+    Composite(const Types&... transforms): m_transforms(transforms...) {}
 
     /**
         @brief Call operator of the parametric rigid transform.
@@ -111,13 +103,13 @@ private:
 */
 template <typename T>
     requires (parametric_rigid_transform<T, typename T::rigid_transform_type>)
-class InverseRigidTransform
+class Inverse
 {
 public:
     using rigid_transform_type = typename T::rigid_transform_type;
 
     template <typename... Args>
-    InverseRigidTransform(Args&&... args): m_transform(std::forward<Args>(args)...) {}
+    Inverse(Args&&... args): m_transform(std::forward<Args>(args)...) {}
 
     [[nodiscard]] rigid_transform_type
     operator()(const rigid_transform_type::value_type parameter) const noexcept
@@ -133,33 +125,8 @@ private:
     @brief Transformation from the Galactic Coordinate System (GCS) to the
     International Celestial Reference System (ICRS).
 
-    This class represents the transformation from the Galactic Coordinate
+    This class implements the transformation from the Galactic Coordinate
     System (GCS) to the International Celestial Reference System (ICRS).
-
-    The galactic coordinate system is determined by the north galactic pole
-    (NGP), defined as the direction perpendicular to the plane of the galaxy,
-    and the galactic center (GC). The orientation of the NGP is defined such
-    that it has a component parallel to the z-axis of the reference coordinate.
-
-    The z-axis of the galactic coordinate system is in the direction of the
-    NGP, and the x-axis is in the direction of the projection of the GC onto
-    the galactic plane. Namely, for positions close to the galactic plane, the
-    z-axis is approximately the directon of the galactic center.
-
-    The galactic coordinate system has no motion with respect to the galactic
-    center. This means that it has a relative velocity to the ICRS, given by
-    the inverse of the sum of the local circular velocity and peculiar velocity
-    of the solar system.
-
-    The ICRS is the standard reference celestial reference system defined to be
-    nonrotating and centered at the barycenter of the solar system. By
-    convention, its orientation approximately matches that of the traditonally
-    used equatorial coordinate system at the J2000 epoch.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
 */
 class GCStoICRS
 {
@@ -205,25 +172,8 @@ private:
     @brief Transformation from the Ecliptic Coordinate System (ECS) to the
     International Celestial Reference System (ICRS).
 
-    This class represents a transformation from the Ecliptic Coordinate System
+    This class implements a transformation from the Ecliptic Coordinate System
     (ECS) to the International Celestial Reference System (ICRS).
-
-    For simplicity, the ecliptic coordinate system here is defined to match the
-    ecliptic of the J2000 epoch. This allows the transformation to between the
-    coordinate systems to be time-independent. This means that the tilt of its
-    equatorial plane relative to the equatorial plane of the ICRS is given by
-    the J2000 value of the obliquity, and its x-axis is given by the J2000 
-    direction of the vernal equinox.
-
-    The ICRS is the standard reference celestial coordinate system defined to be
-    nonrotating and centered at the barycenter of the solar system. By
-    convention, its orientation approximately matches that of the traditonally
-    used equatorial coordinate system at the J2000 epoch.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
 */
 class ECStoICRS
 {
@@ -276,7 +226,6 @@ private:
     }
 };
 
-// ICRS and BCRS share the same orientation and origin
 /**
     @brief Transformation from the Ecliptic Coordinate System (ECS) to the
     Barycentric Celestial Reference System (BCRS).
@@ -292,22 +241,9 @@ using ECStoBCRS = ECStoICRS;
     @brief Transformation from the International Celestial Reference System
     (ICRS) to the Geocentric Celestial Reference System (GCRS).
 
-    The Geocentric Celestial Reference System (GCRS) is essentially a
-    translated variation on the International Celestial Reference System
-    (ICRS). Specifically, they share the same orientation, but the ICRS has
-    its origin at the solar system barycenter, whereas the GCRS has its origin
-    at Earth's geocenter. This also means that the GCRS is boosted by Earth's
-    orbital velocity with respect to the ICRS.
-
-    The ICRS is the standard reference celestial coordinate system defined to
-    be nonrotating and centered at the barycenter of the solar system. By
-    convention, its orientation approximately matches that of the traditonally
-    used equatorial coordinate system at the J2000 epoch.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+    This class implements the transformation from the International Celestial
+    Reference System (ICRS) to the Geocentric Celestial Reference System
+    (GCRS).
 */
 class ICRStoGCRS
 {
@@ -339,30 +275,9 @@ private:
     @brief Transformation from the Geocentric Celestial Reference System (GCRS)
     to the Celestial Intermediate Reference System (CIRS).
 
-    The Celestial Intermediate Reference System (CIRS) is an intermediate
-    coordinate system in the transformation from the Geocentric Celestial
-    Reference System (GCRS) to the International Terrestrial Reference System
-    (ITRS), which defines the standard coordinates for Earth-based
-    observations. The GCRS to ITRS transformation is broken into three parts to
-    separate the celestial precession and nutation of the ITRS pole in the GCRS
-    due to gravitational effects and the polar motion due to terrestrial
-    effects. This leads to the definiton of the Celestial Intermediate Pole
-    (CIP), which is the pole of the intermediate coordinate systems. Thus, the
-    CIRS is the intermediate coordinate system which has CIP as its pole, but
-    does not rotate along with the Earth.
-
-    The GCRS is a geocentric variaton of the International Celestial Reference
-    System (ICRS), which has the geocenter of Earth as its origin, in contrast
-    to the ICRS, which is placed at the solar system barycenter. The ICRS is
-    the standard reference celestial coordinate system defined to be
-    nonrotating and centered at the barycenter of the solar system. By
-    convention, its orientation approximately matches that of the traditonally
-    used equatorial coordinate system at the J2000 epoch.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+    This class implements the transformation from the Geocentric Celestial
+    Reference System (GCRS) to the Celestial Intermediate Reference System
+    (CIRS).
 */
 class GCRStoCIRS
 {
@@ -395,39 +310,9 @@ public:
     @brief Transformation from the Celestial Intermediate Reference System
     (CIRS) to the Terrestrial Intermediate Reference System (TIRS).
 
-    The Celestial Intermediate Reference System (CIRS) is an intermediate
-    coordinate system in the transformation from the Geocentric Celestial
-    Reference System (GCRS) to the International Terrestrial Reference System
-    (ITRS), which defines the standard coordinates for Earth-based
-    observations. The GCRS to ITRS transformation is broken into three parts to
-    separate the celestial precession and nutation of the ITRS pole in the GCRS
-    due to gravitational effects and the polar motion due to terrestrial
-    effects. This leads to the definiton of the Celestial Intermediate Pole
-    (CIP), which is the pole of the intermediate coordinate systems. Thus, the
-    CIRS is the intermediate coordinate system which has the CIP as its pole,
-    but does not rotate along with the Earth.
-
-    The Terrestrial Intermediate Reference System (TIRS) is a coordinate system
-    obtained from the CIRS by a rotation with the Earth Rotation Angle (ERA).
-    The International Terrestrial Reference System (ITRS) is obtained from it
-    by applying polar motion.
-
-    The GCRS is a geocentric variaton of the International Celestial Reference
-    System (ICRS), which has the geocenter of Earth as its origin, in contrast
-    to the ICRS, which is placed at the solar system barycenter. The ICRS is
-    the standard reference celestial coordinate system defined to be nonrotating
-    and centered at the barycenter of the solar system. By convention, its
-    orientation approximately matches that of the traditonally used equatorial
-    coordinate system at the J2000 epoch.
-
-    The ITRS is the standard reference terrestrial coordinate system, defined
-    such that its coordinates only have minor variations over time from
-    geophysical causes such as tectonic activity or tidal deformations.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+    This class implements the transformation from the Celestial Intermediate
+    Reference System (CIRS) to the Terrestrial Intermediate Reference System
+    (TIRS).
 */
 class CIRStoTIRS
 {
@@ -462,36 +347,6 @@ public:
     `void`. In standalone use of these transformations, one can assume that
     TIRS = ITRS, and use the relevant transforms directly, e.g. `CIRStoTIRS`
     followed by `ITRStoHCS` would correspond to a CIRS to HCS transform.
-
-    The International Terrestrial Reference System (ITRS) is the standard
-    reference terrestrial coordinate system, defined such that its coordinates
-    only have minor variations over time from geophysical causes such as
-    tectonic activity or tidal deformations.
-
-    The Terrestrial Intermediate Reference System (TIRS) is an intermediate
-    coordinate system in the transformation between the ITRS and the
-    Geocentric Celestial Reference System (GCRS). The GCRS to ITRS
-    transformation is broken into three parts to separate the celestial
-    precession and nutation of the ITRS pole in the GCRS due to gravitational
-    effects and the polar motion due to terrestrial effects. This leads to the
-    definiton of the Celestial Intermediate Pole (CIP), which is the pole of the
-    intermediate coordinate systems. Thus, the TIRS is the intermediate
-    coordinate system which rotates with the Earth and has the CIP as its pole.
-    Specifically, the TIRS is transformed to the ITRS after application of polar
-    motion.
-
-    The GCRS is a geocentric variaton of the International Celestial Reference
-    System (ICRS), which has the geocenter of Earth as its origin, in contrast
-    to the ICRS, which is placed at the solar system barycenter. The ICRS is
-    the standard reference celestial coordinate system defined to be nonrotating
-    and centered at the barycenter of the solar system. By convention, its
-    orientation approximately matches that of the traditonally used equatorial
-    coordinate system at the J2000 epoch.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
 */
 class TIRStoITRS
 {
@@ -511,27 +366,8 @@ public:
     (ITRS) to a Horizontal Coordinate System (HCS) at a point on Earth's
     surface.
 
-    The International Terrestrial Reference System (ITRS) is the standard
-    reference terrestrial coordinate system, defined such that its coordinates
-    only have minor variations over time from geophysical causes such as
-    tectonic activity or tidal deformations.
-
-    A Horizontal Coordinate System (HCS) is a local coordianate system on
-    Earth's surface, defined with its z-axis in the zenith direction, and its
-    x-axis pointing north. Being on Earth's surface, a HCS transformation
-    involves involves a boost by the local surface velocity due to Earth's
-    rotation.
-
-    The zenith in this context is to be understood as the normal vector of the
-    reference ellipsoid for a given latitude-longitude pair. This
-    transformation does not account for local variations in the gravitational
-    potential. North in this context is to be understood as the direction of
-    the geographical north pole.
-
-    References:
-    -   IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS
-        Technical Note ; 36) Frankfurt am Main: Verlag des Bundesamts für
-        Kartographie und Geodäsie, 2010. 179 pp., ISBN 3-89888-989-6
+    This class implements the transformation from the International Terrestrial
+    Reference System (ITRS) to a Horizontal Coordinate System (HCS).
 */
 class ITRStoHCS
 {
@@ -584,7 +420,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    CompositeRigidTransform<double, 3,
+    Composite<double, 3,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS,
@@ -612,7 +448,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    CompositeRigidTransform<double, 3,
+    Composite<double, 3,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS
@@ -634,7 +470,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    CompositeRigidTransform<double, 3,
+    Composite<double, 3,
         CIRStoTIRS,
         TIRStoITRS,
         ITRStoHCS
@@ -655,7 +491,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    CompositeRigidTransform<double, 3,
+    Composite<double, 3,
         TIRStoITRS,
         ITRStoHCS
     > m_transform;

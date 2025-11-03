@@ -739,17 +739,28 @@ parse_time(std::string_view input, std::string_view format)
         return std::pair{time, input};
 }
 
+/**
+    @brief Convert a UTC `Time` into a UT1 time (in days) since epoch.
+
+    @tparam epoch Epoch defining the zero point for the UT1 time.
+
+    @param time UTC time.
+
+    @return UT1 time since the epoch in days.
+*/
 template <Time epoch>
 [[nodiscard]] constexpr double
-ut1_from_time(Time time)
+ut1_from_utc(Time time)
 {
     return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(time));
 }
 
 /**
-    @brief Convert a date string to a UT1 time (in days) since the J2000 epoch.
+    @brief Convert a date string to a UT1 time (in days) since epoch.
 
-    @param date
+    @tparam epoch Epoch defining the zero point for the UT1 time.
+
+    @param date String specifying date.
     @param format string specifying the format of the date string.
 
     @return UT1 time since the epoch in days, or a `DateParseError`.
@@ -763,36 +774,52 @@ template <Time epoch>
 ut1_from_date(std::string_view date, std::string_view format)
 {
     return parse_time(date, format)
-        .transform([&](auto val){ return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(val.first)); });
+        .transform([&](auto val){ return ut1_from_utc<epoch>(val.first); });
+}
+
+template <Time epoch>
+constexpr void
+ut1_interval(std::span<double> interval, const Time& start_time, const Time& end_time)
+{
+    linspace(interval, ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
+}
+
+template <Time epoch>
+constexpr std::vector<double>
+ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
+{
+    std::vector<double> res(count);
+    linspace(std::span<double>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
+    return res;
 }
 
 template <Time epoch>
 [[nodiscard]] constexpr DateParseError
 ut1_interval(
-    std::span<double>& interval, std::string_view start_date, std::string_view end_date,
+    std::span<double> interval, std::string_view start_date, std::string_view end_date,
     std::string_view format)
 {
     if (interval.size() == 0) return DateParseError::success;
 
-    const auto start_res = ut1_from_date<epoch>(start_date, format);
+    const auto start_res = parse_time(start_date, format);
     if (!start_res.has_value())
         return start_res.error();
 
-    const double start_time = *start_res;
+    const Time start_time = (*start_res).first;
 
     if (interval.size() == 1)
     {
-        interval.front() = start_time;
+        interval.front() = ut1_from_utc<epoch>(start_time);
         return DateParseError::success;
     }
 
-    const auto end_res = ut1_from_date<epoch>(end_date, format);
+    const auto end_res = parse_time(end_date, format);
     if (!end_res.has_value())
-        return std::unexpected(end_res.error());
+        return end_res.error();
 
-    const double end_time = *end_res;
+    const Time end_time = (*end_res).first;
 
-    linspace(interval, start_time, end_time);
+    ut1_interval<epoch>(interval, start_time, end_time);
 }
 
 
@@ -818,23 +845,9 @@ ut1_interval(
     std::string_view start_date, std::string_view end_date, std::size_t count,
     std::string_view format)
 {
-    if (count == 0) return {};
-
-    const auto start_res = ut1_from_date<epoch>(start_date, format);
-    if (!start_res.has_value())
-        return std::unexpected(start_res.error());
-
-    const double start_time = *start_res;
-    
-    if (count == 1) return linspace(start_time, start_time, count);
-
-    const auto end_res = ut1_from_date<epoch>(end_date, format);
-    if (!end_res.has_value())
-        return std::unexpected(end_res.error());
-
-    const double end_time = *end_res;
-
-    return linspace(start_time, end_time, count);
+    std::vector<double> res(count);
+    ut1_interval<epoch>(std::span<double>(res), start_date, end_date, format);
+    return res;
 }
 
 constexpr Time j2000_utc = {

@@ -143,18 +143,85 @@ transformation from CIRS to TIRS rotates the coordinates with the Earth Rotation
 Here :math:`\text{UT1}_\text{J2000}` denotes the UT1 time (in days) since the J2000 epoch.
 
 The GCRS to CIRS and CIRS to TIRS transformations are implemented by the respective classes
-:cpp:type:`zdm::celestialGCRStoCIRS` and :cpp:type:`zdm::celestial::CIRStoTIRS`.
+:cpp:type:`zdm::celestialGCRStoCIRS` and :cpp:type:`zdm::celestial::CIRStoTIRS`. The transformation
+between TIRS and ITRS is close enough to identity that it is not implemented in this library.
+While the class :cpp:type:`zdm::celestial::TIRStoITRS` exists, it does not implement a useable
+transformation.
 
-Footnotes:
+Reference
+---------
+
+Types
+^^^^^
+
+.. doxygenclass:: zdm::celestial::Composite
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::Inverse
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::GCStoICRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::ECStoICRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::ICRStoGCRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::GCRStoCIRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::CIRStoTIRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::TIRStoITRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::ITRStoHCS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::GCStoHCS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::GCStoCIRS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::CIRStoHCS
+    :project: zebradm
+    :members:
+
+.. doxygenclass:: zdm::celestial::TIRStoHCS
+    :project: zebradm
+    :members:
+
+Footnotes
+---------
+
 .. [1] The J2000 epoch is defined as noon January 1st, 2000 Terrestrial Time, which corresponds to
     11:58:55.816 January 1st, 2000 UTC.
+
 .. [2] Rotation matrices in this documentation use express passive transformations with positive
     angles corresponding tcorresponding to counterclockwise rotations.
 
-References:
+References
+----------
+
 .. [IERS2010] IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS Technical Note ;
     36) Frankfurt am Main: Verlag des Bundesamts für Kartographie und Geodäsie, 2010. 179 pp., ISBN
     3-89888-989-6
+
 .. [SBD2010] Schönrich, R., Binney, J., and Dehnen, W., “Local kinematics and the local standard of
     rest”, Monthly Notices of the Royal Astronomical Society, vol. 403, no. 4, OUP, pp. 1829–1833,
     2010. doi:10.1111/j.1365-2966.2010.16253.x.
