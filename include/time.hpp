@@ -739,6 +739,13 @@ parse_time(std::string_view input, std::string_view format)
         return std::pair{time, input};
 }
 
+template <Time epoch>
+[[nodiscard]] constexpr double
+ut1_from_time(Time time)
+{
+    return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(time));
+}
+
 /**
     @brief Convert a date string to a UT1 time (in days) since the J2000 epoch.
 

@@ -661,6 +661,13 @@ private:
     > m_transform;
 };
 
+template <typename T>
+    requires parametric_rigid_transform<T, la::RigidTransform<double, 3>>
+la::Vector<double, 3> source_velocity_in_destinatioinationn_cs(T celestial_coordinate_transform, double days_since_j2000)
+{
+    return celestial_coordinate_transform(days_since_j2000)(la::Vector<double, 3>{});
+}
+
 } // namespace celestial
 
 } // namespace zdm
