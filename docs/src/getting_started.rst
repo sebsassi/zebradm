@@ -53,7 +53,7 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 
     #include "zest/zernike_glq_transformer.hpp"
     #include "zebradm/zebra_angle_integrator.hpp"
-    
+
     int main()
     {
         auto shm_dist = [](const Vector<double, 3>& v){
@@ -61,12 +61,12 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
             const double speed_sq = dot(v,v);
             return std::exp(-speed_sq/disp_sq);
         }
-        
+
         constexpr std::size_t order = 20;
         constexpr double vmax = 1.0;
         zest::zt::ZernikeExpansion dist_expansion
             = zest::zt::ZernikeTransformerOrthoGeo{}.transform(shm_dist, vmax, order);
-        
+
         std::vector<std::array<double, 3>> vlab = {
             {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
         };
@@ -79,7 +79,7 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 
         zebra::IsotropicTransverseAngleIntegrator(order)
             .integrate(dist_expansion, vlab, vmin, out);
-        
+
         for (std::size_t i = 0; i < 0; ++i)
         {
             const double nontransverse = out[i][j][0];
@@ -95,7 +95,7 @@ Now, to compile the code, we use GCC in this example and link our code with Zebr
 .. code:: console
 
     g++ -std=c++20 -O3 -march=native -o radon radon.cpp -lzebradm -lzest
-    
+
 There are a few things of note here. First, zest is built on the C++20 standard, and therefore
 requires a sufficiently modern compiler, which implements the necessary C++20 features. To tell GCC
 we are using C++20, we give the flag ``std=c++20``.

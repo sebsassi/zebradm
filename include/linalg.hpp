@@ -177,6 +177,24 @@ template <vector_like T>
 }
 
 template <vector_like T>
+    requires (std::tuple_size_v<T> == 2)
+[[nodiscard]] constexpr T cross(const T& a, const T& b) noexcept
+{
+    return a[0]*b[1] - a[1]*b[0];
+}
+
+template <vector_like T>
+    requires (std::tuple_size_v<T> == 3)
+[[nodiscard]] constexpr T cross(const T& a, const T& b) noexcept
+{
+    T res{};
+    res[0] = a[1]*b[2] - a[2]*b[3];
+    res[1] = a[2]*b[0] - a[0]*b[2];
+    res[2] = a[0]*b[1] - a[1]*b[0];
+    return res;
+}
+
+template <vector_like T>
     requires std::floating_point<typename T::value_type>
 [[nodiscard]] inline T::value_type length(const T& a) noexcept
 {

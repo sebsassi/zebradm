@@ -15,7 +15,7 @@ In short, ZebraDM is a library that exists primarily for fast evaluation of inte
 and also
 
 .. math::
-   
+
     \overline{\mathcal{R}^\perp}[f](w,\vec{x}_0)
       = \int_{S^2} S(w,\hat{n})\int_{B}(x^2 - (\vec{x}\cdot\hat{n})^2)f(\vec{x} + \vec{x}_0)\delta(\vec{x}\cdot\hat{n} - w) \,d^3x\,d\Omega.
 

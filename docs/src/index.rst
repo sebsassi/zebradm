@@ -2,11 +2,11 @@ ZebraDM -- Zernike-based Radon transforms
 =========================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
 
    getting_started
    introduction
    usage
-   dm_example
-   reference
+   math
+   coordinates
+   zebra
