@@ -22,9 +22,9 @@ SOFTWARE.
 #pragma once
 
 #include <algorithm>
-#include <ranges>
 #include <span>
 #include <vector>
+#include <concepts>
 
 #include <zest/md_span.hpp>
 
@@ -49,9 +49,8 @@ public:
     void resize(std::size_t size);
     void init(std::span<const double> x);
 
-    template <typename Func>
-        requires requires (Func f, std::span<double> x) { f(x); }
-    void init(Func&& f) noexcept
+    template <std::regular_invocable<std::span<double>> Func>
+    void init(const Func& f) noexcept
     {
         std::ranges::fill(m_buffers[0], 1.0);
         f(m_x);

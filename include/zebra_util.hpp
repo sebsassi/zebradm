@@ -22,6 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include <array>
+#include <concepts>
 #include <span>
 
 #include <zest/real_sh_expansion.hpp>
@@ -60,14 +61,12 @@ public:
    
     [[nodiscard]] operator View() noexcept
     {
-         return View(
-            m_data.data(), m_size, m_subspan_size, m_order, m_extent);
+         return View(m_data.data(), m_size, m_subspan_size, m_order, m_extent);
     }
 
     [[nodiscard]] operator ConstView() const noexcept
     {
-        return ConstView(
-            m_data.data(), m_size, m_subspan_size, m_order, m_extent);
+        return ConstView(m_data.data(), m_size, m_subspan_size, m_order, m_extent);
     }
     
     [[nodiscard]] size_type size() const noexcept
@@ -134,9 +133,9 @@ public:
         @param shells shells the spherical harmonic transforms are evaluated on
         @param out spherical harmonic expansions of the response
     */
-    template <typename RespType>
+    template <std::regular_invocable<double, double, double> RespType>
     void transform(
-        RespType&& resp, std::span<const double> shells, SHExpansionVectorSpan<std::array<double, 2>> out)
+        const RespType& resp, std::span<const double> shells, SHExpansionVectorSpan<std::array<double, 2>> out)
     {
         for (std::size_t i = 0; i < shells.size(); ++i)
         {
@@ -160,8 +159,8 @@ public:
 
         @return spherical harmonic expansions of the response
     */
-    template <typename RespType>
-    SHExpansionVector transform(RespType&& resp, std::span<const double> shells, std::size_t order)
+    template <std::regular_invocable<double, double, double> RespType>
+    SHExpansionVector transform(const RespType& resp, std::span<const double> shells, std::size_t order)
     {
         SHExpansionVector res(shells.size(), order);
         transform(resp, shells, res);

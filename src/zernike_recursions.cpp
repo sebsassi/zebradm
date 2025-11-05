@@ -1818,7 +1818,7 @@ void multiply_by_r2_impl(
     }
 }
 
-}
+} // namespace
 
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,

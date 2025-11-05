@@ -1,7 +1,6 @@
 #include <array>
 #include <cassert>
 #include <cctype>
-#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <expected>

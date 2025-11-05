@@ -22,6 +22,7 @@ SOFTWARE.
 #include "affine_legendre_integral.hpp"
 
 #include <cassert>
+#include <utility>
 
 #include <zest/gauss_legendre.hpp>
 #include <zest/layout.hpp>
@@ -142,6 +143,8 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
             partial_res[1] += a[size - 2]*b[size - 2];
             partial_res[2] += a[size - 1]*b[size - 1];
             break;
+        default:
+            std::unreachable();
     }
 
     return (partial_res[0] + partial_res[2]) + (partial_res[1] + partial_res[3]);
@@ -269,11 +272,22 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     /*
-        As a compromise between computing all integrals via expensive direct numerical integration, and computing all integrals via the fast but unstable recursion formula, the integrals here are computed by first computing two seed rows via numerical integration, and then expanding outward using backward and forward recursion. The number of steps to compute via recursion can be chosen arbitrarily. Smaller numbers mitigate error arising from the unstable recursion, while larger numbers increase performance because less integrals need to be computed numerically.
+        As a compromise between computing all integrals via expensive direct
+        numerical integration, and computing all integrals via the fast but
+        unstable recursion formula, the integrals here are computed by first
+        computing two seed rows via numerical integration, and then expanding
+        outward using backward and forward recursion. The number of steps to
+        compute via recursion can be chosen arbitrarily. Smaller numbers
+        mitigate error arising from the unstable recursion, while larger
+        numbers increase performance because less integrals need to be
+        computed numerically.
 
-        As a special case, the `l == 0` and `n == 0` reduce to simple integrals of Legendre polynomials, which this algorithm takes advantage of.
+        As a special case, the `l == 0` and `n == 0` reduce to simple
+        integrals of Legendre polynomials, which this algorithm takes
+        advantage of.
 
-        On the diagonal boundary the forward recursion would require elements from outside the computed range, so direct integration must be used.
+        On the diagonal boundary the forward recursion would require elements
+        from outside the computed range, so direct integration must be used.
 
         Schematic view of the algorithm:
             LLLL
@@ -347,7 +361,8 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     // Integrals for `n == 1` row.
     std::span<const double> affine_legendre = m_affine_legendre.next();
     first_step(
-            shift, scale, half_width, inv_scale, affine_legendre, weighted_legendre, integrals);
+            shift, scale, half_width, inv_scale, affine_legendre, weighted_legendre,
+            integrals);
 
     constexpr std::size_t max_recursion = 3;
 
@@ -357,7 +372,8 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     {
         std::span<const double> affine_legendre = m_affine_legendre.next();
         forward_recursion_step(
-                shift, scale, half_width, inv_scale, 1 + k, affine_legendre, weighted_legendre, integrals);
+                shift, scale, half_width, inv_scale, 1 + k, affine_legendre,
+                weighted_legendre, integrals);
     }
     assert(1 + klim <= integrals.order());
     if (1 + klim == integrals.order()) return;
@@ -372,9 +388,11 @@ void AffineLegendreIntegrals::integrals_partial_interval(
         const std::size_t nmid = (1 + block_index)*block_size;
         m_affine_legendre.iterate(max_recursion + 2);
         glq_step(
-                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(),
+                weighted_legendre, integrals);
         glq_step(
-                half_width, inv_scale, nmid, m_affine_legendre.current(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid, m_affine_legendre.current(),
+                weighted_legendre, integrals);
         for (std::size_t k = 0; k < max_recursion; ++k)
             backward_recursion_step(
                     shift, scale, inv_scale, nmid - (k + 2), integrals);
@@ -382,7 +400,8 @@ void AffineLegendreIntegrals::integrals_partial_interval(
         {
             std::span<const double> affine_legendre = m_affine_legendre.next();
             forward_recursion_step(
-                    shift, scale, half_width, inv_scale, nmid + k + 1, affine_legendre, weighted_legendre, integrals);
+                    shift, scale, half_width, inv_scale, nmid + k + 1, affine_legendre,
+                    weighted_legendre, integrals);
         }
     }
 
@@ -399,15 +418,18 @@ void AffineLegendreIntegrals::integrals_partial_interval(
         std::span<const double> affine_legendre = m_affine_legendre.next();
         glq_step(half_width, inv_scale, nmid, affine_legendre, weighted_legendre, integrals);
     }
-    // If the number of remaining rows is not enough to jump to the middle of the next block, backward recursion from the last two rows is used.
+    // If the number of remaining rows is not enough to jump to the middle of
+    // the next block, backward recursion from the last two rows is used.
     else if (num_remaining < max_recursion + 2)
     {
         const std::size_t nmid = integrals.order() - 1;
         m_affine_legendre.iterate(num_remaining);
         glq_step(
-                half_width, inv_scale, nmid, m_affine_legendre.current(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid, m_affine_legendre.current(),
+                weighted_legendre, integrals);
         glq_step(
-                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(),
+                weighted_legendre, integrals);
         const std::size_t klim = num_remaining - 2;
         for (std::size_t k = 0; k < klim; ++k)
             backward_recursion_step(
@@ -419,9 +441,11 @@ void AffineLegendreIntegrals::integrals_partial_interval(
         const std::size_t nmid = (1 + num_blocks)*block_size;
         m_affine_legendre.iterate(max_recursion + 2);
         glq_step(
-                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid - 1, m_affine_legendre.prev(),
+                weighted_legendre, integrals);
         glq_step(
-                half_width, inv_scale, nmid, m_affine_legendre.current(), weighted_legendre, integrals);
+                half_width, inv_scale, nmid, m_affine_legendre.current(),
+                weighted_legendre, integrals);
         for (std::size_t k = 0; k < max_recursion; ++k)
             backward_recursion_step(
                     shift, scale, inv_scale, nmid - (k + 2), integrals);
@@ -429,13 +453,17 @@ void AffineLegendreIntegrals::integrals_partial_interval(
         {
             auto affine_legendre = m_affine_legendre.next();
             forward_recursion_step(
-                    shift, scale, half_width, inv_scale, nmid + k + 1, affine_legendre, weighted_legendre, integrals);
+                    shift, scale, half_width, inv_scale, nmid + k + 1, affine_legendre,
+                    weighted_legendre, integrals);
         }
     }
 }
 
 void AffineLegendreIntegrals::first_step(
-    double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
+    double shift, double scale, double half_width, double inv_scale,
+    std::span<const double> affine_legendre,
+    zest::MDSpan<const double, 2> weighted_legendre,
+    TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t lmax = integrals.extra_extent() + 1;
     std::span<double> integrals_1 = integrals[1];
@@ -457,7 +485,10 @@ void AffineLegendreIntegrals::first_step(
 
 // Compute a row using Gauss-Legendre quadrature
 void AffineLegendreIntegrals::glq_step(
-    double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
+    double half_width, double inv_scale, std::size_t n,
+    std::span<const double> affine_legendre,
+    zest::MDSpan<const double, 2> weighted_legendre,
+    TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t extent = integrals.extra_extent() + n + 1;
     std::span<double> integrals_n = integrals[n];
@@ -469,7 +500,10 @@ void AffineLegendreIntegrals::glq_step(
 
 // Compute a row using forward recursion
 void AffineLegendreIntegrals::forward_recursion_step(
-    double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> weighted_legendre, TrapezoidSpan<double> integrals) noexcept
+    double shift, double scale, double half_width, double inv_scale, std::size_t n,
+    std::span<const double> affine_legendre,
+    zest::MDSpan<const double, 2> weighted_legendre,
+    TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t lmax = integrals.extra_extent() + n;
     std::span<double> integrals_n = integrals[n];
@@ -496,7 +530,8 @@ void AffineLegendreIntegrals::forward_recursion_step(
 
 // Compute a row using backward recursion
 void AffineLegendreIntegrals::backward_recursion_step(
-    double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals) noexcept
+    double shift, double scale, double inv_scale, std::size_t n,
+    TrapezoidSpan<double> integrals) noexcept
 {
     const std::size_t extent = integrals.extra_extent() + n + 1;
     std::span<double> integrals_n = integrals[n];

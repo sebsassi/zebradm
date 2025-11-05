@@ -23,13 +23,14 @@ SOFTWARE.
 
 #include <zest/zernike_glq_transformer.hpp>
 
-#include "linalg.hpp"
+#include "matrix.hpp"
+#include "vector.hpp"
 
 namespace zdm
 {
 
 template <typename FieldType>
-concept bounded_distribution = requires (const FieldType& dist, const std::array<double, 3>& velocity)
+concept bounded_distribution = requires (const FieldType& dist, const la::Vector<double, 3>& velocity)
 {
     { dist(velocity) } -> std::same_as<double>;
     { dist.normalization() } -> std::same_as<double>;
@@ -37,17 +38,17 @@ concept bounded_distribution = requires (const FieldType& dist, const std::array
 };
 
 template <bounded_distribution Func>
-zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std::size_t lmax, const Matrix<double, 3, 3>& rotation)
+zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std::size_t lmax, const la::RotationMatrix<double, 3>& rotation)
 {
     const double scale = dist.max_velocity();
-    auto dist_ = [&](const std::array<double, 3>& x)
-    { 
-        return dist(rotation*(scale*x));
+    auto dist_wrap = [&](const std::array<double, 3>& x)
+    {
+        return dist(rotation*(scale*la::Vector(x)));
     };
 
     zest::zt::BallGLQGridPoints points(lmax);
-    return zest::zt::GLQTransformer(lmax).transform(
-            points.generate_values(dist_, lmax), lmax);
+    return zest::zt::GLQTransformerNormalGeo(lmax).forward_transform(
+            points.generate_values(dist_wrap, lmax), lmax);
 }
 
 } // namespace zdm

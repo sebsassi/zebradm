@@ -21,8 +21,8 @@ SOFTWARE.
 */
 #pragma once
 
-#include <cstddef>
 #include <array>
+#include <cstddef>
 #include <span>
 
 namespace zdm
@@ -88,28 +88,36 @@ public:
     using ConstView = MultiSuperSpan<typename SubspanType::ConstView, rank>;
 
     constexpr MultiSuperSpan(
-        element_type* data, const std::array<std::size_t, rank>& extents, std::size_t subspan_size_param) noexcept:
-        m_data(data), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
-    
-    constexpr MultiSuperSpan(
-        std::span<element_type> span, const std::array<std::size_t, rank>& extents, std::size_t subspan_size_param) noexcept:
-        m_data(span.data()), m_size(prod(extents)*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
+        element_type* data, const std::array<std::size_t, rank>& extents,
+        std::size_t subspan_size_param) noexcept:
+        m_data(data), m_size(prod(extents)*SubspanType::size(subspan_size_param)),
+        m_subspan_size(SubspanType::size(subspan_size_param)),
+        m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     constexpr MultiSuperSpan(
-        data_handle_type data, size_type size, std::size_t subspan_size, std::size_t subspan_size_param, const std::array<std::size_t, rank>& extents) noexcept:
-        m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extents(extents) {}
+        std::span<element_type> span, const std::array<std::size_t, rank>& extents,
+        std::size_t subspan_size_param) noexcept:
+        m_data(span.data()), m_size(prod(extents)*SubspanType::size(subspan_size_param)),
+        m_subspan_size(SubspanType::size(subspan_size_param)),
+        m_subspan_size_param(subspan_size_param), m_extents(extents) {}
+
+    constexpr MultiSuperSpan(
+        data_handle_type data, size_type size, std::size_t subspan_size,
+        std::size_t subspan_size_param,
+        const std::array<std::size_t, rank>& extents) noexcept:
+        m_data(data), m_size(size), m_subspan_size(subspan_size),
+        m_subspan_size_param(subspan_size_param), m_extents(extents) {}
 
     [[nodiscard]] constexpr operator ConstView() const noexcept
     {
-        return ConstView(
-            m_data, m_size, m_subspan_size, m_subspan_size_param, m_extents);
+        return ConstView(m_data, m_size, m_subspan_size, m_subspan_size_param, m_extents);
     }
-    
+
     [[nodiscard]] std::size_t size() const noexcept
     {
         return m_size;
     }
-    
+
     [[nodiscard]] std::size_t subspan_size() const noexcept
     {
         return m_subspan_size;
@@ -220,27 +228,33 @@ public:
 
     constexpr SuperSpan(
         element_type* data, size_type extent, size_type subspan_size_param) noexcept:
-        m_data(data), m_size(extent*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
-    
-    constexpr SuperSpan(
-        std::span<element_type> span, size_type extent, size_type subspan_size_param) noexcept:
-        m_data(span.data()), m_size(extent*SubspanType::size(subspan_size_param)), m_subspan_size(SubspanType::size(subspan_size_param)), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+        m_data(data), m_size(extent*SubspanType::size(subspan_size_param)),
+        m_subspan_size(SubspanType::size(subspan_size_param)),
+        m_subspan_size_param(subspan_size_param), m_extent(extent) {}
 
     constexpr SuperSpan(
-        data_handle_type data, size_type size, size_type subspan_size, size_type subspan_size_param, size_type extent) noexcept:
-        m_data(data), m_size(size), m_subspan_size(subspan_size), m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+        std::span<element_type> span, size_type extent,
+        size_type subspan_size_param) noexcept:
+        m_data(span.data()), m_size(extent*SubspanType::size(subspan_size_param)),
+        m_subspan_size(SubspanType::size(subspan_size_param)),
+        m_subspan_size_param(subspan_size_param), m_extent(extent) {}
+
+    constexpr SuperSpan(
+        data_handle_type data, size_type size, size_type subspan_size,
+        size_type subspan_size_param, size_type extent) noexcept:
+        m_data(data), m_size(size), m_subspan_size(subspan_size),
+        m_subspan_size_param(subspan_size_param), m_extent(extent) {}
 
     [[nodiscard]] constexpr operator ConstView() const noexcept
     {
-        return ConstView(
-            m_data, m_size, m_subspan_size, m_subspan_size_param, m_extent);
+        return ConstView(m_data, m_size, m_subspan_size, m_subspan_size_param, m_extent);
     }
-    
+
     [[nodiscard]] size_type size() const noexcept
     {
         return m_size;
     }
-    
+
     [[nodiscard]] size_type subspan_size() const noexcept
     {
         return m_subspan_size;

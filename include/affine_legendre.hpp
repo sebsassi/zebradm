@@ -25,8 +25,6 @@ SOFTWARE.
 
 #include <zest/layout.hpp>
 
-#include "legendre.hpp"
-
 namespace zdm::zebra
 {
 

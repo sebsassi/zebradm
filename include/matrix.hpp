@@ -270,7 +270,7 @@ public:
             return product_axes_xz<reverse_order>((commute) ? beta : alpha, (commute) ? alpha : beta);
         if constexpr (axis_alpha == Axis::z && axis_beta == Axis::y)
             return product_axes_yz<reverse_order>((commute) ? beta : alpha, (commute) ? alpha : beta);
-}
+    }
 
     // Genuine product of axis rotation matrices.
     template <Axis axis_alpha, Axis axis_beta, Axis axis_gamma>

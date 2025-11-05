@@ -113,7 +113,10 @@ namespace
 [[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(
     std::size_t order)
 {
-    return zest::zt::ZernikeSHSpan<std::array<double, 2>, zest::RowSkippingTriangleLayout<zest::IndexingMode::nonnegative>, zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none>::size(order);
+    return zest::zt::ZernikeSHSpan<
+        std::array<double, 2>, zest::RowSkippingTriangleLayout<zest::IndexingMode::nonnegative>,
+        zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none
+    >::size(order);
 }
 
 } // namespace

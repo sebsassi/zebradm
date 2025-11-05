@@ -42,7 +42,7 @@ void radon_transform(
     const std::size_t in_order = in.order();
 
     if (in_order == 0) return;
-    
+
     out(0,0,0) = {
         util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[0],
         util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[1]

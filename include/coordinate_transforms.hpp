@@ -24,8 +24,6 @@ SOFTWARE.
 #include <array>
 #include <cmath>
 
-#include "linalg.hpp"
-
 namespace zdm::coordinates
 {
 

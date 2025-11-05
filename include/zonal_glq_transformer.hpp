@@ -138,9 +138,9 @@ public:
         constexpr double sh_normalization = zest::st::normalization<sh_norm_param>();
         const double prefactor = sh_normalization*(2.0*std::numbers::pi)/double(values.shape()[lon_axis]);
 
-        for (std::size_t i = 0; i < m_longitudinal_average.size(); ++i)
-            m_longitudinal_average[i] *= prefactor;
-        
+        for (auto& element : m_longitudinal_average)
+            element *= prefactor;
+
         const std::size_t min_order = std::min(expansion.size(), values.order());
 
         const std::size_t num_lat = m_longitudinal_average.size();

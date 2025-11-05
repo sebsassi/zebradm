@@ -21,12 +21,10 @@ SOFTWARE.
 */
 #pragma once
 
-#include <concepts>
-#include <type_traits>
 #include <array>
 #include <cmath>
-
-#include "concepts.hpp"
+#include <concepts>
+#include <type_traits>
 
 namespace zdm
 {

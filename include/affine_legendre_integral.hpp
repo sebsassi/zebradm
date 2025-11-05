@@ -73,7 +73,8 @@ public:
     constexpr TrapezoidSpan() noexcept = default;
     constexpr TrapezoidSpan(
         element_type* data, std::size_t order, std::size_t extra_extent) noexcept:
-        m_span(data, Layout::size(order, extra_extent)), m_order(order), m_extra_extent(extra_extent) {}
+        m_data(data), m_size(Layout::size(order, extra_extent)), m_order(order),
+        m_extra_extent(extra_extent) {}
 
     [[nodiscard]] constexpr std::size_t
     order() const noexcept { return m_order; }
@@ -82,18 +83,19 @@ public:
     extra_extent() const noexcept { return m_extra_extent; }
 
     [[nodiscard]] constexpr std::span<element_type>
-    flatten() const noexcept { return m_span; }
+    flatten() const noexcept { return std::span<element_type>(m_data, m_size); }
 
     [[nodiscard]] constexpr element_type*
-    data() const noexcept { return m_span.data(); }
+    data() const noexcept { return m_data; }
 
     [[nodiscard]] constexpr operator std::span<element_type>() const noexcept
     {
-        return m_span;
+        return std::span<element_type>(m_data, m_size);
     }
 
     [[nodiscard]] constexpr operator ConstView() const noexcept
     {
+        return ConstView(data, order, extra_extent);
         return *reinterpret_cast<ConstView*>(this);
     }
 
@@ -101,7 +103,7 @@ public:
     operator()(index_type l) const noexcept
     {
         return std::span<element_type>(
-                m_span.begin() + Layout::idx(m_extra_extent,l,0), Layout::line_length(m_extra_extent,l));
+                m_data + Layout::idx(m_extra_extent,l,0), Layout::line_length(m_extra_extent,l));
     }
 
     [[nodiscard]] constexpr std::span<element_type>
@@ -113,7 +115,7 @@ public:
     [[nodiscard]] constexpr element_type&
     operator()(index_type l, index_type m) const noexcept
     {
-        return m_span[Layout::idx(m_extra_extent,l,m)];
+        return m_data[Layout::idx(m_extra_extent,l,m)];
     }
 
     [[nodiscard]] constexpr element_type&
@@ -122,10 +124,14 @@ public:
         return (*this)(l, m);
     }
 
+protected:
+    friend TrapezoidSpan<std::remove_const_t<element_type>>;
+
 private:
-    std::span<element_type> m_span;
-    std::size_t m_order;
-    std::size_t m_extra_extent;
+    element_type* m_data{};
+    std::size_t m_size{};
+    std::size_t m_order{};
+    std::size_t m_extra_extent{};
 };
 
 class AffineLegendreIntegrals
@@ -134,7 +140,7 @@ public:
     AffineLegendreIntegrals() = default;
     AffineLegendreIntegrals(
         std::size_t order, std::size_t extra_extent);
-    
+
     [[nodiscard]] std::size_t order() const noexcept { return m_order; }
 
     void resize(std::size_t order, std::size_t extra_extent);
@@ -145,24 +151,31 @@ public:
 private:
     void integrals_full_interval(
         TrapezoidSpan<double> integrals, double shift, double scale);
-    
+
     void integrals_partial_interval(
         TrapezoidSpan<double> integrals, double shift, double scale);
-    
+
     void integrals_full_dual_interval(
         TrapezoidSpan<double> integrals, double shift, double scale);
-    
+
     void first_step(
-        double shift, double scale, double half_width, double inv_scale, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
+        double shift, double scale, double half_width, double inv_scale,
+        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        TrapezoidSpan<double> integrals) noexcept;
 
     void glq_step(
-        double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
+        double half_width, double inv_scale, std::size_t n,
+        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        TrapezoidSpan<double> integrals) noexcept;
 
     void forward_recursion_step(
-        double shift, double scale, double half_width, double inv_scale, std::size_t n, std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre, TrapezoidSpan<double> integrals) noexcept;
-    
+        double shift, double scale, double half_width, double inv_scale, std::size_t n,
+        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        TrapezoidSpan<double> integrals) noexcept;
+
     void backward_recursion_step(
-        double shift, double scale, double inv_scale, std::size_t n, TrapezoidSpan<double> integrals) noexcept;
+        double shift, double scale, double inv_scale, std::size_t n,
+        TrapezoidSpan<double> integrals) noexcept;
 
     std::vector<double> m_leg_int_top;
     std::vector<double> m_leg_int_bot;
@@ -172,8 +185,8 @@ private:
     std::vector<double> m_glq_weights;
     std::vector<double> m_nodes;
     std::vector<double> m_legendre;
-    std::size_t m_order;
-    std::size_t m_extra_extent;
+    std::size_t m_order{};
+    std::size_t m_extra_extent{};
 };
 
 } // namespace zdm::zebra

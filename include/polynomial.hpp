@@ -21,11 +21,11 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
 #include <array>
+#include <concepts>
 #include <ranges>
 #include <span>
-#include <concepts>
+#include <vector>
 
 namespace zdm
 {
