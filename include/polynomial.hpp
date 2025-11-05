@@ -86,6 +86,8 @@ struct Polynomial
         requires (std::convertible_to<Types, Field> && ...)
     constexpr Polynomial(Types... coeffs_): coeffs{FieldType(coeffs_)...} {}
 
+    [[nodiscard]] constexpr bool operator==(const Polynomial& other) const noexcept = default;
+
     template <typename DomainType>
         requires vector_over<Field, DomainType> || vector_over<DomainType, Field>
     [[nodiscard]] constexpr FieldType
@@ -267,6 +269,8 @@ struct DynamicPolynomial
     {
         std::ranges::copy(coeffs_, coeffs.begin());
     }
+
+    [[nodiscard]] constexpr bool operator==(const DynamicPolynomial& other) const noexcept = default;
 
     template<typename DomainType>
         requires std::integral<DomainType> || std::floating_point<DomainType>

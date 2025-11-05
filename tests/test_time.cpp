@@ -202,10 +202,10 @@ bool test_parse_unsigned_gives_correct_result(std::string_view input, std::uint6
 
 void test_parse_unsigned()
 {
-    assert(zdm::time::detail::parse_unsigned(""sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_unsigned("hello"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_unsigned("-1"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_unsigned("+1"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::detail::parse_unsigned(""sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_unsigned("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_unsigned("-1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_unsigned("+1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
     assert(test_parse_unsigned_gives_correct_result("237489"sv, 237489, ""sv));
     assert(test_parse_unsigned_gives_correct_result("237489 hello"sv, 237489, " hello"sv));
@@ -222,10 +222,10 @@ bool test_parse_signed_gives_correct_result(std::string_view input, std::int64_t
 
 void test_parse_signed()
 {
-    assert(zdm::time::detail::parse_signed(""sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_signed("hello"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_signed("-hello"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::detail::parse_signed("+hello"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::detail::parse_signed(""sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_signed("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_signed("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_signed("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
     assert(test_parse_signed_gives_correct_result("237489", 237489, ""sv));
     assert(test_parse_signed_gives_correct_result("-237489", -237489, ""sv));
@@ -244,11 +244,11 @@ bool test_parse_time_zone_offset_gives_correct_result(std::string_view input, zd
 
 void test_parse_time_zone_offset()
 {
-    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseError::invalid_time_zone_offset));
-    assert(zdm::time::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::time::DateParseError::invalid_time_zone_offset));
-    assert(zdm::time::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::time::DateParseError::invalid_time_zone_offset));
-    assert(zdm::time::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::time::DateParseError::invalid_time_zone_offset));
-    assert(zdm::time::detail::parse_time_zone_offset("12:00"sv) == std::unexpected(zdm::time::DateParseError::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset("12:00"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
 
     assert(test_parse_time_zone_offset_gives_correct_result("Z"sv, zdm::time::TimeZoneOffset{}, ""sv));
     assert(test_parse_time_zone_offset_gives_correct_result("Zhello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
@@ -270,153 +270,153 @@ bool test_parse_time_is_correct(std::string_view time_string, std::string_view f
 
 void test_parse_time()
 {
-    assert(zdm::time::parse_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseError::incomplete_time_string));
-    assert(zdm::time::parse_time("hello"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseError::incomplete_time_string));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseError::incomplete_time_string));
-    assert(zdm::time::parse_time("at 12:00"sv, "At %H:%M"sv) == std::unexpected(zdm::time::DateParseError::character_mismatch));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%"sv) == std::unexpected(zdm::time::DateParseError::incomplete_format_string));
+    assert(zdm::time::parse_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
+    assert(zdm::time::parse_time("hello"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
+    assert(zdm::time::parse_time("at 12:00"sv, "At %H:%M"sv) == std::unexpected(zdm::time::DateParseStatus::character_mismatch));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_format_string));
 
     // Check all printable ASCII characters which are not used as format specifiers.
-    assert(zdm::time::parse_time("12:00"sv, "%H:% "sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%!"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%\""sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%#"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%$"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%&"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%'"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%("sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%)"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%*"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%+"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%,"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%-"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%."sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%/"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%0"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%1"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%2"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%3"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%4"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%5"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%6"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%7"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%8"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%9"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%:"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%;"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%<"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%="sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%>"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%?"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%@"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%A"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:% "sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%!"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%\""sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%#"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%$"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%&"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%'"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%("sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%)"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%*"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%+"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%,"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%-"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%."sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%/"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%0"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%1"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%2"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%3"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%4"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%5"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%6"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%7"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%8"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%9"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%:"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%;"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%<"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%="sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%>"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%?"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%@"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%A"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // B used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%C"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%D"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%E"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%F"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%G"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%C"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%D"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%E"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%F"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%G"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // H used
     // I used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%J"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%K"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%L"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%J"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%K"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%L"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // M used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%N"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%O"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%P"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%Q"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%R"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%N"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%O"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%P"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%Q"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%R"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // S used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%T"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%U"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%V"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%W"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%X"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%T"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%U"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%V"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%W"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%X"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // Y used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%Z"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%["sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%\\"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%]"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%^"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%_"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%`"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%a"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%Z"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%["sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%\\"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%]"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%^"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%_"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%`"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%a"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // b used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%c"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%c"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // d used
     // e used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%f"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%g"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%h"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%i"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%j"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%k"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%l"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%f"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%g"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%h"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%i"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%j"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%k"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%l"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // m used
     // n used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%o"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%o"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // p used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%q"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%r"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%s"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%t"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%u"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%v"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%w"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%x"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%y"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%q"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%r"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%s"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%t"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%u"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%v"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%w"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%x"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%y"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
     // z used
-    assert(zdm::time::parse_time("12:00"sv, "%H:%{"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%|"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%}"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
-    assert(zdm::time::parse_time("12:00"sv, "%H:%~"sv) == std::unexpected(zdm::time::DateParseError::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%{"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%|"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%}"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
+    assert(zdm::time::parse_time("12:00"sv, "%H:%~"sv) == std::unexpected(zdm::time::DateParseStatus::unsupported_format_specifier));
 
-    assert(zdm::time::parse_time("May June"sv, "%b %B"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("may"sv, "%b"sv) == std::unexpected(zdm::time::DateParseError::invalid_month_of_year));
-    assert(zdm::time::parse_time("Juvember"sv, "%b"sv) == std::unexpected(zdm::time::DateParseError::invalid_month_of_year));
+    assert(zdm::time::parse_time("May June"sv, "%b %B"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("may"sv, "%b"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_month_of_year));
+    assert(zdm::time::parse_time("Juvember"sv, "%b"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_month_of_year));
 
-    assert(zdm::time::parse_time("20 21"sv, "%d %e"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("0"sv, "%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("32"sv, "%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("first"sv, "%d"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::parse_time("20 21"sv, "%d %e"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("0"sv, "%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("32"sv, "%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("first"sv, "%d"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
-    assert(zdm::time::parse_time("11 23"sv, "%I %H"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("23 11"sv, "%H %I"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("24"sv, "%H"sv) == std::unexpected(zdm::time::DateParseError::invalid_hour));
-    assert(zdm::time::parse_time("13"sv, "%I"sv) == std::unexpected(zdm::time::DateParseError::invalid_hour));
-    assert(zdm::time::parse_time("0"sv, "%I"sv) == std::unexpected(zdm::time::DateParseError::invalid_hour));
-    assert(zdm::time::parse_time("twelve"sv, "%H"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
-    assert(zdm::time::parse_time("twelve"sv, "%I"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::parse_time("11 23"sv, "%I %H"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("23 11"sv, "%H %I"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("24"sv, "%H"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_hour));
+    assert(zdm::time::parse_time("13"sv, "%I"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_hour));
+    assert(zdm::time::parse_time("0"sv, "%I"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_hour));
+    assert(zdm::time::parse_time("twelve"sv, "%H"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::parse_time("twelve"sv, "%I"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
-    assert(zdm::time::parse_time("5 May"sv, "%m %b"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("0"sv, "%m"sv) == std::unexpected(zdm::time::DateParseError::invalid_month_of_year));
-    assert(zdm::time::parse_time("13"sv, "%m"sv) == std::unexpected(zdm::time::DateParseError::invalid_month_of_year));
-    assert(zdm::time::parse_time("May"sv, "%m"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::parse_time("5 May"sv, "%m %b"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("0"sv, "%m"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_month_of_year));
+    assert(zdm::time::parse_time("13"sv, "%m"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_month_of_year));
+    assert(zdm::time::parse_time("May"sv, "%m"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
-    assert(zdm::time::parse_time("49 50"sv, "%M %M"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("60"sv, "%M"sv) == std::unexpected(zdm::time::DateParseError::invalid_minute));
-    assert(zdm::time::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::parse_time("49 50"sv, "%M %M"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("60"sv, "%M"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_minute));
+    assert(zdm::time::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
-    assert(zdm::time::parse_time("AM PM"sv, "%p %p"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("am"sv, "%p"sv) == std::unexpected(zdm::time::DateParseError::invalid_am_pm));
-    assert(zdm::time::parse_time("a.m."sv, "%p"sv) == std::unexpected(zdm::time::DateParseError::invalid_am_pm));
+    assert(zdm::time::parse_time("AM PM"sv, "%p %p"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("am"sv, "%p"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_am_pm));
+    assert(zdm::time::parse_time("a.m."sv, "%p"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_am_pm));
 
-    assert(zdm::time::parse_time("49 50"sv, "%S %S"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("61"sv, "%M"sv) == std::unexpected(zdm::time::DateParseError::invalid_second));
-    assert(zdm::time::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::time::DateParseError::invalid_minute));
+    assert(zdm::time::parse_time("49 50"sv, "%S %S"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("61"sv, "%M"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_second));
+    assert(zdm::time::parse_time("fifteen"sv, "%M"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_minute));
 
-    assert(zdm::time::parse_time("2000 2001"sv, "%Y %Y"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
-    assert(zdm::time::parse_time("two thousand"sv, "%Y"sv) == std::unexpected(zdm::time::DateParseError::expected_digits));
+    assert(zdm::time::parse_time("2000 2001"sv, "%Y %Y"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("two thousand"sv, "%Y"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
 
-    assert(zdm::time::parse_time("Z +12:00"sv, "%z %z"sv) == std::unexpected(zdm::time::DateParseError::duplicate_format_specifiers));
+    assert(zdm::time::parse_time("Z +12:00"sv, "%z %z"sv) == std::unexpected(zdm::time::DateParseStatus::duplicate_format_specifiers));
 
-    assert(zdm::time::parse_time("2000-02-30"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("2001-02-29"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("2001-04-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("2001-06-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("2001-09-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
-    assert(zdm::time::parse_time("2001-11-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseError::invalid_day_of_month));
+    assert(zdm::time::parse_time("2000-02-30"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("2001-02-29"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("2001-04-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("2001-06-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("2001-09-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
+    assert(zdm::time::parse_time("2001-11-31"sv, "%Y-%m-%d"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_day_of_month));
 
     assert(test_parse_time_is_correct("%"sv, "%%"sv, zdm::time::Time{0, 0, 0, 0, 0, 0, 0}, ""sv));
 

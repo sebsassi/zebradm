@@ -86,11 +86,7 @@ struct Matrix
     [[nodiscard]] explicit constexpr 
     operator std::array<T, N*M>() const noexcept { return array; }
 
-    [[nodiscard]] constexpr bool
-    operator==(const Matrix& other) const noexcept
-    {
-        return array == other.array;
-    }
+    [[nodiscard]] constexpr bool operator==(const Matrix& other) const noexcept = default;
 
     [[nodiscard]] constexpr T&
     operator[](std::size_t i, std::size_t j) noexcept
@@ -454,11 +450,7 @@ public:
     [[nodiscard]] constexpr operator Matrix<T, N, N, action, layout>() const noexcept { return m_matrix; }
     [[nodiscard]] constexpr explicit operator std::array<T, N*N>() const noexcept { return m_matrix.array; }
 
-    [[nodiscard]] constexpr bool
-    operator==(const RotationMatrix& other) const noexcept
-    {
-        return m_matrix.array == std::array<T, N*N>(other);
-    }
+    [[nodiscard]] constexpr bool operator==(const RotationMatrix& other) const noexcept = default;
 
     [[nodiscard]] constexpr T&
     operator[](std::size_t i, std::size_t j) noexcept { return m_matrix[i, j]; }
@@ -1149,6 +1141,8 @@ public:
     {
         return RigidTransform(rotation_matrix_type::identity(), vector_type{});
     }
+
+    [[nodiscard]] constexpr bool operator==(const RigidTransform& other) const noexcept = default;
 
     [[nodiscard]] constexpr vector_type operator()(const vector_type& vector) const noexcept
     {

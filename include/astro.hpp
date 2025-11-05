@@ -48,6 +48,8 @@ struct GalacticOrientation
     double ngp_ra;  /// Right ascension of the north galactic pole.
     double ncp_lon; /// Galactic longitude of the north celestial pole.
 
+    [[nodiscard]] constexpr bool operator==(const GalacticOrientation& other) const noexcept = default;
+
     /**
         @brief Rotation from the galactic coordinate system to the reference
         coordinate system.
@@ -92,6 +94,8 @@ struct OrbitOrientation
     double longitude_of_the_ascending_node; /// Longitude of the ascending node of the orbit.
     double longitude_of_periapsis;          /// Longitude of periapsis of the orbit.
 
+    [[nodiscard]] constexpr bool operator==(const OrbitOrientation& other) const noexcept = default;
+
     /**
         @brief Rotation from the orbital plane coordinate system to the
         reference coordinate system.
@@ -135,6 +139,8 @@ struct OrbitPosition
     double semi_major_axis; /// Semi-major axis of the orbit in kilometers.
     double mean_longitude;  /// Mean longitude of the body.
     double mean_motion;     /// Mean motion of the body in radians per day.
+
+    [[nodiscard]] constexpr bool operator==(const OrbitPosition& other) const noexcept = default;
 };
 
 /**
@@ -152,6 +158,8 @@ struct OrbitalState
 {
     OrbitOrientation orientation;   /// Orientation of the orbit.
     OrbitPosition position;         /// Position of the body along the orbit.
+
+    [[nodiscard]] constexpr bool operator==(const OrbitalState& other) const noexcept = default;
 
     /**
         @brief Mean anomaly of the body in radians.
@@ -270,6 +278,8 @@ struct DynamicalOrbitOrientation
     Polynomial<double, M> longitude_of_the_ascending_node;
     Polynomial<double, P> longitude_of_periapsis;
 
+    [[nodiscard]] constexpr bool operator==(const DynamicalOrbitOrientation& other) const noexcept = default;
+
     /**
         @brief Orientation of the orbit at a point in time.
 
@@ -318,6 +328,8 @@ struct KeplerOrbit
     Polynomial<double, M> mean_longitude;
     double semi_major_axis;
     double mean_motion;
+
+    [[nodiscard]] constexpr bool operator==(const KeplerOrbit& other) const noexcept = default;
 
     [[nodiscard]] constexpr OrbitPosition
     operator()(double days_since_epoch) const noexcept
@@ -369,6 +381,8 @@ struct Orbit
     KeplerOrbit<K, L> orbit;
     time::Time epoch;
 
+    [[nodiscard]] constexpr bool operator==(const Orbit& other) const noexcept = default;
+
     [[nodiscard]] constexpr OrbitalState
     operator()(double days_since_epoch) const noexcept
     {
@@ -390,6 +404,8 @@ struct Ellipsoid
 {
     double inverse_flattening;
     double equatorial_radius;
+
+    [[nodiscard]] constexpr bool operator==(const Ellipsoid& other) const noexcept = default;
 };
 
 /**
@@ -407,6 +423,8 @@ struct Planet
     Orbit<N, M, P, K, L> orbit;
     Ellipsoid ellipsoid;
     Polynomial<double, 1> rotation_angle;
+
+    [[nodiscard]] constexpr bool operator==(const Planet& other) const noexcept = default;
 
     [[nodiscard]] double surface_speed(double latitude) const noexcept
     {

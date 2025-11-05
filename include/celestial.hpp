@@ -56,14 +56,15 @@ concept parametric_rigid_transform
     if we have a chain of transformations `T1 -> T2 -> ... -> TN`, then the
     transformations are given in the order `T1, T2, ..., TN`.
 */
-template <std::floating_point T, std::size_t N, typename... Types>
-    requires (parametric_rigid_transform<Types, la::RigidTransform<T, N>> && ...)
+template <std::floating_point T, std::size_t N, parametric_rigid_transform<la::RigidTransform<T, N>>... Types>
 class Composite
 {
 public:
     using rigid_transform_type = la::RigidTransform<T, N>;
 
     Composite(const Types&... transforms): m_transforms(transforms...) {}
+
+    [[nodiscard]] constexpr bool operator==(const Composite& other) const noexcept = default;
 
     /**
         @brief Call operator of the parametric rigid transform.
@@ -101,15 +102,16 @@ private:
     member function on the result of the call operator, as defined for the
     `RigidTransform` class.
 */
-template <typename T>
-    requires (parametric_rigid_transform<T, typename T::rigid_transform_type>)
+template <std::floating_point T, std::size_t N, parametric_rigid_transform<la::RigidTransform<T, N>> U>
 class Inverse
 {
 public:
-    using rigid_transform_type = typename T::rigid_transform_type;
+    using rigid_transform_type = la::RigidTransform<T, N>;
 
     template <typename... Args>
     Inverse(Args&&... args): m_transform(std::forward<Args>(args)...) {}
+
+    [[nodiscard]] constexpr bool operator==(const Inverse& other) const noexcept = default;
 
     [[nodiscard]] rigid_transform_type
     operator()(const rigid_transform_type::value_type parameter) const noexcept
@@ -118,7 +120,7 @@ public:
     }
 
 private:
-    T m_transform;
+    U m_transform;
 };
 
 /**
@@ -140,6 +142,8 @@ public:
         m_transform(
             orientation.gcs_to_reference_cs(),
             orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0})) {};
+
+    [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
 
     /**
         @brief Call operator of the parametric transform.
@@ -181,6 +185,8 @@ public:
     using rigid_transform_type = la::RigidTransform<double, 3>;
 
     constexpr ECStoICRS() = default;
+
+    [[nodiscard]] constexpr bool operator==(const ECStoICRS& other) const noexcept = default;
 
     /**
         @brief Call operator of the parametric transform.
@@ -252,6 +258,8 @@ public:
 
     constexpr ICRStoGCRS() = default;
 
+    [[nodiscard]] constexpr bool operator==(const ICRStoGCRS& other) const noexcept = default;
+
     /**
         @brief Call operator of the parametric transform.
 
@@ -285,6 +293,8 @@ public:
     using rigid_transform_type = la::RigidTransform<double, 3>;
 
     constexpr GCRStoCIRS() = default;
+
+    [[nodiscard]] constexpr bool operator==(const GCRStoCIRS& other) const noexcept = default;
 
     /**
         @brief Call operator of the parametric transform.
@@ -321,6 +331,8 @@ public:
 
     constexpr CIRStoTIRS() = default;
 
+    [[nodiscard]] constexpr bool operator==(const CIRStoTIRS& other) const noexcept = default;
+
     /**
         @brief Call operator of the parametric transform.
 
@@ -355,6 +367,8 @@ public:
 
     constexpr TIRStoITRS() = default;
 
+    [[nodiscard]] constexpr bool operator==(const TIRStoITRS& other) const noexcept = default;
+
     /**
         @brief A void returning call operator that does nothing.
     */
@@ -377,6 +391,8 @@ public:
     constexpr ITRStoHCS() = default;
     constexpr ITRStoHCS(double longitude, double latitude):
         m_transform(transform(longitude, latitude)) {}
+
+    [[nodiscard]] constexpr bool operator==(const ITRStoHCS& other) const noexcept = default;
 
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()([[maybe_unused]] double days_since_j2000) const noexcept { return m_transform; }
@@ -416,6 +432,8 @@ public:
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
 
+    [[nodiscard]] constexpr bool operator==(const GCStoHCS& other) const noexcept = default;
+
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -444,6 +462,8 @@ public:
             ICRStoGCRS(),
             GCRStoCIRS()) {}
 
+    [[nodiscard]] constexpr bool operator==(const GCStoCIRS& other) const noexcept = default;
+
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -466,6 +486,8 @@ public:
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
 
+    [[nodiscard]] constexpr bool operator==(const CIRStoHCS& other) const noexcept = default;
+
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -486,6 +508,8 @@ public:
         m_transform(
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
+
+    [[nodiscard]] constexpr bool operator==(const TIRStoHCS& other) const noexcept = default;
 
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }

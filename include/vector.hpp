@@ -36,7 +36,6 @@ struct Vector
     [[nodiscard]] constexpr
     operator std::array<T, N>() const noexcept { return array; }
 
-    [[nodiscard]] constexpr bool operator==(const Vector& other) const noexcept = default;
     [[nodiscard]] constexpr auto operator<=>(const Vector& other) const noexcept = default;
 
     [[nodiscard]] constexpr reference
