@@ -5,10 +5,7 @@
 #include "concepts.hpp"
 #include "linalg.hpp"
 
-namespace zdm
-{
-
-namespace la
+namespace zdm::la
 {
 
 template <arithmetic T, std::size_t N>
@@ -154,9 +151,7 @@ template <arithmetic T, typename... Ts>
     requires (std::same_as<T, Ts> && ...)
 Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 
-} // namespace la
-
-} // namespace zdm
+} // namespace zdm::la
 
 namespace std
 {

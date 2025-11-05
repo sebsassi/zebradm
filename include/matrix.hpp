@@ -7,10 +7,7 @@
 #include "linalg.hpp"
 #include "vector.hpp"
 
-namespace zdm
-{
-
-namespace la
+namespace zdm::la
 {
 
 enum class MatrixLayout
@@ -1269,6 +1266,4 @@ compose(
     return RigidTransform<T, N, action, matrix_layout>(rotation, rotation*translation);
 }
 
-} // namespace la
-
-} // namespace zdm
+} // namespace zdm::la

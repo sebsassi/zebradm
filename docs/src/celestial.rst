@@ -17,14 +17,14 @@ applicable.
 
 The celestial coordinate transformations in this library are types which fulfill the requirements
 of the :cpp:concept:`zdm::celestial::parametric_rigid_transform` concept. These are types, which
-implement a call operator :cpp:`operator()`, which takes in a single parameter (time), and
-typically returns a :cpp:type:`zdm::la::RigidTransform` consisting of a rotation and a translation
+implement a call operator :cpp:function:`operator()`, which takes in a single parameter (time), and
+typically returns a :cpp:class:`zdm::la::RigidTransform` consisting of a rotation and a translation
 (velocity boost). If the transformation is only a rotation, the call operator may also return a
-:cpp:type:`zdm::la::RotationMatrix`, or likewise, if it is only a translation, it may return a
-:cpp:type:`zdm::la::Vector` corresponding to the translation vector.
+:cpp:class:`zdm::la::RotationMatrix`, or likewise, if it is only a translation, it may return a
+:cpp:struct:`zdm::la::Vector` corresponding to the translation vector.
 
 For instance if we wanted the average velocity of dark matter in a particular Horizontal Coordinate
-System (HCS), we could use the class :cpp:type:`zdm::celestial::GCStoHCS` to transform the average
+System (HCS), we could use the class :cpp:class:`zdm::celestial::GCStoHCS` to transform the average
 velocity of dark matter in the Galactic Coordinate System (GCS), which happens to be zero, to our
 HCS.
 
@@ -83,8 +83,8 @@ declination of the NGP, and the GCS longitude of the NCP as [2]_
     = R_Z(\pi - \alpha_\text{NGP})R_Y(\pi/2 - \delta_\text{NGP})R_Z(l_\text{NCP}).
 
 The transformation from the GCS to ICRS is implemented by the class
-:cpp:type:`zdm::celestial::GCStoICRS`, although there is typically no need to deal with it directly
-because one more often wants to use composite transforms like :cpp:type:`zdm::celestial::GCStoHCS`
+:cpp:class:`zdm::celestial::GCStoICRS`, although there is typically no need to deal with it directly
+because one more often wants to use composite transforms like :cpp:class:`zdm::celestial::GCStoHCS`
 to transform to a more common laboratory frame.
 
 .. code:: cpp
@@ -101,7 +101,7 @@ The orbital motion of the Earth is implemented in the transformation from the IC
 Geocentric Celestial Reference System (GCRS). The GCRS has the same orientation as the ICRS, but
 where the ICRS is centered at the barycenter of the solar system, the GCRS is geocentric. Their
 velocity difference is therefore given by the orbital velocity of Earth (or viewed from Earth, the
-velocity of the solar system barycenter). The class :cpp:type:`zdm::celestial::ICRStoGCRS` returns
+velocity of the solar system barycenter). The class :cpp:class:`zdm::celestial::ICRStoGCRS` returns
 this velocity difference
 
 .. code:: cpp
@@ -110,7 +110,7 @@ this velocity difference
     zdm::la::Vector<double, 3> ssbr_velocity = icrs_to_gcrs(0.0);
 
 For completeness we may note that the ICRS to GCRS transformation relies on another transformation
-:cpp:type:`zdm::celestial::ECStoICRS` to express the orbital velocity origincally expressed in the
+:cpp:class:`zdm::celestial::ECStoICRS` to express the orbital velocity origincally expressed in the
 Ecliptic Coordinate System (ECS) of J2000 in the ICRS.
 
 The primary terrestrial reference system is the International Terrestrial Reference System (ITRS).
@@ -143,10 +143,10 @@ transformation from CIRS to TIRS rotates the coordinates with the Earth Rotation
 Here :math:`\text{UT1}_\text{J2000}` denotes the UT1 time (in days) since the J2000 epoch.
 
 The GCRS to CIRS and CIRS to TIRS transformations are implemented by the respective classes
-:cpp:type:`zdm::celestialGCRStoCIRS` and :cpp:type:`zdm::celestial::CIRStoTIRS`. The transformation
-between TIRS and ITRS is close enough to identity that it is not implemented in this library.
-While the class :cpp:type:`zdm::celestial::TIRStoITRS` exists, it does not implement a useable
-transformation.
+:cpp:class:`zdm::celestialGCRStoCIRS` and :cpp:class:`zdm::celestial::CIRStoTIRS`. The
+transformation between TIRS and ITRS is close enough to identity that it is not implemented in this
+library. While the class :cpp:class:`zdm::celestial::TIRStoITRS` exists, it does not implement a
+useable transformation.
 
 Reference
 ---------

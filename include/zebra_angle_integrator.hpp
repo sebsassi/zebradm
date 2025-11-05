@@ -37,9 +37,7 @@ SOFTWARE.
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 /**
@@ -515,5 +513,4 @@ private:
     std::size_t m_trunc_order;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

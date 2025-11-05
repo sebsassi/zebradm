@@ -32,9 +32,7 @@ SOFTWARE.
 #include "radon_util.hpp"
 #include "zebra_radon.hpp"
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 IsotropicAngleIntegrator::IsotropicAngleIntegrator(
@@ -92,7 +90,7 @@ void IsotropicAngleIntegrator::integrate(
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
-    
+
     m_rotor.rotate(
             m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
             rotation_type);
@@ -101,6 +99,9 @@ void IsotropicAngleIntegrator::integrate(
         out[i] = m_integrator_core.integrate(
                 m_rotated_geg_zernike_exp, offset_len, shells[i]);
 }
+
+namespace
+{
 
 [[nodiscard]] constexpr std::size_t geg_zernike_grids_size(
     std::size_t num_grids, std::size_t grid_order, std::size_t trunc_order
@@ -114,6 +115,8 @@ void IsotropicAngleIntegrator::integrate(
 {
     return zest::zt::ZernikeSHSpan<std::array<double, 2>, zest::RowSkippingTriangleLayout<zest::IndexingMode::nonnegative>, zest::zt::ZernikeNorm::normed, zest::st::SHNorm::geo, zest::st::SHPhase::none>::size(order);
 }
+
+} // namespace
 
 AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
@@ -135,7 +138,7 @@ void AnisotropicAngleIntegrator::resize(
 {
     if (dist_order != m_dist_order || resp_order != m_resp_order)
         m_wigner_d_pi2.expand(std::max(dist_order + 2, resp_order));
-    
+
     if (dist_order != m_dist_order)
     {
         m_geg_zernike_exp.resize(dist_order + 2);
@@ -222,7 +225,7 @@ void AnisotropicAngleIntegrator::integrate(
                 m_rotated_geg_zernike_exp.begin());
         ZernikeSpan::SubSpan rotated_geg_zernike_exp(
                 m_rotated_geg_zernike_exp.data(), n + 1);
-        
+
         m_rotor.rotate(
                 rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
                 rotation_type);
@@ -378,7 +381,7 @@ void AnisotropicTransverseAngleIntegrator::resize(
 {
     if (dist_order != m_dist_order || resp_order != m_resp_order)
         m_wigner_d_pi2.expand(std::max(dist_order + 4, resp_order));
-    
+
     if (dist_order != m_dist_order)
     {
         m_multiplier.expand(dist_order + 4);
@@ -512,7 +515,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     util::fmadd(
         m_rotated_trans_geg_zernike_exp.flatten(),
         -2.0*offset[2], m_geg_zernike_exp_z.flatten());
-    
+
     m_rotor.rotate(
             m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
             rotation_type);
@@ -527,5 +530,4 @@ void AnisotropicTransverseAngleIntegrator::integrate(
                 response[i], offset, rotation_angle, shells[i], m_wigner_d_pi2);
 }
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

@@ -5,10 +5,7 @@
 #include "matrix.hpp"
 #include "astro.hpp"
 
-namespace zdm
-{
-
-namespace celestial
+namespace zdm::celestial
 {
 
 template <typename T, typename ValueType, typename TransformType>
@@ -17,16 +14,21 @@ concept parametric_transform_on = requires (T x, ValueType t)
         { x(t) } -> std::same_as<TransformType>;
     };
 
+namespace detail
+{
+
 template <typename T, typename ValueType>
 concept noop_transform = parametric_transform_on<T, ValueType, void>;
 
 template <typename T, typename ValueType, typename... TransformTypes>
 concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, TransformTypes> || ...);
 
+} // namespace detail
+
 template <typename T, typename RigidTransformType>
 concept parametric_rigid_transform
-    = noop_transform<T, typename RigidTransformType::value_type>
-    || parametric_transform_on_one_of<T, typename RigidTransformType::value_type,
+    = detail::noop_transform<T, typename RigidTransformType::value_type>
+    || detail::parametric_transform_on_one_of<T, typename RigidTransformType::value_type,
         RigidTransformType,
         typename RigidTransformType::rotation_matrix_type,
         typename RigidTransformType::vector_type>;
@@ -80,7 +82,7 @@ public:
         {
             auto res = rigid_transform_type::identity();
             ([&]{
-                if constexpr (!noop_transform<Types, typename rigid_transform_type::value_type>)
+                if constexpr (!detail::noop_transform<Types, typename rigid_transform_type::value_type>)
                     res = la::compose(res, transforms(parameter));
             }(), ...);
             return res;
@@ -528,6 +530,4 @@ la::Vector<double, 3> source_velocity_in_destinatioinationn_cs(T celestial_coord
     return celestial_coordinate_transform(days_since_j2000)(la::Vector<double, 3>{});
 }
 
-} // namespace celestial
-
-} // namespace zdm
+} // namespace zdm::celestial

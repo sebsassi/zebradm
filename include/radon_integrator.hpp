@@ -36,9 +36,7 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
-namespace zdm
-{
-namespace integrate
+namespace zdm::integrate
 {
 
 class RadonAngleIntegrator
@@ -660,5 +658,4 @@ private:
     Integrator2D<la::Vector<double, 2>> transverse_angle_integrator;
 };
 
-} // namespace integrate
-} // namespace zdm
+} // namespace zdm::integrate

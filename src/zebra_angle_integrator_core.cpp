@@ -26,11 +26,7 @@ SOFTWARE.
 #include "coordinate_transforms.hpp"
 #include "radon_util.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace detail
+namespace zdm::zebra::detail
 {
 
 IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
@@ -315,6 +311,4 @@ AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
     return integrals;
 }
 
-} // namespace detail
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra::detail

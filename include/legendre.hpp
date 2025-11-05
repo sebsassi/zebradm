@@ -21,17 +21,14 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
-#include <span>
 #include <algorithm>
 #include <ranges>
+#include <span>
+#include <vector>
 
 #include <zest/md_span.hpp>
 
-namespace zdm
-{
-
-namespace zebra
+namespace zdm::zebra
 {
 
 void legendre_recursion_vec(
@@ -102,5 +99,4 @@ private:
     std::size_t m_order;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

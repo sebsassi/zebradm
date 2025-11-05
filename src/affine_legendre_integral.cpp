@@ -23,14 +23,12 @@ SOFTWARE.
 
 #include <cassert>
 
-#include <zest/layout.hpp>
 #include <zest/gauss_legendre.hpp>
+#include <zest/layout.hpp>
 
 #include "radon_util.hpp"
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 struct ExtraTriangleLayout
@@ -111,6 +109,9 @@ void AffineLegendreIntegrals::integrals(
         integrals_full_dual_interval(integrals, shift, scale);
 }
 
+namespace
+{
+
 [[nodiscard]] double
 inner_product(std::span<const double> a, std::span<const double> b) noexcept
 {
@@ -146,6 +147,8 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
     return (partial_res[0] + partial_res[2]) + (partial_res[1] + partial_res[3]);
 }
 
+} // namespace
+
 // Operates in the region where `shift + scale <= 1`
 // In this region the integrals are zero for `n < l`
 void AffineLegendreIntegrals::integrals_full_interval(
@@ -170,7 +173,7 @@ void AffineLegendreIntegrals::integrals_full_interval(
         // Boundary condition: `integrals(n, l) == 0` for `l < 0`
         integrals_n[0] = a*(shift*integrals_nm1[0] + scale*integrals_nm1[1])
                 - b*integrals_nm2[0];
-        
+
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
             const double inv_twolp1 = 1.0/double(2*l + 1);
@@ -385,10 +388,10 @@ void AffineLegendreIntegrals::integrals_partial_interval(
 
     const std::size_t num_remaining
         = integrals.order() - (max_recursion + 1) - num_blocks*block_size;
-    
+
 
     if (num_remaining == 0) return;
-    
+
     // If only one row remains it is computed via numerical integration.
     if (num_remaining == 1)
     {
@@ -445,7 +448,7 @@ void AffineLegendreIntegrals::first_step(
                 + scale*inv_twolp1*(double(l + 1)*integrals_0[l + 1]
                     + double(l)*integrals_0[l - 1]);
     }
-    
+
     integrals_1[lmax - 1] = half_width*inner_product(
             affine_legendre, weighted_legendre[lmax - 1]);
     integrals_1[lmax] = half_width*inner_product(
@@ -484,7 +487,7 @@ void AffineLegendreIntegrals::forward_recursion_step(
                 + scale*an*inv_twolp1*(double(l + 1)*integrals_nm1[l + 1]
                     + double(l)*integrals_nm1[l - 1]);
     }
-    
+
     integrals_n[lmax - 1] = half_width*inner_product(
             affine_legendre, weighted_legendre[lmax - 1]);
     integrals_n[lmax] = half_width*inner_product(
@@ -513,5 +516,4 @@ void AffineLegendreIntegrals::backward_recursion_step(
     }
 }
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

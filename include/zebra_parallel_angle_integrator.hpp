@@ -22,20 +22,18 @@ SOFTWARE.
 #pragma once
 
 #include <zest/md_span.hpp>
+#include <zest/rotor.hpp>
+#include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_expansion.hpp>
 #include <zest/zernike_glq_transformer.hpp>
-#include <zest/sh_glq_transformer.hpp>
-#include <zest/rotor.hpp>
 
 #include "linalg.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace parallel
+
+
+namespace zdm::zebra::parallel
 {
 
 class IsotropicAngleIntegrator
@@ -175,6 +173,4 @@ private:
     std::size_t m_threads_per_team;
 };
 
-} // namespace parallel
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra::parallel

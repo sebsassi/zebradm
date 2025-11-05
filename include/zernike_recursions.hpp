@@ -21,16 +21,12 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
 #include <array>
+#include <vector>
 
 #include "types.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace detail
+namespace zdm::zebra::detail
 {
 
 /**
@@ -285,6 +281,4 @@ private:
     ZernikeRecursionData m_coeff_data;
 };
 
-} // namespace detail
-} // namespace zebra
-} // namesapce zdm
+} // namespace zdm::zebra::detail

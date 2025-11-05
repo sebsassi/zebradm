@@ -24,9 +24,7 @@ SOFTWARE.
 #include <algorithm>
 #include <cassert>
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 AffineLegendreRecursion::AffineLegendreRecursion(std::size_t max_order):
@@ -37,7 +35,7 @@ AffineLegendreRecursion::AffineLegendreRecursion(std::size_t max_order):
     m_d[1] = 1.0;
     for (std::size_t n = 2; n < max_order; ++n)
     {
-        const double dn = double(n);
+        const auto dn = double(n);
         const double inv_dn = 1.0/dn;
         m_a[n] = (2.0*dn - 1.0)*inv_dn;
         m_b[n] = (dn - 1.0)*inv_dn;
@@ -57,7 +55,7 @@ void AffineLegendreRecursion::expand(std::size_t max_order)
 
     for (std::size_t n = m_max_order; n < max_order; ++n)
     {
-        const double dn = double(n);
+        const auto dn = double(n);
         const double inv_dn = 1.0/dn;
         m_a[n] = (2.0*dn - 1.0)*inv_dn;
         m_b[n] = (dn - 1.0)*inv_dn;
@@ -143,7 +141,7 @@ void AffineLegendreRecursion::evaluate_scaled(
     {
         expansion(n, 0) = m_a[n]*(1.0/3.0)*scale*expansion(n - 1, 1)
                 - m_b[n]*expansion(n - 2, 0);
-        
+
         const std::size_t lmin = 1 + ((n & 1) ^ 1);
         for (std::size_t l = lmin; l <= n - 2; l += 2)
         {
@@ -156,5 +154,4 @@ void AffineLegendreRecursion::evaluate_scaled(
     }
 }
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

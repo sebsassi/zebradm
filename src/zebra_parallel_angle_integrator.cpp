@@ -25,14 +25,10 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
-#include "zebra_radon.hpp"
 #include "radon_util.hpp"
+#include "zebra_radon.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace parallel
+namespace zdm::zebra::parallel
 {
 
 IsotropicAngleIntegrator::IsotropicAngleIntegrator(
@@ -260,6 +256,4 @@ AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp_grids(
     return SuperSpan<zest::st::SphereGLQGridSpan<double>>(m_rotated_geg_zernike_grids.data() + team_id*size, {geg_order}, grid_size);
 }
 
-} // namespace parallel
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra::parallel

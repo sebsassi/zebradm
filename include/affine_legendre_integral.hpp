@@ -21,16 +21,14 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
 #include <span>
+#include <vector>
 
 #include <zest/md_span.hpp>
 
 #include "legendre.hpp"
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 struct TrapezoidLayout
@@ -178,5 +176,4 @@ private:
     std::size_t m_extra_extent;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

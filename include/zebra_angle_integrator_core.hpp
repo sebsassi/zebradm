@@ -33,11 +33,7 @@ SOFTWARE.
 #include "types.hpp"
 #include "zonal_glq_transformer.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace detail
+namespace zdm::zebra::detail
 {
 
 class IsotropicAngleIntegratorCore
@@ -115,6 +111,4 @@ private:
     std::vector<double> m_rotated_exp;
 };
 
-} // namespace detail
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra::detail

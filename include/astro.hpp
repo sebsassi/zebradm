@@ -6,32 +6,12 @@
 #include "polynomial.hpp"
 #include "time.hpp"
 
-namespace zdm
-{
-
-namespace astro
+namespace zdm::astro
 {
 
 /**
     @brief Orientation of a galactic cooordinate system relative to a reference
     coordinate system.
-
-    A galactic coordinate system at a given position in the galactic disk is
-    determined by the north galactic pole (NGP), defined as the direction
-    perpendicular to the plane of the galaxy, and the galactic center (GC). The
-    orientation of the NGP is defined such that it has a component parallel to
-    the z-axis of the reference coordinate.
-
-    The z-axis of the galactic coordinate system is in the direction of the
-    NGP, and the x-axis is in the direction of the projection of the GC onto
-    the galactic plane. Namely, for positions close to the galactic plane, the
-    z-axis is approximately the directon of the galactic center.
-
-    The galactic coordinate system has no motion with respect to the galactic
-    center. Namely, for a point revolving around the galactic center, whose
-    reference coordinate system is attached to the point, its galactic
-    coordinate system shares the origin of the reference coordinate system at
-    every instance, but the coordinate systems have a relative velocity.
 
     The orientation of a galactic coordinate system relative to a reference
     inertial coordinate system (typically ICRS) is completely specified by
@@ -560,6 +540,4 @@ constexpr std::array<Polynomial<double, 3>, 2> cip = {
     }
 };
 
-} // namespace astro
-
-} // namespace zdm
+} // namespace zdm::astro

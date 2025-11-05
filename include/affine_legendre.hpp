@@ -27,10 +27,7 @@ SOFTWARE.
 
 #include "legendre.hpp"
 
-namespace zdm
-{
-
-namespace zebra
+namespace zdm::zebra
 {
 
 /*
@@ -81,5 +78,4 @@ private:
     std::size_t m_max_order;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

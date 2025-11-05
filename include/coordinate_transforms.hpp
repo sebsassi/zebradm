@@ -26,10 +26,7 @@ SOFTWARE.
 
 #include "linalg.hpp"
 
-namespace zdm
-{
-
-namespace coordinates
+namespace zdm::coordinates
 {
 
 /**
@@ -138,5 +135,4 @@ spherical_to_cartesian_phys(double azimuth, double colatitude) noexcept
     return {vert_rot[0]*std::cos(azimuth), vert_rot[0]*std::sin(azimuth), vert_rot[1]};
 }
 
-} // namespace coordinates
-} // namespace zdm
+} // namespace zdm::coordinates

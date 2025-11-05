@@ -3,6 +3,9 @@
 #include <span>
 #include <vector>
 
+namespace zdm::util
+{
+
 template <std::floating_point T>
 constexpr void
 linspace(std::span<T>& interval, T start, T stop) noexcept
@@ -29,3 +32,5 @@ linspace(T start, T stop, std::size_t count)
     linspace(std::span<T>(res), start, stop);
     return res;
 }
+
+} // namespace zdm::util

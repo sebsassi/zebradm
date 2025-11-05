@@ -21,20 +21,18 @@ SOFTWARE.
 */
 #pragma once
 
-#include <vector>
 #include <span>
+#include <vector>
 
-#include <zest/md_span.hpp>
 #include <zest/gauss_legendre.hpp>
-#include <zest/sh_conventions.hpp>
+#include <zest/md_span.hpp>
 #include <zest/real_sh_expansion.hpp>
+#include <zest/sh_conventions.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
 #include "legendre.hpp"
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 /**
@@ -218,5 +216,4 @@ private:
     std::size_t m_order;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra

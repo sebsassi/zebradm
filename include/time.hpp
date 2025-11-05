@@ -5,15 +5,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <expected>
+#include <format>
 #include <string_view>
 #include <vector>
 
 #include "utility.hpp"
 
-namespace zdm
-{
-
-namespace time
+namespace zdm::time
 {
 
 /**
@@ -229,8 +227,8 @@ days_until(std::int32_t year) noexcept
 struct TimeZoneOffset
 {
     std::int32_t sign = 1;
-    std::uint32_t hour;
-    std::uint32_t min;
+    std::uint32_t hour = 0;
+    std::uint32_t min = 0;
 
     [[nodiscard]] constexpr bool operator==(const TimeZoneOffset&) const noexcept = default;
     
@@ -254,13 +252,13 @@ struct TimeZoneOffset
 */
 struct Time
 {
-    std::int32_t year;  /// Year number.
-    std::uint16_t mon;  /// Month number (1-12).
-    std::uint16_t mday; /// Day of month number (1-31).
-    std::uint16_t hour; /// Hour number (0-23).
-    std::uint16_t min;  /// Minute number (0-59).
-    std::uint16_t sec;  /// Second number (0-59).
-    std::uint16_t msec; /// Millisecond number (0-999).
+    std::int32_t year = 1;  /// Year number.
+    std::uint16_t mon = 1;  /// Month number (1-12).
+    std::uint16_t mday = 1; /// Day of month number (1-31).
+    std::uint16_t hour = 0; /// Hour number (0-23).
+    std::uint16_t min = 0;  /// Minute number (0-59).
+    std::uint16_t sec = 0;  /// Second number (0-59).
+    std::uint16_t msec = 0; /// Millisecond number (0-999).
 
     [[nodiscard]] constexpr auto operator<=>(const Time&) const noexcept = default;
 
@@ -799,7 +797,7 @@ template <Time epoch>
 constexpr void
 ut1_interval(std::span<double> interval, const Time& start_time, const Time& end_time)
 {
-    linspace(interval, ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
+    util::linspace(interval, ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
 }
 
 /**
@@ -818,7 +816,7 @@ constexpr std::vector<double>
 ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
 {
     std::vector<double> res(count);
-    linspace(std::span<double>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
+    util::linspace(std::span<double>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
     return res;
 }
 
@@ -918,6 +916,22 @@ constexpr Time j2000_utc = {
     .msec = 816
 };
 
-} // namespace time
+} // namespace zdm::time
 
-} // namespace zdm
+template <>
+struct std::formatter<zdm::time::Time, char>
+{
+    zdm::time::detail::DateParseStatusFlag flags{};
+
+    template <typename ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FmtContext>
+    FmtContext::iterator format(zdm::time::Time time, FmtContext& ctx) const
+    {
+        std::format_to(ctx.out(), "{}-{:>2}-{:>2}T{:>2}:{:>2}:{:>2}.{:>3}", time.year, time.mon, time.mday, time.hour, time.min, time.sec, time.msec);
+    }
+};

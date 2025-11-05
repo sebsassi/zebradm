@@ -34,11 +34,7 @@ SOFTWARE.
     #define RESTRICT __restrict
 #endif
 
-namespace zdm
-{
-namespace zebra
-{
-namespace util
+namespace zdm::util
 {
 
 /**
@@ -156,6 +152,4 @@ constexpr std::array<double, 3> euler_angles_to_align_z(
         return {0.0, -colatitude, std::numbers::pi - azimuth};
 }
 
-} // namespace util
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::util

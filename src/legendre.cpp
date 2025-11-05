@@ -21,12 +21,10 @@ SOFTWARE.
 */
 #include "legendre.hpp"
 
-#include <stdexcept>
 #include <cmath>
+#include <stdexcept>
 
-namespace zdm
-{
-namespace zebra
+namespace zdm::zebra
 {
 
 void legendre_recursion_vec(
@@ -189,7 +187,7 @@ LegendreIntegralRecursion::LegendreIntegralRecursion(std::size_t order):
 {
     for (std::size_t l = 2; l < order; ++l)
     {
-        const double dl = double(l);
+        const auto dl = double(l);
         m_a[l] = (2.0*dl - 1.0)/(dl + 1.0);
         m_b[l] = (dl - 2.0)/(dl + 1.0);
     }
@@ -203,7 +201,7 @@ void LegendreIntegralRecursion::expand(std::size_t order)
 
     for (std::size_t l = m_order; l < order; ++l)
     {
-        const double dl = double(l);
+        const auto dl = double(l);
         m_a[l] = (2.0*dl - 1.0)/(dl + 1.0);
         m_b[l] = (dl - 2.0)/(dl + 1.0);
     }
@@ -228,5 +226,4 @@ void LegendreIntegralRecursion::legendre_integral(
         pl[l] = m_a[l]*x*pl[l - 1] - m_b[l]*pl[l - 2];
 }
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra
