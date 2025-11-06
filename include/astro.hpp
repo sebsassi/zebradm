@@ -16,10 +16,11 @@ namespace zdm::astro
     The orientation of a galactic coordinate system relative to a reference
     inertial coordinate system (typically ICRS) is completely specified by
     three angles:
-    - declination of the north galactic pole,
-    - right asecnsion of the north galactic pole,
-    - longitude of the z-axis (north celestial pole) of the reference
-      coordinate system in the galactic coordinate system.
+        - declination of the north galactic pole (\f$\delta_\text{NGP}\f$),
+        - right asecnsion of the north galactic pole (\f$\alpha_\text{NGP}\f$),
+        - longitude of the z-axis (north celestial pole) of the reference
+          coordinate system in the galactic coordinate system
+          (\f$\ell_\text{NCP}\f$).
 */
 struct GalacticOrientation
 {
@@ -36,6 +37,14 @@ struct GalacticOrientation
 
         @return Rotation matrix from the galactic to the reference coordinate
         system.
+
+        The rotation matrix from the galactic coordinate system to the
+        reference coordinate system in terms of the orientation parameters
+        \f$\delta_\text{NGP}\f$, \f$\alpha_\text{NGP}\f$, and
+        \f$\ell_\text{NCP}\f$ is given by
+        \f[
+            R_Z(\pi - \alpha_\text{NGP})R_Y(\pi/2 - \delta_\text{NGP})R_Z(\ell_\text{NCP}).
+        \f]
 
         @note This transformation rotates a vector from the galactic coordinate
         system to an intermediate coordinate system whose coordinate axes are
@@ -59,14 +68,14 @@ struct GalacticOrientation
 
     The orientation of a Kepler orbit is completely determined by three angle
     parameters:
-    - inclination of the orbit, defined as the angle of the orbital plane with
-      the xy-plane of the reference coordinate system,
-    - longitude of the ascending node, defined as the angle from the reference
-      x-axis of the point where the orbiting body crosses the reference plane
-      in the positive reference z-direction,
-    - longitude of the periapsis, defined as the angle of the projection of
-      the orbit's periapsis onto the reference xy-plane from the reference
-      x-axis.
+        - inclination of the orbit (\f$i\f$), defined as the angle of the
+          orbital plane with the xy-plane of the reference coordinate system,
+        - longitude of the ascending node (\f$\Omega\f$), defined as the angle
+          from the reference x-axis of the point where the orbiting body
+          crosses the reference plane in the positive reference z-direction,
+        - longitude of the periapsis (\f$\varpi\f$), defined as the angle of
+          the projection of the orbit's periapsis onto the reference xy-plane
+          from the reference x-axis.
 */
 struct OrbitOrientation
 {
@@ -88,8 +97,12 @@ struct OrbitOrientation
         parallel to the z-axis of the reference coordinate system, and whose
         x-axis is in the direction of the periapsis of the orbit.
 
-        The orbital plane coordinate system shares the origin and is stationary
-        relative to the reference coordinate system.
+        The rotation matrix from the orbital plane to the reference coordinate
+        system in terms of the orientation parameters \f$i\f$, \f$\Omega\f$,
+        and \f$\varpi\f$ is given by
+        \f[
+            R_Z(-\Omega)R_X(-i)R_Z(-\varpi).
+        \f]
     */
     [[nodiscard]] la::RotationMatrix<double, 3>
     orbital_plane_to_reference_cs() const noexcept
@@ -108,10 +121,10 @@ struct OrbitOrientation
 
     The position and velocity of a body along a Kepler orbit are completely
     determined by four parameters:
-    - eccentricity of the orbit,
-    - semi-major axis of the orbit,
-    - mean longitude of the body along the orbit,
-    - mean motion of the body
+        - eccentricity of the orbit (\f$e\f$),
+        - semi-major axis of the orbit (\f$a\f$),
+        - mean longitude of the body along the orbit (\f$L\f$),
+        - mean motion of the body (\f$n\f$)
 */
 struct OrbitPosition
 {
@@ -129,10 +142,10 @@ struct OrbitPosition
     Given any instance of time, the position of an orbiting body in space is
     completely determined by seven parameters. These parameters can be divided
     into two groups:
-    - orbital orientation parameters, specifying the orientation of a Kepler
-      orbit in space,
-    - orbital position parameters, specifying the shape of the Kepler orbit and
-      the position of the body along it.
+        - orbital orientation parameters, specifying the orientation of a Kepler
+          orbit in space,
+        - orbital position parameters, specifying the shape of the Kepler orbit
+          and the position of the body along it.
 */
 struct OrbitalState
 {
@@ -144,11 +157,10 @@ struct OrbitalState
     /**
         @brief Mean anomaly of the body in radians.
 
-        @return Mean anomaly of the body.
-
-        The mean anomaly of an elliptical orbit is an angle parameter which
-        evolves at a constant rate. It can be computed as the difference of the
-        mean longitude and the longitude of the periapsis of the orbit.
+        The mean anomaly \f$M\f$ of an elliptical orbit is an angle parameter
+        which evolves at a constant rate. It can be computed as the difference
+        of the mean longitude \f$L\f$ and the longitude of the periapsis
+        \f$\varpi\f$ of the orbit: \f$M = L - \varpi\f$.
     */
     [[nodiscard]] constexpr double
     mean_anomaly() const noexcept
@@ -159,29 +171,54 @@ struct OrbitalState
     /**
         @brief Eccentric anomaly of the body in radians.
 
-        @return Eccentric anomaly of the body.
-
-        The eccentric anomaly `E` of the body is determined from the mean
-        anomaly `M` via Kepler's equation `M = E - e*sin(E)`, where `e` is the
-        eccentricity of the orbit.
+        The eccentric anomaly \f$E\f$ of the body is determined from the mean
+        anomaly \f$M\f$ via Kepler's equation
+        \f[
+            M = E - e*sin(E),
+        \f]
+        where \f$e\f$ is the eccentricity of the orbit.
     */
     [[nodiscard]] double
     eccentric_anomaly() const noexcept
     {
         const double ma = mean_anomaly();
-        double ea = (position.eccentricity > 0.8) ? std::numbers::pi : ma;
-        for (std::size_t i = 0; i < 7; ++i)
-            ea -= (ea - position.eccentricity*std::sin(ea) - ma)/(1.0 - position.eccentricity*std::cos(ea));
-        return ea;
+
+        // Mean anomaly to [-pi,pi]
+        const double ma_mod = std::remainder(ma, 2.0*std::numbers::pi);
+
+        // Use absolute value to solve Kepler's equation.
+        const double ma_abs = std::fabs(ma_mod);
+
+        // Initial guess:
+        // Danby, J.M.A. The solution of Kepler's equation, III. Celestial
+        // Mechanics 40, 303–312 (1987).
+        double ea = ma_abs + 0.85*position.eccentricity;
+
+        // 5 Newton iterations should be enough for any reasonable case.
+        for (std::size_t i = 0; i < 5; ++i)
+        {
+            const double cos_ea = std::cos(ea);
+            const double sin_ea = std::sin(ea);
+            ea -= (ea - position.eccentricity*sin_ea - ma_abs)/(1.0 - position.eccentricity*cos_ea);
+        }
+
+        // return eccentric anomaly in [0,2pi]
+        return (ma_mod >= 0.0) ? ea : 2.0*std::numbers::pi - ea;
     }
 
     /**
         @brief True anomaly of the body in radians.
 
-        @brief True anomaly of the body.
-
-        The true anomaly is the angle between the position of the body along
-        the orbit and the periapsis as measured from the focus of the orbit.
+        The true anomaly \f$\nu\f$ is the angle between the position of the
+        body along the orbit and the periapsis as measured from the focus of
+        the orbit. It is related to the eccentric anomaly \f$E\f$ by
+        \f[
+            \cos\nu = \frac{\cos E - e}{1 - e\cos E},
+        \f]
+        \f[
+            \sin\nu = \frac{\sqrt{1 - e^2}\sin E}{1  e\cos E},
+        \f]
+        where \f$e\f$ is the eccentricity of the orbit.
     */
     [[nodiscard]] double
     true_anomaly() const noexcept
@@ -196,7 +233,20 @@ struct OrbitalState
     /**
         @brief Velocity of the body in the orbital plane in km/s.
 
-        @brief Velocity of the body.
+        The velocity of a body at a point in its orbit in the orbital plane
+        can be obtained from the true anomaly \f$\nu\f$
+        \f[
+            \vec{v} = \left(
+                -na\frac{\sin\nu}{\sqrt{1 - e^2}},
+                 na\frac{e + \cos\nu}{\sqrt{1 - e^2}}
+            \right),
+        \f]
+        where \f$e\f$ is the eccentricity of the orbit, \f$n\f$ is the mean
+        motion, and \f$a\f$ is the semi-major axis.
+
+        @note The above equation defines a two-dimensional vector, but this
+        function returns a three-dimensional vector whose z-component is set to
+        zero.
     */
     [[nodiscard]] la::Vector<double, 3>
     orbital_plane_velocity() const noexcept
@@ -212,7 +262,9 @@ struct OrbitalState
     /**
         @brief Velocity of the body in the reference coordinate system in km/s.
 
-        @brief Velocity of the body.
+        The velocity of the body in the reference coordinate system is obtained
+        from the orbital plane velocity by rotating it with with the Euler
+        angles given by the orientation parameters of the orbit.
     */
     [[nodiscard]] la::Vector<double, 3>
     reference_cs_velocity() const noexcept
@@ -239,17 +291,15 @@ private:
     @tparam M Order of polynomial expansion for longitude of the ascending node.
     @tparam P Order of polynomial expansion for longitude of periapsis.
 
+    This structure determines the evolution of the orbital orientation parameter
+    from a polynomial expansion for each of the parameters.
+
     The time evolution of classical orbital elements is typically given by
     short and long period variations, which lead to an evolution described
     on short time scales by a compbination of a polynomial expansion and
     trigonomertic terms describing shorter period variations. The trigonometric
     terms for Earth's orbit are on the order of arcseconds, and therefore
     the evolution here is described by only the mean, polynomial evolution.
-
-    References:
-    -   J. L. Simon, et al., “Numerical expressions for precession formulae and
-        mean elements for the Moon and the planets.”, Astronomy and
-        Astrophysics, vol. 282, EDP, p. 663, 1994.
 */
 template<std::size_t N, std::size_t M, std::size_t P>
 struct DynamicalOrbitOrientation
@@ -289,17 +339,17 @@ DynamicalOrbitOrientation(Polynomial<double, N>, Polynomial<double, M>, Polynomi
     @tparam N Order of polynomial expansion for eccentricity.
     @tparam M Order of polynomial expansion for mean longitude.
 
+    This structure determines the evolution of the shape (eccentricity and
+    semi-major axis) and motion (mean longitude and mean motion) parameters of
+    a Kepler orbit. The eccentricity and mean longitude are given by
+    polynomials.
+
     The time evolution of classical orbital elements is typically given by
     short and long period variations, which lead to an evolution described
     on short time scales by a compbination of a polynomial expansion and
     trigonomertic terms describing shorter period variations. The trigonometric
     terms for Earth's orbit are on the order of arcseconds, and therefore
     the evolution here is described by only the mean, polynomial evolution.
-
-    References:
-    -   J. L. Simon, et al., “Numerical expressions for precession formulae and
-        mean elements for the Moon and the planets.”, Astronomy and
-        Astrophysics, vol. 282, EDP, p. 663, 1994.
 */
 template <std::size_t N, std::size_t M>
 struct KeplerOrbit
@@ -311,6 +361,14 @@ struct KeplerOrbit
 
     [[nodiscard]] constexpr bool operator==(const KeplerOrbit& other) const noexcept = default;
 
+    /**
+        @brief State of the body on the the orbit at a point in time.
+
+        @param days_since_epoch Days since the epoch for which the evolution
+        is defined.
+
+        @return State of the body at the specified time.
+    */
     [[nodiscard]] constexpr OrbitPosition
     operator()(double days_since_epoch) const noexcept
     {
@@ -374,18 +432,19 @@ template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_
 Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::Time) -> Orbit<N, M, P, K, L>;
 
 /**
-    @brief Ellipsoid describing a planteray body.
+    @brief An oblate spheroid.
 
-    Planets are approximately described by ellipsoids which are symmetric about
-    their axis of revolution. The ellipsoid here is parmetrized by the
-    equatorial radius, and the inverse flattening of the ellipse.
+    An oblate spheroid is the surface of revolution formed by rotating an
+    ellipse about its semi-minor axis. An oblate spheroid is fully specified
+    by its flattening and equatorial radius, the latter corresponding to the
+    semi-major axis of the ellipse that generates the spheriod.
 */
-struct Ellipsoid
+struct OblateSpheroid
 {
-    double inverse_flattening;
+    double flattening;
     double equatorial_radius;
 
-    [[nodiscard]] constexpr bool operator==(const Ellipsoid& other) const noexcept = default;
+    [[nodiscard]] constexpr bool operator==(const OblateSpheroid& other) const noexcept = default;
 };
 
 /**
@@ -396,28 +455,49 @@ struct Ellipsoid
     @tparam P Order of polynomial expansion for longitude of periapsis.
     @tparam K Order of polynomial expansion for eccentricity.
     @tparam L Order of polynomial expansion for mean longitude.
+
+    This structure describes a planet as a rotating oblate spheroid on a
+    perturbed elliptical orbit.
 */
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
 struct Planet
 {
     Orbit<N, M, P, K, L> orbit;
-    Ellipsoid ellipsoid;
+    OblateSpheroid spheroid;
     Polynomial<double, 1> rotation_angle;
 
     [[nodiscard]] constexpr bool operator==(const Planet& other) const noexcept = default;
 
+    /**
+        @brief Speed of a point on the planet's surface relative to its center.
+
+        @param latitude Geodetic latitude of the point.
+
+        @return Speed of the point.
+
+        The surface speed is given by \f$v = \omega\rho\f$, where \f$\omega\f$
+        is the angular speed and \f$\rho\f$ is the the distance of the point
+        from the axis of rotation. For a given latitude \f$\phi\f$, the
+        distance \f$\rho = N\cos\phi\f$, where \f$N\f$ iis the prime vertical
+        radius of curvature
+        \f[
+            N = \frac{a}{\sqrt{1 - e^2\sin^2\phi}},
+        \f]
+        where \f$a\f$ is the equatorial radius (semi-major axis) of the ellipse
+        whose rotation about the axis of revolution generates the spheroid.
+    */
     [[nodiscard]] double surface_speed(double latitude) const noexcept
     {
-        const double ecc_sq = 2.0*(ellipsoid.inverse_flattening - 1.0)/(ellipsoid.inverse_flattening*ellipsoid.inverse_flattening);
+        const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
-        const double pvroc = ellipsoid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
+        const double pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
         return ((1.0/86400.0)*rotation_angle.derivative()(0.0))*pvroc;
 
     }
 };
 
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
-Planet(Orbit<N, M, P, K, L>, Ellipsoid, Polynomial<double, 1>) -> Planet<N, M, P, K, L>;
+Planet(Orbit<N, M, P, K, L>, OblateSpheroid, Polynomial<double, 1>) -> Planet<N, M, P, K, L>;
 
 /**
     @brief Orientation parameters of the galactic coordinate system according
@@ -463,9 +543,7 @@ constexpr la::Vector peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
 
     The polynomials for the orbital parameters are truncated after the fourth
     term, because the added precision from further terms is unnecessary for
-    the purposes of this library, and truncating to four terms leads to good
-    memory alignment: one polynomials fits in an AVX2 register, two fit on a
-    cache line.
+    the purposes of this library.
 
     Refenrences:
     -   J. L. Simon, et al., “Numerical expressions for precession formulae and
@@ -504,8 +582,8 @@ constexpr Planet earth = {
         },
         .epoch = time::j2000_utc
     },
-    .ellipsoid = Ellipsoid{
-        .inverse_flattening = 298.25642,
+    .spheroid = OblateSpheroid{
+        .flattening = 3.352819697896193e-03,
         .equatorial_radius = 6.3781366e+03,
     },
     .rotation_angle = Polynomial{4.894961212823756, 0.01720217957524373}

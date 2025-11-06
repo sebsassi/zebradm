@@ -4,7 +4,6 @@
 
 #include <cassert>
 #include <numbers>
-#include <print>
 
 bool is_close(double a, double b, double error)
 {
@@ -26,7 +25,7 @@ bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double,
     return is_close(std::array<double, N>(a), std::array<double, N>(b), error);
 }
 
-template <zdm::la::square_matrix_like T>
+template <zdm::la::static_square_matrix_like T>
 bool is_nearly_orthogonal(T matrix, double error)
 {
     using array_type = std::array<typename T::value_type, T::shape[0]*T::shape[1]>;

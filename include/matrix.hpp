@@ -10,24 +10,36 @@
 namespace zdm::la
 {
 
+/**
+    @brief Enum for specifying matrix layout.
+*/
 enum class MatrixLayout
 {
     row_major,
     column_major
 };
 
+/**
+    @brief Enum specifying a matrix transformation convention.
+*/
 enum class Action
 {
     active,
     passive
 };
 
+/**
+    @brief Enum specifying a transformation composition convention.
+*/
 enum class Chaining
 {
     intrinsic,
     extrinsic
 };
 
+/**
+    @brief Enum specifying an Euler angle convention.
+*/
 enum class EulerConvention
 {
     xzx,
@@ -38,6 +50,9 @@ enum class EulerConvention
     zxz
 };
 
+/**
+    @brief Enum specifying a Tait-Bryan angle convention.
+*/
 enum class TaitBryanConvention
 {
     xyz,
@@ -48,6 +63,15 @@ enum class TaitBryanConvention
     zyx
 };
 
+/**
+    @brief A general matrix type.
+
+    @tparam T Type of matrix elements.
+    @tparam N Number of matrix rows.
+    @tparam M Number of matrix columns.
+    @tparam action_param Matrix action convention.
+    @tparam layout_param Matrix layout convention.
+*/
 template <
     arithmetic T, std::size_t N, std::size_t M,
     Action action_param = Action::passive,
@@ -71,6 +95,11 @@ struct Matrix
 
     std::array<T, N*M> array;
 
+    /**
+        @brief Create an identity matrix.
+
+        @note This function is only defined for square matrices.
+    */
     [[nodiscard]] static constexpr Matrix
     identity() noexcept requires (N == M)
     {
@@ -80,6 +109,11 @@ struct Matrix
         return res;
     }
 
+    /**
+        @brief Get the underlying array that stores the elements of the matrix.
+
+        @return Array with \f$NM\f$ elements.
+    */
     [[nodiscard]] explicit constexpr 
     operator std::array<T, N*M>() const noexcept { return array; }
 
@@ -103,15 +137,69 @@ struct Matrix
             return array[N*j + i];
     }
 
+    /**
+        @brief Matrix-matrix multiplication.
+    */
     [[nodiscard]] constexpr Matrix
     operator*(const Matrix& other) const noexcept requires (N == M) { return matmul(*this, other); }
 
-    template <vector_like V>
+    /**
+        @brief Matrix-vector multiplication.
+    */
+    template <static_vector_like V>
     [[nodiscard]] constexpr Vector<T, N>
     operator*(const V& vector) const noexcept { return matmul(*this, vector); }
 };
 
-template <matrix_like T, matrix_like U>
+/**
+    @brief Multiply a vector by a non-square matrix.
+
+    @tparam T Matrix type.
+    @tparam U Vector type.
+
+    @param mat Matrix.
+    @param vec Vector.
+
+    @return Product vector.
+
+    This function returns the product \f$\vec{b} = M\vec{a}\f$.
+
+    @note Given a non-square matrix and an arbitrary vector type, there is no
+    natural corresponding return vector type. Therefore this returns a `Vector`.
+*/
+template <static_matrix_like T, static_vector_like U>
+    requires std::same_as<typename T::value_type, typename U::value_type>
+        && (T::shape[0] != T::shape[1]) && (T::shape[1] == std::tuple_size_v<U>)
+[[nodiscard]] constexpr Vector<typename U::value_type, T::shape[0]>
+matmul(const T& mat, const U& vec) noexcept
+{
+    Vector<typename U::value_type, T::shape[0]> res{};
+    for (std::size_t i = 0; i < T::shape[0]; ++i)
+    {
+        for (std::size_t j = 0; j < T::shape[1]; ++j)
+            res[i] += mat[i, j]*vec[j];
+    }
+
+    return res;
+}
+
+/**
+    @brief Multiply two non-square matrices.
+
+    @tparam T Matrix type.
+    @tparam U Matrix type.
+
+    @param a
+    @param b
+
+    @return Matrix product.
+
+    This function returns the product \f$M = M_1M_2\f$.
+
+    @note Given two non-square matrix types, there is no natural corresponding
+    return matrix type. Therefore this returns a `Matrix`.
+*/
+template <static_matrix_like T, static_matrix_like U>
     requires std::same_as<typename T::value_type, typename U::value_type>
         && (T::shape[1] == U::shape[0])
 [[nodiscard]] constexpr Matrix<typename T::value_type, T::shape[0], U::shape[1], T::action, T::layout>
@@ -130,6 +218,17 @@ matmul(const T& a, const U& b) noexcept
     return res;
 }
 
+/**
+    @brief A type representing a rotation matirx.
+
+    @tparam T Type of matrix elements.
+    @tparam N Dimension of matrix.
+    @tparam action_param Matrix action convention.
+    @tparam layout_param Matrix layout convention.
+
+    A matrix \f$M\f$ is a rotation matrix if it is orthogonal, i.e.,
+    \f$M^\mathsf{T}M = MM^\mathsf{T} = I\f$, and \f$\det M = 1\f$.
+*/
 template <
     std::floating_point T, std::size_t N,
     Action action_param = Action::passive,
@@ -141,6 +240,11 @@ public:
     using value_type = T;
     using index_type = std::size_t;
     using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
     using transpose_type = RotationMatrix;
 
     static constexpr Action action = action_param;
@@ -150,6 +254,9 @@ public:
     constexpr explicit RotationMatrix() = default;
     constexpr explicit RotationMatrix(std::array<T, N*N> array): m_matrix{array} {}
 
+    /**
+        @brief Create an identity matrix.
+    */
     [[nodiscard]] static constexpr RotationMatrix
     identity() noexcept
     {
@@ -159,6 +266,11 @@ public:
         return res;
     }
 
+    /**
+        @brief Create a \f$2\times2\f$ rotation matrix from a rotaton angle.
+
+        @param angle Rotation angle.
+    */
     [[nodiscard]] static constexpr RotationMatrix
     from_angle(T angle) noexcept requires (N == 2)
     {
@@ -178,6 +290,14 @@ public:
             });
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix from a rotaton angle
+        around a coordinate axis.
+
+        @tparam axis Coordinate axis.
+
+        @param angle Rotation angle.
+    */
     template <Axis axis>
     [[nodiscard]] static constexpr RotationMatrix
     coordinate_axis(T angle) noexcept requires (N == 3)
@@ -190,6 +310,13 @@ public:
             return axis_z(angle);
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix from a rotaton axis and
+        a rotation angle around that axis.
+
+        @param axis Rotation axis.
+        @param angle Rotation angle.
+    */
     [[nodiscard]] static constexpr RotationMatrix
     axis(std::array<T, 3> axis, T angle) noexcept requires (N == 3)
     {
@@ -221,7 +348,22 @@ public:
             });
     }
 
-    // Genuine product of axis rotation matrices.
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix corresponding to a
+        product of two coordinate axis rotation matrices.
+
+        @tparam axis_alpha Coordinate axis for the first angle.
+        @tparam axis_beta Coordinate axis for the second angle.
+
+        @param alpha First rotation angle.
+        @param beta Second rotation angle.
+
+        This function creates the rotation matrix corresponding to the product
+        \f[
+            R_i(\alpha)R_j(\beta),
+        \f]
+        where \f$i,j = X,Y,Z\f$ denotes coordinate axis.
+    */
     template <Axis axis_alpha, Axis axis_beta>
     [[nodiscard]] static constexpr RotationMatrix
     product_axes(T alpha, T beta) noexcept requires (N == 3)
@@ -240,6 +382,26 @@ public:
             return product_axes_yz<Order::reverse>(alpha, beta);
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix corresponding to a
+        composition of two coordinate axis rotations.
+
+        @tparam axis_alpha Coordinate axis for the first angle.
+        @tparam axis_beta Coordinate axis for the second angle.
+
+        @param alpha First rotation angle.
+        @param beta Second rotation angle.
+
+        This function creates the rotation matrix corresponding to the
+        composition of two rotations
+        \f[
+            R_i(\alpha)\circ R_j(\beta),
+        \f]
+        where \f$i,j = X,Y,Z\f$ denotes coordinate axis.
+
+        The order in which the rotation matrices get multiplied depends on the
+        chosen conventions (active vs. passive, intrinsic vs. extrinsic).
+    */
     template <Axis axis_alpha, Axis axis_beta, Chaining chaining>
     [[nodiscard]] static constexpr RotationMatrix
     composite_axes(T alpha, T beta) noexcept requires (N == 3)
@@ -272,7 +434,24 @@ public:
             return product_axes_yz<reverse_order>((commute) ? beta : alpha, (commute) ? alpha : beta);
     }
 
-    // Genuine product of axis rotation matrices.
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix corresponding to a
+        product of three coordinate axis rotation matrices.
+
+        @tparam axis_alpha Coordinate axis for the first angle.
+        @tparam axis_beta Coordinate axis for the second angle.
+        @tparam axis_gamma Coordinate axis for the third angle.
+
+        @param alpha First rotation angle.
+        @param beta Second rotation angle.
+        @param gamma Third rotation angle.
+
+        This function creates the rotation matrix corresponding to the product
+        \f[
+            R_i(\alpha)R_j(\beta)R_k(\gamma),
+        \f]
+        where \f$i,j,k = X,Y,Z\f$ denotes a coordinate axis.
+    */
     template <Axis axis_alpha, Axis axis_beta, Axis axis_gamma>
     [[nodiscard]] static constexpr RotationMatrix
     product_axes(T alpha, T beta, T gamma) noexcept requires (N == 3)
@@ -467,7 +646,7 @@ public:
     [[nodiscard]] constexpr Vector<T, N>
     operator*(const Vector<T, N>& vector) const noexcept { return matmul(*this, vector); }
 
-    template <vector_like V>
+    template <static_vector_like V>
     [[nodiscard]] constexpr V
     operator*(const V& vector) const noexcept { return matmul(*this, vector); }
 
@@ -1146,7 +1325,7 @@ public:
         return matmul(m_rotation, vector) + m_translation;
     }
 
-    template <matrix_like M>
+    template <static_matrix_like M>
     [[nodiscard]] constexpr auto operator()(const M& matrix) const noexcept
     {
         return matmul(m_rotation, matmul(matrix, transpose(m_rotation)));

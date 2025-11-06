@@ -156,10 +156,10 @@ Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 namespace std
 {
 
-template <arithmetic T, std::size_t N>
+template <zdm::arithmetic T, std::size_t N>
 struct tuple_size<zdm::la::Vector<T, N>>: std::integral_constant<std::size_t, N> {};
 
-template <std::size_t I, arithmetic T, std::size_t N>
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
 struct tuple_element<I, zdm::la::Vector<T, N>>
 {
     using type = T;
