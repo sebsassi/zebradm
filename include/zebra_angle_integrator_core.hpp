@@ -59,7 +59,7 @@ public:
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
         double shell, double offset_len, std::size_t geg_order);
-    
+
     AffineLegendreIntegrals m_aff_leg_integrals;
     std::vector<double> m_aff_leg_ylm_integrals;
     std::vector<double> m_ylm_integral_norms;
@@ -96,7 +96,7 @@ public:
 private:
     TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
         double shell, double offset_len, std::size_t geg_order, std::size_t resp_order);
-    
+
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
     zest::st::RealSHExpansionGeo m_rotated_response_exp;

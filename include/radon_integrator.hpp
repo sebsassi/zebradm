@@ -281,7 +281,7 @@ public:
     {
         const double offset_len = la::length(offset);
         if (shell > 1.0 + offset_len) return 0.0;
-        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z(offset).inverse();
         const double offset_len_sq = offset_len*offset_len;
         auto integrand = [&](const la::Vector<double, 3>& coords)
         {
@@ -342,7 +342,7 @@ public:
     {
         const double offset_len = la::length(offset);
         if (shell > 1.0 + offset_len) return {};
-        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto align_z_transp = la::RotationMatrix<double, 3>::align_z(offset).inverse();
         const double offset_len_sq = offset_len*offset_len;
         const double shell_sq = shell*shell;
         auto integrand = [&](const la::Vector<double, 3>& coords)
@@ -430,7 +430,7 @@ public:
         const auto dist_to_resp = la::RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z(offset).inverse();
 
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
@@ -526,7 +526,7 @@ public:
         const auto dist_to_resp = la::RotationMatrix<double, 3>::coordinate_axis<zdm::Axis::z>(rotation_angle);
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `distribution` coordinates.
-        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z_inverse(offset);
+        const auto offset_to_dist = la::RotationMatrix<double, 3>::align_z(offset).inverse();
 
         // Rotation from coordinates where the z-axis is in the direction of `offset` to `response` coordinates.
         const la::RotationMatrix<double, 3> offset_to_resp = dist_to_resp*offset_to_dist;

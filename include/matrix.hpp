@@ -483,6 +483,24 @@ public:
             return product_axes_xyz<Order::reverse>(alpha, beta, gamma);
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix from Euler angles.
+
+        @tparam convention Convention for rotation axes of the Euler angles.
+        @tparam chaining Rotation chaining conventioin (intrinsic vs.
+        extrinsic).
+
+        @param alpha First Euler angle.
+        @param beta Second Euler angle.
+        @param gamma Third Euler angle.
+
+        This function creates a rotation matrix from a set of proper/classical
+        Euler angles. All twelve conventions are supported via the template
+        parameters. The angles are defined always in the order of rotation
+        composition, that is, \f$\alpha\f$ is the angle of the first rotation,
+        \f$\beta\f$ is the angle of the second, and \f$\gamma\f$ the angle of
+        the final rotation.
+    */
     template <EulerConvention convention, Chaining chaining>
     [[nodiscard]] static constexpr RotationMatrix
     from_euler_angles(T alpha, T beta, T gamma) noexcept requires (N == 3)
@@ -504,6 +522,24 @@ public:
             return product_axes_zyz((commute) ? gamma : alpha, beta, (commute) ? alpha: gamma);
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix from Tait-Bryan angles.
+
+        @tparam convention Convention for rotation axes of the Tait-Bryan
+        angles.
+        @tparam chaining Rotation chaining conventioin (intrinsic vs.
+        extrinsic).
+
+        @param alpha First Tait-Bryan angle.
+        @param beta Second Tait-Bryan angle.
+        @param gamma Third Tait-Bryan angle.
+
+        This function creates a rotation matrix from a set of Tait-Bryan angles.
+        All twelve conventions are supported via the template parameters. The
+        angles are defined always in the order of rotation composition, that is,
+        \f$\alpha\f$ is the angle of the first rotation, \f$\beta\f$ is the
+        angle of the second, and \f$\gamma\f$ the angle of the final rotation.
+    */
     template <TaitBryanConvention convention, Chaining chaining>
     [[nodiscard]] static constexpr RotationMatrix
     from_tait_bryan_angles(T alpha, T beta, T gamma) noexcept requires (N == 3)
@@ -527,6 +563,17 @@ public:
             return product_axes_xyz<reverse_order>((commute) ? gamma : alpha, beta, (commute) ? alpha : gamma);
     }
 
+    /**
+        @brief Create a \f$3\times3\f$ rotation matrix that aligns the z-axis
+        with a given vector,
+
+        @param vector corresponding to the new z-axis.
+
+        This function creates a rotation matrix, which aligns the z-axis with
+        the given vector. That is, given a vector \f$\vec{v}\f$ this function
+        returns a rotation matrix \f$R_\vec{v}\f$such that \f$R_\vec{v}\vec{v}
+        = \hat{z}\f$.
+    */
     [[nodiscard]] static RotationMatrix
     align_z(const Vector<double, 3>& vector) noexcept requires (N == 3)
     {
@@ -543,9 +590,7 @@ public:
             const double r_xx = u_yy_norm + unit_vec[2]*u_xx_norm;
             const double r_yy = u_xx_norm + unit_vec[2]*u_yy_norm;
             const double r_xy = -(1.0 - unit_vec[2])*(u_xy*scale);
-            if constexpr (
-                    (layout == MatrixLayout::row_major && action == Action::active)
-                    || (layout == MatrixLayout::column_major && action == Action::passive))
+            if constexpr (layout == MatrixLayout::column_major)
                 return RotationMatrix({
                      r_xx,         r_xy,         unit_vec[0],
                      r_xy,         r_yy,         unit_vec[1],
@@ -559,9 +604,7 @@ public:
                 });
         }
         else [[unlikely]]
-            if constexpr (
-                    (layout == MatrixLayout::row_major && action == Action::active)
-                    || (layout == MatrixLayout::column_major && action == Action::passive))
+            if constexpr (layout == MatrixLayout::column_major)
                 return RotationMatrix({
                      unit_vec[2],  0.0,          unit_vec[0],
                      0.0,          1.0,          unit_vec[1],
@@ -572,54 +615,6 @@ public:
                      unit_vec[2],  0.0,         -unit_vec[0],
                      0.0,          1.0,         -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2],
-                });
-    }
-
-    [[nodiscard]] static RotationMatrix
-    align_z_inverse(const Vector<double, 3>& vector) noexcept requires (N == 3)
-    {
-        const std::array<double, 3> unit_vec = normalize(vector);
-        const double u_xx = unit_vec[0]*unit_vec[0];
-        const double u_yy = unit_vec[1]*unit_vec[1];
-        const double u_xy = unit_vec[0]*unit_vec[1];
-        const double r2 = u_xx + u_yy;
-        if (r2 > 0.0)
-        {
-            const double scale = 1.0/r2;
-            const double u_xx_norm = u_xx*scale;
-            const double u_yy_norm = u_yy*scale;
-            const double r_xx = u_yy_norm + unit_vec[2]*u_xx_norm;
-            const double r_yy = u_xx_norm + unit_vec[2]*u_yy_norm;
-            const double r_xy = -(1.0 - unit_vec[2])*(u_xy*scale);
-            if constexpr (
-                    (layout == MatrixLayout::row_major && action == Action::active)
-                    || (layout == MatrixLayout::column_major && action == Action::passive))
-                return RotationMatrix({
-                     r_xx,         r_xy,        -unit_vec[0],
-                     r_xy,         r_yy,        -unit_vec[1],
-                     unit_vec[0],  unit_vec[1],  unit_vec[2]
-                });
-            else
-                return RotationMatrix({
-                     r_xx,         r_xy,         unit_vec[0],
-                     r_xy,         r_yy,         unit_vec[1],
-                    -unit_vec[0], -unit_vec[1],  unit_vec[2]
-                });
-        }
-        else [[unlikely]]
-            if constexpr (
-                    (layout == MatrixLayout::row_major && action == Action::active)
-                    || (layout == MatrixLayout::column_major && action == Action::passive))
-                return RotationMatrix({
-                     unit_vec[2],  0.0,         -unit_vec[0],
-                     0.0,          1.0,         -unit_vec[1],
-                     unit_vec[0],  unit_vec[1],  unit_vec[2],
-                });
-            else
-                return RotationMatrix({
-                     unit_vec[2],  0.0,          unit_vec[0],
-                     0.0,          1.0,          unit_vec[1],
-                    -unit_vec[0], -unit_vec[1],  unit_vec[2],
                 });
     }
 
@@ -634,18 +629,27 @@ public:
     [[nodiscard]] constexpr const T&
     operator[](std::size_t i, std::size_t j) const noexcept { return m_matrix[i, j]; }
 
+    /**
+        @brief Multiply two rotation matrices.
+    */
     [[nodiscard]] constexpr RotationMatrix
     operator*(const RotationMatrix& other) const noexcept { return matmul(*this, other); }
 
+    /**
+        @brief Multiply rotation matrix by a general matrix.
+    */
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
     operator*(const RotationMatrix& r, const Matrix<T, N, N, action, layout>& m) { return matmul(r, m); }
 
+    /**
+        @brief Multiply rotation matrix by a general matrix.
+    */
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
     operator*(const Matrix<T, N, N, action, layout>& m, const RotationMatrix& r) { return matmul(m, r); }
 
-    [[nodiscard]] constexpr Vector<T, N>
-    operator*(const Vector<T, N>& vector) const noexcept { return matmul(*this, vector); }
-
+    /**
+        @brief Multiply a vector by a rotation matrix.
+    */
     template <static_vector_like V>
     [[nodiscard]] constexpr V
     operator*(const V& vector) const noexcept { return matmul(*this, vector); }
