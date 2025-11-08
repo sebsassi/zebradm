@@ -58,7 +58,10 @@ concept parametric_rigid_transform
     if we have a chain of transformations `T1 -> T2 -> ... -> TN`, then the
     transformations are given in the order `T1, T2, ..., TN`.
 */
-template <std::floating_point T, std::size_t N, parametric_rigid_transform<la::RigidTransform<T, N>>... Types>
+template <
+    la::Chaining chaining,
+    std::floating_point T, std::size_t N,
+    parametric_rigid_transform<la::RigidTransform<T, N>>... Types>
 class Composite
 {
 public:
@@ -83,7 +86,7 @@ public:
             auto res = rigid_transform_type::identity();
             ([&]{
                 if constexpr (!detail::noop_transform<Types, typename rigid_transform_type::value_type>)
-                    res = la::compose(res, transforms(parameter));
+                    res = la::compose<chaining>(res, transforms(parameter));
             }(), ...);
             return res;
         }, m_transforms);
@@ -141,9 +144,9 @@ public:
         double circular_velocity,
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
-        m_transform(
+        m_transform(RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
             orientation.gcs_to_reference_cs(),
-            orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0})) {};
+            orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0}))) {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
 
@@ -411,7 +414,7 @@ private:
 
         const la::Vector<double, 3> translation = {0.0, -astro::earth.surface_speed(latitude), 0.0};
 
-        return la::RigidTransform<double, 3>(rotation, translation);
+        return la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(rotation, translation);
     }
 
     la::RigidTransform<double, 3> m_transform;
@@ -440,7 +443,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    Composite<double, 3,
+    Composite<la::Chaining::intrinsic, double, 3,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS,
@@ -470,7 +473,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    Composite<double, 3,
+    Composite<la::Chaining::intrinsic, double, 3,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS
@@ -494,7 +497,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    Composite<double, 3,
+    Composite<la::Chaining::intrinsic, double, 3,
         CIRStoTIRS,
         TIRStoITRS,
         ITRStoHCS
@@ -517,7 +520,7 @@ public:
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
 private:
-    Composite<double, 3,
+    Composite<la::Chaining::intrinsic, double, 3,
         TIRStoITRS,
         ITRStoHCS
     > m_transform;
