@@ -675,7 +675,7 @@ public:
     [[nodiscard]] constexpr RotationMatrix
     inverse() const noexcept
     {
-        return transpose(*m_matrix);
+        return transpose(*this);
     }
 
 private:
@@ -1281,7 +1281,7 @@ public:
         @param translation
     */
     template <Chaining chaining>
-    [[nodiscard]] constexpr RigidTransform
+    [[nodiscard]] static constexpr RigidTransform
     from(rotation_matrix_type rotation, vector_type translation)
     {
         if constexpr (
@@ -1353,7 +1353,7 @@ private:
     @param a
     @param b
 
-    @return Composition of `a` and `b`.
+    @return Composite rigid transform.
 */
 template <
     Chaining chaining,
@@ -1368,24 +1368,39 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 b.rotation()*a.rotation(),
                 b.rotation()*a.translation() + b.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 a.rotation()*b.rotation(),
                 (a.rotation()*b.rotation())*(a.translation() + b.translation()));
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 b.rotation()*a.rotation(),
                 a.translation() + b.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 a.rotation()*b.rotation(),
                 a.translation() + a.rotation().inverse()*b.translation());
 }
 
+/**
+    @brief Compose a rotation with a rigid transform.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param rotation
+    @param rigid_transform
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1399,24 +1414,39 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation()*rotation,
                 rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rotation*rigid_transform.rotation(),
                 (rotation*rigid_transform.rotation())*rigid_transform.translation());
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation()*rotation,
                 rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rotation*rigid_transform.rotation(),
                 rotation.inverse()*rigid_transform.translation());
 }
 
+/**
+    @brief Compose a rigid transform with a rotation.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param rigid_transform
+    @param rotation
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1430,24 +1460,39 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rotation*rigid_transform.rotation(),
                 rotation*rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation()*rotation,
                 (rigid_transform.rotation()*rotation)*rigid_transform.translation());
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rotation()*rigid_transform.rotation(),
                 rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation()*rotation,
                 rigid_transform.translation());
 }
 
+/**
+    @brief Compose a translation with a rigid transform.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param translation
+    @param rigid_transform
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1461,24 +1506,39 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.rotation()*translation + rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.rotation()*(translation + rigid_transform.translation()));
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation(),
                 translation + rigid_transform.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation(),
                 translation + rigid_transform.translation());
 }
 
+/**
+    @brief Compose a rigid transform with a translation.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param rigid_transform
+    @param translation
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1492,24 +1552,39 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.translation() + translation);
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.rotation()*(rigid_transform.translation() + translation));
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.translation() + translation);
         else
-            return RigidTransform<T, N, action, matrix_layout>::from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
                 rigid_transform.rotation(),
                 rigid_transform.translation() + rigid_transform.rotation().inverse()*translation);
 }
 
+/**
+    @brief Compose a rotation with a translation into a rigid transform.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param rotation
+    @param translation
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1521,9 +1596,24 @@ compose(
     const RotationMatrix<T, N, action, matrix_layout>& rotation,
     const Vector<T, N>& translation)
 {
-    return RigidTransform<T, N, action, matrix_layout>::from<chaining>(rotation, translation);
+    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(rotation, translation);
 }
 
+/**
+    @brief Compose a translation with a rotation into a rigid transform.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+    @tparam action_param action convention.
+    @tparam matrix_layout_param Matrix layout convention.
+
+    @param translation
+    @param rotation
+
+    @return Composite rigid transform.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1535,9 +1625,22 @@ compose(
     const Vector<T, N>& translation,
     const RotationMatrix<T, N, action, matrix_layout>& rotation)
 {
-    return RigidTransform<T, N, action, matrix_layout>::from<chaining>(rotation, translation);
+    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(rotation, translation);
 }
 
+/**
+    @brief Compose two translations.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the transforms.
+    @tparam N Dimension of the transforms.
+
+    @param a
+    @param b
+
+    @return Composite translation.
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N>

@@ -8,6 +8,12 @@
 namespace zdm::la
 {
 
+/**
+    @brief A mathematical vector.
+
+    @tparam T Type of elements of the vector.
+    @tparam Dimension of the vector.
+*/
 template <arithmetic T, std::size_t N>
 struct Vector
 {

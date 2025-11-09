@@ -144,7 +144,7 @@ public:
         double circular_velocity,
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
-        m_transform(RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
+        m_transform(la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
             orientation.gcs_to_reference_cs(),
             orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0}))) {};
 

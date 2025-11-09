@@ -6,6 +6,15 @@
 namespace zdm::util
 {
 
+/**
+    @brief Create an evenly spaced interval of real numbers.
+
+    @tparam T Type of elements of the interval.
+
+    @param interval Destination buffer for interval.
+    @param start Starting value of the interval.
+    @param end End value of the interval.
+*/
 template <std::floating_point T>
 constexpr void
 linspace(std::span<T>& interval, T start, T stop) noexcept
@@ -24,6 +33,15 @@ linspace(std::span<T>& interval, T start, T stop) noexcept
     interval.back() = stop;
 }
 
+/**
+    @brief Create an evenly spaced interval of real numbers.
+
+    @tparam T Type of elements of the interval.
+
+    @param interval Destination buffer for interval.
+    @param start Starting value of the interval.
+    @param end End value of the interval.
+*/
 template <std::floating_point T>
 [[nodiscard]] std::vector<T>
 linspace(T start, T stop, std::size_t count)

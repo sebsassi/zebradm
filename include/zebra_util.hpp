@@ -34,8 +34,8 @@ namespace zdm
 {
 
 /**
-    @brief Container that packs multiple spherical harmonic expansions of the same order into one
-    buffer.
+    @brief Container that packs multiple spherical harmonic expansions of the
+    same order into one buffer.
 */
 class SHExpansionVector
 {
@@ -116,7 +116,7 @@ namespace zebra
 {
 
 /**
-    @brief Class for spherical harmonic expansion of response functions on multiple shells.
+    @brief Transforms functions into their spherical harmonic expansions.
 */
 class ResponseTransformer
 {

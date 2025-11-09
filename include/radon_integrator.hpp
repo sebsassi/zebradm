@@ -578,7 +578,7 @@ private:
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return 0.0;
 
-        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
+        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z(normal_dist).inverse();
         auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double v = coords[0];
@@ -612,7 +612,7 @@ private:
         const double w = std::fabs(radon_parameter);
         if (w > 1.0) return {};
 
-        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z_inverse(normal_dist);
+        const auto to_dist_coords = la::RotationMatrix<double, 3>::align_z(normal_dist).inverse();
         auto integrand = [&](const la::Vector<double, 2>& coords)
         {
             const double v = coords[0];
