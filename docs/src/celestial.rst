@@ -82,10 +82,16 @@ declination of the NGP, and the GCS longitude of the NCP as [2]_
     R_{\text{GCS}\rightarrow\text{ICRS}}
     = R_Z(\pi - \alpha_\text{NGP})R_Y(\pi/2 - \delta_\text{NGP})R_Z(l_\text{NCP}).
 
-The transformation from the GCS to ICRS is implemented by the class
-:cpp:class:`zdm::celestial::GCStoICRS`, although there is typically no need to deal with it directly
-because one more often wants to use composite transforms like :cpp:class:`zdm::celestial::GCStoHCS`
-to transform to a more common laboratory frame.
+The transformation from the GCS to ICRS is implemented by the following class
+
+.. doxygenclass:: zdm::celestial::GCStoICRS
+    :project: zebradm
+    :no-link:
+    :outline:
+
+Although there is typically no need to deal with it directly because one more often wants to use
+composite transforms like :cpp:class:`zdm::celestial::GCStoHCS` to transform to a more common
+laboratory frame.
 
 .. code:: cpp
 
@@ -101,8 +107,15 @@ The orbital motion of the Earth is implemented in the transformation from the IC
 Geocentric Celestial Reference System (GCRS). The GCRS has the same orientation as the ICRS, but
 where the ICRS is centered at the barycenter of the solar system, the GCRS is geocentric. Their
 velocity difference is therefore given by the orbital velocity of Earth (or viewed from Earth, the
-velocity of the solar system barycenter). The class :cpp:class:`zdm::celestial::ICRStoGCRS` returns
-this velocity difference
+velocity of the solar system barycenter).
+
+.. doxygenclass:: zdm::celestial::ICRStoGCRS
+    :project: zebradm
+    :no-link:
+    :outline:
+
+This class represents tthe transformatioin from ICRS to GCRS. In practice, it returns the velocity
+difference of the two coordinate systems
 
 .. code:: cpp
 
@@ -147,6 +160,9 @@ The GCRS to CIRS and CIRS to TIRS transformations are implemented by the respect
 transformation between TIRS and ITRS is close enough to identity that it is not implemented in this
 library. While the class :cpp:class:`zdm::celestial::TIRStoITRS` exists, it does not implement a
 useable transformation.
+
+The library also defines a number of other useful celestial coordinate system transformations,
+which are compositions of these basic transformations. These can be found in the reference below.
 
 Reference
 ---------

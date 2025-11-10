@@ -1313,6 +1313,28 @@ public:
             return RigidTransform(rotation, rotation*translation);
     }
 
+    /**
+        @brief Construct a rigid transform from a rotation.
+
+        @param rotation
+    */
+    [[nodiscard]] static constexpr RigidTransform
+    from(rotation_matrix_type rotation)
+    {
+        return RigidTransform(rotation, vector_type{});
+    }
+
+    /**
+        @brief Construct a rigid transform from a translation.
+
+        @param rotation
+    */
+    [[nodiscard]] static constexpr RigidTransform
+    from(vector_type translation)
+    {
+        return RigidTransform(rotation_matrix_type::identity(), translation);
+    }
+
     [[nodiscard]] constexpr bool operator==(const RigidTransform& other) const noexcept = default;
 
     /**

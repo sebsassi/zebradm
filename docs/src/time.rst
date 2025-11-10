@@ -46,8 +46,17 @@ small offset, this library does not account for them, and effectively assumes
 
     \text{TT}_\text{J2000} \approx \text{UT1}.
 
-Dates in the library are expressible using the :cpp:struct:`zdm::time::Time` type. The exact UTC time
-of J2000 is provided as a constant :cpp:var:`zdm::time::j2000_utc`
+Dates and time functions
+------------------------
+
+.. doxygenclass:: zdm::time::Time
+    :project:
+    :no-link:
+    :outline:
+
+This class enables straightforward expression of dates and times in a human readable format down to
+millisecond precision. For example, the exact UTC time of the J2000 epoch is expressed by the
+constant :cpp:var:`zdm::time::j2000_utc`, defined as
 
 .. code:: cpp
 
