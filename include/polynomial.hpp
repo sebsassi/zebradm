@@ -386,17 +386,28 @@ struct DynamicPolynomial
         return detail::horner_eval<std::span<value_type>, DomainType, value_type>(std::span<value_type>(coeffs), x);
     }
 
-    [[nodiscard]] auto
+    [[nodiscard]] DynamicPolynomial
     derivative() const noexcept
     {
         if (coeffs.size() < 2)
-            return DynamicPolynomial<value_type>(1UL);
-        else if (coeffs.size() >= 2)
+            return DynamicPolynomial(1UL);
+        else
         {
-            DynamicPolynomial<value_type> deriv(coeffs.size() - 1);
+            auto deriv = DynamicPolynomial(order());
             for (std::size_t i = 1; i < coeffs.size(); ++i)
                 deriv.coeffs[i - 1] = value_type(i)*coeffs[i];
             return deriv;
+        }
+    }
+
+    DynamicPolynomial&
+    differentiate() noexcept
+    {
+        if (coeffs.size() >= 2)
+        {
+            for (std::size_t i = 0; i < coeffs.size() - 1; ++i)
+                coeffs[i] = value_type(i)*coeffs[i + 1];
+            coeffs.resize(coeffs.size() - 1);
         }
     }
 
