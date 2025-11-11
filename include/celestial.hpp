@@ -48,11 +48,22 @@ concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, 
 
 template <typename T, typename RigidTransformType>
 concept parametric_rigid_transform
-    = detail::noop_transform<T, typename RigidTransformType::value_type>
+    = std::same_as<RigidTransformType,
+        la::RigidTransform<
+            typename RigidTransformType::value_type,
+            std::tuple_size_v<typename la::RigidTransform::vector_type>,
+            RigidTransformType::action, RigidTransformType::matrix_layout
+        >
+    >
+    || detail::noop_transform<T, typename RigidTransformType::value_type>
     || detail::parametric_transform_on_one_of<T, typename RigidTransformType::value_type,
         RigidTransformType,
         typename RigidTransformType::rotation_matrix_type,
         typename RigidTransformType::vector_type>;
+
+template <typename T>
+concept celestial_coordinate_transform
+    = parametric_rigid_transform<T, la::RigidTransform<double, 3>>;
 
 /**
     @brief A helper for writing efficient compositions of parametric rigid
@@ -547,8 +558,7 @@ private:
     > m_transform;
 };
 
-template <typename T>
-    requires parametric_rigid_transform<T, la::RigidTransform<double, 3>>
+template <celestial_coordinate_transform T>
 la::Vector<double, 3> source_velocity_in_destinatioinationn_cs(T celestial_coordinate_transform, double days_since_j2000)
 {
     return celestial_coordinate_transform(days_since_j2000)(la::Vector<double, 3>{});

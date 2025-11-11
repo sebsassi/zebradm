@@ -1,10 +1,17 @@
 Time Utilities
 ==============
 
-The ``time.hpp`` header provides a couple of basic utilities for specifying times to be used in
-dark matter event rate calculations. Although the precision requirements of the library do not
-require a thorough consideration of the defition of time, this section begins with a brief overview
-of different time keeping standards to give the necessary context for time keeping in this library.
+:cpp:`#include <zebradm/time.hpp>`
+
+This header provides a some basic utilities for specifying times to be used in dark matter event
+rate calculations.
+
+Time Standards
+--------------
+
+Although the precision requirements of the library do not require a thorough consideration of the
+defition of time, this section begins with a brief overview of different time keeping standards to
+give the necessary context for time keeping in this library.
 
 This library mainly operates in Universal Time, specifically, UT1. This is a time standard based on
 Earth's rotation. It is therefore not strictly linear, as its progression fluctuates due to changes
@@ -46,8 +53,8 @@ small offset, this library does not account for them, and effectively assumes
 
     \text{TT}_\text{J2000} \approx \text{UT1}.
 
-Dates and time functions
-------------------------
+Dates And Times
+---------------
 
 .. doxygenclass:: zdm::time::Time
     :project:
@@ -134,6 +141,12 @@ documentation of :cpp:function:`parse_time` below. There are variants of the fun
 Reference
 ---------
 
+Constants
+^^^^^^^^^
+
+.. doxygenvariable:: zdm::time::j2000_utc
+    :project: zebradm
+
 Enums
 ^^^^^
 
@@ -154,6 +167,30 @@ Types
 Functions
 ^^^^^^^^^
 
+.. doxygenfunction:: zdm::time::ut1_interval(std::span<double>, Time, Time)
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::ut1_interval(Time, Time, std::size_t)
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::ut1_interval(std::span<double>, std::string_view, std::string_view, std::string_view)
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::ut1_interval(std::string_view, std::string_view, std::string_view, std::size_t)
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::ut1_from_utc
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::ut1_from_date
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::parse_time
+    :project: zebradm
+
+.. doxygenfunction:: zdm::time::milliseconds_since_epoch
+    :project: zebradm
+
 .. doxygenfunction:: zdm::time::is_leap_year
     :project: zebradm
 
@@ -172,34 +209,7 @@ Functions
 .. doxygenfunction:: zdm::time::days_until
     :project: zebradm
 
-.. doxygenfunction:: zdm::time::milliseconds_since_epoch
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::parse_time
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_from_utc
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_from_date
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_interval(std::span<double>, Time, Time)
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_interval(Time, Time, std::size_t)
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_interval(std::span<double>, std::string_view, std::string_view, std::string_view)
-    :project: zebradm
-
-.. doxygenfunction:: zdm::time::ut1_interval(std::string_view, std::string_view, std::string_view, std::size_t)
-    :project: zebradm
-
-Constants
-^^^^^^^^^
-
-.. doxygenvariable:: zdm::time::j2000_utc
-    :project: zebradm
+References
+----------
 
 .. [1] Forecast values of DUT1 are published by IERS Bulletin A for a year at a time.

@@ -1,7 +1,9 @@
-Celestial Coordinate Systems
-============================
+Celestial Coordinate Transforms
+===============================
 
-The motion of our detector laboratory with respect to the dark matter Halo is of fundamental
+:cpp:`#include <zebradm/celestial.hpp>`
+
+The motion of the dark matter detector with respect to the dark matter Halo is of fundamental
 importance in direct detection experiments. This motion gives rise to both annual and daily
 variation in the detection rate of dark matter experiments, and of course also determines the
 directionality of the dark matter signal in experiments with directional capabilities. Therefore,
@@ -15,18 +17,9 @@ applicable.
 .. note::
    All coordinate systems used by this library are right-handed by convention.
 
-The celestial coordinate transformations in this library are types which fulfill the requirements
-of the :cpp:concept:`zdm::celestial::parametric_rigid_transform` concept. These are types, which
-implement a call operator :cpp:function:`operator()`, which takes in a single parameter (time), and
-typically returns a :cpp:class:`zdm::la::RigidTransform` consisting of a rotation and a translation
-(velocity boost). If the transformation is only a rotation, the call operator may also return a
-:cpp:class:`zdm::la::RotationMatrix`, or likewise, if it is only a translation, it may return a
-:cpp:struct:`zdm::la::Vector` corresponding to the translation vector.
-
-For instance if we wanted the average velocity of dark matter in a particular Horizontal Coordinate
-System (HCS), we could use the class :cpp:class:`zdm::celestial::GCStoHCS` to transform the average
-velocity of dark matter in the Galactic Coordinate System (GCS), which happens to be zero, to our
-HCS.
+As a brief sample of the use of this header, here is a brief example demonstrating one of the most
+common use cases in the context of dak matter direct detection: calculating the mean velocity of
+dark matter in some laboratory frame
 
 .. code:: cpp
 
@@ -34,15 +27,61 @@ HCS.
     const double latitude = std::numbers::pi/4.0;
     const double circular_speed = 233.0;
 
+    // Transformation from galactic to horizontal coordinate system
     auto gcs_to_hcs = zdm::celestial::GCStoHCS(longitude, latitude, circular_velocity);
 
-    const auto utc_date = Time{
-        .year = 2025, .mon = 12, .mday = 19, .hour = 13, .min = 45, .sec = 34, .msec = 325
-    };
-    const double days_since_j2000 = ut1_from_time<zdm::time::j2000_utc>(utc_date);
-    const zdm::la::RigidTransform<double, 3> gcs_to_hcs_of_date = gcs_to_hcs(days_since_j2000);
+    // Interval of UT1 times
+    const auto utc_start_date = zdm::time::Time{ .year = 2025, .mon = 12, .mday = 19 };
+    const auto utc_end_date = zdm::time::Time{ .year = 2025, .mon = 12, .mday = 20 };
+    const std::vector<double> days_since_j2000
+        = ut1_interval<zdm::time::j2000_utc>(utc_start_date, utc_end_date, 24);
 
-    const zdm::la::Vector<double, 3> dm_velocity_lab = gcs_to_hcs_of_date(zdm::la::Vector<double, 3>{});
+    std::vector<double> dm_velocities(days_since_j2000.size());
+    for (std::size_t i = 0; i < days_since_j2000.size())
+    {
+        // Transform a zero-velocity from the galactic coordinates to lab
+        // coordinates
+        const zdm::la::RigidTransform<double, 3> gcs_to_hcs_of_date = gcs_to_hcs(days_since_j2000);
+        dm_velocities = gcs_to_hcs_of_date(zdm::la::Vector<double, 3>{});
+    }
+
+Parametric Rigid Transforms
+---------------------------
+
+Celestial coordinate system are not generally fixed in time. For example, a laboratory coordinate
+system on Earth rotates along with the Earth. On the other hand, relationships between velocities
+between different celestial coordinates can be expressed as combinations of rotations and Galilean
+boosts, which together constitute a rigid transformation. This means that a general celestial
+coordinate transform on a velocity is given by
+
+.. math::
+
+    G_t(\vec{v}) = R(t)\vec{v} + \vec{u}(t),
+
+where :math:`G(t)` represents a Galilean transformation on the velocity, :math:`R(t)` is a
+time-dependent rotation matrix, and :math:`\vec{u}(t)` is a time-dependent boost. Motivated by
+this, this library regards as valid celestial coordinate transforms those, which satisfy the
+requirements following concept.
+
+.. doxygenconcept:: zdm::celestial::parametric_rigid_transform
+    :project: zebradm
+    :no-link:
+    :outline:
+
+This concept is satisfied by any type :cpp:type:`T`, which implements a call operator
+:cpp:function:`operator()`, which takes a single floating point parameter, and returns an object
+whose type is one of
+    - :cpp:type:`zdm::la::RigidTransform` (rigid transform)
+    - :cpp:type:`zdm::la::RotationMatrix` (pure rotation)
+    - :cpp:type:`zdm::la::Vector` (pure translation)
+
+Transformations Between Celestial Coordinats
+--------------------------------------------
+
+This section briefly introduces the various conventional coordinate system these transformations
+rely on, the core classes that implement these transformations. Note that these transformations
+are the building blocks of more complex transformations, and may not be too useful by themselves.
+The reference at the bottom of the page lists a number of useful composite transforms.
 
 The main reference system which connects many of the coordinate systems used in this library is the
 International Celestial Reference System (ICRS). This is a coordinate system with its origin at the
@@ -156,10 +195,26 @@ transformation from CIRS to TIRS rotates the coordinates with the Earth Rotation
 Here :math:`\text{UT1}_\text{J2000}` denotes the UT1 time (in days) since the J2000 epoch.
 
 The GCRS to CIRS and CIRS to TIRS transformations are implemented by the respective classes
-:cpp:class:`zdm::celestialGCRStoCIRS` and :cpp:class:`zdm::celestial::CIRStoTIRS`. The
-transformation between TIRS and ITRS is close enough to identity that it is not implemented in this
-library. While the class :cpp:class:`zdm::celestial::TIRStoITRS` exists, it does not implement a
-useable transformation.
+
+.. doxygenclass:: zdm::celestial::GCRStoCIRS
+    :project: zebradm
+    :no-link:
+    :outline:
+
+.. doxygenclass:: zdm::celestial::CIRStoTIRS
+    :project: zebradm
+    :no-link:
+    :outline:
+
+A class corresponding to the transformation from TIRS to ITRS exists, but its call operator returns
+:cpp:`void`. This is because polar motion is neglected in the implementation of this library due to
+its small magnitude and lack of suitable numerical model. Therefore TIRS and ITRS can be regarded
+as equivalent.
+
+.. doxygenclass:: zdm::celestial::TIRStoITRS
+    :project: zebradm
+    :no-link:
+    :outline:
 
 The library also defines a number of other useful celestial coordinate system transformations,
 which are compositions of these basic transformations. These can be found in the reference below.

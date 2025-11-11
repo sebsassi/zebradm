@@ -51,8 +51,11 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 
 .. code:: cpp
 
-    #include "zest/zernike_glq_transformer.hpp"
-    #include "zebradm/zebra_angle_integrator.hpp"
+    #include <print>
+
+    #include <zest/zernike_glq_transformer.hpp>
+    #include <zebradm/vector.hpp>
+    #include <zebradm/zebra_angle_integrator.hpp>
 
     int main()
     {
@@ -67,7 +70,7 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
         zest::zt::ZernikeExpansion dist_expansion
             = zest::zt::ZernikeTransformerOrthoGeo{}.transform(shm_dist, vmax, order);
 
-        std::vector<std::array<double, 3>> vlab = {
+        std::vector<zdm::la::Vector<double, 3>> vlab = {
             {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
         };
 
@@ -82,11 +85,13 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 
         for (std::size_t i = 0; i < 0; ++i)
         {
-            const double nontransverse = out[i][j][0];
-            const double transverse = out[i][j][1];
             for (std::size_t j = 0; j < 0; ++j)
-                std::printf("{%f, %f} ", nontransverse, transverse);
-            std::printf("\n");
+            {
+                const double nontransverse = out[i,j][0];
+                const double transverse = out[i,j][1];
+                std::print("({}, {})", nontransverse, transverse);
+            }
+            std::print("\n");
         }
     }
 
