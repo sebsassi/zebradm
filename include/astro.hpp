@@ -223,8 +223,11 @@ struct OrbitalState
             ea -= (ea - position.eccentricity*sin_ea - ma_abs)/(1.0 - position.eccentricity*cos_ea);
         }
 
-        // return eccentric anomaly in [0,2pi]
-        return (ma_mod >= 0.0) ? ea : 2.0*std::numbers::pi - ea;
+        // restrict eccentric anomaly to [0,2pi]
+        const double ea_mod = (ma_mod >= 0.0) ? ea : 2.0*std::numbers::pi - ea;
+
+        assert(0 <= ea_mod && ea_mod <= 2.0*std::numbers::pi);
+        return ea_mod;
     }
 
     /**
@@ -492,7 +495,7 @@ struct Planet
     /**
         @brief Speed of a point on the planet's surface relative to its center.
 
-        @param latitude Geodetic latitude of the point.
+        @param latitude Geodetic latitude of the point in radians \f$[-\pi/2,\pi/2]\f$.
 
         @return Speed of the point.
 
@@ -509,6 +512,7 @@ struct Planet
     */
     [[nodiscard]] double surface_speed(double latitude) const noexcept
     {
+        assert(-0.5*std::numbers::pi <= latitude && latitude <= 0.5*std::numbers::pi);
         const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
         const double pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);

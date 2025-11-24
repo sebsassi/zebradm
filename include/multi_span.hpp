@@ -32,7 +32,7 @@ namespace detail
 {
 
 template <std::size_t M, typename FieldType>
-auto last(FieldType a) noexcept
+constexpr auto last(FieldType a) noexcept
 {
     std::array<typename std::remove_cvref<FieldType>::type::value_type, M> res{};
     for (std::size_t i = 0; i < M; ++i)
@@ -41,7 +41,7 @@ auto last(FieldType a) noexcept
 }
 
 template <typename FieldType>
-auto prod(FieldType a) noexcept
+constexpr auto prod(FieldType a) noexcept
 {
     auto res = a[0];
     for (std::size_t i = 1; i < a.size(); ++i)
@@ -113,29 +113,29 @@ public:
         return ConstView(m_data, m_size, m_subspan_size, m_subspan_size_param, m_extents);
     }
 
-    [[nodiscard]] std::size_t size() const noexcept
+    [[nodiscard]] constexpr std::size_t size() const noexcept
     {
         return m_size;
     }
 
-    [[nodiscard]] std::size_t subspan_size() const noexcept
+    [[nodiscard]] constexpr std::size_t subspan_size() const noexcept
     {
         return m_subspan_size;
     }
 
-    [[nodiscard]] std::span<const std::size_t, rank> extents() const noexcept
+    [[nodiscard]] constexpr std::span<const std::size_t, rank> extents() const noexcept
     {
         return m_extents;
     }
 
-    [[nodiscard]] std::span<element_type> flatten() const noexcept
+    [[nodiscard]] constexpr std::span<element_type> flatten() const noexcept
     {
         return std::span<element_type>(m_data, m_size);
     }
 
     template <typename... Ts>
         requires (sizeof...(Ts) == rank)
-    SubspanType operator()(Ts... inds)
+    [[nodiscard]] constexpr SubspanType operator()(Ts... inds) const noexcept
     {
         std::size_t ind = idx(inds...);
         return SubspanType(m_data + ind*m_subspan_size, m_subspan_size_param);
@@ -143,7 +143,7 @@ public:
 
     template <typename... Ts>
         requires (sizeof...(Ts) < rank)
-    MultiSuperSpan<SubspanType, rank - sizeof...(Ts)> operator()(Ts... inds)
+    [[nodiscard]] constexpr MultiSuperSpan<SubspanType, rank - sizeof...(Ts)> operator()(Ts... inds) const noexcept
     {
         std::size_t ind = idx(inds...);
         std::array<std::size_t, rank - sizeof...(Ts)> extents = last<rank - sizeof...(Ts)>(m_extents);
@@ -151,20 +151,20 @@ public:
     }
 
     template <typename... Ts>
-    auto operator[](Ts... inds)
+    [[nodiscard]] constexpr auto operator[](Ts... inds) const noexcept
     {
         return (*this)(inds...);
     }
 
 private:
     template <typename... Ts>
-    std::size_t idx(std::size_t ind, Ts... inds)
+    [[nodiscard]] constexpr std::size_t idx(std::size_t ind, Ts... inds) const noexcept
     {
         return idx_impl<1>(ind, inds...);
     }
 
     template <std::size_t N, typename... Ts>
-    std::size_t idx_impl(std::size_t ind, std::size_t next, Ts... inds)
+    [[nodiscard]] constexpr std::size_t idx_impl(std::size_t ind, std::size_t next, Ts... inds) const noexcept
     {
         if constexpr (N < rank)
             return idx_impl<N + 1>(ind*m_extents[N] + next, inds...);
@@ -173,7 +173,7 @@ private:
     }
 
     template <std::size_t N>
-    std::size_t idx_impl(std::size_t ind)
+    [[nodiscard]] constexpr std::size_t idx_impl(std::size_t ind) const noexcept
     {
         return ind;
     }
@@ -250,32 +250,32 @@ public:
         return ConstView(m_data, m_size, m_subspan_size, m_subspan_size_param, m_extent);
     }
 
-    [[nodiscard]] size_type size() const noexcept
+    [[nodiscard]] constexpr size_type size() const noexcept
     {
         return m_size;
     }
 
-    [[nodiscard]] size_type subspan_size() const noexcept
+    [[nodiscard]] constexpr size_type subspan_size() const noexcept
     {
         return m_subspan_size;
     }
 
-    [[nodiscard]] size_type extent() const noexcept
+    [[nodiscard]] constexpr size_type extent() const noexcept
     {
         return m_extent;
     }
 
-    [[nodiscard]] std::span<element_type> flatten() const noexcept
+    [[nodiscard]] constexpr std::span<element_type> flatten() const noexcept
     {
         return std::span<element_type>(m_data, m_size);
     }
 
-    SubspanType operator()(index_type i)
+    [[nodiscard]] constexpr SubspanType operator()(index_type i) const noexcept
     {
         return SubspanType(m_data + i*m_subspan_size, m_subspan_size_param);
     }
 
-    auto operator[](index_type i)
+    [[nodiscard]] constexpr auto operator[](index_type i) const noexcept
     {
         return (*this)(i);
     }

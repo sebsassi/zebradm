@@ -13,8 +13,8 @@ void test_leap_year()
     assert(zdm::time::is_leap_year(-4) == true);
     assert(zdm::time::is_leap_year(100) == false);
     assert(zdm::time::is_leap_year(-100) == false);
-    assert(zdm::time::is_leap_year(400) == false);
-    assert(zdm::time::is_leap_year(-400) == false);
+    assert(zdm::time::is_leap_year(400) == true);
+    assert(zdm::time::is_leap_year(-400) == true);
 
     assert(zdm::time::is_leap_year(1900) == false);
     assert(zdm::time::is_leap_year(1972) == true);
@@ -31,32 +31,32 @@ void test_days_in_year()
 
 void test_day_of_year()
 {
-    assert(zdm::time::day_of_year(2000, 0) == 0);
-    assert(zdm::time::day_of_year(2001, 0) == 0);
-    assert(zdm::time::day_of_year(2000, 1) == 31);
-    assert(zdm::time::day_of_year(2001, 1) == 31);
-    assert(zdm::time::day_of_year(2000, 2) == 59);
-    assert(zdm::time::day_of_year(2001, 2) == 60);
-    assert(zdm::time::day_of_year(2000, 3) == 90);
-    assert(zdm::time::day_of_year(2001, 3) == 91);
-    assert(zdm::time::day_of_year(2000, 4) == 120);
-    assert(zdm::time::day_of_year(2001, 4) == 121);
-    assert(zdm::time::day_of_year(2000, 5) == 151);
-    assert(zdm::time::day_of_year(2001, 5) == 152);
-    assert(zdm::time::day_of_year(2000, 6) == 181);
-    assert(zdm::time::day_of_year(2001, 6) == 182);
-    assert(zdm::time::day_of_year(2000, 7) == 212);
-    assert(zdm::time::day_of_year(2001, 7) == 213);
-    assert(zdm::time::day_of_year(2000, 8) == 243);
-    assert(zdm::time::day_of_year(2001, 8) == 244);
-    assert(zdm::time::day_of_year(2000, 9) == 273);
-    assert(zdm::time::day_of_year(2001, 9) == 274);
-    assert(zdm::time::day_of_year(2000, 10) == 304);
-    assert(zdm::time::day_of_year(2001, 10) == 305);
-    assert(zdm::time::day_of_year(2000, 11) == 334);
-    assert(zdm::time::day_of_year(2001, 11) == 335);
+    assert(zdm::time::days_in_year_before_month(2000, 1) == 0);
+    assert(zdm::time::days_in_year_before_month(2001, 1) == 0);
+    assert(zdm::time::days_in_year_before_month(2000, 2) == 31);
+    assert(zdm::time::days_in_year_before_month(2001, 2) == 31);
+    assert(zdm::time::days_in_year_before_month(2000, 3) == 60);
+    assert(zdm::time::days_in_year_before_month(2001, 3) == 59);
+    assert(zdm::time::days_in_year_before_month(2000, 4) == 91);
+    assert(zdm::time::days_in_year_before_month(2001, 4) == 90);
+    assert(zdm::time::days_in_year_before_month(2000, 5) == 121);
+    assert(zdm::time::days_in_year_before_month(2001, 5) == 120);
+    assert(zdm::time::days_in_year_before_month(2000, 6) == 152);
+    assert(zdm::time::days_in_year_before_month(2001, 6) == 151);
+    assert(zdm::time::days_in_year_before_month(2000, 7) == 182);
+    assert(zdm::time::days_in_year_before_month(2001, 7) == 181);
+    assert(zdm::time::days_in_year_before_month(2000, 8) == 213);
+    assert(zdm::time::days_in_year_before_month(2001, 8) == 212);
+    assert(zdm::time::days_in_year_before_month(2000, 9) == 244);
+    assert(zdm::time::days_in_year_before_month(2001, 9) == 243);
+    assert(zdm::time::days_in_year_before_month(2000, 10) == 274);
+    assert(zdm::time::days_in_year_before_month(2001, 10) == 273);
+    assert(zdm::time::days_in_year_before_month(2000, 11) == 305);
+    assert(zdm::time::days_in_year_before_month(2001, 11) == 304);
+    assert(zdm::time::days_in_year_before_month(2000, 12) == 335);
+    assert(zdm::time::days_in_year_before_month(2001, 12) == 334);
 
-    assert(zdm::time::day_of_year(2000, 0, 1) == 1);
+    assert(zdm::time::day_of_year(2000, 1, 1) == 1);
 }
 
 bool month_of_year_gives_correct_month_and_day_of_month_for(std::int32_t year, std::uint32_t day_of_year, std::uint32_t real_month, std::uint32_t real_day_of_month)
@@ -73,36 +73,36 @@ bool month_of_year_is_inverse_of_day_of_year(std::int32_t year, std::uint32_t da
 
 void test_month_of_year()
 {
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 1, 0, 1));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 1, 0, 1));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 15, 0, 15));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 15, 0, 15));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 45, 1, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 45, 1, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 60, 1, 29));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 60, 2, 1));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 75, 2, 15));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 75, 2, 16));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 105, 3, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 105, 3, 15));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 135, 4, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 135, 4, 15));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 165, 5, 13));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 165, 5, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 195, 6, 13));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 195, 6, 14));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 225, 7, 12));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 225, 7, 13));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 255, 8, 11));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 255, 8, 12));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 285, 9, 11));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 285, 9, 12));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 315, 10, 10));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 315, 10, 11));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 345, 10, 10));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 345, 10, 11));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 366, 11, 31));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 365, 11, 31));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 1, 1, 1));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 1, 1, 1));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 15, 1, 15));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 15, 1, 15));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 45, 2, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 45, 2, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 60, 2, 29));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 60, 3, 1));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 75, 3, 15));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 75, 3, 16));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 105, 4, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 105, 4, 15));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 135, 5, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 135, 5, 15));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 165, 6, 13));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 165, 6, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 195, 7, 13));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 195, 7, 14));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 225, 8, 12));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 225, 8, 13));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 255, 9, 11));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 255, 9, 12));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 285, 10, 11));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 285, 10, 12));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 315, 11, 10));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 315, 11, 11));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 345, 11, 10));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 345, 11, 11));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 366, 12, 31));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 365, 12, 31));
     
     assert(month_of_year_is_inverse_of_day_of_year(2000, 1));
     assert(month_of_year_is_inverse_of_day_of_year(2001, 1));

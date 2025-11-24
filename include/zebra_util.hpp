@@ -94,12 +94,24 @@ public:
         return std::span<const element_type>(m_data);
     }
 
-    SubSpan operator()(index_type i)
+    [[nodiscard]] SubSpan operator()(index_type i) noexcept
     {
+        assert(i < m_size);
         return SubSpan(m_data.data() + i*m_subspan_size, m_order);
     }
 
-    auto operator[](index_type i)
+    [[nodiscard]] ConstSubSpan operator()(index_type i) const noexcept
+    {
+        assert(i < m_size);
+        return ConstSubSpan(m_data.data() + i*m_subspan_size, m_order);
+    }
+
+    [[nodiscard]] SubSpan operator[](index_type i) noexcept
+    {
+        return (*this)(i);
+    }
+
+    [[nodiscard]] ConstSubSpan operator[](index_type i) const noexcept
     {
         return (*this)(i);
     }

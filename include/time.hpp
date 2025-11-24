@@ -44,6 +44,7 @@ enum class DateParseStatus
     success,                        /// Parsing completed successfully.
     incomplete_format_string,       /// Format string ended with single '%'.
     incomplete_time_string,         /// Time string did not contain all parts specified in format string.
+    unexpected_empty_string,        /// String was unexpectedly empty.
     character_mismatch,             /// Mismatch in non-format parts of time and format strings.
     unsupported_format_specifier,   /// Use of an unsupported format specifier.
     duplicate_format_specifiers,    /// Use of multiple format specifiers that match same date part.
@@ -167,23 +168,25 @@ days_in_year(std::int32_t year) noexcept
 }
 
 /**
-    @brief Computes the day of year corresponding to the first day of a given
+    @brief Computes the number of days from the start of year until the given
     month.
 
     @param year
     @param month
 
-    @return day of year (1-366).
+    @return number of days passed until month (0-335).
 */
 [[nodiscard]] constexpr std::uint32_t
-day_of_year(std::int32_t year, std::uint32_t month) noexcept
+days_in_year_before_month(std::int32_t year, std::uint32_t month) noexcept
 {
-    assert(month > 0);
+    assert(1 <= month && month <= 12);
 
     constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
 
-    return days_before_month[std::size_t(is_leap_year(year))][month - 1];
+    const std::uint32_t res = days_before_month[std::size_t(is_leap_year(year))][month - 1]; 
+    assert(res <= 335);
+    return res;
 }
 
 /**
@@ -199,7 +202,11 @@ day_of_year(std::int32_t year, std::uint32_t month) noexcept
 [[nodiscard]] constexpr std::uint32_t
 day_of_year(std::int32_t year, std::uint32_t month, std::uint32_t day_of_month) noexcept
 {
-    return day_of_year(year, month) + day_of_month;
+    assert(1 <= month && month <= 12);
+    assert(1 <= day_of_month && day_of_month <= 31);
+    const std::uint32_t res = days_in_year_before_month(year, month) + day_of_month;
+    assert(1 <= res && res <= 366);
+    return res;
 }
 
 /**
@@ -214,6 +221,7 @@ day_of_year(std::int32_t year, std::uint32_t month, std::uint32_t day_of_month) 
 [[nodiscard]] constexpr std::pair<std::uint32_t, std::uint32_t>
 month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
 {
+    assert(1 <= day_of_year && day_of_year <= 366);
     constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
 
@@ -223,7 +231,10 @@ month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
     {
         if (days_before_month[leap_year][month - 1] < day_of_year) break;
     }
-    return {month, day_of_year - days_before_month[leap_year][month - 1]};
+    const std::uint32_t day_of_month = day_of_year - days_before_month[leap_year][month - 1];
+    assert(1 <= month && month <= 12);
+    assert(1 <= day_of_month && day_of_month <= 31);
+    return {month, day_of_month};
 }
 
 /**
@@ -248,15 +259,23 @@ days_until(std::int32_t year) noexcept
 */
 struct TimeZoneOffset
 {
-    std::int32_t sign = 1;
-    std::uint32_t hour = 0;
-    std::uint32_t min = 0;
+    std::int32_t sign = 1;  /// Sign (+1 or -1).
+    std::uint32_t hour = 0; /// Hour number.
+    std::uint32_t min = 0;  /// Minute number (0-59).
 
     [[nodiscard]] constexpr bool operator==(const TimeZoneOffset&) const noexcept = default;
-    
+
     [[nodiscard]] constexpr auto operator<=>(const TimeZoneOffset& other) const noexcept
     {
         return sign*std::int32_t(hour + 60*min) <=> other.sign*int32_t(other.hour + 60*other.min);
+    }
+
+    /*
+        @brief Check whether object represents a valid time zone offset.
+    */
+    [[nodiscard]] constexpr bool is_valid() const
+    {
+        return std::abs(sign) == 1 && min <= 59;
     }
 };
 
@@ -284,6 +303,19 @@ struct Time
 
     [[nodiscard]] constexpr auto operator<=>(const Time&) const noexcept = default;
 
+    /*
+        @brief Check whether object represents a valid time.
+    */
+    [[nodiscard]] constexpr bool is_valid() const
+    {
+        return 1 <= mon && mon <= 12
+            && 1 <= mday && mday <= 12
+            && hour <= 23
+            && min <= 59
+            && sec <= 59
+            && msec <= 999;
+    }
+
     /**
         @brief Apply a time zone offset to a time.
 
@@ -294,6 +326,8 @@ struct Time
     [[nodiscard]] constexpr Time
     add(TimeZoneOffset offset) const noexcept
     {
+        assert(is_valid());
+        assert(offset.is_valid());
         if (offset.hour == 0 && offset.min == 0) return *this;
 
         const std::uint32_t month = mon;
@@ -321,7 +355,7 @@ struct Time
         std::uint32_t day_of_offset_year = hour_of_offset_year/24;
         const auto& [month_of_offset_year, day_of_month_offset] = month_of_year(year, day_of_offset_year);
 
-        return {
+        const Time res = {
             offset_year,
             std::uint16_t(month_of_offset_year),
             std::uint16_t(day_of_month_offset),
@@ -330,6 +364,9 @@ struct Time
             std::uint16_t(second_of_offset_year % 60),
             msec
         };
+
+        assert(res.is_valid());
+        return res;
     }
 
     /**
@@ -340,6 +377,7 @@ struct Time
     [[nodiscard]] constexpr std::int64_t
     to_milliseconds() const noexcept
     {
+        assert(is_valid());
         std::uint32_t month = mon;
         std::uint32_t day_of_month = mday;
         return days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL + hour*3600000LL + min*60000LL + sec*1000LL;
@@ -356,8 +394,10 @@ struct Time
     @return number of seconds since the epoch.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 [[nodiscard]] constexpr std::int64_t milliseconds_since_epoch(Time time) noexcept
 {
+    assert(time.is_valid());
     return time.to_milliseconds() - epoch.to_milliseconds();
 }
 
@@ -367,6 +407,7 @@ namespace detail
 [[nodiscard]] constexpr std::string_view
 find_next_non_whitespace(std::string_view str) noexcept
 {
+    if (str.size() == 0) return str;
     std::size_t index = 0;
     while (std::isspace(str[index])) ++index;
     return str.substr(index);
@@ -375,8 +416,10 @@ find_next_non_whitespace(std::string_view str) noexcept
 [[nodiscard]] constexpr std::expected<std::pair<std::uint64_t, std::string_view>, DateParseStatus>
 parse_unsigned(std::string_view str) noexcept
 {
+    if (str.size() == 0)
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
     if (str[0] <= '0' || '9' <= str[0])
-        return std::unexpected(DateParseStatus::expected_digits);
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
 
     auto value = std::uint64_t(str[0] - '0');
     std::size_t length = 1;
@@ -392,6 +435,8 @@ parse_unsigned(std::string_view str) noexcept
 [[nodiscard]] constexpr std::expected<std::pair<std::int64_t, std::string_view>, DateParseStatus>
 parse_signed(std::string_view str) noexcept
 {
+    if (str.size() == 0)
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
     std::int64_t sign = 1;
     if (str[0] == '-')
     {
@@ -410,6 +455,8 @@ parse_signed(std::string_view str) noexcept
 [[nodiscard]] constexpr std::expected<std::pair<TimeZoneOffset, std::string_view>, DateParseStatus>
 parse_time_zone_offset(std::string_view str) noexcept
 {
+    if (str.size() == 0)
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
     if (str[0] == 'Z')
         return std::pair{TimeZoneOffset{}, str};
 
@@ -487,6 +534,8 @@ struct DateParseState
 constexpr std::expected<std::pair<Time, std::string_view>, DateParseStatus>
 parse_time(std::string_view input, std::string_view format)
 {
+    if (input.size() == 0 || format.size() == 0)
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
     constexpr std::array<detail::FormatSpecifier, 256> format_map = detail::format_specifier_map();
 
     constexpr std::array<std::string_view, 12> month_names = {
@@ -758,8 +807,12 @@ parse_time(std::string_view input, std::string_view format)
     if (time.mday > last_day_of_month[is_leap_year(time.year)][time.mon])
         return std::unexpected(DateParseStatus::invalid_day_of_month);
 
+    assert(time.is_valid());
+
     if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_time_zone_offset))
+    {
         return std::pair{time.add(parse_state.time_zone_offset), input};
+    }
     else
         return std::pair{time, input};
 }
@@ -774,9 +827,11 @@ parse_time(std::string_view input, std::string_view format)
     @return UT1 time since the epoch in days.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 [[nodiscard]] constexpr double
 ut1_from_utc(Time time)
 {
+    assert(time.is_valid());
     return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(time));
 }
 
@@ -795,9 +850,12 @@ ut1_from_utc(Time time)
     supported format specifiers.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 [[nodiscard]] constexpr std::expected<double, DateParseStatus>
 ut1_from_date(std::string_view date, std::string_view format)
 {
+    assert(date.size() > 0);
+    assert(format.size() > 0);
     return parse_time(date, format)
         .transform([&](auto val){ return ut1_from_utc<epoch>(val.first); });
 }
@@ -816,9 +874,12 @@ ut1_from_date(std::string_view date, std::string_view format)
     supported format specifiers.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 constexpr void
 ut1_interval(std::span<double> interval, const Time& start_time, const Time& end_time)
 {
+    assert(start_time.is_valid());
+    assert(end_time.is_valid());
     util::linspace(interval, ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
 }
 
@@ -834,9 +895,12 @@ ut1_interval(std::span<double> interval, const Time& start_time, const Time& end
     @return Vector of UT1 time points in days relative to the epoch.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 constexpr std::vector<double>
 ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
 {
+    assert(start_time.is_valid());
+    assert(end_time.is_valid());
     std::vector<double> res(count);
     util::linspace(std::span<double>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
     return res;
@@ -860,11 +924,15 @@ ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
     supported format specifiers.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 [[nodiscard]] constexpr DateParseStatus
 ut1_interval(
     std::span<double> interval, std::string_view start_date, std::string_view end_date,
     std::string_view format)
 {
+    assert(start_date.size() > 0);
+    assert(end_date.size() > 0);
+    assert(format.size() > 0);
     if (interval.size() == 0) return DateParseStatus::success;
 
     const auto start_res = parse_time(start_date, format);
@@ -906,11 +974,15 @@ ut1_interval(
     supported format specifiers.
 */
 template <Time epoch>
+    requires (epoch.is_valid())
 [[nodiscard]] std::expected<std::vector<double>, DateParseStatus>
 ut1_interval(
     std::string_view start_date, std::string_view end_date, std::size_t count,
     std::string_view format)
 {
+    assert(start_date.size() > 0);
+    assert(end_date.size() > 0);
+    assert(format.size() > 0);
     std::vector<double> res(count);
     ut1_interval<epoch>(std::span<double>(res), start_date, end_date, format);
     return res;

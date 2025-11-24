@@ -23,6 +23,7 @@ SOFTWARE.
 
 #include <array>
 #include <cmath>
+#include <cassert>
 
 #include "concepts.hpp"
 #include "linalg.hpp"
@@ -159,6 +160,7 @@ struct Matrix
     [[nodiscard]] constexpr T&
     operator[](std::size_t i, std::size_t j) noexcept
     {
+        assert(i < N && j < M);
         if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
         else
@@ -168,6 +170,7 @@ struct Matrix
     [[nodiscard]] constexpr const T&
     operator[](std::size_t i, std::size_t j) const noexcept
     {
+        assert(i < N && j < M);
         if constexpr (layout == MatrixLayout::row_major)
             return array[M*i + j];
         else
