@@ -1,4 +1,5 @@
 #include "time.hpp"
+#include <print>
 
 #include <cassert>
 
@@ -99,11 +100,11 @@ void test_month_of_year()
     assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 285, 10, 12));
     assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 315, 11, 10));
     assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 315, 11, 11));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 345, 11, 10));
-    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 345, 11, 11));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 345, 12, 10));
+    assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 345, 12, 11));
     assert(month_of_year_gives_correct_month_and_day_of_month_for(2000, 366, 12, 31));
     assert(month_of_year_gives_correct_month_and_day_of_month_for(2001, 365, 12, 31));
-    
+
     assert(month_of_year_is_inverse_of_day_of_year(2000, 1));
     assert(month_of_year_is_inverse_of_day_of_year(2001, 1));
     assert(month_of_year_is_inverse_of_day_of_year(2000, 15));
@@ -138,6 +139,13 @@ void test_month_of_year()
 
 void test_days_until()
 {
+    assert(zdm::time::days_until(-101) == -101*365 - 24);
+    assert(zdm::time::days_until(-100) == -100*365 - 24);
+    assert(zdm::time::days_until(-5) == -366 - 4*365);
+    assert(zdm::time::days_until(-4) == -366 - 3*365);
+    assert(zdm::time::days_until(-3) == -3*365);
+    assert(zdm::time::days_until(-2) == -2*365);
+    assert(zdm::time::days_until(-1) == -365);
     assert(zdm::time::days_until(0) == 0);
     assert(zdm::time::days_until(1) == 366);
     assert(zdm::time::days_until(2) == 366 + 365);
@@ -145,7 +153,7 @@ void test_days_until()
     assert(zdm::time::days_until(4) == 366 + 3*365);
     assert(zdm::time::days_until(5) == 2*366 + 3*365);
     assert(zdm::time::days_until(100) == 100*365 + 25);
-    assert(zdm::time::days_until(101) == 100*365 + 25 + 365);
+    assert(zdm::time::days_until(101) == 101*365 + 25);
     assert(zdm::time::days_until(400) == 400*365 + 100 - 3);
     assert(zdm::time::days_until(401) == 400*365 + 100 - 3 + 366);
 }
@@ -202,7 +210,7 @@ bool test_parse_unsigned_gives_correct_result(std::string_view input, std::uint6
 
 void test_parse_unsigned()
 {
-    assert(zdm::time::detail::parse_unsigned(""sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_unsigned(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
     assert(zdm::time::detail::parse_unsigned("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
     assert(zdm::time::detail::parse_unsigned("-1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
     assert(zdm::time::detail::parse_unsigned("+1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
@@ -222,7 +230,7 @@ bool test_parse_signed_gives_correct_result(std::string_view input, std::int64_t
 
 void test_parse_signed()
 {
-    assert(zdm::time::detail::parse_signed(""sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
+    assert(zdm::time::detail::parse_signed(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
     assert(zdm::time::detail::parse_signed("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
     assert(zdm::time::detail::parse_signed("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
     assert(zdm::time::detail::parse_signed("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
@@ -244,7 +252,7 @@ bool test_parse_time_zone_offset_gives_correct_result(std::string_view input, zd
 
 void test_parse_time_zone_offset()
 {
-    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
+    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
     assert(zdm::time::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
     assert(zdm::time::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
     assert(zdm::time::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
@@ -253,10 +261,10 @@ void test_parse_time_zone_offset()
     assert(test_parse_time_zone_offset_gives_correct_result("Z"sv, zdm::time::TimeZoneOffset{}, ""sv));
     assert(test_parse_time_zone_offset_gives_correct_result("Zhello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
     assert(test_parse_time_zone_offset_gives_correct_result("Zhello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
-    assert(test_parse_time_zone_offset_gives_correct_result("+12hello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
-    assert(test_parse_time_zone_offset_gives_correct_result("-12hello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
-    assert(test_parse_time_zone_offset_gives_correct_result("+1200hello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
-    assert(test_parse_time_zone_offset_gives_correct_result("+12:00hello"sv, zdm::time::TimeZoneOffset{}, "hello"sv));
+    assert(test_parse_time_zone_offset_gives_correct_result("+12hello"sv, zdm::time::TimeZoneOffset{+1, 12, 0}, "hello"sv));
+    assert(test_parse_time_zone_offset_gives_correct_result("-12hello"sv, zdm::time::TimeZoneOffset{-1, 12, 0}, "hello"sv));
+    assert(test_parse_time_zone_offset_gives_correct_result("+1200hello"sv, zdm::time::TimeZoneOffset{+1, 12, 0}, "hello"sv));
+    assert(test_parse_time_zone_offset_gives_correct_result("+12:00hello"sv, zdm::time::TimeZoneOffset{+1, 12, 0}, "hello"sv));
 }
 
 bool test_parse_time_is_correct(std::string_view time_string, std::string_view format, zdm::time::Time expected_time, std::string_view expected_output)
@@ -270,8 +278,8 @@ bool test_parse_time_is_correct(std::string_view time_string, std::string_view f
 
 void test_parse_time()
 {
-    assert(zdm::time::parse_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
-    assert(zdm::time::parse_time("hello"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
+    assert(zdm::time::parse_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
+    assert(zdm::time::parse_time("12:00"sv, ""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
     assert(zdm::time::parse_time("12:00"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
     assert(zdm::time::parse_time("at 12:00"sv, "At %H:%M"sv) == std::unexpected(zdm::time::DateParseStatus::character_mismatch));
     assert(zdm::time::parse_time("12:00"sv, "%H:%"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_format_string));

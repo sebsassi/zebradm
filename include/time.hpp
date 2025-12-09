@@ -225,13 +225,14 @@ month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
     constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
 
-    std::uint32_t month = 1;
     const auto leap_year = std::uint32_t(is_leap_year(year));
-    for (; month < 13; ++month)
+    std::uint32_t index = 1;
+    for (; index < 12; ++index)
     {
-        if (days_before_month[leap_year][month - 1] < day_of_year) break;
+        if (days_before_month[leap_year][index] >= day_of_year) break;
     }
-    const std::uint32_t day_of_month = day_of_year - days_before_month[leap_year][month - 1];
+    const std::uint32_t day_of_month = day_of_year - days_before_month[leap_year][index - 1];
+    const std::uint32_t month = index;
     assert(1 <= month && month <= 12);
     assert(1 <= day_of_month && day_of_month <= 31);
     return {month, day_of_month};
@@ -239,17 +240,19 @@ month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
 
 /**
     @brief Counts the number of days from the start of year 0 until start of
-    the given year.
+    the given year, using the Gregorian calendar.
 
     @param year
 
-    @return number of days since start of year 0 until start of year.
+    @return number of days between the years.
 */
 [[nodiscard]] constexpr std::int64_t
 days_until(std::int32_t year) noexcept
 {
     const auto y64 = std::int64_t(year);
-    return y64*365 + y64/4 - y64/100 + y64/400;
+    const std::int64_t y0_leap_day = (y64 > 0) ? 1 : 0;
+    const std::int64_t offset_year = y64 - ((y64 > 0) ? 1 : 0);
+    return y0_leap_day + y64*365 + offset_year/4 - offset_year/100 + offset_year/400;
 }
 
 /**
@@ -309,7 +312,7 @@ struct Time
     [[nodiscard]] constexpr bool is_valid() const
     {
         return 1 <= mon && mon <= 12
-            && 1 <= mday && mday <= 12
+            && 1 <= mday && mday <= 31
             && hour <= 23
             && min <= 59
             && sec <= 59
@@ -352,14 +355,14 @@ struct Time
 
         std::uint32_t minute_of_offset_year = std::uint32_t(second_of_offset_year)/60;
         std::uint32_t hour_of_offset_year = minute_of_offset_year/60;
-        std::uint32_t day_of_offset_year = hour_of_offset_year/24;
+        std::uint32_t day_of_offset_year = 1 + hour_of_offset_year/24;
         const auto& [month_of_offset_year, day_of_month_offset] = month_of_year(year, day_of_offset_year);
 
         const Time res = {
             offset_year,
             std::uint16_t(month_of_offset_year),
             std::uint16_t(day_of_month_offset),
-            std::uint16_t(hour_of_offset_year % 60),
+            std::uint16_t(hour_of_offset_year % 24),
             std::uint16_t(minute_of_offset_year % 60),
             std::uint16_t(second_of_offset_year % 60),
             msec
@@ -409,7 +412,7 @@ find_next_non_whitespace(std::string_view str) noexcept
 {
     if (str.size() == 0) return str;
     std::size_t index = 0;
-    while (std::isspace(str[index])) ++index;
+    while (index < str.size() && std::isspace(str[index])) ++index;
     return str.substr(index);
 }
 
@@ -419,11 +422,11 @@ parse_unsigned(std::string_view str) noexcept
     if (str.size() == 0)
         return std::unexpected(DateParseStatus::unexpected_empty_string);
     if (str[0] <= '0' || '9' <= str[0])
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
+        return std::unexpected(DateParseStatus::expected_digits);
 
     auto value = std::uint64_t(str[0] - '0');
     std::size_t length = 1;
-    for (; '0' <= str[length] && str[length] <= '9'; ++length)
+    for (; length < str.size() && '0' <= str[length] && str[length] <= '9'; ++length)
     {
         value *= 10;
         value += uint64_t(str[length] - '0');
@@ -458,7 +461,7 @@ parse_time_zone_offset(std::string_view str) noexcept
     if (str.size() == 0)
         return std::unexpected(DateParseStatus::unexpected_empty_string);
     if (str[0] == 'Z')
-        return std::pair{TimeZoneOffset{}, str};
+        return std::pair{TimeZoneOffset{}, str.substr(1)};
 
     std::int32_t sign = 1;
     if (str[0] == '-')
@@ -574,6 +577,7 @@ parse_time(std::string_view input, std::string_view format)
         format = format.substr(1);
 
         detail::FormatSpecifier format_specifier = format_map[(unsigned char)(format.front())];
+        format = format.substr(1);
 
         switch (format_specifier)
         {
