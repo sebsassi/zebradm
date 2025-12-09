@@ -441,7 +441,7 @@ struct Orbit
 {
     DynamicalOrbitOrientation<N, M, P> orientation;
     KeplerOrbit<K, L> orbit;
-    time::Time epoch;
+    time::DateTime epoch;
 
     [[nodiscard]] constexpr bool operator==(const Orbit& other) const noexcept = default;
 
@@ -453,7 +453,7 @@ struct Orbit
 };
 
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
-Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::Time) -> Orbit<N, M, P, K, L>;
+Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::DateTime) -> Orbit<N, M, P, K, L>;
 
 /**
     @brief An oblate spheroid.

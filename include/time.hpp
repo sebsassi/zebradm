@@ -49,11 +49,12 @@ enum class DateParseStatus
     unsupported_format_specifier,   /// Use of an unsupported format specifier.
     duplicate_format_specifiers,    /// Use of multiple format specifiers that match same date part.
     expected_digits,                /// Number in time string contains unexpected non-digits.
-    invalid_day_of_month,           /// Day of month number falls outside of 1-31.
+    invalid_year,                   /// 
+    invalid_day_of_month,           /// Day of month is not a number or falls outside of 1-31.
     invalid_month_of_year,          /// Invalid name of month, or month number falls outside of 1-12.
-    invalid_hour,                   /// Hour number falls outside of 0-23, or 1-12 in 12 hour clock.
-    invalid_minute,                 /// Minute number falls outside of 0-59.
-    invalid_second,                 /// Second number falls outside of 0-59.
+    invalid_hour,                   /// Hour is not a number or falls outside of 0-23, or 1-12 in 12 hour clock.
+    invalid_minute,                 /// Minute is not a number or falls outside of 0-59.
+    invalid_second,                 /// Second is not a number or falls outside of 0-59.
     invalid_am_pm,                  /// AM/PM specifier other than 'AM' or 'PM'.
     invalid_time_zone_offset        /// Time zone offset does not conform to ISO 8601.
 };
@@ -181,7 +182,7 @@ days_in_year_before_month(std::int32_t year, std::uint32_t month) noexcept
 {
     assert(1 <= month && month <= 12);
 
-    constexpr std::array<std::array<std::uint32_t, 12>, 2>
+    static constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
 
     const std::uint32_t res = days_before_month[std::size_t(is_leap_year(year))][month - 1]; 
@@ -222,7 +223,7 @@ day_of_year(std::int32_t year, std::uint32_t month, std::uint32_t day_of_month) 
 month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
 {
     assert(1 <= day_of_year && day_of_year <= 366);
-    constexpr std::array<std::array<std::uint32_t, 12>, 2>
+    static constexpr std::array<std::array<std::uint32_t, 12>, 2>
     days_before_month = detail::days_in_year_before_month();
 
     const auto leap_year = std::uint32_t(is_leap_year(year));
@@ -262,9 +263,9 @@ days_until(std::int32_t year) noexcept
 */
 struct TimeZoneOffset
 {
-    std::int32_t sign = 1;  /// Sign (+1 or -1).
-    std::uint32_t hour = 0; /// Hour number.
-    std::uint32_t min = 0;  /// Minute number (0-59).
+    std::int32_t sign;  /// Sign (+1 or -1).
+    std::uint32_t hour; /// Hour number.
+    std::uint32_t min;  /// Minute number (0-59).
 
     [[nodiscard]] constexpr bool operator==(const TimeZoneOffset&) const noexcept = default;
 
@@ -276,9 +277,67 @@ struct TimeZoneOffset
     /*
         @brief Check whether object represents a valid time zone offset.
     */
-    [[nodiscard]] constexpr bool is_valid() const
+    [[nodiscard]] constexpr bool is_valid() const noexcept
     {
         return std::abs(sign) == 1 && min <= 59;
+    }
+};
+
+struct DateTime;
+
+struct Date
+{
+    std::int32_t year;
+    std::uint16_t mon;
+    std::uint16_t mday;
+
+    [[nodiscard]] constexpr auto operator<=>(const Date&) const noexcept = default;
+
+    [[nodiscard]] explicit constexpr operator DateTime() const noexcept;
+
+    /*
+        @brief Check whether object represents a valid time.
+    */
+    [[nodiscard]] constexpr bool is_valid() const noexcept
+    {
+        return 1 <= mon && mon <= 12
+            && 1 <= mday && mday <= 31;
+    }
+
+    [[nodiscard]] constexpr std::int64_t
+    to_milliseconds() const noexcept
+    {
+        assert(is_valid());
+        std::uint32_t month = mon;
+        std::uint32_t day_of_month = mday;
+        return days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL;
+    }
+};
+
+struct TimeOfDay
+{
+    std::uint16_t hour;
+    std::uint16_t min;
+    std::uint16_t sec;
+    std::uint16_t msec;
+
+    [[nodiscard]] constexpr auto operator<=>(const TimeOfDay&) const noexcept = default;
+
+    /*
+        @brief Check whether object represents a valid time.
+    */
+    [[nodiscard]] constexpr bool is_valid() const noexcept
+    {
+        return hour <= 23
+            && min <= 59
+            && sec <= 59
+            && msec <= 999;
+    }
+
+    [[nodiscard]] constexpr std::int64_t
+    to_milliseconds() const noexcept
+    {
+        return hour*3600000LL + min*60000LL + sec*1000LL + msec;
     }
 };
 
@@ -294,30 +353,31 @@ struct TimeZoneOffset
     structure doesn't have extraneous `wday`, `yday`, and `isdst` fields.
     Instead, it has an `msec` field for millisecond precision.
 */
-struct Time
+struct DateTime
 {
-    std::int32_t year = 1;  /// Year number.
-    std::uint16_t mon = 1;  /// Month number (1-12).
-    std::uint16_t mday = 1; /// Day of month number (1-31).
-    std::uint16_t hour = 0; /// Hour number (0-23).
-    std::uint16_t min = 0;  /// Minute number (0-59).
-    std::uint16_t sec = 0;  /// Second number (0-59).
-    std::uint16_t msec = 0; /// Millisecond number (0-999).
+    std::int32_t year;  /// Year number.
+    std::uint16_t mon;  /// Month number (1-12).
+    std::uint16_t mday; /// Day of month number (1-31).
+    std::uint16_t hour; /// Hour number (0-23).
+    std::uint16_t min;  /// Minute number (0-59).
+    std::uint16_t sec;  /// Second number (0-59).
+    std::uint16_t msec; /// Millisecond number (0-999).
 
-    [[nodiscard]] constexpr auto operator<=>(const Time&) const noexcept = default;
+    [[nodiscard]] constexpr auto operator<=>(const DateTime&) const noexcept = default;
+
+    [[nodiscard]] explicit constexpr operator Date() const noexcept { return date(); }
+    [[nodiscard]] explicit constexpr operator TimeOfDay() const noexcept { return time_of_day(); }
 
     /*
         @brief Check whether object represents a valid time.
     */
-    [[nodiscard]] constexpr bool is_valid() const
+    [[nodiscard]] constexpr bool is_valid() const noexcept
     {
-        return 1 <= mon && mon <= 12
-            && 1 <= mday && mday <= 31
-            && hour <= 23
-            && min <= 59
-            && sec <= 59
-            && msec <= 999;
+        return date().is_valid() && time_of_day().is_valid();
     }
+
+    [[nodiscard]] constexpr Date date() const noexcept { return Date{year, mon, mday}; }
+    [[nodiscard]] constexpr TimeOfDay time_of_day() const noexcept { return TimeOfDay{hour, min, sec, msec}; }
 
     /**
         @brief Apply a time zone offset to a time.
@@ -326,7 +386,7 @@ struct Time
 
         @return time with the time zone offset applied.
     */
-    [[nodiscard]] constexpr Time
+    [[nodiscard]] constexpr DateTime
     add(TimeZoneOffset offset) const noexcept
     {
         assert(is_valid());
@@ -358,7 +418,7 @@ struct Time
         std::uint32_t day_of_offset_year = 1 + hour_of_offset_year/24;
         const auto& [month_of_offset_year, day_of_month_offset] = month_of_year(year, day_of_offset_year);
 
-        const Time res = {
+        const DateTime res = {
             offset_year,
             std::uint16_t(month_of_offset_year),
             std::uint16_t(day_of_month_offset),
@@ -381,11 +441,11 @@ struct Time
     to_milliseconds() const noexcept
     {
         assert(is_valid());
-        std::uint32_t month = mon;
-        std::uint32_t day_of_month = mday;
-        return days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL + hour*3600000LL + min*60000LL + sec*1000LL;
+        return date().to_milliseconds() + time_of_day().to_milliseconds();
     }
 };
+
+[[nodiscard]] constexpr Date::operator DateTime() const noexcept { return DateTime{year, mon, mday, 0, 0, 0, 0}; }
 
 /**
     @brief Compute the number of seconds that have passed since a given epoch.
@@ -396,9 +456,9 @@ struct Time
 
     @return number of seconds since the epoch.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr std::int64_t milliseconds_since_epoch(Time time) noexcept
+[[nodiscard]] constexpr std::int64_t milliseconds_since_epoch(DateTime time) noexcept
 {
     assert(time.is_valid());
     return time.to_milliseconds() - epoch.to_milliseconds();
@@ -421,7 +481,7 @@ parse_unsigned(std::string_view str) noexcept
 {
     if (str.size() == 0)
         return std::unexpected(DateParseStatus::unexpected_empty_string);
-    if (str[0] <= '0' || '9' <= str[0])
+    if (str[0] < '0' || '9' < str[0])
         return std::unexpected(DateParseStatus::expected_digits);
 
     auto value = std::uint64_t(str[0] - '0');
@@ -450,8 +510,8 @@ parse_signed(std::string_view str) noexcept
         str = str.substr(1);
 
     return parse_unsigned(str)
-        .transform([&](auto x) {
-            return std::pair{sign*std::int64_t(x.first), x.second};
+        .transform([&](const auto& value) {
+            return std::pair{sign*std::int64_t(value.first), value.second};
         });
 }
 
@@ -508,52 +568,61 @@ struct DateParseState
     TimeZoneOffset time_zone_offset;
 };
 
-} // namespace detail
-
-/**
-    @brief Parse a time string to a struct.
-
-    @param input time string to parse.
-    @param format string specifying the format of the time string.
-
-    @return time as a struct specifying a date, or a `DateParseError`.
-
-    This function parses a date string to a `Time` struct according to
-    the format string. The format string supports the following subset of
-    conventional format specifiers:
-        - %%: Percentage sign.
-        - %b or %B: English name of month, full or abbreviated.
-        - %d or %e: Day of month (1-31).
-        - %H: Hour on 24-hour clock (0-23).
-        - %I: Hour on 12-hour clock (1-12).
-        - %m: Month number (1-12).
-        - %M: Minute (0-59).
-        - %n: Any whitespace.
-        - %p: "AM" or "PM".
-        - %S: Second (0-60).
-        - %Y: Year.
-        - %z: ISO 8601 time zone offset.
-*/
-constexpr std::expected<std::pair<Time, std::string_view>, DateParseStatus>
-parse_time(std::string_view input, std::string_view format)
+[[nodiscard]] constexpr std::expected<std::pair<std::uint16_t, std::string_view>, DateParseStatus>
+parse_month_name(std::string_view input) noexcept
 {
-    if (input.size() == 0 || format.size() == 0)
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
-    constexpr std::array<detail::FormatSpecifier, 256> format_map = detail::format_specifier_map();
-
-    constexpr std::array<std::string_view, 12> month_names = {
+    static constexpr std::array<std::string_view, 12> month_names = {
         "January", "February", "March", "April", "May", "June", "July", "August",
         "September", "October", "November", "December"
     };
-    constexpr std::array<std::string_view, 12> month_names_abbrv
+    static constexpr std::array<std::string_view, 12> month_names_abbrv
         = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    constexpr std::array<std::array<std::uint32_t, 12>, 2> last_day_of_month = {
-        std::array<std::uint32_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-        std::array<std::uint32_t, 12>{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-    };
+
+    for (std::size_t i = 0; i < month_names.size(); ++i)
+    {
+        if (input.starts_with(month_names[i]))
+            return std::pair{
+                std::uint16_t(i + 1),
+                input.substr(month_names[i].size())
+            };
+    }
+
+    for (std::size_t i = 0; i < month_names_abbrv.size(); ++i)
+    {
+        if (input.starts_with(month_names_abbrv[i]))
+            return std::pair{
+                std::uint16_t(i + 1),
+                input.substr(month_names_abbrv[i].size())
+            };
+    }
+
+    return std::unexpected(DateParseStatus::invalid_month_of_year);
+}
+
+[[nodiscard]] constexpr std::expected<std::pair<std::uint16_t, std::string_view>, DateParseStatus>
+parse_day_of_month(std::string_view input) noexcept
+{
+    if (const auto results = detail::parse_unsigned(input); results.has_value())
+    {
+        const std::uint64_t number = results->first;
+        if (number < 1 || 31 < number)
+            return std::unexpected(DateParseStatus::invalid_day_of_month);
+
+        return std::pair{std::uint16_t(number), results->second};
+    }
+
+    return std::unexpected(DateParseStatus::invalid_day_of_month);
+}
+
+constexpr std::expected<std::tuple<DateTime, detail::DateParseState, std::string_view>, DateParseStatus>
+parse_date_time_impl(std::string_view input, std::string_view format)
+{
+    if (input.size() == 0 || format.size() == 0)
+        return std::unexpected(DateParseStatus::unexpected_empty_string);
+    static constexpr std::array<detail::FormatSpecifier, 256> format_map = detail::format_specifier_map();
 
     detail::DateParseState parse_state = {};
-    Time time = {};
+    DateTime date_time = {};
 
     while (format.size() > 0)
     {
@@ -570,6 +639,8 @@ parse_time(std::string_view input, std::string_view format)
         {
             if (format.front() != input.front())
                 return std::unexpected(DateParseStatus::character_mismatch);
+            format = format.substr(1);
+            input = input.substr(1);
             continue;
         }
         if (format.size() == 1)
@@ -587,238 +658,359 @@ parse_time(std::string_view input, std::string_view format)
             case detail::FormatSpecifier::percentage:
                 continue;
 
-            case detail::FormatSpecifier::month_name:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_month_of_year))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                for (std::size_t i = 0; i < month_names.size(); ++i)
-                {
-                    if (input.starts_with(month_names[i]))
-                    {
-                        parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_month_of_year);
-                        time.mon = std::uint16_t(i + 1);
-                        input = input.substr(month_names[i].size());
-                        break;
-                    }
-                }
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_month_of_year))
-                    continue;
-
-                for (std::size_t i = 0; i < month_names_abbrv.size(); ++i)
-                {
-                    if (input.starts_with(month_names_abbrv[i]))
-                    {
-                        parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_month_of_year);
-                        time.mon = std::uint16_t(i + 1);
-                        input = input.substr(month_names_abbrv[i].size());
-                        break;
-                    }
-                }
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_month_of_year))
-                    continue;
-                else
-                    return std::unexpected(DateParseStatus::invalid_month_of_year);
-            }
-
-            case detail::FormatSpecifier::day_of_month:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_day_of_month))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number < 1 || 31 < number)
-                        return std::unexpected(DateParseStatus::invalid_day_of_month);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_day_of_month);
-                    time.mday = std::uint16_t(number);
-                    input = results->second;
-                }
-                continue;
-            }
-
-            case detail::FormatSpecifier::hour_24:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_hour))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number > 23)
-                        return std::unexpected(DateParseStatus::invalid_hour);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_hour);
-                    time.hour = std::uint16_t(number);
-                    input = results->second;
-                }
-                continue;
-            }
-
-            case detail::FormatSpecifier::hour_12:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_hour))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number < 1 || 12 < number)
-                        return std::unexpected(DateParseStatus::invalid_hour);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_hour);
-                    time.hour = std::uint16_t(number);
-                    if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::is_pm))
-                    {
-                        time.hour += 12;
-                        if (time.hour == 24)
-                            time.hour = 12;
-                    }
-                    else if (time.hour == 12)
-                        time.hour = 0;
-
-                    if (!(parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_am_pm)))
-                        parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::needs_am_pm);
-                    input = results->second;
-                }
-                continue;
-            }
-
-            case detail::FormatSpecifier::month_of_year:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_month_of_year))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number < 1 || 12 < number)
-                        return std::unexpected(DateParseStatus::invalid_month_of_year);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_month_of_year);
-                    time.mon = std::uint16_t(number);
-                    input = results->second;
-                }
-                continue;
-            }
-
-            case detail::FormatSpecifier::minute:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_minute))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number > 59)
-                        return std::unexpected(DateParseStatus::invalid_minute);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_minute);
-                    time.min = std::uint16_t(number);
-                    input = results->second;
-                }
-                continue;
-            }
-
             case detail::FormatSpecifier::whitespace:
             {
                 input = detail::find_next_non_whitespace(input);
                 continue;
             }
 
-            case detail::FormatSpecifier::am_pm:
+            case detail::FormatSpecifier::year:
             {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_am_pm))
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_year))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                if (input.starts_with("AM"))
-                {
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_am_pm);
-                    if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::needs_am_pm))
-                    {
-                        parse_state.flags ^= std::uint64_t(detail::DateParseStatusFlag::needs_am_pm);
-                    }
-                    input = input.substr(2);
-                    continue;
-                }
-                if (input.starts_with("PM"))
-                {
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_am_pm);
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::is_pm);
-                    if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::needs_am_pm))
-                    {
-                        parse_state.flags ^= std::uint64_t(detail::DateParseStatusFlag::needs_am_pm);
-                        time.hour += 12;
-                        if (time.hour == 24)
-                            time.hour = 0;
-                    }
-                    input = input.substr(2);
-                    continue;
-                }
-                return std::unexpected(DateParseStatus::invalid_am_pm);
-            }
+                const auto results = detail::parse_signed(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_year);
 
-            case detail::FormatSpecifier::second:
-            {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_second))
-                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+                date_time.year = std::int32_t(results->first);
+                input = results->second;
 
-                if (const auto results = detail::parse_unsigned(input); results.has_value())
-                {
-                    const std::uint64_t number = results->first;
-                    if (number > 60)
-                        return std::unexpected(DateParseStatus::invalid_minute);
-
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_minute);
-                    time.sec = std::uint16_t(number);
-                    input = results->second;
-                }
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_year);
                 continue;
             }
 
-            case detail::FormatSpecifier::year:
+            case detail::FormatSpecifier::month_name:
             {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_year))
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_month_of_year))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                if (const auto results = detail::parse_signed(input); results.has_value())
-                {
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_year);
-                    time.year = std::int32_t(results->first);
-                    input = results->second;
-                }
+                const auto results = detail::parse_month_name(input);
+                if (!results.has_value())
+                    return std::unexpected(results.error());
+
+                date_time.mon = results->first;
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_month_of_year);
+                continue;
+            }
+
+            case detail::FormatSpecifier::month_of_year:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_month_of_year))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_month_of_year);
+
+                const std::uint64_t number = results->first;
+                if (number < 1 || 12 < number)
+                    return std::unexpected(DateParseStatus::invalid_month_of_year);
+
+                date_time.mon = std::uint16_t(number);
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_month_of_year);
+                continue;
+            }
+
+            case detail::FormatSpecifier::day_of_month:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_day_of_month))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_day_of_month);
+
+                const std::uint64_t number = results->first;
+                if (number < 1 || 31 < number)
+                    return std::unexpected(DateParseStatus::invalid_day_of_month);
+
+                date_time.mday = std::uint16_t(number);
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_day_of_month);
                 continue;
             }
 
             case detail::FormatSpecifier::time_zone_offset:
             {
-                if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_time_zone_offset))
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_time_zone_offset))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                if (const auto results = detail::parse_time_zone_offset(input); results.has_value())
+                const auto results = detail::parse_time_zone_offset(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_time_zone_offset);
+
+                parse_state.time_zone_offset = results->first;
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_time_zone_offset);
+                continue;
+            }
+
+            case detail::FormatSpecifier::am_pm:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_am_pm))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                if (input.starts_with("AM"))
                 {
-                    parse_state.flags |= std::uint64_t(detail::DateParseStatusFlag::has_time_zone_offset);
-                    parse_state.time_zone_offset = results->first;
-                    input = results->second;
+                    input = input.substr(2);
+
+                    parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_am_pm);
+                    parse_state.flags &= ~std::uint32_t(detail::DateParseStatusFlag::needs_am_pm);
+                    continue;
                 }
+                if (input.starts_with("PM"))
+                {
+                    if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::needs_am_pm))
+                    {
+                        parse_state.flags &= ~std::uint32_t(detail::DateParseStatusFlag::needs_am_pm);
+                        date_time.hour += 12;
+                        if (date_time.hour == 24)
+                            date_time.hour = 0;
+                    }
+                    input = input.substr(2);
+
+                    parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_am_pm);
+                    parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::is_pm);
+                    continue;
+                }
+                return std::unexpected(DateParseStatus::invalid_am_pm);
+            }
+
+            case detail::FormatSpecifier::hour_24:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_hour))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_hour);
+
+                const std::uint64_t number = results->first;
+                if (number > 23)
+                    return std::unexpected(DateParseStatus::invalid_hour);
+
+                date_time.hour = std::uint16_t(number);
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_hour);
+                continue;
+            }
+
+            case detail::FormatSpecifier::hour_12:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_hour))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_hour);
+
+                const std::uint64_t number = results->first;
+                if (number < 1 || 12 < number)
+                    return std::unexpected(DateParseStatus::invalid_hour);
+
+                date_time.hour = std::uint16_t(number);
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::is_pm))
+                {
+                    date_time.hour += 12;
+                    if (date_time.hour == 24)
+                        date_time.hour = 12;
+                }
+                else if (date_time.hour == 12)
+                    date_time.hour = 0;
+
+                if (!(parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_am_pm)))
+                    parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::needs_am_pm);
+
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_hour);
+                continue;
+            }
+
+            case detail::FormatSpecifier::minute:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_minute))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_minute);
+
+                const std::uint64_t number = results->first;
+                if (number > 59)
+                    return std::unexpected(DateParseStatus::invalid_minute);
+
+                date_time.min = std::uint16_t(number);
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_minute);
+                continue;
+            }
+
+            case detail::FormatSpecifier::second:
+            {
+                if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_second))
+                    return std::unexpected(DateParseStatus::duplicate_format_specifiers);
+
+                const auto results = detail::parse_unsigned(input);
+                if (!results.has_value())
+                    return std::unexpected(DateParseStatus::invalid_second);
+
+                const std::uint64_t number = results->first;
+                if (number > 60)
+                    return std::unexpected(DateParseStatus::invalid_second);
+
+                date_time.sec = std::uint16_t(number);
+                input = results->second;
+
+                parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_second);
                 continue;
             }
         }
     }
 
-    if (time.mday > last_day_of_month[is_leap_year(time.year)][time.mon])
+    return std::tuple{date_time, parse_state, input};
+}
+
+} // namespace detail
+
+/**
+    @brief Parse a string representing a date and time of day to a struct.
+
+    @param input string to parse.
+    @param format string specifying the format of the string.
+
+    @return struct specifying a date and a time of day, or a `DateParseError`.
+
+    This function parses a date string to a `DateTime` struct according to
+    the format string. The format string supports the following subset of
+    conventional format specifiers:
+        - %%: Percentage sign.
+        - %b or %B: English name of month, full or abbreviated.
+        - %d or %e: Day of month (1-31).
+        - %H: Hour on 24-hour clock (0-23).
+        - %I: Hour on 12-hour clock (1-12).
+        - %m: Month number (1-12).
+        - %M: Minute (0-59).
+        - %n: Any whitespace.
+        - %p: "AM" or "PM".
+        - %S: Second (0-60).
+        - %Y: Year.
+        - %z: ISO 8601 time zone offset.
+*/
+constexpr std::expected<std::pair<DateTime, std::string_view>, DateParseStatus>
+parse_date_time(std::string_view input, std::string_view format)
+{
+    const auto results = detail::parse_date_time_impl(input, format);
+    if (!results.has_value())
+        return std::unexpected(results.error());
+
+    static constexpr std::array<std::array<std::uint32_t, 12>, 2> last_day_of_month = {
+        std::array<std::uint32_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+        std::array<std::uint32_t, 12>{31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+    };
+
+    const auto& [date_time_, parse_state, output] = results.value();
+
+    const auto date_time = DateTime{
+        date_time_.year,
+        std::max(std::uint16_t(1), date_time_.mon),
+        std::max(std::uint16_t(1), date_time_.mday),
+        date_time_.hour,
+        date_time_.min,
+        date_time_.sec,
+        date_time_.msec
+    };
+
+    assert(date_time.is_valid());
+
+    if (date_time.mday > last_day_of_month[is_leap_year(date_time.year)][date_time.mon - 1])
         return std::unexpected(DateParseStatus::invalid_day_of_month);
 
-    assert(time.is_valid());
-
-    if (parse_state.flags & std::uint64_t(detail::DateParseStatusFlag::has_time_zone_offset))
+    if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_time_zone_offset))
     {
-        return std::pair{time.add(parse_state.time_zone_offset), input};
+        return std::pair{date_time.add(parse_state.time_zone_offset), input};
     }
     else
-        return std::pair{time, input};
+        return std::pair{date_time, input};
+}
+
+/**
+    @brief Parse a string representing a date to a struct.
+
+    @param input string to parse.
+    @param format string specifying the format of the string.
+
+    @return time as a struct specifying a date, or a `DateParseError`.
+
+    This function parses a date string to a `Date` struct according to
+    the format string. The format string supports the following subset of
+    conventional format specifiers:
+        - %%: Percentage sign.
+        - %b or %B: English name of month, full or abbreviated.
+        - %d or %e: Day of month (1-31).
+        - %m: Month number (1-12).
+        - %n: Any whitespace.
+        - %Y: Year.
+*/
+constexpr std::expected<std::pair<Date, std::string_view>, DateParseStatus>
+parse_date(std::string_view input, std::string_view format)
+{
+    const auto results = detail::parse_date_time_impl(input, format);
+    if (!results.has_value())
+        return std::unexpected(results.error());
+
+    const auto& [date_time_, parse_state, output] = results.value();
+
+    const auto date = Date{
+        date_time_.year,
+        std::max(std::uint16_t(1), date_time_.mon),
+        std::max(std::uint16_t(1), date_time_.mday),
+    };
+
+    assert(date.is_valid());
+
+    return std::pair{date, output};
+}
+
+/**
+    @brief Parse a string representing a time of day to a struct.
+
+    @param input string to parse.
+    @param format string specifying the format of the string.
+
+    @return time as a struct specifying a time of day, or a `DateParseError`.
+
+    This function parses a date string to a `DateTime` struct according to
+    the format string. The format string supports the following subset of
+    conventional format specifiers:
+        - %%: Percentage sign.
+        - %H: Hour on 24-hour clock (0-23).
+        - %I: Hour on 12-hour clock (1-12).
+        - %M: Minute (0-59).
+        - %n: Any whitespace.
+        - %p: "AM" or "PM".
+        - %S: Second (0-60).
+*/
+constexpr std::expected<std::pair<TimeOfDay, std::string_view>, DateParseStatus>
+parse_time_of_day(std::string_view input, std::string_view format)
+{
+    const auto results = detail::parse_date_time_impl(input, format);
+    if (!results.has_value())
+        return std::unexpected(results.error());
+
+    const auto& [date_time, parse_state, output] = results.value();
+
+    assert(date_time.time_of_day().is_valid());
+
+    return std::pair{date_time.time_of_day(), output};
 }
 
 /**
@@ -830,10 +1022,10 @@ parse_time(std::string_view input, std::string_view format)
 
     @return UT1 time since the epoch in days.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 [[nodiscard]] constexpr double
-ut1_from_utc(Time time)
+ut1_from_utc(const DateTime& time)
 {
     assert(time.is_valid());
     return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(time));
@@ -853,14 +1045,14 @@ ut1_from_utc(Time time)
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 [[nodiscard]] constexpr std::expected<double, DateParseStatus>
 ut1_from_date(std::string_view date, std::string_view format)
 {
     assert(date.size() > 0);
     assert(format.size() > 0);
-    return parse_time(date, format)
+    return parse_date_time(date, format)
         .transform([&](auto val){ return ut1_from_utc<epoch>(val.first); });
 }
 
@@ -877,10 +1069,10 @@ ut1_from_date(std::string_view date, std::string_view format)
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 constexpr void
-ut1_interval(std::span<double> interval, const Time& start_time, const Time& end_time)
+ut1_interval(std::span<double> interval, const DateTime& start_time, const DateTime& end_time)
 {
     assert(start_time.is_valid());
     assert(end_time.is_valid());
@@ -898,10 +1090,10 @@ ut1_interval(std::span<double> interval, const Time& start_time, const Time& end
 
     @return Vector of UT1 time points in days relative to the epoch.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 constexpr std::vector<double>
-ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
+ut1_interval(const DateTime& start_time, const DateTime& end_time, std::size_t count)
 {
     assert(start_time.is_valid());
     assert(end_time.is_valid());
@@ -927,7 +1119,7 @@ ut1_interval(const Time& start_time, const Time& end_time, std::size_t count)
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 [[nodiscard]] constexpr DateParseStatus
 ut1_interval(
@@ -939,11 +1131,11 @@ ut1_interval(
     assert(format.size() > 0);
     if (interval.size() == 0) return DateParseStatus::success;
 
-    const auto start_res = parse_time(start_date, format);
+    const auto start_res = parse_date_time(start_date, format);
     if (!start_res.has_value())
         return start_res.error();
 
-    const Time start_time = (*start_res).first;
+    const DateTime start_time = (*start_res).first;
 
     if (interval.size() == 1)
     {
@@ -951,11 +1143,11 @@ ut1_interval(
         return DateParseStatus::success;
     }
 
-    const auto end_res = parse_time(end_date, format);
+    const auto end_res = parse_date_time(end_date, format);
     if (!end_res.has_value())
         return end_res.error();
 
-    const Time end_time = (*end_res).first;
+    const DateTime end_time = (*end_res).first;
 
     ut1_interval<epoch>(interval, start_time, end_time);
 }
@@ -977,7 +1169,7 @@ ut1_interval(
     specifiers. See documentation of the function `parse_time` for list of
     supported format specifiers.
 */
-template <Time epoch>
+template <DateTime epoch>
     requires (epoch.is_valid())
 [[nodiscard]] std::expected<std::vector<double>, DateParseStatus>
 ut1_interval(
@@ -1004,7 +1196,7 @@ ut1_interval(
     translates to a UTC time of 11:58:55.816 on January 1st, 2000 for the J2000
     epoch.
 */
-constexpr Time j2000_utc = {
+constexpr DateTime j2000_utc = {
     .year = 2000,
     .mon = 1,
     .mday = 1,
@@ -1017,7 +1209,7 @@ constexpr Time j2000_utc = {
 } // namespace zdm::time
 
 template <>
-struct std::formatter<zdm::time::Time, char>
+struct std::formatter<zdm::time::Date, char>
 {
     zdm::time::detail::DateParseStatusFlag flags{};
 
@@ -1028,7 +1220,43 @@ struct std::formatter<zdm::time::Time, char>
     }
 
     template <typename FmtContext>
-    FmtContext::iterator format(zdm::time::Time time, FmtContext& ctx) const
+    FmtContext::iterator format(zdm::time::Date time, FmtContext& ctx) const
+    {
+        std::format_to(ctx.out(), "{}-{:>2}-{:>2}", time.year, time.mon, time.mday);
+    }
+};
+
+template <>
+struct std::formatter<zdm::time::TimeOfDay, char>
+{
+    zdm::time::detail::DateParseStatusFlag flags{};
+
+    template <typename ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FmtContext>
+    FmtContext::iterator format(zdm::time::TimeOfDay time, FmtContext& ctx) const
+    {
+        std::format_to(ctx.out(), "{:>2}:{:>2}:{:>2}.{:>3}", time.hour, time.min, time.sec, time.msec);
+    }
+};
+
+template <>
+struct std::formatter<zdm::time::DateTime, char>
+{
+    zdm::time::detail::DateParseStatusFlag flags{};
+
+    template <typename ParseContext>
+    constexpr ParseContext::iterator parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template <typename FmtContext>
+    FmtContext::iterator format(zdm::time::DateTime time, FmtContext& ctx) const
     {
         std::format_to(ctx.out(), "{}-{:>2}-{:>2}T{:>2}:{:>2}:{:>2}.{:>3}", time.year, time.mon, time.mday, time.hour, time.min, time.sec, time.msec);
     }
