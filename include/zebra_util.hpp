@@ -21,13 +21,19 @@ SOFTWARE.
 */
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <concepts>
 #include <span>
 
+#include <zest/radial_zernike_recursion.hpp>
 #include <zest/real_sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
+#include <zest/zernike_expansion.hpp>
+#include <zest/sh_generator.hpp>
 
+#include "vector.hpp"
+#include "coordinate_transforms.hpp"
 #include "types.hpp"
 
 namespace zdm
@@ -123,6 +129,83 @@ private:
     size_type m_order = {};
     size_type m_extent = {};
 };
+
+[[nodiscard]] ZernikeExpansion
+from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, std::size_t order)
+{
+    if (points.size() != values.size())
+        throw std::runtime_error("Number of values differs from number of points");
+
+    std::vector<double> radii(points.size());
+    std::vector<double> colatitudes(points.size());
+    std::vector<double> longitudes(points.size());
+
+    for (std::size_t i = 0; i < points.size(); ++i)
+    {
+        const auto& [longitude, colatitude, radial] = coordinates::cartesian_to_spherical_phys(points[i]);
+        radii[i] = radial;
+        colatitudes[i] = colatitude;
+        longitudes[i] = longitude;
+    }
+
+    const double max_radius = *std::ranges::max_element(radii);
+
+    for (auto& radius : radii)
+        radius *= 1.0/max_radius;
+
+    std::vector<double> radial_zernike_buffer(zest::zt::RadialZernikeVecSpan<double, ZernikeExpansion::zernike_norm>::size(order));
+    zest::zt::RadialZernikeVecSpan<double, ZernikeExpansion::zernike_norm>
+    radial_zernike(radial_zernike_buffer.data(), order);
+
+    zest::zt::RadialZernikeRecursion(order).zernike(radii, radial_zernike);
+
+    zest::st::RealSHExpansionVector<ZernikeExpansion::sh_norm, ZernikeExpansion::sh_phase, double>
+    spherical_harmonics(order);
+
+    zest::st::RealSHGenerator().generate(longitudes, colatitudes, spherical_harmonics);
+
+    ZernikeExpansion expansion(order);
+
+    std::vector<double> partial_integrand(points.size());
+
+    const double prefactor = (4.0*std::numbers::pi/(3.0*double(points.size())));
+    for (std::size_t n : expansion.indices())
+    {
+        auto radial_zernike_n = radial_zernike[n];
+        auto expansion_n = expansion[n];
+        for (std::size_t l : expansion_n.indices())
+        {
+            auto radial_zernike_nl = radial_zernike_n[l];
+            for (std::size_t i = 0; i < points.size(); ++i)
+                partial_integrand = values[i]*radial_zernike_nl[i];
+
+            auto spherical_harmonics_l = spherical_harmonics[l];
+            auto expansion_nl = expansion_n[l];
+            for (std::size_t m : expansion_nl.indices())
+            {
+                auto spherical_harmonics_lm = spherical_harmonics_l[m];
+                std::array<double, 2>& expansion_nlm = expansion_nl[m];
+                for (std::size_t i = 0; i < points.size(); ++i)
+                {
+                    expansion_nlm[0] += partial_integrand[i]*spherical_harmonics_lm[0,i];
+                    expansion_nlm[1] += partial_integrand[i]*spherical_harmonics_lm[1,i];
+                }
+                expansion_nlm[0] *= prefactor;
+                expansion_nlm[1] *= prefactor;
+            }
+        }
+    }
+
+    return expansion;
+}
+
+[[nodiscard]] ZernikeExpansion
+from_triangulation(
+    std::span<la::Vector<double, 3>> points, std::span<std::array<std::size_t, 4>> simplices,
+    std::span<double> values, std::size_t order)
+{
+
+}
 
 namespace zebra
 {
