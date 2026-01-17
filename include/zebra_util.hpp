@@ -25,7 +25,7 @@ SOFTWARE.
 #include <concepts>
 #include <span>
 
-#include <zest/real_sh_expansion.hpp>
+#include <zest/sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
 #include "types.hpp"
@@ -37,7 +37,7 @@ namespace zdm
     @brief Container that packs multiple spherical harmonic expansions of the
     same order into one buffer.
 */
-class SHExpansionVector
+class SHExpansionVectorDeprecated
 {
 public:
     using element_type = std::array<double, 2>;
@@ -147,7 +147,7 @@ public:
     */
     template <std::regular_invocable<double, double, double> RespType>
     void transform(
-        const RespType& resp, std::span<const double> shells, SHExpansionVectorSpan<std::array<double, 2>> out)
+        const RespType& resp, std::span<const double> shells, SHVectorSpan<double> out)
     {
         for (std::size_t i = 0; i < shells.size(); ++i)
         {

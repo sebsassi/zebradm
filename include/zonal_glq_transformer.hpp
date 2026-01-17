@@ -26,8 +26,8 @@ SOFTWARE.
 
 #include <zest/gauss_legendre.hpp>
 #include <zest/md_span.hpp>
-#include <zest/real_sh_expansion.hpp>
 #include <zest/sh_conventions.hpp>
+#include <zest/sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
 #include "legendre.hpp"
@@ -52,22 +52,26 @@ public:
     ZonalGLQTransformer() = default;
     explicit ZonalGLQTransformer(std::size_t order):
         m_glq_nodes(zest::gl::PackedLayout::size(GridLayout::lat_size(order))),
-        m_glq_weights(zest::gl::PackedLayout::size(GridLayout::lat_size(order))), m_leg_grid(order*GridLayout::lat_size(order)), m_longitudinal_average(GridLayout::lat_size(order)), m_order(order)
+        m_glq_weights(zest::gl::PackedLayout::size(GridLayout::lat_size(order))),
+        m_leg_grid(order*GridLayout::lat_size(order)),
+        m_longitudinal_average(GridLayout::lat_size(order)),
+        m_order(order)
     {
         zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, GridLayout::lat_size(order) & 1);
-        
+
+        zest::DynamicMDSpan<double, 2> leg{m_leg_grid, m_glq_nodes.size(), order};
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
         {
             const double z = m_glq_nodes[i];
-            std::span leg = std::span(m_leg_grid.data() + i*order, order);
-            legendre_recursion(leg, z);
+            auto leg_i = leg[i];
+            legendre_recursion(std::span<double>(leg_i), z);
             for (std::size_t l = 0; l < order; ++l)
             {
                 if constexpr (sh_norm_param == zest::st::SHNorm::qm)
-                    leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
+                    leg_i[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
-                    leg[l] *= std::sqrt(double(2*l + 1));
+                    leg_i[l] *= std::sqrt(double(2*l + 1));
             }
         }
     }
@@ -80,20 +84,22 @@ public:
         m_glq_weights.resize(zest::gl::PackedLayout::size(GridLayout::lat_size(order)));
         m_leg_grid.resize(order*GridLayout::lat_size(order));
         m_longitudinal_average.resize(GridLayout::lat_size(order));
+
         zest::gl::gl_nodes_and_weights<zest::gl::PackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, GridLayout::lat_size(order) & 1);
-        
+
+        zest::DynamicMDSpan<double, 2> leg{m_leg_grid, m_glq_nodes.size(), order};
         for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
         {
             const double z = m_glq_nodes[i];
-            std::span leg = std::span(m_leg_grid.data() + i*order, order);
-            legendre_recursion(leg, z);
+            auto leg_i = leg[i];
+            legendre_recursion(std::span<double>(leg_i), z);
             for (std::size_t l = 0; l < order; ++l)
             {
                 if constexpr (sh_norm_param == zest::st::SHNorm::qm)
-                    leg[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
+                    leg_i[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
-                    leg[l] *= std::sqrt(double(2*l + 1));
+                    leg_i[l] *= std::sqrt(double(2*l + 1));
             }
         }
 
@@ -116,27 +122,27 @@ public:
 
         if constexpr (std::same_as<GridLayout, zest::st::LatLonLayout<typename GridLayout::Alignment>>)
         {
-            for (std::size_t i = 0; i < values.shape()[lat_axis]; ++i)
+            for (std::size_t i = 0; i < values.extent(lat_axis); ++i)
             {
-                zest::MDSpan<const double, 1> values_i = values[i];
+                auto values_i = values[i];
                 m_longitudinal_average[i] = 0.0;
-                for (std::size_t j = 0; j < values.shape()[lon_axis]; ++j)
+                for (std::size_t j = 0; j < values.extent(lon_axis); ++j)
                     m_longitudinal_average[i] += values_i[j];
             }
         }
         else if constexpr (std::same_as<GridLayout, zest::st::LonLatLayout<typename GridLayout::Alignment>>)
         {
             std::ranges::fill(m_longitudinal_average, 0.0);
-            for (std::size_t i = 0; i < values.shape()[lon_axis]; ++i)
+            for (std::size_t i = 0; i < values.extent(lon_axis); ++i)
             {
-                zest::MDSpan<const double, 1> values_i = values[i];
-                for (std::size_t j = 0; j < values.shape()[lat_axis]; ++j)
+                auto values_i = values[i];
+                for (std::size_t j = 0; j < values.extent(lat_axis); ++j)
                     m_longitudinal_average[j] += values_i[j];
             }
         }
 
         constexpr double sh_normalization = zest::st::normalization<sh_norm_param>();
-        const double prefactor = sh_normalization*(2.0*std::numbers::pi)/double(values.shape()[lon_axis]);
+        const double prefactor = sh_normalization*(2.0*std::numbers::pi)/double(values.extent(lon_axis));
 
         for (auto& element : m_longitudinal_average)
             element *= prefactor;
@@ -163,12 +169,15 @@ public:
         const std::array<double, 2> weighted_l = {
             weighted[lparity], weighted[lparity ^ 1]
         };
-        std::span leg(m_leg_grid.data(), m_order);
-        expansion[0] += double(lparity)*weighted[0]*leg[0];
+
+        zest::DynamicMDSpan<const double, 2> leg{m_leg_grid, num_unique_nodes, m_order};
+
+        auto leg_0 = leg[0];
+        expansion[0] += double(lparity)*weighted[0]*leg_0[0];
         for (std::size_t l = lparity; l < min_order; l += 2)
         {
-            expansion[l] += weighted_l[0]*leg[l];
-            expansion[l + 1] += weighted_l[1]*leg[l + 1];
+            expansion[l] += weighted_l[0]*leg_0[l];
+            expansion[l + 1] += weighted_l[1]*leg_0[l + 1];
         }
 
         for (std::size_t i = 1; i < num_unique_nodes; ++i)
@@ -184,12 +193,12 @@ public:
             const std::array<double, 2> weighted_l = {
                 weighted[lparity], weighted[lparity ^ 1]
             };
-            std::span leg(m_leg_grid.data() + i*m_order, m_order);
-            expansion[0] += double(lparity)*weighted[0]*leg[0];
+            auto leg_i = leg[i];
+            expansion[0] += double(lparity)*weighted[0]*leg_i[0];
             for (std::size_t l = lparity; l < min_order; l += 2)
             {
-                expansion[l] += weighted_l[0]*leg[l];
-                expansion[l + 1] += weighted_l[1]*leg[l + 1];
+                expansion[l] += weighted_l[0]*leg_i[l];
+                expansion[l + 1] += weighted_l[1]*leg_i[l + 1];
             }
         }
     }
@@ -213,7 +222,7 @@ private:
     std::vector<double> m_glq_weights;
     std::vector<double> m_leg_grid;
     std::vector<double> m_longitudinal_average;
-    std::size_t m_order;
+    std::size_t m_order{};
 };
 
 } // namespace zdm::zebra

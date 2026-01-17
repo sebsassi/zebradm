@@ -22,8 +22,8 @@ SOFTWARE.
 #pragma once
 
 #include <array>
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
 #include "concepts.hpp"
 #include "linalg.hpp"

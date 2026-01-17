@@ -53,7 +53,7 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
 }
 
 double IsotropicAngleIntegratorCore::integrate(
-    ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
+    ZernikeSpan<const double> rotated_geg_zernike_exp,
     double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
@@ -75,8 +75,8 @@ double IsotropicAngleIntegratorCore::integrate(
 }
 
 std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
-    ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
-    ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
+    ZernikeSpan<const double> rotated_geg_zernike_exp,
+    ZernikeSpan<const double> rotated_trans_geg_zernike_exp,
     double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
@@ -153,8 +153,8 @@ void AnisotropicAngleIntegratorCore::resize(
 {
     m_rotor.expand(std::max(geg_order, resp_order));
     m_glq_transformer.resize(top_order);
-    m_rotated_response_exp.resize(resp_order);
-    m_rotated_response_grid.resize(top_order);
+    m_rotated_response_exp.reshape(resp_order);
+    m_rotated_response_grid.reshape(top_order);
 
     m_aff_leg_integrals.resize(geg_order, resp_order);
     m_aff_leg_ylm_integrals.resize(
@@ -165,13 +165,13 @@ void AnisotropicAngleIntegratorCore::resize(
             = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 
     m_zonal_transformer.resize(top_order);
-    m_rotated_grid.resize(top_order);
+    m_rotated_grid.reshape(top_order);
     m_rotated_exp.resize(top_order);
 }
 
 double AnisotropicAngleIntegratorCore::integrate(
-    SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
-    zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
+    zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
+    SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
@@ -193,7 +193,7 @@ double AnisotropicAngleIntegratorCore::integrate(
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.extent();
+    const std::size_t geg_order = rotated_geg_zernike_grids.order();
     const std::size_t resp_order = response_exp.order();
     TrapezoidSpan<double> aff_leg_ylm_integrals
         = evaluate_aff_leg_ylm_integrals(
@@ -219,9 +219,9 @@ double AnisotropicAngleIntegratorCore::integrate(
 
 
 std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
-    SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
-    SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
-    zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
+    zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
+    zest::st::SphereGLQGridVectorSpan<double> rotated_trans_geg_zernike_grids,
+    SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
@@ -243,8 +243,8 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.extent();
-    const std::size_t trans_geg_order = rotated_trans_geg_zernike_grids.extent();
+    const std::size_t geg_order = rotated_geg_zernike_grids.order();
+    const std::size_t trans_geg_order = rotated_trans_geg_zernike_grids.order();
     const std::size_t resp_order = response_exp.order();
     TrapezoidSpan<double> aff_leg_ylm_integrals
         = evaluate_aff_leg_ylm_integrals(

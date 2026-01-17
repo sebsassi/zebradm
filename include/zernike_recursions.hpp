@@ -21,7 +21,6 @@ SOFTWARE.
 */
 #pragma once
 
-#include <array>
 #include <vector>
 
 #include "types.hpp"
@@ -65,7 +64,7 @@ public:
 private:
     std::vector<double> m_sqrt_n; // sqrt(n)
     std::vector<double> m_inv_sqrt_2np1_2np3; // 1/sqrt((2*n + 1)*(2*n + 3))
-    std::size_t m_order;
+    std::size_t m_order{};
 };
 
 /**
@@ -79,7 +78,7 @@ private:
 */
 void multiply_by_x(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `y`.
@@ -92,7 +91,7 @@ void multiply_by_x(
 */
 void multiply_by_y(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `z`.
@@ -105,7 +104,7 @@ void multiply_by_y(
 */
 void multiply_by_z(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Multiply Zernike expansion by `r*r`.
@@ -118,7 +117,7 @@ void multiply_by_z(
 */
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the resulting expansion coefficients.
@@ -131,7 +130,7 @@ void multiply_by_r2(
 */
 void multiply_by_x_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the resulting expansion coefficients.
@@ -144,7 +143,7 @@ void multiply_by_x_and_radon_transform_inplace(
 */
 void multiply_by_y_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the resulting expansion coefficients.
@@ -157,7 +156,7 @@ void multiply_by_y_and_radon_transform_inplace(
 */
 void multiply_by_z_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the resulting expansion coefficients.
@@ -170,7 +169,7 @@ void multiply_by_z_and_radon_transform_inplace(
 */
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 class ZernikeCoordinateMultiplier
 {
@@ -188,9 +187,7 @@ public:
 
     @note This function expects `in.order() < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
     */
-    void multiply_by_x(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+    void multiply_by_x(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `y`.
@@ -200,9 +197,7 @@ public:
 
     @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
     */
-    void multiply_by_y(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+    void multiply_by_y(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `z`.
@@ -212,9 +207,7 @@ public:
 
     @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
     */
-    void multiply_by_z(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+    void multiply_by_z(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `r*r`.
@@ -224,9 +217,7 @@ public:
 
     @note This function expects `in.order() + 1 < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
     */
-    void multiply_by_r2(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+    void multiply_by_r2(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the resulting expansion coefficients.
@@ -237,8 +228,7 @@ public:
     @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_x_and_radon_transform_inplace(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+        ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the resulting expansion coefficients.
@@ -250,8 +240,7 @@ public:
     @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_y_and_radon_transform_inplace(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+        ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the resulting expansion coefficients.
@@ -262,8 +251,7 @@ public:
     @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_z_and_radon_transform_inplace(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+        ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
     @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the resulting expansion coefficients.
@@ -274,8 +262,7 @@ public:
     @note This function expects `in.order() + 3 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_r2_and_radon_transform_inplace(
-        ZernikeExpansionSpan<const std::array<double, 2>> in, ZernikeExpansionSpan<std::array<double, 2>> out
-    ) const noexcept;
+        ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
 private:
     ZernikeRecursionData m_coeff_data;

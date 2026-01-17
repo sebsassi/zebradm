@@ -67,90 +67,90 @@ void AffineLegendreRecursion::expand(std::size_t max_order)
 }
 
 void AffineLegendreRecursion::evaluate_affine(
-    zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift, double scale)
+    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift, double scale)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());
 
-    expansion(0, 0) = 1.0;
+    expansion[0, 0] = 1.0;
     if (expansion.order() == 1) return;
 
-    expansion(1, 0) = shift;
-    expansion(1, 1) = scale;
+    expansion[1, 0] = shift;
+    expansion[1, 1] = scale;
     for (std::size_t n = 2; n < expansion.order(); ++n)
     {
-        expansion(n, 0) = m_a[n]*shift*expansion(n - 1, 0)
-                - m_b[n]*expansion(n - 2, 0)
-                + m_a[n]*(1.0/3.0)*scale*expansion(n - 1, 1);
+        expansion[n, 0] = m_a[n]*shift*expansion[n - 1, 0]
+                - m_b[n]*expansion[n - 2, 0]
+                + m_a[n]*(1.0/3.0)*scale*expansion[n - 1, 1];
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
-            expansion(n, l) = m_a[n]*shift*expansion(n - 1, l)
+            expansion[n, l] = m_a[n]*shift*expansion[n - 1, l]
                     - m_b[n]*expansion(n - 2, l)
-                    + m_a[n]*m_c[l]*scale*expansion(n - 1, l + 1)
-                    + m_a[n]*m_d[l]*scale*expansion(n - 1, l - 1);
+                    + m_a[n]*m_c[l]*scale*expansion[n - 1, l + 1]
+                    + m_a[n]*m_d[l]*scale*expansion[n - 1, l - 1];
         }
 
-        expansion(n, n - 1) = m_a[n]*shift*expansion(n - 1, n - 1)
-                + m_a[n]*m_d[n - 1]*scale*expansion(n - 1, n - 2);
-        expansion(n, n) = scale*expansion(n - 1, n - 1);
+        expansion[n, n - 1] = m_a[n]*shift*expansion[n - 1, n - 1]
+                + m_a[n]*m_d[n - 1]*scale*expansion[n - 1, n - 2];
+        expansion[n, n] = scale*expansion[n - 1, n - 1];
     }
 }
 
 void AffineLegendreRecursion::evaluate_shifted(
-    zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift)
+    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());
 
-    expansion(0, 0) = 1.0;
+    expansion[0, 0] = 1.0;
     if (expansion.order() == 1) return;
 
-    expansion(1, 0) = shift;
-    expansion(1, 1) = 1.0;
+    expansion[1, 0] = shift;
+    expansion[1, 1] = 1.0;
     for (std::size_t n = 2; n < expansion.order(); ++n)
     {
-        expansion(n, 0) = m_a[n]*shift*expansion(n - 1, 0)
+        expansion[n, 0] = m_a[n]*shift*expansion[n - 1, 0]
                 - m_b[n]*expansion(n - 2, 0)
-                + m_a[n]*(1.0/3.0)*expansion(n - 1, 1);
+                + m_a[n]*(1.0/3.0)*expansion[n - 1, 1];
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
-            expansion(n, l) = m_a[n]*shift*expansion(n - 1, l)
-                    - m_b[n]*expansion(n - 2, l)
-                    + m_a[n]*m_c[l]*expansion(n - 1, l + 1)
-                    + m_a[n]*m_d[l]*expansion(n - 1, l - 1);
+            expansion[n, l] = m_a[n]*shift*expansion[n - 1, l]
+                    - m_b[n]*expansion[n - 2, l]
+                    + m_a[n]*m_c[l]*expansion[n - 1, l + 1]
+                    + m_a[n]*m_d[l]*expansion[n - 1, l - 1];
         }
 
-        expansion(n, n - 1) = m_a[n]*shift*expansion(n - 1, n - 1)
-                + m_a[n]*m_d[n - 1]*expansion(n - 1, n - 2);
-        expansion(n, n) = expansion(n - 1, n - 1);
+        expansion[n, n - 1] = m_a[n]*shift*expansion[n - 1, n - 1]
+                + m_a[n]*m_d[n - 1]*expansion[n - 1, n - 2];
+        expansion[n, n] = expansion[n - 1, n - 1];
     }
 }
 
 void AffineLegendreRecursion::evaluate_scaled(
-    zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double scale)
+    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double scale)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());
 
     std::ranges::fill(expansion.flatten(), 0.0);
-    expansion(0, 0) = 1.0;
+    expansion[0, 0] = 1.0;
     if (expansion.order() == 1) return;
 
-    expansion(1, 1) = scale;
+    expansion[1, 1] = scale;
     for (std::size_t n = 2; n < expansion.order(); ++n)
     {
-        expansion(n, 0) = m_a[n]*(1.0/3.0)*scale*expansion(n - 1, 1)
-                - m_b[n]*expansion(n - 2, 0);
+        expansion[n, 0] = m_a[n]*(1.0/3.0)*scale*expansion[n - 1, 1]
+                - m_b[n]*expansion[n - 2, 0];
 
         const std::size_t lmin = 1 + ((n & 1) ^ 1);
         for (std::size_t l = lmin; l <= n - 2; l += 2)
         {
-            expansion(n, l) = m_a[n]*m_c[l]*scale*expansion(n - 1, l + 1)
-                    + m_a[n]*m_d[l]*scale*expansion(n - 1, l - 1)
-                    - m_b[n]*expansion(n - 2, l);
+            expansion[n, l] = m_a[n]*m_c[l]*scale*expansion[n - 1, l + 1]
+                    + m_a[n]*m_d[l]*scale*expansion[n - 1, l - 1]
+                    - m_b[n]*expansion[n - 2, l];
         }
 
-        expansion(n, n) = scale*expansion(n - 1, n - 1);
+        expansion[n, n] = scale*expansion[n - 1, n - 1];
     }
 }
 

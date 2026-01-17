@@ -32,7 +32,7 @@ namespace zdm::zebra
 {
 
 void legendre_recursion_vec(
-    zest::MDSpan<double, 2> legendre, std::span<double> x);
+    zest::DynamicMDSpan<double, 2> legendre, std::span<double> x);
 
 void legendre_recursion(std::span<double> legendre, double x);
 

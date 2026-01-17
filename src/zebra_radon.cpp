@@ -30,11 +30,9 @@ SOFTWARE.
 namespace zdm::zebra
 {
 
-void radon_transform(
-    ZernikeExpansionSpan<const std::array<double, 2>> in,
-    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept
+void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
-    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeSpan<const double>::shape_type::zernike_norm;
 
     assert(!util::have_overlap(in.flatten(), out.flatten()));
     assert(in.order() + 2 == out.order());
@@ -43,23 +41,28 @@ void radon_transform(
 
     if (in_order == 0) return;
 
-    out(0,0,0) = {
-        util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[0],
-        util::geg_rec_coeff<zernike_norm>(0)*in(0,0,0)[1]
-    };
+    const double coeff_0 = util::geg_rec_coeff<zernike_norm>(0);
+    out[0, 0, 0, 0] = coeff_0*in[0, 0, 0, 0];
+    out[0, 0, 0, 1] = coeff_0*in[0, 0, 0, 0];
 
     if (in_order > 1)
     {
-        const double coeff = util::geg_rec_coeff<zernike_norm>(1);
-        out(1,1,0) = {coeff*in(1,1,0)[0], coeff*in(1,1,0)[1]};
-        out(1,1,1) = {coeff*in(1,1,1)[0], coeff*in(1,1,1)[1]};
+        const double coeff_1 = util::geg_rec_coeff<zernike_norm>(1);
+        out[1, 1, 0, 0] = coeff_1*in[1, 1, 0, 0];
+        out[1, 1, 0, 1] = coeff_1*in[1, 1, 0, 1];
+        out[1, 1, 1, 0] = coeff_1*in[1, 1, 1, 0];
+        out[1, 1, 1, 1] = coeff_1*in[1, 1, 1, 1];
     }
     else
     {
-        out(2,0,0) = {(-util::geg_rec_coeff<zernike_norm>(0))*in(0,0,0)[0], (-util::geg_rec_coeff<zernike_norm>(0))*in(0,0,0)[1]};
-        out(2,2,0) = std::array<double, 2>{};
-        out(2,2,1) = std::array<double, 2>{};
-        out(2,2,2) = std::array<double, 2>{};
+        out[2, 0, 0, 0] = -coeff_0*in[0, 0, 0, 0];
+        out[2, 0, 0, 1] = -coeff_0*in[0, 0, 0, 1];
+        out[2, 2, 0, 0] = 0.0;
+        out[2, 2, 0, 1] = 0.0;
+        out[2, 2, 1, 0] = 0.0;
+        out[2, 2, 1, 1] = 0.0;
+        out[2, 2, 2, 0] = 0.0;
+        out[2, 2, 2, 1] = 0.0;
         return;
     }
 
@@ -78,8 +81,8 @@ void radon_transform(
             auto in_nm2_l = in_nm2[l];
             for (std::size_t m = 0; m <= l; ++m)
             {
-                out_n_l[m][0] = coeff_n*in_n_l[m][0] + coeff_nm2*in_nm2_l[m][0];
-                out_n_l[m][1] = coeff_n*in_n_l[m][1] + coeff_nm2*in_nm2_l[m][1];
+                out_n_l[m, 0] = coeff_n*in_n_l[m, 0] + coeff_nm2*in_nm2_l[m, 0];
+                out_n_l[m, 1] = coeff_n*in_n_l[m, 1] + coeff_nm2*in_nm2_l[m, 1];
             }
         }
 
@@ -87,8 +90,8 @@ void radon_transform(
         auto in_n_n = in_n[n];
         for (std::size_t m = 0; m <= n; ++m)
         {
-            out_n_n[m][0] = coeff_n*in_n_n[m][0];
-            out_n_n[m][1] = coeff_n*in_n_n[m][1];
+            out_n_n[m, 0] = coeff_n*in_n_n[m, 0];
+            out_n_n[m, 1] = coeff_n*in_n_n[m, 1];
         }
     }
 
@@ -104,21 +107,24 @@ void radon_transform(
             auto in_nm2_l = in_nm2[l];
             for (std::size_t m = 0; m <= l; ++m)
             {
-                out_n_l[m][0] = coeff_nm2*in_nm2_l[m][0];
-                out_n_l[m][1] = coeff_nm2*in_nm2_l[m][1];
+                out_n_l[m, 0] = coeff_nm2*in_nm2_l[m, 0];
+                out_n_l[m, 1] = coeff_nm2*in_nm2_l[m, 1];
             }
         }
 
         auto out_n_n = out_n[n];
         for (std::size_t m = 0; m <= n; ++m)
-            out_n_n[m] = std::array<double, 2>{};
+        {
+            out_n_n[m, 0] = 0.0;
+            out_n_n[m, 1] = 0.0;
+        }
     }
 }
 
 void radon_transform_inplace(
-    ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept
+    ZernikeSpan<double> exp) noexcept
 {
-    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeExpansionSpan<const std::array<double, 2>>::zernike_norm;
+    constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeSpan<const double>::shape_type::zernike_norm;
 
     const std::size_t order = exp.order();
 
@@ -136,14 +142,18 @@ void radon_transform_inplace(
             auto exp_nm2_l = exp_nm2[l];
             for (std::size_t m = 0; m <= l; ++m)
             {
-                exp_n_l[m][0] = coeff_nm2*exp_nm2_l[m][0];
-                exp_n_l[m][1] = coeff_nm2*exp_nm2_l[m][1];
+                exp_n_l[m, 0] = coeff_nm2*exp_nm2_l[m, 0];
+                exp_n_l[m, 1] = coeff_nm2*exp_nm2_l[m, 1];
             }
         }
 
         auto out_n_n = exp_n[n];
         for (std::size_t m = 0; m <= n; ++m)
-            out_n_n[m] = std::array<double, 2>{};
+        {
+            out_n_n[m, 0] = 0.0;
+            out_n_n[m, 1] = 0.0;
+
+        }
     }
 
     for (std::size_t n = std::max(order - 3, 1UL); n > 1; --n)
@@ -159,27 +169,28 @@ void radon_transform_inplace(
             auto exp_nm2_l = exp_nm2[l];
             for (std::size_t m = 0; m <= l; ++m)
             {
-                exp_n_l[m][0] = coeff_n*exp_n_l[m][0] + coeff_nm2*exp_nm2_l[m][0];
-                exp_n_l[m][1] = coeff_n*exp_n_l[m][1] + coeff_nm2*exp_nm2_l[m][1];
+                exp_n_l[m, 0] = coeff_n*exp_n_l[m, 0] + coeff_nm2*exp_nm2_l[m, 0];
+                exp_n_l[m, 1] = coeff_n*exp_n_l[m, 1] + coeff_nm2*exp_nm2_l[m, 1];
             }
         }
 
         auto exp_n_n = exp_n[n];
         for (std::size_t m = 0; m <= n; ++m)
         {
-            exp_n_n[m][0] = coeff_n*exp_n_n[m][0];
-            exp_n_n[m][1] = coeff_n*exp_n_n[m][1];
+            exp_n_n[m, 0] = coeff_n*exp_n_n[m, 0];
+            exp_n_n[m, 1] = coeff_n*exp_n_n[m, 1];
         }
     }
 
-    const double coeff = util::geg_rec_coeff<zernike_norm>(1);
-    exp(1,1,0) = {coeff*exp(1,1,0)[0], coeff*exp(1,1,0)[1]};
-    exp(1,1,1) = {coeff*exp(1,1,1)[0], coeff*exp(1,1,1)[1]};
+    const double coeff_1 = util::geg_rec_coeff<zernike_norm>(1);
+    exp[1, 1, 0, 0] = coeff_1*exp[1, 1, 0, 0];
+    exp[1, 1, 0, 1] = coeff_1*exp[1, 1, 0, 1];
+    exp[1, 1, 1, 0] = coeff_1*exp[1, 1, 1, 0];
+    exp[1, 1, 1, 1] = coeff_1*exp[1, 1, 1, 1];
 
-    exp(0,0,0) = {
-        util::geg_rec_coeff<zernike_norm>(0)*exp(0,0,0)[0],
-        util::geg_rec_coeff<zernike_norm>(0)*exp(0,0,0)[1]
-    };
+    const double coeff_0 = util::geg_rec_coeff<zernike_norm>(0);
+    exp[0, 0, 0, 0] = coeff_0*exp[0, 0, 0, 0];
+    exp[0, 0, 0, 1] = coeff_0*exp[0, 0, 0, 1];
 }
 
 } // namespace zdm::zebra

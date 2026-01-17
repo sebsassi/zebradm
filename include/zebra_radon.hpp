@@ -21,8 +21,6 @@ SOFTWARE.
 */
 #pragma once
 
-#include <array>
-
 #include <zest/zernike_expansion.hpp>
 
 #include "types.hpp"
@@ -46,9 +44,7 @@ namespace zdm::zebra
     g_{nlm} = \frac{f_{nlm}}{2n + 3} - \frac{f_{n-2,lm}}{2n - 1}.
     @f]
 */
-void radon_transform(
-    ZernikeExpansionSpan<const std::array<double, 2>> in,
-    ZernikeExpansionSpan<std::array<double, 2>> out) noexcept;
+void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
     @brief Apply the Radon transform onto a Zernike expansion.
@@ -65,7 +61,6 @@ void radon_transform(
     g_{nlm} = \frac{f_{nlm}}{2n + 3} - \frac{f_{n-2,lm}}{2n - 1}.
     @f]
 */
-void radon_transform_inplace(
-    ZernikeExpansionSpan<std::array<double, 2>> exp) noexcept;
+void radon_transform_inplace(ZernikeSpan<double> exp) noexcept;
 
 } // namespace zdm::zebra

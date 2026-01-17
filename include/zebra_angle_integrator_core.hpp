@@ -24,8 +24,8 @@ SOFTWARE.
 #include <array>
 #include <vector>
 
-#include <zest/real_sh_expansion.hpp>
 #include <zest/rotor.hpp>
+#include <zest/sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
 #include "vector.hpp"
@@ -48,12 +48,11 @@ public:
     void resize(std::size_t geg_order);
 
     [[nodiscard]] double integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
-        double offset_len, double shell);
+        ZernikeSpan<const double> rotated_geg_zernike_exp, double offset_len, double shell);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        ZernikeExpansionSpan<const std::array<double, 2>> rotated_geg_zernike_exp,
-        ZernikeExpansionSpan<const std::array<double, 2>> rotated_trans_geg_zernike_exp,
+        ZernikeSpan<const double> rotated_geg_zernike_exp,
+        ZernikeSpan<const double> rotated_trans_geg_zernike_exp,
         double offset_len, double shell);
 
 private:
@@ -81,15 +80,15 @@ public:
         std::size_t geg_order, std::size_t resp_order, std::size_t top_order);
 
     [[nodiscard]] double integrate(
-        SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
-        zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
+        zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
+        SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_geg_zernike_grids,
-        SuperSpan<zest::st::SphereGLQGridSpan<double>> rotated_trans_geg_zernike_grids,
-        zest::st::RealSHSpanGeo<const std::array<double, 2>> response_exp,
+        zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<double> rotated_trans_geg_zernike_grids,
+        SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
@@ -99,7 +98,7 @@ private:
 
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    zest::st::RealSHExpansionGeo m_rotated_response_exp;
+    SHExpansion m_rotated_response_exp;
     zest::st::SphereGLQGrid<double> m_rotated_response_grid;
 
     AffineLegendreIntegrals m_aff_leg_integrals;

@@ -51,7 +51,7 @@ concept parametric_rigid_transform
     = std::same_as<RigidTransformType,
         la::RigidTransform<
             typename RigidTransformType::value_type,
-            std::tuple_size_v<typename la::RigidTransform::vector_type>,
+            std::tuple_size_v<typename RigidTransformType::vector_type>,
             RigidTransformType::action, RigidTransformType::matrix_layout
         >
     >

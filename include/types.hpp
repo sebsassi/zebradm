@@ -21,46 +21,51 @@ SOFTWARE.
 */
 #pragma once
 
-#include <zest/real_sh_expansion.hpp>
+#include <zest/sh_expansion.hpp>
 #include <zest/zernike_expansion.hpp>
-
-#include "multi_span.hpp"
 
 namespace zdm
 {
 
 /**
-    @brief Alias for `zest::st::RealSHExpansionGeo`
+    @brief Alias
 */
-using SHExpansion = zest::st::RealSHExpansionGeo;
+using SHExpansion = zest::st::SHExpansionGeo<double, zest::IndexingMode::zero_based>;
 
 /**
-    @brief Alias for `zest::st::RealSHZernikeExpansionGeo`
-*/
-using ZernikeExpansion = zest::zt::RealZernikeExpansionNormalGeo;
-
-/**
-    @brief Alias for `zest::st::RealSHSpanGeo<ElementType>`
+    @brief Alias
 
     @tparam ElementType
 */
-template <typename ElementType>
-using SHExpansionSpan = zest::st::RealSHSpanGeo<ElementType>;
+template <std::floating_point ElementType>
+using SHSpan = zest::st::SHSpanGeo<ElementType, zest::IndexingMode::zero_based>;
 
 /**
-    @brief Alias for `zest::st::SuperSpan<SHExpansionSpan<ElementType>>`
+    @brief Alias
+*/
+using ZernikeExpansion = zest::zt::ZernikeExpansionNormalGeo<double, zest::IndexingMode::zero_based>;
+
+/**
+    @brief Alias
 
     @tparam ElementType
 */
-template <typename ElementType>
-using SHExpansionVectorSpan = SuperSpan<SHExpansionSpan<ElementType>>;
+template <std::floating_point ElementType>
+using ZernikeSpan = zest::zt::ZernikeSpanNormalGeo<ElementType, zest::IndexingMode::zero_based>;
 
 /**
-    @brief Alias for `zest::st::RealZernikeSpanNormalGeo<ElementType>`
+    @brief Alias
 
     @tparam ElementType
 */
-template <typename ElementType>
-using ZernikeExpansionSpan = zest::zt::RealZernikeSpanNormalGeo<ElementType>;
+using SHExpansionVector = zest::st::SHExpansionVectorGeo<double, zest::IndexingMode::zero_based>;
+
+/**
+    @brief Alias
+
+    @tparam ElementType
+*/
+template <std::floating_point ElementType>
+using SHVectorSpan = zest::st::SHVectorSpanGeo<ElementType, zest::IndexingMode::zero_based>;
 
 } // namespace zdm
