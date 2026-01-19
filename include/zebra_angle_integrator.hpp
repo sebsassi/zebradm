@@ -305,7 +305,7 @@ public:
     */
     void integrate(
         ZernikeSpan<const double> distribution, std::span<const la::Vector<double, 3>> offsets,
-        std::span<const double> shells, zest::MDSpan<std::array<double, 2>, 2> out);
+        std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out);
 
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a

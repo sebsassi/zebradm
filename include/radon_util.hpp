@@ -91,19 +91,15 @@ constexpr void fmadd(
 
 // multiply `c` and `b` and add to `a`: `a += b*c`
 constexpr void fmadd(
-    std::array<double, 2>* RESTRICT a, double b, const std::array<double, 2>* c,
-    std::size_t size) noexcept
+    double* RESTRICT a, double b, const double* c, std::size_t size) noexcept
 {
     for (std::size_t i = 0; i < size; ++i)
-    {
-        a[i][0] += b*c[i][0];
-        a[i][1] += b*c[i][1];
-    }
+        a[i] += b*c[i];
 }
 
 // multiply `c` and `b` and add to `a`: `a += b*c`
 constexpr void fmadd(
-    std::span<std::array<double, 2>> a, double b, std::span<const std::array<double, 2>> c) noexcept
+    std::span<double> a, double b, std::span<const double> c) noexcept
 {
     assert(!have_overlap(a, c));
     const std::size_t size = std::min(a.size(), c.size());

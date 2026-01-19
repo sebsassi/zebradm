@@ -273,7 +273,7 @@ void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
 void IsotropicTransverseAngleIntegrator::integrate(
     ZernikeSpan<const double> distribution,
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
-    zest::MDSpan<std::array<double, 2>, 2> out)
+    zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
