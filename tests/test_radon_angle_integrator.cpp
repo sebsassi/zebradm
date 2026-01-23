@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "radon_integrator.hpp"
+
+#include <zest/md_array.hpp>
 
 double angle_integrated_radon_shm(
     const zdm::la::Vector<double, 3>& offset, double shell, double disp_speed)
@@ -57,22 +59,17 @@ void test_radon_integrator_is_accurate_for_shm()
         0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    std::vector<double> shm_reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_reference(
-            shm_reference_buffer.data(), {offsets.size(), shells.size()});
-
+    zest::DynamicMDArray<double, 2> shm_reference{offsets.size(), shells.size()};
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            shm_reference(i, j) = angle_integrated_radon_shm(
+            shm_reference[i, j] = angle_integrated_radon_shm(
                     offsets[i], shells[j], disp_speed);
         }
     }
 
-    std::vector<double> shm_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_test(
-            shm_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> shm_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(shm_dist, offsets, shells, 0.0, 1.0e-9, shm_test);
@@ -82,7 +79,7 @@ void test_radon_integrator_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_reference(i, j));
+            std::printf("%.16e ", shm_reference[i, j]);
         }
         std::printf("\n");
     }
@@ -92,7 +89,7 @@ void test_radon_integrator_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_test(i, j));
+            std::printf("%.16e ", shm_test[i, j]);
         }
         std::printf("\n");
     }
@@ -125,22 +122,17 @@ void test_radon_integrator_resp_is_accurate_for_shm()
         0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    std::vector<double> shm_reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_reference(
-            shm_reference_buffer.data(), {offsets.size(), shells.size()});
-
+    zest::DynamicMDArray<double, 2> shm_reference{offsets.size(), shells.size()};
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            shm_reference(i, j) = angle_integrated_radon_shm(
+            shm_reference[i, j] = angle_integrated_radon_shm(
                     offsets[i], shells[j], disp_speed);
         }
     }
 
-    std::vector<double> shm_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_test(
-            shm_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> shm_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
@@ -151,7 +143,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_reference(i, j));
+            std::printf("%.16e ", shm_reference[i, j]);
         }
         std::printf("\n");
     }
@@ -161,7 +153,7 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_test(i, j));
+            std::printf("%.16e ", shm_test[i, j]);
         }
         std::printf("\n");
     }

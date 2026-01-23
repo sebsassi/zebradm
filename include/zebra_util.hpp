@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -21,7 +21,6 @@ SOFTWARE.
 */
 #pragma once
 
-#include <array>
 #include <concepts>
 #include <span>
 
@@ -30,101 +29,9 @@ SOFTWARE.
 
 #include "types.hpp"
 
-namespace zdm
-{
 
-/**
-    @brief Container that packs multiple spherical harmonic expansions of the
-    same order into one buffer.
-*/
-class SHExpansionVectorDeprecated
-{
-public:
-    using element_type = std::array<double, 2>;
-    using value_type = element_type;
-    using size_type = std::size_t;
-    using index_type = std::size_t;
-    using View = SHExpansionVectorSpan<element_type>;
-    using ConstView = SHExpansionVectorSpan<const element_type>;
-    using SubSpan = SHExpansionSpan<element_type>;
-    using ConstSubSpan = SHExpansionSpan<const element_type>;
 
-    [[nodiscard]] static constexpr size_type size(size_type extent, size_type order)
-    {
-        return extent*SubSpan::size(order);
-    }
-
-    SHExpansionVector() = default;
-
-    SHExpansionVector(size_type extent, size_type order) noexcept:
-        m_data(size(extent, order)), m_subspan_size(SubSpan::size(order)), m_order(order), m_extent(extent) {}
-   
-    [[nodiscard]] operator View() noexcept
-    {
-         return View(m_data.data(), m_size, m_subspan_size, m_order, m_extent);
-    }
-
-    [[nodiscard]] operator ConstView() const noexcept
-    {
-        return ConstView(m_data.data(), m_size, m_subspan_size, m_order, m_extent);
-    }
-    
-    [[nodiscard]] size_type size() const noexcept
-    {
-        return m_data.size();
-    }
-    
-    [[nodiscard]] size_type subspan_size() const noexcept
-    {
-        return m_subspan_size;
-    }
-
-    [[nodiscard]] size_type extent() const noexcept
-    {
-        return m_extent;
-    }
-
-    [[nodiscard]] std::span<element_type> flatten() noexcept
-    {
-        return std::span<element_type>(m_data);
-    }
-
-    [[nodiscard]] std::span<const element_type> flatten() const noexcept
-    {
-        return std::span<const element_type>(m_data);
-    }
-
-    [[nodiscard]] SubSpan operator()(index_type i) noexcept
-    {
-        assert(i < m_size);
-        return SubSpan(m_data.data() + i*m_subspan_size, m_order);
-    }
-
-    [[nodiscard]] ConstSubSpan operator()(index_type i) const noexcept
-    {
-        assert(i < m_size);
-        return ConstSubSpan(m_data.data() + i*m_subspan_size, m_order);
-    }
-
-    [[nodiscard]] SubSpan operator[](index_type i) noexcept
-    {
-        return (*this)(i);
-    }
-
-    [[nodiscard]] ConstSubSpan operator[](index_type i) const noexcept
-    {
-        return (*this)(i);
-    }
-
-private:
-    std::vector<std::array<double, 2>> m_data;
-    size_type m_size = {};
-    size_type m_subspan_size = {};
-    size_type m_order = {};
-    size_type m_extent = {};
-};
-
-namespace zebra
+namespace zdm::zebra
 {
 
 /**
@@ -182,5 +89,5 @@ private:
     zest::st::SHTransformerGeo<> m_transformer;
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra
+

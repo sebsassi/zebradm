@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -32,7 +32,7 @@ namespace zdm::zebra::detail
 IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
     std::size_t geg_order):
     m_aff_leg_integrals(geg_order, 0),
-    m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, 0)),
+    m_aff_leg_ylm_integrals(TrapezoidShape::size(geg_order, 0)),
     m_ylm_integral_norms(geg_order)
 {
     for (std::size_t l = 0; l  < geg_order; ++l)
@@ -45,7 +45,7 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
     if (order() == geg_order) return;
     m_aff_leg_integrals.resize(geg_order, 0);
     m_aff_leg_ylm_integrals.resize(
-            TrapezoidLayout::size(geg_order, 0));
+            TrapezoidShape::size(geg_order, 0));
     m_ylm_integral_norms.resize(geg_order);
     for (std::size_t l = 0; l  < geg_order; ++l)
         m_ylm_integral_norms[l]
@@ -139,7 +139,7 @@ AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
     m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), 
     m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), 
     m_aff_leg_integrals(geg_order, resp_order),
-    m_aff_leg_ylm_integrals(TrapezoidLayout::size(geg_order, resp_order)), 
+    m_aff_leg_ylm_integrals(TrapezoidShape::size(geg_order, resp_order)), 
     m_ylm_integral_norms(top_order), m_zonal_transformer(top_order), 
     m_rotated_grid(top_order), m_rotated_exp(top_order)
 {
@@ -158,7 +158,7 @@ void AnisotropicAngleIntegratorCore::resize(
 
     m_aff_leg_integrals.resize(geg_order, resp_order);
     m_aff_leg_ylm_integrals.resize(
-            TrapezoidLayout::size(geg_order, resp_order));
+            TrapezoidShape::size(geg_order, resp_order));
     m_ylm_integral_norms.resize(top_order);
     for (std::size_t l = 0; l  < top_order; ++l)
         m_ylm_integral_norms[l]

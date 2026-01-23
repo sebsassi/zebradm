@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -22,16 +22,16 @@ SOFTWARE.
 #include "zebra_angle_integrator.hpp"
 
 #include <cassert>
+#include <print>
+
+#include <zest/md_array.hpp>
+
+namespace
+{
 
 [[maybe_unused]] constexpr bool is_close(double a, double b, double tol)
 {
     return std::fabs(a - b) < tol;
-}
-
-[[maybe_unused]] constexpr bool is_close(
-    std::array<double, 2> a, std::array<double, 2> b, double tol)
-{
-    return std::max(std::fabs(a[0] - b[0]), std::fabs(a[1] - b[1])) < tol;
 }
 
 template <typename T, std::size_t N>
@@ -53,7 +53,7 @@ double horner(const std::array<T, N>& coeffs, T x)
     const double w2 = w*w;
     const double zmin = std::max(-1.0, -(1.0 + w)/v);
     const double zmax = std::min(1.0, (1.0 - w)/v);
-    
+
     const std::array<double, 3> coeffs = {
         1.0 - w2, -w*v, -(1.0/3.0)*v2
     };
@@ -72,58 +72,51 @@ bool test_angle_integrator_is_correct_for_constant_dist()
 
     std::vector<double> shells = {0.0, 0.5, 1.0, 1.5};
 
-    std::vector<double> reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {offsets.size(), shells.size()});
-
+    zest::DynamicMDArray<double, 2> reference{offsets.size(), shells.size()};
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            reference(i, j)
-                = angle_integrated_const_dist_radon(shells[j], offsets[i]);
-        }
+            reference[i, j] = angle_integrated_const_dist_radon(shells[j], offsets[i]);
     }
 
     constexpr std::size_t order = 1;
-    zest::zt::RealZernikeExpansionNormalGeo distribution(order);
-    distribution(0,0,0) = {1.0/std::sqrt(3.0), 0.0};
+    zdm::ZernikeExpansion distribution{order};
+    distribution[0, 0, 0, 0] = std::numbers::inv_sqrt3;
+    distribution[0, 0, 0, 1] = 0.0;
 
-    std::vector<double> test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> test(
-            test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::IsotropicAngleIntegrator(order)
         .integrate(distribution, offsets, shells, test);
-    
+
     constexpr double tol = 1.0e-13;
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
-            success = success && is_close(test(i,j), reference(i,j), tol);
+            success = success && is_close(test[i, j], reference[i, j], tol);
     }
 
     if (!success)
     {
-        std::printf("reference\n");
+        std::println("reference");
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::printf("%.16e ", reference(i, j));
+                std::print("{:.16e} ", reference[i, j]);
             }
-            std::printf("\n");
+            std::println("");
         }
 
-        std::printf("\ntest\n");
+        std::println("\ntest");
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::printf("%.16e ", test(i, j));
+                std::print("{:.16e} ", test[i, j]);
             }
-            std::printf("\n");
+            std::println("");
         }
     }
 
@@ -138,10 +131,10 @@ double angle_integrated_radon_shm(
     const double erf_part
         = std::erf(std::min(1.0,shell + offset_len)/disp_speed)
         - std::erf((shell - offset_len)/disp_speed);
-    
+
     const double exp_prefactor
         = (1.0 + offset_len - std::max(1.0 - offset_len, shell));
-    
+
     const double inv_disp = 1.0/disp_speed;
     const double prefactor = std::numbers::pi*disp_speed*disp_speed/offset_len;
 
@@ -166,25 +159,20 @@ bool test_angle_integrator_is_accurate_for_shm()
         0.0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    std::vector<double> shm_reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_reference(
-            shm_reference_buffer.data(), {offsets.size(), shells.size()});
-
+    zest::DynamicMDArray<double, 2> shm_reference{offsets.size(), shells.size()};
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            shm_reference(i, j) = angle_integrated_radon_shm(
+            shm_reference[i, j] = angle_integrated_radon_shm(
                     offsets[i], shells[j], disp_speed);
         }
     }
 
-    std::vector<double> shm_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> shm_test(
-            shm_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> shm_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 100;
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zdm::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
                 shm_dist, 1.0, order);
 
@@ -197,44 +185,46 @@ bool test_angle_integrator_is_accurate_for_shm()
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
-            is_close(shm_test(i, j)/shm_reference(i, j), 1.0, tol);
+            is_close(shm_test[i, j]/shm_reference[i, j], 1.0, tol);
     }
 
     if (!success)
     {
-        std::printf("reference\n");
+        std::println("reference");
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::printf("%.16e ", shm_reference(i, j));
+                std::print("{:.16e} ", shm_reference(i, j));
             }
-            std::printf("\n");
+            std::println("");
         }
 
-        std::printf("\ntest\n");
+        std::println("\ntest");
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::printf("%.16e ", shm_test(i, j));
+                std::print("{:.16e} ", shm_test(i, j));
             }
-            std::printf("\n");
+            std::println("");
         }
 
-        std::printf("\nrelative error\n");
+        std::println("\nrelative error");
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::printf("%.16e ", 1.0 - shm_test(i, j)/shm_reference(i, j));
+                std::print("{:.16e} ", 1.0 - shm_test(i, j)/shm_reference(i, j));
             }
-            std::printf("\n");
+            std::println("");
         }
     }
 
     return success;
 }
+
+} // namespace
 
 int main()
 {
