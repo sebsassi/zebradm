@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -25,114 +25,110 @@ SOFTWARE.
 #include <vector>
 
 #include <zest/md_span.hpp>
+#include <zest/shape.hpp>
+#include <zest/shaped_array.hpp>
+#include <zest/shaped_span.hpp>
 
 #include "legendre.hpp"
 
 namespace zdm::zebra
 {
 
-struct TrapezoidLayout
+class TrapezoidShape
 {
+public:
+    using size_type = std::size_t;
     using index_type = std::size_t;
-    [[nodiscard]] static constexpr
-    std::size_t idx(std::size_t extra_extent, index_type l, index_type m) noexcept
-    {
-        return ((l*(l + 1)) >> 1) + l*extra_extent + m;
-    }
+    using index_range = zest::StandardIndexRange<index_type>;
+    using extent_type = std::array<size_type, 2>;
 
-    [[nodiscard]] static constexpr
-    std::size_t size(std::size_t order, std::size_t extra_extent) noexcept
+    static constexpr size_type rank = 2;
+    static constexpr std::size_t linear_extent = std::dynamic_extent;
+private:
+    template <std::size_t N> struct subshape_helper;
+
+    template <std::size_t N>
+        requires (N == 1)
+    struct subshape_helper<N> { using type = zest::TensorShape<std::dynamic_extent>; };
+
+    template <std::size_t N>
+        requires (N == 2)
+    struct subshape_helper<N> { using type = zest::NullShape; };
+
+public:
+    template <std::size_t N>
+        requires (0 < N && N < rank)
+    using subshape_type = subshape_helper<N>::type;
+
+    constexpr TrapezoidShape() = default;
+    explicit constexpr TrapezoidShape(const extent_type& extents):
+        m_order{extents[0]}, m_extra_extent{extents[1]}, m_size{size(extents[0], extents[1])} {}
+
+    constexpr TrapezoidShape(size_type order, size_type extra_extent):
+        m_order{order}, m_extra_extent{extra_extent}, m_size{size(order, extra_extent)} {}
+
+    [[nodiscard]] static constexpr std::size_t
+    size(std::size_t order, std::size_t extra_extent) noexcept
     {
         return ((order*(order + 1)) >> 1) + order*extra_extent;
     }
 
-    [[nodiscard]] static constexpr
-    std::size_t line_length(std::size_t extra_extent, std::size_t l) noexcept
+    [[nodiscard]] constexpr size_type
+    size() const noexcept { return m_size; }
+
+    [[nodiscard]] constexpr size_type
+    order() const noexcept { return m_order; }
+
+    [[nodiscard]] constexpr size_type
+    extra_extent() const noexcept { return m_extra_extent; }
+
+    [[nodiscard]] constexpr extent_type
+    extents() const noexcept { return {m_order, m_extra_extent}; }
+
+    [[nodiscard]] constexpr auto
+    subshape(index_type l) const noexcept
     {
-        return extra_extent + l + 1;
+        return zest::TensorShape<std::dynamic_extent>{m_extra_extent + l + 1};
     }
+
+    [[nodiscard]] constexpr auto
+    subshape([[maybe_unused]] index_type l, [[maybe_unused]] index_type m) const noexcept
+    {
+        return zest::NullShape{};
+    }
+
+    [[nodiscard]] constexpr index_type
+    operator()(index_type l, index_type m) const noexcept
+    {
+        return ((l*(l + 1)) >> 1) + l*m_extra_extent + m;
+    }
+
+    [[nodiscard]] constexpr index_type
+    operator()(index_type l) const noexcept
+    {
+        return ((l*(l + 1)) >> 1) + l*m_extra_extent;
+    }
+
+    [[nodiscard]] constexpr index_range
+    indices() const noexcept { return {index_type(m_order)}; }
+
+    [[nodiscard]] constexpr index_range
+    indices(index_type index) const noexcept
+    {
+        return {index, index_type(m_order)};
+    }
+
+private:
+    size_type m_order;
+    size_type m_extra_extent;
+    size_type m_size;
 };
 
 template <typename ElementType>
-class TrapezoidSpan
-{
-public:
-    using Layout = TrapezoidLayout;
-    using index_type = Layout::index_type;
-    using element_type = ElementType;
-    using value_type = std::remove_cv_t<ElementType>;
-    using size_type = std::size_t;
-    using ConstView = TrapezoidSpan<const element_type>;
+using TrapezoidSpan = zest::ShapedSpan<ElementType, TrapezoidShape>;
 
-    static constexpr std::size_t size(
-        std::size_t order, std::size_t extra_extent) noexcept
-    {
-        return Layout::size(order, extra_extent);
-    }
-
-    constexpr TrapezoidSpan() noexcept = default;
-    constexpr TrapezoidSpan(
-        element_type* data, std::size_t order, std::size_t extra_extent) noexcept:
-        m_data(data), m_size(Layout::size(order, extra_extent)), m_order(order),
-        m_extra_extent(extra_extent) {}
-
-    [[nodiscard]] constexpr std::size_t
-    order() const noexcept { return m_order; }
-
-    [[nodiscard]] constexpr std::size_t
-    extra_extent() const noexcept { return m_extra_extent; }
-
-    [[nodiscard]] constexpr std::span<element_type>
-    flatten() const noexcept { return std::span<element_type>(m_data, m_size); }
-
-    [[nodiscard]] constexpr element_type*
-    data() const noexcept { return m_data; }
-
-    [[nodiscard]] constexpr operator std::span<element_type>() const noexcept
-    {
-        return std::span<element_type>(m_data, m_size);
-    }
-
-    [[nodiscard]] constexpr operator ConstView() const noexcept
-    {
-        return ConstView(data, order, extra_extent);
-        return *reinterpret_cast<ConstView*>(this);
-    }
-
-    [[nodiscard]] constexpr std::span<element_type>
-    operator()(index_type l) const noexcept
-    {
-        return std::span<element_type>(
-                m_data + Layout::idx(m_extra_extent,l,0), Layout::line_length(m_extra_extent,l));
-    }
-
-    [[nodiscard]] constexpr std::span<element_type>
-    operator[](index_type l) const noexcept
-    {
-        return (*this)(l);
-    }
-
-    [[nodiscard]] constexpr element_type&
-    operator()(index_type l, index_type m) const noexcept
-    {
-        return m_data[Layout::idx(m_extra_extent,l,m)];
-    }
-
-    [[nodiscard]] constexpr element_type&
-    operator[](index_type l, index_type m) const noexcept
-    {
-        return (*this)(l, m);
-    }
-
-protected:
-    friend TrapezoidSpan<std::remove_const_t<element_type>>;
-
-private:
-    element_type* m_data{};
-    std::size_t m_size{};
-    std::size_t m_order{};
-    std::size_t m_extra_extent{};
-};
+template <typename ElementType>
+using TrapezoidArray = zest::ShapedArray<ElementType, TrapezoidShape>;
 
 class AffineLegendreIntegrals
 {
@@ -160,17 +156,17 @@ private:
 
     void first_step(
         double shift, double scale, double half_width, double inv_scale,
-        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        std::span<const double> affine_legendre, zest::DynamicMDSpan<const double, 2> legendre,
         TrapezoidSpan<double> integrals) noexcept;
 
     void glq_step(
         double half_width, double inv_scale, std::size_t n,
-        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        std::span<const double> affine_legendre, zest::DynamicMDSpan<const double, 2> legendre,
         TrapezoidSpan<double> integrals) noexcept;
 
     void forward_recursion_step(
         double shift, double scale, double half_width, double inv_scale, std::size_t n,
-        std::span<const double> affine_legendre, zest::MDSpan<const double, 2> legendre,
+        std::span<const double> affine_legendre, zest::DynamicMDSpan<const double, 2> legendre,
         TrapezoidSpan<double> integrals) noexcept;
 
     void backward_recursion_step(

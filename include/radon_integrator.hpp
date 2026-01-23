@@ -74,7 +74,7 @@ public:
     void integrate(
         const Dist& distribution, std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, double abserr, double relerr,
-        zest::MDSpan<double, 2> out,
+        zest::DynamicMDSpan<double, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -117,7 +117,7 @@ public:
     void integrate_transverse(
         const Dist& distribution, std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, double abserr, double relerr,
-        zest::MDSpan<std::array<double, 2>, 2> out,
+        zest::DynamicMDSpan<std::array<double, 2>, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -177,7 +177,7 @@ public:
         const Dist& distribution, const Resp& response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
-        double abserr, double relerr, zest::MDSpan<double, 2> out,
+        double abserr, double relerr, zest::DynamicMDSpan<double, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -237,7 +237,7 @@ public:
         const Dist& distribution, const Resp& response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
-        double abserr, double relerr, zest::MDSpan<std::array<double, 2>, 2> out,
+        double abserr, double relerr, zest::DynamicMDSpan<std::array<double, 2>, 2> out,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
         for (std::size_t i = 0; i < offsets.size(); ++i)

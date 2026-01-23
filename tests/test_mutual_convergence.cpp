@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -20,10 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "radon_integrator.hpp"
+#include "types.hpp"
 #include "zebra_angle_integrator.hpp"
 
 #include "coordinate_transforms.hpp"
 #include "zebra_util.hpp"
+
+#include <print>
+
+#include <zest/md_array.hpp>
+
+namespace
+{
 
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,
@@ -44,55 +52,51 @@ void test_mutual_convergence_isotropic(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
-    std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> integrator_test(
-            integrator_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate(dist, offsets, shells, 0.0, 1.0e-9, integrator_test);
+    integrator.integrate(std::forward<DistType>(dist), offsets, shells, 0.0, 1.0e-9, integrator_test);
 
-    std::vector<double> transformer_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> transformer_test(
-            transformer_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 200;
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zdm::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
-                dist, 1.0, order);
+                std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::IsotropicAngleIntegrator(order).integrate(
             distribution, offsets, shells, transformer_test);
 
-    std::printf("integrator\n");
+    std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", integrator_test(i, j));
+            std::print("{:.16e} ", integrator_test(i, j));
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\ntransformer\n");
+    std::println("\ntransformer");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", transformer_test(i, j));
+            std::print("{:.16e} ", transformer_test(i, j));
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\nrelative error\n");
+    std::println("\nrelative error");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
+            std::print("{:.16e} ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
 
 template <typename DistType>
@@ -100,55 +104,51 @@ void test_mutual_convergence_transverse_isotropic(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
-    std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> integrator_test(
-            integrator_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate_transverse(dist, offsets, shells, 0.0, 1.0e-9, integrator_test);
+    integrator.integrate_transverse(std::forward<DistType>(dist), offsets, shells, 0.0, 1.0e-9, integrator_test);
 
-    std::vector<std::array<double, 2>> transformer_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> transformer_test(
-            transformer_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 200;
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zdm::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).transform(
-                dist, 1.0, order);
+                std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::IsotropicTransverseAngleIntegrator(order).integrate(
             distribution, offsets, shells, transformer_test);
 
-    std::printf("integrator\n");
+    std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e}", integrator_test(i, j)[0], integrator_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", integrator_test[i, j][0], integrator_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\ntransformer\n");
+    std::println("\ntransformer");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e}", transformer_test(i, j)[0], transformer_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", transformer_test[i, j][0], transformer_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\nrelative error\n");
+    std::println("\nrelative error");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e}", 1.0 - integrator_test(i, j)[0]/transformer_test(i, j)[0], 1.0 - integrator_test(i, j)[1]/transformer_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", 1.0 - integrator_test[i, j][0]/transformer_test[i, j][0], 1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
 
 
@@ -158,62 +158,58 @@ void test_mutual_convergence_anisotropic(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
-    std::vector<double> integrator_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> integrator_test(
-            integrator_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate(dist, resp, offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate(
+            std::forward<DistType>(dist), std::forward<RespType>(resp),
+            offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
 
-    std::vector<double> transformer_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> transformer_test(
-            transformer_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zdm::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
-                dist, 1.0, dist_order);
+                std::forward<DistType>(dist), 1.0, dist_order);
 
-    std::vector<std::array<double, 2>> response_buffer(
-        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), shells.size(), resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
+    zdm::SHExpansionVector response{shells.size(), resp_order};
+    zdm::zebra::ResponseTransformer(resp_order)
+        .transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
             distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::printf("integrator\n");
+    std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", integrator_test(i, j));
+            std::print("{:.16e} ", integrator_test[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\ntransformer\n");
+    std::println("\ntransformer");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", transformer_test(i, j));
+            std::print("{:.16e} ", transformer_test[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\nrelative error\n");
+    std::println("\nrelative error");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", 1.0 - integrator_test(i, j)/transformer_test(i, j));
+            std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
 
 template <typename DistType, typename RespType>
@@ -221,64 +217,62 @@ void test_mutual_convergence_transverse_anisotropic(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
-    std::vector<std::array<double, 2>> integrator_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> integrator_test(
-            integrator_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
-    integrator.integrate_transverse(dist, resp, offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
+    integrator.integrate_transverse(
+            std::forward<DistType>(dist), std::forward<RespType>(resp),
+            offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
 
-    std::vector<std::array<double, 2>> transformer_test_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> transformer_test(
-            transformer_test_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zdm::ZernikeExpansion distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
-                dist, 1.0, dist_order);
+                std::forward<DistType>(dist), 1.0, dist_order);
 
-    std::vector<std::array<double, 2>> response_buffer(
-        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), shells.size(), resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
+    zdm::SHExpansionVector response{shells.size(), resp_order};
+    zdm::zebra::ResponseTransformer(resp_order)
+        .transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AnisotropicTransverseAngleIntegrator(dist_order, resp_order)
         .integrate(
             distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::printf("integrator\n");
+    std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e} ", integrator_test(i, j)[0], integrator_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", integrator_test[i, j][0], integrator_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\ntransformer\n");
+    std::println("\ntransformer");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e} ", transformer_test(i, j)[0], transformer_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", transformer_test[i, j][0], transformer_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
 
-    std::printf("\nrelative error\n");
+    std::println("\nrelative error");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("{%.16e, %.16e} ", 1.0 - integrator_test(i, j)[0]/transformer_test(i, j)[0], 1.0 - integrator_test(i, j)[1]/transformer_test(i, j)[1]);
+            std::print("[{:.16e}, {:.16e}] ", 1.0 - integrator_test[i, j][0]/transformer_test[i, j][0], 1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
+
+} // namespace
 
 int main()
 {

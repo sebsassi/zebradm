@@ -21,7 +21,6 @@ SOFTWARE.
 */
 #pragma once
 
-#include <array>
 #include <cmath>
 #include <concepts>
 #include <type_traits>
@@ -85,7 +84,7 @@ namespace detail
 
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T minus_(
-    const T& a, std::index_sequence<idx...>) noexcept
+    const T& a, std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx])...}};
 }
@@ -93,7 +92,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T add_(
     const T& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx] + b[idx])...}};
 }
@@ -101,7 +100,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T add_(
     const typename T::value_type& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a + b[idx])...}};
 }
@@ -109,7 +108,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T add_(
     const T& a, const typename T::value_type& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx] + b)...}};
 }
@@ -117,7 +116,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T sub_(
     const T& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx] - b[idx])...}};
 }
@@ -125,7 +124,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T sub_(
     const typename T::value_type& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a - b[idx])...}};
 }
@@ -133,7 +132,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T sub_(
     const T& a, const typename T::value_type& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx] - b)...}};
 }
@@ -141,7 +140,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T mul_(
     const T& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx]*b[idx])...}};
 }
@@ -149,7 +148,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T mul_(
     const typename T::value_type& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a*b[idx])...}};
 }
@@ -157,7 +156,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T mul_(
     const T& a, const typename T::value_type& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx]*b)...}};
 }
@@ -165,7 +164,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T div_(
     const T& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx]/b[idx])...}};
 }
@@ -173,7 +172,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T div_(
     const typename T::value_type& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a/b[idx])...}};
 }
@@ -181,7 +180,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T div_(
     const T& a, const typename T::value_type& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return {{(a[idx]/b)...}};
 }
@@ -189,7 +188,7 @@ template <static_vector_like T, std::size_t... idx>
 template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T::value_type dot_(
     const T& a, const T& b, 
-    std::index_sequence<idx...>) noexcept
+    std::index_sequence<idx...> /*unused*/) noexcept
 {
     return ((a[idx]*b[idx]) + ...);
 }

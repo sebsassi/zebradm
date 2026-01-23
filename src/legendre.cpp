@@ -28,7 +28,7 @@ namespace zdm::zebra
 {
 
 void legendre_recursion_vec(
-    zest::MDSpan<double, 2> legendre, std::span<double> x)
+    zest::DynamicMDSpan<double, 2> legendre, std::span<double> x)
 {
     const std::size_t order = legendre.extents()[0];
     const std::size_t size = legendre.extents()[1];
@@ -38,28 +38,28 @@ void legendre_recursion_vec(
     if (size != x.size())
         throw std::invalid_argument(
                 "size of x is incompatible with size of leg");
-    
+
     for (auto xi : x)
     {
         if (std::fabs(xi) > 1.0)
             throw std::invalid_argument("x must be between -1 and 1");
     }
 
-    zest::MDSpan<double, 1> leg_0 = legendre[0];
+    auto leg_0 = legendre[0];
     for (std::size_t i = 0; i < size; ++i)
         leg_0[i] = 1.0;
-    
+
     if (order == 1) return;
 
-    zest::MDSpan<double, 1> leg_1 = legendre[1];
+    auto leg_1 = legendre[1];
     for (std::size_t i = 0; i < size; ++i)
         leg_1[i] = x[i];
-    
+
     for (std::size_t n = 2; n < order; ++n)
     {
-        zest::MDSpan<double, 1> leg_n = legendre[n];
-        zest::MDSpan<double, 1> leg_nm1 = legendre[n - 1];
-        zest::MDSpan<double, 1> leg_nm2 = legendre[n - 2];
+        auto leg_n = legendre[n];
+        auto leg_nm1 = legendre[n - 1];
+        auto leg_nm2 = legendre[n - 2];
         const double inv_n = 1.0/double(n);
         const double a = double(2*n - 1)*inv_n;
         const double b = double(n - 1)*inv_n;
@@ -73,7 +73,7 @@ void legendre_recursion(std::span<double> legendre, double x)
     const std::size_t order = legendre.size();
 
     if (order == 0) return;
-    
+
     if (std::fabs(x) > 1.0)
         throw std::invalid_argument("x must be between -1 and 1");
 
@@ -81,7 +81,7 @@ void legendre_recursion(std::span<double> legendre, double x)
     if (order == 1) return;
 
     legendre[1] = x;
-    
+
     for (std::size_t n = 2; n < order; ++n)
     {
         const double inv_n = 1.0/double(n);
@@ -92,10 +92,12 @@ void legendre_recursion(std::span<double> legendre, double x)
 }
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::size_t size):
-    m_buffers{std::vector<double>(size), std::vector<double>(size), std::vector<double>(size)}, m_x(size), m_size(size) {}
+    m_buffers{std::vector<double>(size), std::vector<double>(size),
+    std::vector<double>(size)}, m_x(size), m_size(size) {}
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::span<const double> x):
-    m_buffers{std::vector<double>(x.size()), std::vector<double>(x.size()), std::vector<double>(x.size())}, m_x(x.size()), m_size(x.size())
+    m_buffers{std::vector<double>(x.size()), std::vector<double>(x.size()),
+    std::vector<double>(x.size())}, m_x(x.size()), m_size(x.size())
 {
     init(x);
 }

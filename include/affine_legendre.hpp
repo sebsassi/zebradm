@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <vector>
 
-#include <zest/layout.hpp>
+#include <zest/triangle_spans.hpp>
 
 namespace zdm::zebra
 {
@@ -54,26 +54,26 @@ public:
     Evaluate recursion of Legendre polynomials with affine transformed argument `y = shift + scale*x`.
     */
     void evaluate_affine(
-        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift, double scale);
+        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift, double scale);
 
     /*
     Evaluate recursion of Legendre polynomials with shifted argument `y = shift + x`.
     */
     void evaluate_shifted(
-        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double shift);
+        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift);
 
     /*
     Evaluate recursion of Legendre polynomials with scaled argument `y = scale*x`.
     */
     void evaluate_scaled(
-        zest::TriangleSpan<double, zest::TriangleLayout<zest::IndexingMode::nonnegative>> expansion, double scale);
+        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double scale);
 
 private:
     std::vector<double> m_a;
     std::vector<double> m_b;
     std::vector<double> m_c;
     std::vector<double> m_d;
-    std::size_t m_max_order;
+    std::size_t m_max_order{};
 };
 
 } // namespace zdm::zebra
