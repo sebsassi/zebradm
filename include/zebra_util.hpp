@@ -21,14 +21,14 @@ SOFTWARE.
 */
 #pragma once
 
-#include <zest/radial_zernike_recursion.hpp>
 #include <concepts>
 #include <span>
 
+#include <zest/radial_zernike_recursion.hpp>
 #include <zest/sh_expansion.hpp>
+#include <zest/sh_generator.hpp>
 #include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_expansion.hpp>
-#include <zest/sh_generator.hpp>
 
 #include "vector.hpp"
 #include "coordinate_transforms.hpp"
@@ -60,14 +60,13 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     for (auto& radius : radii)
         radius *= 1.0/max_radius;
 
-    std::vector<double> radial_zernike_buffer(zest::zt::RadialZernikeVecSpan<double, ZernikeExpansion::zernike_norm>::size(order));
-    zest::zt::RadialZernikeVecSpan<double, ZernikeExpansion::zernike_norm>
-    radial_zernike(radial_zernike_buffer.data(), order);
+    zest::zt::RadialZernikeExpansion<double, ZernikeExpansion::shape_type::zernike_norm, std::dynamic_extent>
+    radial_zernike{order, points.size()};
 
-    zest::zt::RadialZernikeRecursion(order).zernike(radii, radial_zernike);
+    zest::zt::RadialZernikeRecursion(order).generate(radii, radial_zernike);
 
-    zest::st::RealSHExpansionVector<ZernikeExpansion::sh_norm, ZernikeExpansion::sh_phase, double>
-    spherical_harmonics(order);
+    zest::st::SHExpansion<double, zest::IndexingMode::zero_based, ZernikeExpansion::shape_type::sh_norm, ZernikeExpansion::shape_type::sh_phase, std::dynamic_extent>
+    spherical_harmonics{order, points.size()};
 
     zest::st::RealSHGenerator().generate(longitudes, colatitudes, spherical_harmonics);
 
@@ -84,18 +83,18 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
         {
             auto radial_zernike_nl = radial_zernike_n[l];
             for (std::size_t i = 0; i < points.size(); ++i)
-                partial_integrand = values[i]*radial_zernike_nl[i];
+                partial_integrand[i] = values[i]*radial_zernike_nl[i];
 
             auto spherical_harmonics_l = spherical_harmonics[l];
             auto expansion_nl = expansion_n[l];
             for (std::size_t m : expansion_nl.indices())
             {
                 auto spherical_harmonics_lm = spherical_harmonics_l[m];
-                std::array<double, 2>& expansion_nlm = expansion_nl[m];
+                auto expansion_nlm = expansion_nl[m];
                 for (std::size_t i = 0; i < points.size(); ++i)
                 {
-                    expansion_nlm[0] += partial_integrand[i]*spherical_harmonics_lm[0,i];
-                    expansion_nlm[1] += partial_integrand[i]*spherical_harmonics_lm[1,i];
+                    expansion_nlm[0] += partial_integrand[i]*spherical_harmonics_lm[0, i];
+                    expansion_nlm[1] += partial_integrand[i]*spherical_harmonics_lm[1, i];
                 }
                 expansion_nlm[0] *= prefactor;
                 expansion_nlm[1] *= prefactor;
