@@ -21,11 +21,20 @@ SOFTWARE.
 */
 #pragma once
 
+#include <format>
+#include <source_location>
 #include <span>
 #include <vector>
 
 namespace zdm::util
 {
+
+[[nodiscard]] std::string format_error(
+    std::string_view error_type, const std::source_location& location, std::string_view message)
+{
+    return std::format("{}: in {}:{} `{}` {}",
+            error_type, location.file_name(), location.line(), location.function_name(), message);
+}
 
 /**
     @brief Create an evenly spaced interval of real numbers.

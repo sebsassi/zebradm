@@ -22,6 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include <concepts>
+#include <source_location>
 #include <span>
 
 #include <zest/radial_zernike_recursion.hpp>
@@ -35,6 +36,7 @@ SOFTWARE.
 #include "vector.hpp"
 #include "coordinate_transforms.hpp"
 #include "types.hpp"
+#include "utility.hpp"
 
 namespace zdm
 {
@@ -43,7 +45,11 @@ namespace zdm
 from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, std::size_t order)
 {
     if (points.size() != values.size())
-        throw std::runtime_error("Number of values differs from number of points");
+    {
+        auto location = std::source_location::current();
+        throw std::runtime_error(util::format_error(
+                "Runtime Error", location, "Number of values differs from number of points"));
+    }
 
     std::vector<double> radii(points.size());
     std::vector<double> colatitudes(points.size());
