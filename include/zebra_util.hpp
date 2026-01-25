@@ -25,6 +25,8 @@ SOFTWARE.
 #include <span>
 
 #include <zest/radial_zernike_recursion.hpp>
+#include <zest/sequence.hpp>
+#include <zest/sh_conventions.hpp>
 #include <zest/sh_expansion.hpp>
 #include <zest/sh_generator.hpp>
 #include <zest/sh_glq_transformer.hpp>
@@ -49,7 +51,8 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
 
     for (std::size_t i = 0; i < points.size(); ++i)
     {
-        const auto& [longitude, colatitude, radial] = coordinates::cartesian_to_spherical_phys(points[i]);
+        const auto& [longitude, colatitude, radial]
+            = coordinates::cartesian_to_spherical_phys(points[i]);
         radii[i] = radial;
         colatitudes[i] = colatitude;
         longitudes[i] = longitude;
@@ -60,17 +63,20 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     for (auto& radius : radii)
         radius *= 1.0/max_radius;
 
-    zest::zt::RadialZernikeExpansion<double, ZernikeExpansion::shape_type::zernike_norm, std::dynamic_extent>
+    constexpr zest::IndexingMode indexing_mode = zest::IndexingMode::zero_based;
+    constexpr zest::zt::ZernikeNorm zernike_norm = zest::zt::zernike_norm_of<ZernikeExpansion>();
+    constexpr zest::st::SHNorm sh_norm = zest::st::sh_norm_of<ZernikeExpansion>();
+    constexpr zest::st::SHPhase sh_phase = zest::st::sh_phase_of<ZernikeExpansion>();
+
+    zest::zt::RadialZernikeExpansion<double, zernike_norm, std::dynamic_extent>
     radial_zernike{order, points.size()};
 
-    zest::zt::RadialZernikeRecursion(order).generate(radii, radial_zernike);
+    zest::zt::RadialZernikeRecursion{order}.generate(radii, radial_zernike);
 
-    zest::st::SHExpansion<double, zest::IndexingMode::zero_based, ZernikeExpansion::shape_type::sh_norm, ZernikeExpansion::shape_type::sh_phase, std::dynamic_extent>
-    spherical_harmonics{order, points.size()};
+    auto spherical_harmonics = zest::st::RealSHGenerator()
+        .generate<indexing_mode, sh_norm, sh_phase>(longitudes, colatitudes, order);
 
-    zest::st::RealSHGenerator().generate(longitudes, colatitudes, spherical_harmonics);
-
-    ZernikeExpansion expansion(order);
+    ZernikeExpansion expansion{order};
 
     std::vector<double> partial_integrand(points.size());
 
