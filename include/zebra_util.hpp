@@ -22,7 +22,6 @@ SOFTWARE.
 #pragma once
 
 #include <concepts>
-#include <source_location>
 #include <span>
 
 #include <zest/radial_zernike_recursion.hpp>
@@ -36,7 +35,6 @@ SOFTWARE.
 #include "vector.hpp"
 #include "coordinate_transforms.hpp"
 #include "types.hpp"
-#include "utility.hpp"
 
 namespace zdm
 {
@@ -44,12 +42,7 @@ namespace zdm
 [[nodiscard]] ZernikeExpansion
 from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, std::size_t order)
 {
-    if (points.size() != values.size())
-    {
-        auto location = std::source_location::current();
-        throw std::runtime_error(util::format_error(
-                "Runtime Error", location, "Number of values differs from number of points"));
-    }
+    assert(points.size() == values.size());
 
     std::vector<double> radii(points.size());
     std::vector<double> colatitudes(points.size());
@@ -86,7 +79,7 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
 
     std::vector<double> partial_integrand(points.size());
 
-    const double prefactor = (4.0*std::numbers::pi/(3.0*double(points.size())));
+    const double prefactor = 1.0/(3.0*double(points.size()));
     for (std::size_t n : expansion.indices())
     {
         auto radial_zernike_n = radial_zernike[n];
@@ -117,13 +110,13 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     return expansion;
 }
 
-[[nodiscard]] ZernikeExpansion
-from_triangulation(
-    std::span<la::Vector<double, 3>> points, std::span<std::array<std::size_t, 4>> simplices,
-    std::span<double> values, std::size_t order)
-{
-
-}
+// [[nodiscard]] ZernikeExpansion
+// from_triangulation(
+//     std::span<la::Vector<double, 3>> points, std::span<std::array<std::size_t, 4>> simplices,
+//     std::span<double> values, std::size_t order)
+// {
+//
+// }
 
 namespace zebra
 {
@@ -147,7 +140,7 @@ public:
         @param out spherical harmonic expansions of the response
     */
     template <std::regular_invocable<double, double, double> RespType>
-    void transform(
+    void forward_transform(
         const RespType& resp, std::span<const double> shells, SHVectorSpan<double> out)
     {
         for (std::size_t i = 0; i < shells.size(); ++i)
@@ -157,7 +150,7 @@ public:
             {
                 return resp(shell, lon, colat);
             };
-            m_transformer.transform(surface_func, out[i]);
+            m_transformer.forward_transform(surface_func, out[i]);
         }
     }
 
@@ -173,10 +166,10 @@ public:
         @return spherical harmonic expansions of the response
     */
     template <std::regular_invocable<double, double, double> RespType>
-    SHExpansionVector transform(const RespType& resp, std::span<const double> shells, std::size_t order)
+    SHExpansionVector forward_transform(const RespType& resp, std::span<const double> shells, std::size_t order)
     {
         SHExpansionVector res(shells.size(), order);
-        transform(resp, shells, res);
+        forward_transform(resp, shells, res);
         return res;
     }
 private:

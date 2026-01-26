@@ -50,11 +50,11 @@ void zebra_evaluate(
     std::span<const double> shells, std::span<const double> rotation_angles, zest::DynamicMDSpan<double, 2> out)
 {
     zdm::ZernikeExpansion distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector response{shells.size(), resp_order};
-    zdm::zebra::ResponseTransformer(resp_order).transform(std::forward<RespType>(resp), shells, response);
+    zdm::zebra::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
             distribution, response, offsets, rotation_angles, shells, out);
