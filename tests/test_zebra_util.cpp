@@ -37,11 +37,11 @@ bool is_close(double a, double b, double error)
     return std::abs(a - b) < error;
 }
 
-bool test_from_points_is_correct_for_constant_function(double radius)
+bool test_from_points_is_correct_for_Z000(double radius)
 {
     auto function = []([[maybe_unused]] double lon, [[maybe_unused]] double colat, [[maybe_unused]] double r)
     {
-        return 1.0;
+        return std::numbers::sqrt3;
     };
 
     const std::size_t count = 2000000;
@@ -64,7 +64,7 @@ bool test_from_points_is_correct_for_constant_function(double radius)
     zdm::ZernikeExpansion expansion = zdm::from_points(points, values, 10);
 
     constexpr double tol = 2.0e-3;
-    constexpr double reference_coeff = 1.0/std::numbers::sqrt3;
+    constexpr double reference_coeff = 1.0;
 
     bool success = is_close(expansion[0, 0, 0, 0], reference_coeff, tol);
     for (auto n : expansion.indices(1))
@@ -102,6 +102,6 @@ bool test_from_points_is_correct_for_constant_function(double radius)
 
 int main()
 {
-    assert(test_from_points_is_correct_for_constant_function(1.0));
-    assert(test_from_points_is_correct_for_constant_function(2.0));
+    assert(test_from_points_is_correct_for_Z000(1.0));
+    assert(test_from_points_is_correct_for_Z000(2.0));
 }
