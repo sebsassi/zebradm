@@ -279,7 +279,7 @@ struct TimeZoneOffset
     */
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
-        return std::abs(sign) == 1 && min <= 59;
+        return (std::abs(sign) == 1 && min <= 59) || (sign == 0 && hour == 0 && min == 0);
     }
 };
 
@@ -767,7 +767,12 @@ parse_date_time_impl(std::string_view input, std::string_view format)
                     input = input.substr(2);
 
                     parse_state.flags |= std::uint32_t(detail::DateParseStatusFlag::has_am_pm);
-                    parse_state.flags &= ~std::uint32_t(detail::DateParseStatusFlag::needs_am_pm);
+                    if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::needs_am_pm))
+                    {
+                        parse_state.flags &= ~std::uint32_t(detail::DateParseStatusFlag::needs_am_pm);
+                        if (date_time.hour == 12)
+                            date_time.hour = 0;
+                    }
                     continue;
                 }
                 if (input.starts_with("PM"))

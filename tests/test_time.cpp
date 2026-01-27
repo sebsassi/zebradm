@@ -466,20 +466,20 @@ void test_parse_date_time()
 
     assert(test_parse_time_is_correct("55"sv, "%M"sv, zdm::time::DateTime{0, 1, 1, 0, 55, 0, 0}, ""sv));
 
-    assert(test_parse_time_is_correct(" \f\n\r\t\v"sv, "%n"sv, zdm::time::DateTime{0, 1, 1, 0, 0, 55, 0}, ""sv));
+    assert(test_parse_time_is_correct(" \f\n\r\t\v"sv, "%n"sv, zdm::time::DateTime{0, 1, 1, 0, 0, 0, 0}, ""sv));
 
     assert(test_parse_time_is_correct("55"sv, "%S"sv, zdm::time::DateTime{0, 1, 1, 0, 0, 55, 0}, ""sv));
 
     assert(test_parse_time_is_correct("2000"sv, "%Y"sv, zdm::time::DateTime{2000, 1, 1, 0, 0, 0, 0}, ""sv));
 
-    assert(test_parse_time_is_correct("09:00 AM"sv, "at %H:%M %p"sv, zdm::time::DateTime{0, 1, 1, 9, 0, 0, 0}, ""sv));
-    assert(test_parse_time_is_correct("12:00 AM"sv, "at %H:%M %p"sv, zdm::time::DateTime{0, 1, 1, 0, 0, 0, 0}, ""sv));
-    assert(test_parse_time_is_correct("09:00 PM"sv, "at %H:%M %p"sv, zdm::time::DateTime{0, 1, 1, 21, 0, 0, 0}, ""sv));
-    assert(test_parse_time_is_correct("12:00 PM"sv, "at %H:%M %p"sv, zdm::time::DateTime{0, 1, 1, 12, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("at 09:00 AM"sv, "at %I:%M %p"sv, zdm::time::DateTime{0, 1, 1, 9, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("at 12:00 AM"sv, "at %I:%M %p"sv, zdm::time::DateTime{0, 1, 1, 0, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("at 09:00 PM"sv, "at %I:%M %p"sv, zdm::time::DateTime{0, 1, 1, 21, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("at 12:00 PM"sv, "at %I:%M %p"sv, zdm::time::DateTime{0, 1, 1, 12, 0, 0, 0}, ""sv));
 
-    assert(test_parse_time_is_correct("12:00:00"sv, "at %H:%M:%S"sv, zdm::time::DateTime{0, 1, 1, 12, 0, 0, 0}, ""sv));
-    assert(test_parse_time_is_correct("June 11, 2005"sv, "%b %e, %Y"sv, zdm::time::DateTime{2005, 7, 11, 0, 0, 0, 0}, ""sv));
-    assert(test_parse_time_is_correct("June 11,   \n2005"sv, "%b %e,%n%Y"sv, zdm::time::DateTime{2005, 7, 11, 0, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("at 12:00:00"sv, "at %H:%M:%S"sv, zdm::time::DateTime{0, 1, 1, 12, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("June 11, 2005"sv, "%b %e, %Y"sv, zdm::time::DateTime{2005, 6, 11, 0, 0, 0, 0}, ""sv));
+    assert(test_parse_time_is_correct("June 11,   \n2005"sv, "%b %e,%n%Y"sv, zdm::time::DateTime{2005, 6, 11, 0, 0, 0, 0}, ""sv));
     assert(test_parse_time_is_correct("2025-11-15T09:15:45"sv, "%Y-%m-%dT%H:%M:%S"sv, zdm::time::DateTime{2025, 11, 15, 9, 15, 45, 0}, ""sv));
     assert(test_parse_time_is_correct("2025-11-15T09:15:45Z"sv, "%Y-%m-%dT%H:%M:%S%z"sv, zdm::time::DateTime{2025, 11, 15, 9, 15, 45, 0}.add(zdm::time::TimeZoneOffset{}), ""sv));
     assert(test_parse_time_is_correct("2025-11-15T09:15:45+04"sv, "%Y-%m-%dT%H:%M:%S%z"sv, zdm::time::DateTime{2025, 11, 15, 9, 15, 45, 0}.add(zdm::time::TimeZoneOffset{1, 4, 0}), ""sv));
@@ -487,7 +487,7 @@ void test_parse_date_time()
     assert(test_parse_time_is_correct("2025-11-15T09:15:45+04:30"sv, "%Y-%m-%dT%H:%M:%S%z"sv, zdm::time::DateTime{2025, 11, 15, 9, 15, 45, 0}.add(zdm::time::TimeZoneOffset{1, 4, 30}), ""sv));
     assert(test_parse_time_is_correct("2025-11-15T09:15:45-04:30"sv, "%Y-%m-%dT%H:%M:%S%z"sv, zdm::time::DateTime{2025, 11, 15, 9, 15, 45, 0}.add(zdm::time::TimeZoneOffset{-1, 4, 30}), ""sv));
 
-    assert(test_parse_time_is_correct("June 11, 2005 was a nice day"sv, "%b %e, %Y"sv, zdm::time::DateTime{2005, 7, 11, 0, 0, 0, 0}, " was a nice day"sv));
+    assert(test_parse_time_is_correct("June 11, 2005 was a nice day"sv, "%b %e, %Y"sv, zdm::time::DateTime{2005, 6, 11, 0, 0, 0, 0}, " was a nice day"sv));
 }
 
 int main()
