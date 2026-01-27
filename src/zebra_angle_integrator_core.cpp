@@ -193,7 +193,7 @@ double AnisotropicAngleIntegratorCore::integrate(
     m_glq_transformer.backward_transform(
             m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.order();
+    const std::size_t geg_order = rotated_geg_zernike_grids.extent(0);
     const std::size_t resp_order = response_exp.order();
     TrapezoidSpan<double> aff_leg_ylm_integrals
         = evaluate_aff_leg_ylm_integrals(
