@@ -43,7 +43,7 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
 
     const double coeff_0 = util::geg_rec_coeff<zernike_norm>(0);
     out[0, 0, 0, 0] = coeff_0*in[0, 0, 0, 0];
-    out[0, 0, 0, 1] = coeff_0*in[0, 0, 0, 0];
+    out[0, 0, 0, 1] = coeff_0*in[0, 0, 0, 1];
 
     if (in_order > 1)
     {

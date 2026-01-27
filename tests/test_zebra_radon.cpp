@@ -216,26 +216,34 @@ bool test_zebra_radon_is_correct_to_order_5()
     constexpr double tol = 1.0e-13;
 
     bool success = true;
-    for (std::size_t n = 0; n < order + 2; ++n)
+    for (std::size_t n : out.indices())
     {
-        for (std::size_t l = n & 1; l <= n; ++l)
+        auto out_n = out[n];
+        auto out_ref_n = out_ref[n];
+        for (std::size_t l : out_n.indices())
         {
-            for (std::size_t m = 0; m <= l; ++m)
+            auto out_nl = out_n[l];
+            auto out_ref_nl = out_ref_n[l];
+            for (std::size_t m : out_nl.indices())
             {
-                success = success && (is_close(out[n, l, m, 0], out_ref[n, l, m, 0], tol));
-                success = success && (is_close(out[n, l, m, 1], out_ref[n, l, m, 1], tol));
+                success = success && (is_close(out_nl[m, 0], out_ref_nl[m, 0], tol));
+                success = success && (is_close(out_nl[m, 1], out_ref_nl[m, 1], tol));
             }
         }
     }
 
     if (!success)
     {
-        for (std::size_t n = 0; n < order + 2; ++n)
+        for (std::size_t n : out.indices())
         {
-            for (std::size_t l = n & 1; l <= n; ++l)
+            auto out_n = out[n];
+            auto out_ref_n = out_ref[n];
+            for (std::size_t l : out_n.indices())
             {
-                for (std::size_t m = 0; m <= l; ++m)
-                    std::println("({}, {}, {}): [{}, {}] [{}, {}]", n, l, m, out[n, l, m, 0], out[n, l, m, 1], out_ref[n, l, m, 0], out_ref[n, l, m, 1]);
+                auto out_nl = out_n[l];
+                auto out_ref_nl = out_ref_n[l];
+                for (std::size_t m : out_nl.indices())
+                    std::println("({}, {}, {}): [{}, {}] [{}, {}]", n, l, m, out_nl[m, 0], out_nl[m, 1], out_ref_nl[m, 0], out_ref_nl[m, 1]);
             }
         }
     }
@@ -416,26 +424,34 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     constexpr double tol = 1.0e-13;
 
     bool success = true;
-    for (std::size_t n = 0; n < order + 2; ++n)
+    for (std::size_t n : exp.indices())
     {
-        for (std::size_t l = n & 1; l <= n; ++l)
+        auto exp_n = exp[n];
+        auto out_ref_n = out_ref[n];
+        for (std::size_t l : exp_n.indices())
         {
-            for (std::size_t m = 0; m <= l; ++m)
+            auto exp_nl = exp_n[l];
+            auto out_ref_nl = out_ref_n[l];
+            for (std::size_t m : exp_nl.indices())
             {
-                success = success && (is_close(exp[n, l, m, 0], out_ref[n, l, m, 0], tol));
-                success = success && (is_close(exp[n, l, m, 1], out_ref[n, l, m, 1], tol));
+                success = success && (is_close(exp_nl[m, 0], out_ref_nl[m, 0], tol));
+                success = success && (is_close(exp_nl[m, 1], out_ref_nl[m, 1], tol));
             }
         }
     }
 
     if (!success)
     {
-        for (std::size_t n = 0; n < order + 2; ++n)
+        for (std::size_t n : exp.indices())
         {
-            for (std::size_t l = n & 1; l <= n; ++l)
+            auto exp_n = exp[n];
+            auto out_ref_n = out_ref[n];
+            for (std::size_t l : exp_n.indices())
             {
-                for (std::size_t m = 0; m <= l; ++m)
-                    std::println("({}, {}, {}): [{}, {}] [{}, {}]", n, l, m, exp[n, l, m, 0], exp[n, l, m, 1], out_ref[n, l, m, 0], out_ref[n, l, m, 1]);
+                auto exp_nl = exp_n[l];
+                auto out_ref_nl = out_ref_n[l];
+                for (std::size_t m : exp_nl.indices())
+                    std::println("({}, {}, {}): [{}, {}] [{}, {}]", n, l, m, exp_nl[m, 0], exp_nl[m, 1], out_ref_nl[m, 0], out_ref_nl[m, 1]);
             }
         }
     }
