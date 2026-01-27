@@ -656,7 +656,12 @@ parse_date_time_impl(std::string_view input, std::string_view format)
                 return std::unexpected(DateParseStatus::unsupported_format_specifier);
 
             case detail::FormatSpecifier::percentage:
+            {
+                if (input.front() != '%')
+                    return std::unexpected(DateParseStatus::character_mismatch);
+                input = input.substr(1);
                 continue;
+            }
 
             case detail::FormatSpecifier::whitespace:
             {
@@ -936,10 +941,10 @@ parse_date_time(std::string_view input, std::string_view format)
 
     if (parse_state.flags & std::uint32_t(detail::DateParseStatusFlag::has_time_zone_offset))
     {
-        return std::pair{date_time.add(parse_state.time_zone_offset), input};
+        return std::pair{date_time.add(parse_state.time_zone_offset), output};
     }
     else
-        return std::pair{date_time, input};
+        return std::pair{date_time, output};
 }
 
 /**
