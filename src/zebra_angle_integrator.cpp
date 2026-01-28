@@ -61,6 +61,10 @@ void IsotropicAngleIntegrator::integrate(
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> shells, zest::DynamicMDSpan<double, 2> out)
 {
+    assert(
+        offsets.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -72,6 +76,7 @@ void IsotropicAngleIntegrator::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
+    assert(shells.size() == out.size());
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
     integrate(offset, shells, out);
@@ -81,6 +86,8 @@ void IsotropicAngleIntegrator::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
+    assert(shells.size() == out.size());
+
     std::ranges::copy(
         m_geg_zernike_exp.flatten(),
         m_rotated_geg_zernike_exp.flatten().begin());
@@ -167,6 +174,11 @@ void AnisotropicAngleIntegrator::integrate(
     std::span<const double> rotation_angles, std::span<const double> shells,
     zest::DynamicMDSpan<double, 2> out, std::size_t trunc_order)
 {
+    assert(
+        offsets.size() == out.extent(0)
+        && rotation_angles.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
     resize(dist_order, resp_order, trunc_order);
@@ -187,6 +199,8 @@ void AnisotropicAngleIntegrator::integrate(
     std::span<const double> shells, std::span<double> out,
     std::size_t trunc_order)
 {
+    assert(shells.size() == out.size());
+
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
     resize(dist_order, resp_order, trunc_order);
@@ -204,6 +218,8 @@ void AnisotropicAngleIntegrator::integrate(
     std::span<const double> shells, std::size_t geg_order,
     std::size_t top_order, std::span<double> out)
 {
+    assert(shells.size() == out.size());
+
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
@@ -275,6 +291,10 @@ void IsotropicTransverseAngleIntegrator::integrate(
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
+    assert(
+        offsets.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
@@ -294,6 +314,8 @@ void IsotropicTransverseAngleIntegrator::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
+    assert(shells.size() == out.size());
+
     resize(distribution.order());
     zebra::radon_transform(distribution, m_geg_zernike_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
@@ -311,6 +333,8 @@ void IsotropicTransverseAngleIntegrator::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
+    assert(shells.size() == out.size());
+
     std::ranges::copy(
         m_geg_zernike_exp.flatten(),
         m_rotated_geg_zernike_exp.flatten().begin());
@@ -415,6 +439,11 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     std::span<const double> rotation_angles, std::span<const double> shells,
     zest::DynamicMDSpan<std::array<double, 2>, 2> out, std::size_t trunc_order)
 {
+    assert(
+        offsets.size() == out.extent(0)
+        && rotation_angles.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
     const std::size_t dist_order = distribution.order();
     const std::size_t resp_order = response[0].order();
     resize(dist_order, resp_order, trunc_order);
@@ -461,6 +490,8 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
+    assert(shells.size() == out.size());
+
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);

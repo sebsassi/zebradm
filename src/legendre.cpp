@@ -22,8 +22,6 @@ SOFTWARE.
 #include "legendre.hpp"
 
 #include <cmath>
-#include <source_location>
-#include <stdexcept>
 
 #include "utility.hpp"
 
@@ -33,27 +31,14 @@ namespace zdm::zebra
 void legendre_recursion_vec(
     zest::DynamicMDSpan<double, 2> legendre, std::span<double> x)
 {
-    const std::size_t order = legendre.extents()[0];
-    const std::size_t size = legendre.extents()[1];
+    assert(legendre.extent(1) == x.size());
+    for (double element : x)
+        assert(std::fabs(element) <= 1.0);
+
+    const std::size_t order = legendre.extent(0);
+    const std::size_t size = legendre.extent(1);
 
     if (order == 0) return;
-
-    if (size != x.size())
-    {
-        auto location = std::source_location::current();
-        throw std::invalid_argument(util::format_error(
-                "Invalid Argument", location, "Size of x is incompatible with size of legendre."));
-    }
-
-    for (auto xi : x)
-    {
-        if (std::fabs(xi) > 1.0)
-        {
-            auto location = std::source_location::current();
-            throw std::invalid_argument(util::format_error(
-                    "Invalid Argument", location, "x must be between -1 and 1."));
-        }
-    }
 
     auto leg_0 = legendre[0];
     for (std::size_t i = 0; i < size; ++i)
@@ -80,16 +65,10 @@ void legendre_recursion_vec(
 
 void legendre_recursion(std::span<double> legendre, double x)
 {
+    assert(std::fabs(x) <= 1.0);
     const std::size_t order = legendre.size();
 
     if (order == 0) return;
-
-    if (std::fabs(x) > 1.0)
-    {
-            auto location = std::source_location::current();
-            throw std::invalid_argument(util::format_error(
-                    "Invalid Argument", location, "x must be between -1 and 1."));
-    }
 
     legendre[0] = 1.0;
     if (order == 1) return;

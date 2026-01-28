@@ -100,6 +100,7 @@ public:
     [[nodiscard]] constexpr index_type
     operator()(index_type l, index_type m) const noexcept
     {
+        assert(m <= l + m_extra_extent);
         return ((l*(l + 1)) >> 1) + l*m_extra_extent + m;
     }
 

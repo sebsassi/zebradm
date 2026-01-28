@@ -21,6 +21,7 @@ SOFTWARE.
 */
 #pragma once
 
+#include <cassert>
 #include <concepts>
 #include <span>
 
@@ -143,6 +144,7 @@ public:
     void forward_transform(
         const RespType& resp, std::span<const double> shells, SHVectorSpan<double> out)
     {
+        assert(shells.size() == out.extent(0));
         for (std::size_t i = 0; i < shells.size(); ++i)
         {
             const double shell = shells[i];

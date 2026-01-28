@@ -142,6 +142,7 @@ template <zest::RotationType TYPE>
 constexpr std::array<double, 3> euler_angles_to_align_z(
     double azimuth, double colatitude)
 {
+    assert(0.0 <= colatitude && colatitude <= std::numbers::pi);
     if constexpr (TYPE == zest::RotationType::coordinate)
         return {azimuth, colatitude, 0.0};
     else
