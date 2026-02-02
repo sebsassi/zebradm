@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -22,11 +22,14 @@ SOFTWARE.
 #pragma once
 
 #include <algorithm>
+#include <concepts>
 #include <span>
 #include <vector>
-#include <concepts>
 
+#include <zest/md_array.hpp>
 #include <zest/md_span.hpp>
+
+#include "utility.hpp"
 
 namespace zdm::zebra
 {
@@ -44,7 +47,7 @@ public:
     explicit LegendreArrayRecursion(std::size_t size);
     explicit LegendreArrayRecursion(std::span<const double> x);
 
-    [[nodiscard]] std::size_t size() const noexcept { return m_size; }
+    [[nodiscard]] std::size_t size() const noexcept { return m_swap_chain.buffer_size(); }
 
     void resize(std::size_t size);
     void init(std::span<const double> x);
@@ -52,20 +55,20 @@ public:
     template <std::regular_invocable<std::span<double>> Func>
     void init(const Func& f) noexcept
     {
-        std::ranges::fill(m_buffers[0], 1.0);
+        std::ranges::fill(m_swap_chain.current(), 1.0);
         f(m_x);
-        std::ranges::copy(m_x, m_buffers[1].begin());
+        std::ranges::copy(m_x, m_swap_chain.next().begin());
         reset();
     }
 
     [[nodiscard]] std::span<const double>
-    second_prev() const noexcept { return std::span(m_second_prev, m_size); }
+    second_prev() const noexcept { return m_swap_chain.previous<2>(); }
 
     [[nodiscard]] std::span<const double>
-    prev() const noexcept { return std::span(m_prev, m_size); }
+    prev() const noexcept { return m_swap_chain.previous<1>(); }
 
     [[nodiscard]] std::span<const double>
-    current() const noexcept { return std::span(m_current, m_size); }
+    current() const noexcept { return m_swap_chain.current(); }
 
     void iterate() noexcept;
     void iterate(std::size_t n) noexcept;
@@ -74,12 +77,9 @@ public:
 private:
     void reset() noexcept;
 
+    util::SwapChain<double, 3> m_swap_chain;
     std::array<std::vector<double>, 3> m_buffers;
     std::vector<double> m_x;
-    double* m_current;
-    double* m_prev;
-    double* m_second_prev;
-    std::size_t m_size;
     std::size_t m_l = 0;
 };
 

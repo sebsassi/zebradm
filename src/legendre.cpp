@@ -85,12 +85,10 @@ void legendre_recursion(std::span<double> legendre, double x)
 }
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::size_t size):
-    m_buffers{std::vector<double>(size), std::vector<double>(size),
-    std::vector<double>(size)}, m_x(size), m_size(size) {}
+    m_swap_chain{size}, m_x(size), m_size{size} {}
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::span<const double> x):
-    m_buffers{std::vector<double>(x.size()), std::vector<double>(x.size()),
-    std::vector<double>(x.size())}, m_x(x.size()), m_size(x.size())
+    m_swap_chain{x.size()}, m_x(x.size()), m_size{x.size()}
 {
     init(x);
 }
@@ -99,10 +97,8 @@ void LegendreArrayRecursion::resize(std::size_t size)
 {
     if (size != m_size)
     {
-        for (auto& buffer : m_buffers)
-            buffer.resize(size);
+        m_swap_chain.resize(size);
         m_x.resize(size);
-        m_size = size;
     }
 }
 
@@ -110,26 +106,23 @@ void LegendreArrayRecursion::init(std::span<const double> x)
 {
     resize(x.size());
 
-    std::ranges::fill(m_buffers[0], 1.0);
+    std::ranges::fill(m_swap_chain.current(), 1.0);
     std::ranges::copy(x, m_x.begin());
-    std::ranges::copy(m_x, m_buffers[1].begin());
+    std::ranges::copy(m_x, m_swap_chain.next().begin());
     reset();
 }
 
 void LegendreArrayRecursion::iterate() noexcept
 {
-    double* temp = m_second_prev;
-    m_second_prev = m_prev;
-    m_prev = m_current;
-    m_current = temp;
+    m_swap_chain.advance();
 
     if (m_l > 0)
     {
         const double inv_l = 1.0/double(m_l + 1);
         const double a = double(2*m_l + 1)*inv_l;
         const double b = double(m_l)*inv_l;
-        for (std::size_t i = 0; i < m_size; ++i)
-            m_current[i] = a*m_x[i]*m_prev[i] - b*m_second_prev[i];
+        for (std::size_t i = 0; i < m_x.size(); ++i)
+            m_swap_chain.current()[i] = a*m_x[i]*m_swap_chain.previous<1>()[i] - b*m_swap_chain.previous<2>()[i];
     }
     ++m_l;
 }
@@ -139,26 +132,20 @@ void LegendreArrayRecursion::iterate(std::size_t n) noexcept
     if (n == 0) return;
     if (m_l == 0)
     {
-        double* temp = m_second_prev;
-        m_second_prev = m_prev;
-        m_prev = m_current;
-        m_current = temp;
+        m_swap_chain.advance();
         ++m_l;
         --n;
     }
 
     for (std::size_t i = 0; i < n; ++i)
     {
-        double* temp = m_second_prev;
-        m_second_prev = m_prev;
-        m_prev = m_current;
-        m_current = temp;
+        m_swap_chain.advance();
 
         const double inv_l = 1.0/double(m_l + 1);
         const double a = double(2*m_l + 1)*inv_l;
         const double b = double(m_l)*inv_l;
         for (std::size_t i = 0; i < m_size; ++i)
-            m_current[i] = a*m_x[i]*m_prev[i] - b*m_second_prev[i];
+            m_swap_chain.current()[i] = a*m_x[i]*m_swap_chain.previous<1>()[i] - b*m_swap_chain.previous<2>()[i];
         ++m_l;
     }
 }
@@ -171,9 +158,6 @@ std::span<const double> LegendreArrayRecursion::next() noexcept
 
 void LegendreArrayRecursion::reset() noexcept
 {
-    m_current = m_buffers[0].data();
-    m_second_prev = m_buffers[1].data();
-    m_prev = m_buffers[2].data();
     m_l = 0;
 }
 
