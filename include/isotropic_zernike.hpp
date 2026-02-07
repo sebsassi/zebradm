@@ -30,6 +30,8 @@ SOFTWARE.
 #include <zest/shaped_span.hpp>
 #include <zest/zernike_conventions.hpp>
 
+#include "isotropic_zernike_recursion.hpp"
+
 namespace zdm::zebra
 {
 
@@ -158,6 +160,39 @@ private:
     size_type m_order{};
 };
 
+template <typename AlignmentType = zest::CacheLineAlignment>
+struct RadialGridLayout
+{
+    using Alignment = AlignmentType;
+
+    /**
+        @brief Number of grid points.
+
+        @param order order of Zernike expansion
+    */
+    [[nodiscard]] static constexpr std::size_t size(std::size_t order) noexcept
+    {
+        constexpr std::size_t vector_size
+                = AlignmentType::template vector_size<double>();
+        const std::size_t min_size = order;
+        if constexpr (std::is_same_v<AlignmentType, zest::NoAlignment>)
+            return min_size;
+        else
+            return zest::detail::next_divisible<vector_size>(min_size);
+    }
+
+    /**
+        @brief Shape of the grid.
+
+        @param order order of Zernike expansion
+    */
+    [[nodiscard]] static constexpr std::array<std::size_t, 3>
+    extents(std::size_t order) noexcept
+    {
+        return {size(order)};
+    }
+};
+
 template <typename AlignmentType = zest::CacheLineAlignment, std::size_t... outer_extent_params>
     requires (sizeof...(outer_extent_params) > 0)
 class RadialGLQGridTensorShape:
@@ -191,6 +226,7 @@ private:
     };
 
 public:
+    using layout_type = RadialGridLayout<AlignmentType>;
     using size_type = typename Base::size_type;
     using Base::extents;
     using Base::size;
@@ -203,34 +239,34 @@ public:
 
     RadialGLQGridTensorShape(size_type outer_extent, size_type order)
         requires (Base::dynamic_rank == 2):
-        Base(prepend(outer_extent, extents_from(order))), m_order(order) {}
+        Base(prepend(outer_extent, layout_type::extents(order))), m_order(order) {}
 
     RadialGLQGridTensorShape(
         const std::array<size_type, Base::dynamic_rank - 1>& outer_extents, size_type order):
-        Base(concatenate(outer_extents, extents_from(order))), m_order(order) {}
+        Base(concatenate(outer_extents, layout_type::extents(order))), m_order(order) {}
 
     RadialGLQGridTensorShape(
         const std::array<size_type, Base::rank - 1>& outer_extents, size_type order)
         requires (Base::dynamic_rank != Base::rank):
-        Base(concatenate(outer_extents, extents_from(order))), m_order(order) {}
+        Base(concatenate(outer_extents, layout_type::extents(order))), m_order(order) {}
 
     [[nodiscard]] constexpr size_type
     size(size_type outer_extent, size_type order) requires (Base::dynamic_rank == 2)
     {
-        return Base::size(prepend(outer_extent, extents_from(order)));
+        return Base::size(prepend(outer_extent, layout_type::extents(order)));
     }
 
     [[nodiscard]] constexpr size_type
     size(const std::array<size_type, Base::dynamic_rank - 1>& outer_extents, size_type order)
     {
-        return Base::size(concatenate(outer_extents, extents_from(order)));
+        return Base::size(concatenate(outer_extents, layout_type::extents(order)));
     }
 
     [[nodiscard]] constexpr size_type
     size(const std::array<size_type, Base::rank - 1>& outer_extents, size_type order)
         requires (Base::dynamic_rank != Base::rank)
     {
-        return Base::size(concatenate(outer_extents, extents_from(order)));
+        return Base::size(concatenate(outer_extents, layout_type::extents(order)));
     }
 
     template <std::integral... Inds>
@@ -258,16 +294,6 @@ public:
     order() const noexcept { return m_order; }
 
 private:
-    static std::array<size_type, 1> extents_from(size_type order)
-    {
-        constexpr std::size_t vector_size
-                = AlignmentType::template vector_size<double>();
-        const std::size_t min_size = order;
-        if constexpr (std::is_same_v<AlignmentType, zest::NoAlignment>)
-            return {min_size};
-        else
-            return {zest::detail::next_divisible<vector_size>(min_size)};
-    }
 
     size_type m_order{};
 };
@@ -345,6 +371,7 @@ template <typename AlignmentType = zest::CacheLineAlignment>
 class RadialGLQGridPoints
 {
 public:
+    using layout_type = RadialGridLayout<AlignmentType>;
     using Alignment = AlignmentType;
     RadialGLQGridPoints() = default;
     explicit RadialGLQGridPoints(std::size_t order) { resize(order); }
@@ -354,7 +381,7 @@ public:
     */
     void resize(std::size_t order)
     {
-        resize_impl(extents_from(order)[0]);
+        resize_impl(layout_type::extents(order)[0]);
     }
 
     /**
@@ -426,17 +453,6 @@ public:
     }
 
 private:
-    static std::array<std::size_t, 1> extents_from(std::size_t order)
-    {
-        constexpr std::size_t vector_size
-                = AlignmentType::template vector_size<double>();
-        const std::size_t min_size = order;
-        if constexpr (std::is_same_v<AlignmentType, zest::NoAlignment>)
-            return {min_size};
-        else
-            return {zest::detail::next_divisible<vector_size>(min_size)};
-    }
-
     void resize_impl(std::size_t num_rad)
     {
         if (num_rad != m_glq_nodes.size())
@@ -450,10 +466,48 @@ private:
 };
 
 template <
-    zest::zt::ZernikeNorm zernike_norm, zest::st::SHNorm sh_norm, zest::st::SHPhase sh_phase>
+    zest::zt::ZernikeNorm zernike_norm, zest::st::SHNorm sh_norm, zest::st::SHPhase sh_phase,
+    typename GridLayoutType = RadialGridLayout<>>
 class IsotropicZernikeGLQTransformer
 {
 public:
+    using grid_layout_type = GridLayoutType;
+
+    IsotropicZernikeGLQTransformer() = default;
+    IsotropicZernikeGLQTransformer(std::size_t order):
+        m_recursion{order},
+        m_glq_nodes(grid_layout_type::size(order)),
+        m_glq_weights(grid_layout_type::size(order)),
+        m_weighted_values(grid_layout_type::size(order)),
+        m_order{order}
+    {
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
+                m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
+
+        for (auto& node : m_glq_nodes)
+            node = 0.5*(1.0 + node);
+
+        m_recursion.init(m_glq_nodes);
+    }
+
+    void resize(std::size_t order)
+    {
+        if (order == m_order) return;
+
+        m_glq_nodes.resize(grid_layout_type::size(order));
+        m_glq_weights.resize(grid_layout_type::size(order));
+        m_weighted_values.resize(grid_layout_type::size(order));
+        m_order = order;
+
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
+                m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
+
+        for (auto& node : m_glq_nodes)
+            node = 0.5*(1.0 + node);
+
+        m_recursion.init(m_glq_nodes);
+    }
+
     void forward_transform(
         RadialGLQGridSpan<const double> values,
         IsotropicZernikeSpan<double, zernike_norm, sh_norm, sh_phase> expansion)
@@ -466,17 +520,80 @@ public:
         truncated_expansion{expansion.flatten(), min_order};
 
         for (std::size_t i = 0; i < values.size(); ++i)
-            m_weighted_values[i] = m_glq_weights[i]*values[i];
+        {
+            const double r = m_glq_nodes[i];
+            m_weighted_values[i] = r*r*m_glq_weights[i]*values[i];
+        }
+
+        if (values.order() == m_order)
+            m_recursion.init();
 
         for (auto n : truncated_expansion.indices())
         {
+            auto radial_zernike = m_recursion.next();
             double& element = truncated_expansion[n];
+            element = 0.0;
             for (std::size_t i = 0; i < values.size(); ++i)
             {
-                truncated_expansion[n] += m_weighted_values[i]*radial_zernike[i];
+                element += m_weighted_values[i]*radial_zernike[i];
             }
+
+            constexpr double spherical_integral = (sh_norm == zest::st::SHNorm::geo) ?
+                4.0*std::numbers::pi : 2.0/std::numbers::inv_sqrtpi;
+            element *= spherical_integral;
         }
-    };
+    }
+
+    [[nodiscard]] IsotropicZernikeExpansion<double, zernike_norm, sh_norm, sh_phase>
+    forward_transform(RadialGLQGridSpan<const double> values, std::size_t order)
+    {
+        IsotropicZernikeExpansion<double, zernike_norm, sh_norm, sh_phase>
+        expansion{order};
+
+        forward_transform(values, expansion);
+        return expansion;
+    }
+
+    void backward_transform(
+        IsotropicZernikeSpan<const double, zernike_norm, sh_norm, sh_phase> expansion,
+        RadialGLQGridSpan<double> values)
+    {
+        resize(values.order());
+
+        std::size_t min_order = std::min(expansion.order(), values.order());
+
+        IsotropicZernikeSpan<const double, zernike_norm, sh_norm, sh_phase>
+        truncated_expansion{expansion.flatten(), min_order};
+
+        if (values.order() == m_order)
+            m_recursion.init();
+
+        for (auto n : truncated_expansion.indices())
+        {
+            auto radial_zernike = m_recursion.next();
+            const double spherical_harmonic = (sh_norm == zest::st::SHNorm::geo) ?
+                1.0 : 0.5*std::numbers::inv_sqrtpi;
+            const double element = spherical_harmonic*truncated_expansion[n];
+            for (std::size_t i = 0; i < values.size(); ++i)
+                values[i] += element*radial_zernike[i];
+        }
+    }
+
+    [[nodiscard]] RadialGLQGrid<double>
+    backward_transform(IsotropicZernikeSpan<const double, zernike_norm, sh_norm, sh_phase> expansion, std::size_t order)
+    {
+        RadialGLQGrid<double> grid{order};
+
+        backward_transform(expansion, grid);
+        return grid;
+    }
+
+private:
+    IsotropicRadialZernikeRecursion<zernike_norm> m_recursion;
+    std::vector<double> m_glq_nodes;
+    std::vector<double> m_glq_weights;
+    std::vector<double> m_weighted_values;
+    std::size_t m_order{};
 };
 
 } // namespace zdm::zebra
