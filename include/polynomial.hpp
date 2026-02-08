@@ -52,25 +52,52 @@ template <typename R, typename DomainType, typename ResultType>
     requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
         && requires { std::tuple_size_v<R>; }
 [[nodiscard]] constexpr auto
-horner_eval(const R& coeffs, DomainType x) noexcept
+horner_eval(const R& coeffs, const DomainType& x) noexcept
 {
     constexpr auto size = std::tuple_size_v<R>;
 
     if constexpr (size == 0)
         return ResultType{};
+
+    auto res = ResultType{coeffs[size - 1]};
+    for (std::size_t i = size - 1; i > 0; --i)
+        res = coeffs[i - 1] + res*x;
+    return res;
+}
+
+template <typename R, typename DomainType, typename ResultType>
+    requires fma_operable<std::ranges::range_value_t<R>, std::ranges::range_value_t<R>, DomainType>
+        && requires { std::tuple_size_v<R>; }
+[[nodiscard]] constexpr auto
+estrin_eval(const R& coeffs, const DomainType& x)
+{
+    constexpr std::size_t size = std::tuple_size_v<R>;
+    if constexpr (size == 0)
+        return ResultType{};
+    if constexpr (size == 1)
+        return ResultType{coeffs[0]};
+    if constexpr (size == 2)
+        return ResultType{coeffs[0] + coeffs[1]*x};
+
+    constexpr std::size_t order = size - 1;
+    constexpr std::size_t estrin_order = order >> 1;
+
+    const std::array<ResultType, estrin_order + 1> estrin_coeffs{};
+    for (std::size_t i = 0; i < estrin_order; ++i)
+        estrin_coeffs[i] = ResultType{coeffs[2*i] + coeffs[2*i + 1]*x};
+
+    if constexpr ((size & 1) == 0)
+        estrin_coeffs[estrin_order] = ResultType{coeffs[2*estrin_order] + coeffs[2*estrin_order + 1]*x};
     else
-    {
-        ResultType res{};
-        for (std::size_t i = size; i > 0; --i)
-            res = coeffs[i - 1] + res*x;
-        return res;
-    }
+        estrin_coeffs[estrin_order] = ResultType{coeffs[2*estrin_order]};
+
+    return estrin_eval<std::array<ResultType, estrin_order + 1>, DomainType, ResultType>(estrin_coeffs, x*x);
 }
 
 template <typename R, typename DomainType, typename ResultType>
     requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
 [[nodiscard]] constexpr auto
-horner_eval(const R& coeffs, DomainType x) noexcept
+horner_eval(const R& coeffs, const DomainType& x) noexcept
 {
     if (coeffs.size() == 0)
         return ResultType{};
