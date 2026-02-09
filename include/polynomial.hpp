@@ -194,7 +194,7 @@ struct Polynomial
         if constexpr (order == 0)
             return coeffs[0];
         else
-            return detail::horner_eval<const std::array<value_type, order + 1>&, DomainType, value_type>(coeffs, x);
+            return detail::estrin_eval<const std::array<value_type, order + 1>&, DomainType, value_type>(coeffs, x);
     }
 
     [[nodiscard]] constexpr auto
