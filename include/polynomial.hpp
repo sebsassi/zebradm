@@ -124,12 +124,12 @@ T intpow(T x)
         return intpow<(N >> 1)>(x*x);
 }
 
-template <typename T, std::size_t Order>
+template <typename T, std::size_t order_param>
 struct Monomial
 {
     using value_type = T;
 
-    static constexpr std::size_t order = Order;
+    static constexpr std::size_t order = order_param;
 
     value_type coeff;
 
@@ -152,34 +152,22 @@ struct Monomial
         if constexpr (order < 1)
             return Monomial<value_type, 0>{};
         else if constexpr (order == 1)
-            return Monomial<value_type, 0>(coeff);
+            return Monomial<value_type, 0>{coeff};
         else
-            return Monomial<value_type, order - 1>(value_type(order)*coeff);
-    }
-
-    template <std::size_t NewOrder>
-        requires (NewOrder <= order)
-    [[nodiscard]] constexpr Monomial<value_type, NewOrder>
-    truncate() const noexcept
-    {
-        Monomial<value_type, NewOrder> res{};
-        if constexpr (NewOrder == order)
-            return *this;
-        else
-            return Monomial<value_type, NewOrder>{};
+            return Monomial<value_type, order - 1>{value_type(order)*coeff};
     }
 };
 
-template <typename T, std::size_t Order>
+template <typename ValueType, std::size_t order_param>
 struct Polynomial
 {
-    using value_type = T;
-    static constexpr std::size_t order = Order;
+    using value_type = ValueType;
+    static constexpr std::size_t order = order_param;
 
-    std::array<value_type, Order + 1> coeffs;
+    std::array<value_type, order + 1> coeffs;
 
     constexpr Polynomial() = default;
-    explicit constexpr Polynomial(const std::array<value_type, Order + 1>& coeffs_): coeffs(coeffs_) {}
+    explicit constexpr Polynomial(const std::array<value_type, order + 1>& coeffs_): coeffs(coeffs_) {}
 
     template <typename... Types>
         requires (std::convertible_to<Types, value_type> && ...)
@@ -191,35 +179,32 @@ struct Polynomial
     [[nodiscard]] constexpr value_type
     operator()(DomainType x) const noexcept
     {
-        if constexpr (order == 0)
-            return coeffs[0];
-        else
-            return detail::estrin_eval<const std::array<value_type, order + 1>&, DomainType, value_type>(coeffs, x);
+        return detail::estrin_eval<const std::array<value_type, order + 1>&, DomainType, value_type>(coeffs, x);
     }
 
     [[nodiscard]] constexpr auto
     derivative() const noexcept requires zdm::arithmetic<value_type>
     {
         if constexpr (order < 1)
-            return Polynomial<T, 0>();
+            return Polynomial<ValueType, 0>{};
         else if constexpr (order == 1)
-            return Polynomial<T, 0>(std::array<T, 1>{coeffs[1]});
+            return Polynomial<ValueType, 0>{std::array<ValueType, 1>{coeffs[1]}};
         else
         {
-            Polynomial<T, Order - 1> deriv;
-            for (std::size_t i = 1; i <= Order; ++i)
-                deriv.coeffs[i - 1] = T(i)*coeffs[i];
+            Polynomial<ValueType, order - 1> deriv{};
+            for (std::size_t i = 1; i <= order; ++i)
+                deriv.coeffs[i - 1] = ValueType(i)*coeffs[i];
             return deriv;
         }
     }
 
-    template <std::size_t NewOrder>
-        requires (NewOrder <= Order)
-    [[nodiscard]] constexpr Polynomial<value_type, NewOrder>
+    template <std::size_t new_order>
+        requires (new_order <= order_param)
+    [[nodiscard]] constexpr Polynomial<value_type, new_order>
     truncate() const noexcept
     {
-        Polynomial<T, NewOrder> res{};
-        for (std::size_t i = 1; i <= NewOrder; ++i)
+        Polynomial<ValueType, new_order> res{};
+        for (std::size_t i = 1; i <= new_order; ++i)
             res.coeffs[i] = coeffs[i];
         return res;
     }
@@ -239,22 +224,20 @@ operator-(const Polynomial<T, Order>& p) noexcept
     return res;
 }
 
-template <typename P, typename Q>
-    requires std::same_as<P, Polynomial<typename P::value_type, P::order>>
-        && std::same_as<Q, Polynomial<typename Q::value_type, Q::order>>
+template <typename T, std::size_t N, std::size_t M>
 [[nodiscard]] constexpr auto
-operator+(const P& p, const Q& q) noexcept
+operator+(const Polynomial<T, N>& p, const Polynomial<T, M>& q) noexcept
 {
-    constexpr std::size_t min_order = std::min(P::order, Q::order);
-    constexpr std::size_t max_order = std::max(P::order, Q::order);
+    constexpr std::size_t min_order = std::min(N, M);
+    constexpr std::size_t max_order = std::max(N, M);
 
-    Polynomial<typename P::value_type, max_order> res{};
+    Polynomial<T, max_order> res{};
     for (std::size_t i = 0; i <= min_order; ++i)
         res.coeffs[i] = p.coeffs[i] + q.coeffs[i];
 
     for (std::size_t i = min_order + 1; i <= max_order; ++i)
     {
-        if constexpr (P::order > Q::order)
+        if constexpr (N > M)
             res.coeffs[i] = p.coeffs[i];
         else
             res.coeffs[i] = q.coeffs[i];
@@ -263,14 +246,14 @@ operator+(const P& p, const Q& q) noexcept
     return res;
 }
 
-template <typename T, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<T, Order>
-operator+(const T a, const Polynomial<T, Order>& p) noexcept
+template <typename T, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, order>
+operator+(const T a, const Polynomial<T, order>& p) noexcept
 {
-    Polynomial<T, Order> res{};
+    Polynomial<T, order> res{};
     res.coeffs[0] = a + p.coeffs[0];
     for (std::size_t i = 1; i < res.coeffs.size(); ++i)
-        res.coeffs[i] = a + p.coeffs[i];
+        res.coeffs[i] = p.coeffs[i];
     return res;
 }
 
@@ -281,26 +264,50 @@ operator+(const Polynomial<T, Order>& p, const T a) noexcept
     Polynomial<T, Order> res{};
     res.coeffs[0] = p.coeffs[0] + a;
     for (std::size_t i = 1; i < res.coeffs.size(); ++i)
-        res.coeffs[i] = a + p.coeffs[i];
+        res.coeffs[i] = p.coeffs[i];
     return res;
 }
 
-template <typename P, typename Q>
-    requires std::same_as<P, Polynomial<typename P::value_type, P::order>>
-        && std::same_as<Q, Polynomial<typename Q::value_type, Q::order>>
-[[nodiscard]] constexpr auto
-operator-(const P& p, const Q& q) noexcept
+template <typename T, std::size_t mon_order, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, std::max(order, mon_order)>
+operator+(const Monomial<T, mon_order> q, const Polynomial<T, order>& p) noexcept
 {
-    constexpr std::size_t min_order = std::min(P::order, Q::order);
-    constexpr std::size_t max_order = std::max(P::order, Q::order);
+    Polynomial<T, std::max(order, mon_order)> res{};
+    for (std::size_t i = 0; i < order; ++i)
+        res.coeffs[i] = p.coeffs[i];
 
-    Polynomial<typename P::value_type, max_order> res{};
+    res.coeffs[mon_order] += q.coeff;
+
+    return res;
+}
+
+template <typename T, std::size_t order, std::size_t mon_order>
+[[nodiscard]] constexpr Polynomial<T, std::max(order, mon_order)>
+operator+(const Polynomial<T, order>& p, const Monomial<T, mon_order> q) noexcept
+{
+    Polynomial<T, std::max(order, mon_order)> res{};
+    for (std::size_t i = 0; i < order; ++i)
+        res.coeffs[i] = p.coeffs[i];
+
+    res.coeffs[mon_order] += q.coeff;
+
+    return res;
+}
+
+template <typename T, std::size_t N, std::size_t M>
+[[nodiscard]] constexpr auto
+operator-(const Polynomial<T, N>& p, const Polynomial<T, M>& q) noexcept
+{
+    constexpr std::size_t min_order = std::min(N, M);
+    constexpr std::size_t max_order = std::max(N, M);
+
+    Polynomial<T, max_order> res{};
     for (std::size_t i = 0; i <= min_order; ++i)
         res.coeffs[i] = p.coeffs[i] - q.coeffs[i];
  
     for (std::size_t i = min_order + 1; i <= max_order; ++i)
     {
-        if constexpr (P::order > Q::order)
+        if constexpr (N > M)
             res.coeffs[i] = p.coeffs[i];
         else
             res.coeffs[i] = -q.coeffs[i];
@@ -309,83 +316,104 @@ operator-(const P& p, const Q& q) noexcept
     return res;
 }
 
-template <typename T, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<T, Order>
-operator-(const T a, const Polynomial<T, Order>& p) noexcept
+template <typename T, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, order>
+operator-(const T a, const Polynomial<T, order>& p) noexcept
 {
-    Polynomial<T, Order> res{};
+    Polynomial<T, order> res{};
     res.coeffs[0] = a - p.coeffs[0];
     for (std::size_t i = 1; i < res.coeffs.size(); ++i)
-        res.coeffs[i] = a - p.coeffs[i];
+        res.coeffs[i] = p.coeffs[i];
     return res;
 }
 
-template <typename T, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<T, Order>
-operator-(const Polynomial<T, Order>& p, const T a) noexcept
+template <typename T, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, order>
+operator-(const Polynomial<T, order>& p, const T a) noexcept
 {
-    Polynomial<T, Order> res{};
+    Polynomial<T, order> res{};
     res.coeffs[0] = p.coeffs[0] - a;
     for (std::size_t i = 1; i < res.coeffs.size(); ++i)
-        res.coeffs[i] = a - p.coeffs[i];
+        res.coeffs[i] = p.coeffs[i];
     return res;
 }
 
-template <typename M, typename P>
-    requires std::same_as<M, Monomial<typename M::value_type, M::order>>
-        && std::same_as<P, Polynomial<typename P::value_type, P::order>>
-[[nodiscard]] constexpr auto
-operator*(const M& m, const P& p) noexcept
+template <typename T, std::size_t mon_order, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, std::max(order, mon_order)>
+operator-(const Monomial<T, mon_order> q, const Polynomial<T, order>& p) noexcept
 {
-    Polynomial<typename M::value_type, M::order + P::order> res{};
-    for (std::size_t i = M::order; i <= M::order + P::order; ++i)
-        res.coeffs[i] = m.coeff*p.coeffs[i - M::order];
+    Polynomial<T, std::max(order, mon_order)> res{};
+    for (std::size_t i = 0; i < order; ++i)
+        res.coeffs[i] = p.coeffs[i];
+
+    res.coeffs[mon_order] -= q.coeff;
+
     return res;
 }
 
-template <typename P, typename M>
-    requires std::same_as<P, Polynomial<typename P::value_type, P::order>>
-        && std::same_as<M, Monomial<typename M::value_type, M::order>>
-[[nodiscard]] constexpr auto
-operator*(const P& p, const M& m) noexcept
+template <typename T, std::size_t order, std::size_t mon_order>
+[[nodiscard]] constexpr Polynomial<T, std::max(order, mon_order)>
+operator-(const Polynomial<T, order>& p, const Monomial<T, mon_order> q) noexcept
 {
-    Polynomial<typename M::value_type, M::order + P::order> res{};
-    for (std::size_t i = M::order; i <= M::order + P::order; ++i)
-        res.coeffs[i] = m.coeff*p.coeffs[i - M::order];
+    Polynomial<T, std::max(order, mon_order)> res{};
+    for (std::size_t i = 0; i < order; ++i)
+        res.coeffs[i] = p.coeffs[i];
+
+    res.coeffs[mon_order] -= q.coeff;
+
+    return res;
 }
 
-template <typename P, typename Q>
-    requires std::same_as<P, Polynomial<typename P::value_type, P::order>>
-        && std::same_as<Q, Polynomial<typename Q::value_type, Q::order>>
-        && std::same_as<typename P::value_type, typename Q::value_type>
-[[nodiscard]] constexpr auto
-operator*(const P& p, const Q& q) noexcept
+template <typename T, std::size_t N, std::size_t M>
+[[nodiscard]] constexpr Polynomial<T, N + M>
+operator*(const Polynomial<T, N>& p, const Polynomial<T, M>& q) noexcept
 {
-    Polynomial<typename P::Field, P::order + Q::order> res{};
-    for (std::size_t i = 0; i < P::order + Q::order; ++i)
+    Polynomial<T, N + M> res{};
+    for (std::size_t i = 0; i < N + M; ++i)
     {
         for (std::size_t j = 0; j <= i; ++j)
-            res[i] += p[j]*q[i - j];
+            res.coeffs[i] += p.coeffs[j]*q.coeffs[i - j];
     }
+    return res;
 }
 
-template <typename T, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<T, Order>
-operator*(const T a, const Polynomial<T, Order>& p) noexcept
+template <typename T, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, order>
+operator*(const T a, const Polynomial<T, order>& p) noexcept
 {
-    Polynomial<T, Order> res{};
+    Polynomial<T, order> res{};
     for (std::size_t i = 0; i < res.coeffs.size(); ++i)
         res.coeffs[i] = a*p.coeffs[i];
     return res;
 }
 
-template <typename T, std::size_t Order>
-[[nodiscard]] constexpr Polynomial<T, Order>
-operator*(const Polynomial<T, Order>& p, const T a) noexcept
+template <typename T, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, order>
+operator*(const Polynomial<T, order>& p, const T a) noexcept
 {
-    Polynomial<T, Order> res{};
+    Polynomial<T, order> res{};
     for (std::size_t i = 0; i < res.coeffs.size(); ++i)
         res.coeffs[i] = p.coeffs[i]*a;
+    return res;
+}
+
+template <typename T, std::size_t mon_order, std::size_t order>
+[[nodiscard]] constexpr Polynomial<T, mon_order + order>
+operator*(const Monomial<T, mon_order>& m, const Polynomial<T, order>& p) noexcept
+{
+    Polynomial<T, order + mon_order> res{};
+    for (std::size_t i = mon_order; i <= mon_order + order; ++i)
+        res.coeffs[i] = m.coeff*p.coeffs[i - mon_order];
+    return res;
+}
+
+template <typename T, std::size_t order, std::size_t mon_order>
+[[nodiscard]] constexpr Polynomial<T, order + mon_order>
+operator*(const Polynomial<T, order>& p, const Monomial<T, mon_order>& m) noexcept
+{
+    Polynomial<T, order + mon_order> res{};
+    for (std::size_t i = mon_order; i <= mon_order + order; ++i)
+        res.coeffs[i] = m.coeff*p.coeffs[i - mon_order];
     return res;
 }
 
