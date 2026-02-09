@@ -76,6 +76,18 @@ bool test_horner_eval_evaluates_coeffs_order_7(const std::array<std::int64_t, 8>
     return zdm::detail::horner_eval<std::array<std::int64_t, 8>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
 }
 
+bool test_horner_eval_evaluates_coeffs_order_8(const std::array<std::int64_t, 9>& coeffs, std::int64_t x)
+{
+    const std::int64_t expected_result = coeffs[0] + coeffs[1]*x + coeffs[2]*x*x + coeffs[3]*x*x*x + coeffs[4]*x*x*x*x + coeffs[5]*x*x*x*x*x + coeffs[6]*x*x*x*x*x*x + coeffs[7]*x*x*x*x*x*x*x + coeffs[8]*x*x*x*x*x*x*x*x;
+    return zdm::detail::horner_eval<std::array<std::int64_t, 9>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
+}
+
+bool test_horner_eval_evaluates_coeffs_order_9(const std::array<std::int64_t, 10>& coeffs, std::int64_t x)
+{
+    const std::int64_t expected_result = coeffs[0] + coeffs[1]*x + coeffs[2]*x*x + coeffs[3]*x*x*x + coeffs[4]*x*x*x*x + coeffs[5]*x*x*x*x*x + coeffs[6]*x*x*x*x*x*x + coeffs[7]*x*x*x*x*x*x*x + coeffs[8]*x*x*x*x*x*x*x*x + coeffs[9]*x*x*x*x*x*x*x*x*x;
+    return zdm::detail::horner_eval<std::array<std::int64_t, 10>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
+}
+
 bool test_estrin_eval_evaluates_coeffs_order_0(const std::array<std::int64_t, 1>& coeffs, std::int64_t x)
 {
     const std::int64_t expected_result = coeffs[0];
@@ -122,6 +134,18 @@ bool test_estrin_eval_evaluates_coeffs_order_7(const std::array<std::int64_t, 8>
 {
     const std::int64_t expected_result = coeffs[0] + coeffs[1]*x + coeffs[2]*x*x + coeffs[3]*x*x*x + coeffs[4]*x*x*x*x + coeffs[5]*x*x*x*x*x + coeffs[6]*x*x*x*x*x*x + coeffs[7]*x*x*x*x*x*x*x;
     return zdm::detail::estrin_eval<std::array<std::int64_t, 8>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
+}
+
+bool test_estrin_eval_evaluates_coeffs_order_8(const std::array<std::int64_t, 9>& coeffs, std::int64_t x)
+{
+    const std::int64_t expected_result = coeffs[0] + coeffs[1]*x + coeffs[2]*x*x + coeffs[3]*x*x*x + coeffs[4]*x*x*x*x + coeffs[5]*x*x*x*x*x + coeffs[6]*x*x*x*x*x*x + coeffs[7]*x*x*x*x*x*x*x + coeffs[8]*x*x*x*x*x*x*x*x;
+    return zdm::detail::estrin_eval<std::array<std::int64_t, 9>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
+}
+
+bool test_estrin_eval_evaluates_coeffs_order_9(const std::array<std::int64_t, 10>& coeffs, std::int64_t x)
+{
+    const std::int64_t expected_result = coeffs[0] + coeffs[1]*x + coeffs[2]*x*x + coeffs[3]*x*x*x + coeffs[4]*x*x*x*x + coeffs[5]*x*x*x*x*x + coeffs[6]*x*x*x*x*x*x + coeffs[7]*x*x*x*x*x*x*x + coeffs[8]*x*x*x*x*x*x*x*x + coeffs[9]*x*x*x*x*x*x*x*x*x;
+    return zdm::detail::estrin_eval<std::array<std::int64_t, 10>, std::int64_t, std::int64_t>(coeffs, x) == expected_result;
 }
 
 } // namespace
@@ -180,4 +204,101 @@ int main()
     assert(test_horner_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 4));
     assert(test_horner_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, -4));
 
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 0));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 1));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -1));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 2));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -2));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 3));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -3));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 4));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -4));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 5));
+
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 0));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 1));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -1));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 2));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -2));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 3));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -3));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 4));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -4));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 5));
+    assert(test_horner_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -5));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_0(std::array<std::int64_t, 1>{1}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_0(std::array<std::int64_t, 1>{1}, 1));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_1(std::array<std::int64_t, 2>{1, 2}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_1(std::array<std::int64_t, 2>{1, 2}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_1(std::array<std::int64_t, 2>{1, 2}, -1));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_2(std::array<std::int64_t, 3>{1, 2, -3}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_2(std::array<std::int64_t, 3>{1, 2, -3}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_2(std::array<std::int64_t, 3>{1, 2, -3}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_2(std::array<std::int64_t, 3>{1, 2, -3}, 2));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_3(std::array<std::int64_t, 4>{1, 2, -3, -1}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_3(std::array<std::int64_t, 4>{1, 2, -3, -1}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_3(std::array<std::int64_t, 4>{1, 2, -3, -1}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_3(std::array<std::int64_t, 4>{1, 2, -3, -1}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_3(std::array<std::int64_t, 4>{1, 2, -3, -1}, -2));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_4(std::array<std::int64_t, 5>{1, 2, -3, -1, -4}, 3));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, 3));
+    assert(test_estrin_eval_evaluates_coeffs_order_5(std::array<std::int64_t, 6>{1, 2, -3, -1, -4, 3}, -3));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, 3));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, -3));
+    assert(test_estrin_eval_evaluates_coeffs_order_6(std::array<std::int64_t, 7>{1, 2, -3, -1, -4, 3, -2}, 4));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 3));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, -3));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, 4));
+    assert(test_estrin_eval_evaluates_coeffs_order_7(std::array<std::int64_t, 8>{1, 2, -3, -1, -4, 3, -2}, -4));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 3));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -3));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 4));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, -4));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4}, 5));
+
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 0));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 1));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -1));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 2));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -2));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 3));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -3));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 4));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -4));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, 5));
+    assert(test_estrin_eval_evaluates_coeffs_order_8(std::array<std::int64_t, 9>{1, 2, -3, -1, -4, 3, -2, 4, -5}, -5));
 }
