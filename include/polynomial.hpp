@@ -82,7 +82,7 @@ estrin_eval(const R& coeffs, const DomainType& x)
     constexpr std::size_t order = size - 1;
     constexpr std::size_t estrin_order = order >> 1;
 
-    const std::array<ResultType, estrin_order + 1> estrin_coeffs{};
+    std::array<ResultType, estrin_order + 1> estrin_coeffs{};
     for (std::size_t i = 0; i < estrin_order; ++i)
         estrin_coeffs[i] = ResultType{coeffs[2*i] + coeffs[2*i + 1]*x};
 
