@@ -35,7 +35,7 @@ SOFTWARE.
 namespace zdm::zebra
 {
 
-IsotropicAngleIntegrator::IsotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::iso>::AngleIntegrator(
     std::size_t dist_order):
     m_wigner_d_pi2(dist_order + 2),
     m_rotor(dist_order + 2),
@@ -44,7 +44,7 @@ IsotropicAngleIntegrator::IsotropicAngleIntegrator(
     m_integrator_core(dist_order + 2),
     m_dist_order(dist_order) {}
 
-void IsotropicAngleIntegrator::resize(std::size_t dist_order)
+void AngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size_t dist_order)
 {
     if (dist_order == m_dist_order) return;
     const std::size_t geg_order = dist_order + 2;
@@ -56,7 +56,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
     m_dist_order = dist_order;
 }
 
-void IsotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> distribution,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> shells, zest::DynamicMDSpan<double, 2> out)
@@ -71,7 +71,7 @@ void IsotropicAngleIntegrator::integrate(
         integrate(offsets[i], shells, out[i]);
 }
 
-void IsotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> distribution,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
@@ -82,7 +82,7 @@ void IsotropicAngleIntegrator::integrate(
     integrate(offset, shells, out);
 }
 
-void IsotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
@@ -125,7 +125,7 @@ namespace
 
 } // namespace
 
-AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::aniso>::AngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2(std::max(dist_order + 2, resp_order)),
     m_geg_zernike_exp(dist_order + 2),
@@ -140,7 +140,7 @@ AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
     m_resp_order(resp_order),
     m_trunc_order(trunc_order) {}
 
-void AnisotropicAngleIntegrator::resize(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::resize(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order)
 {
     if (dist_order != m_dist_order || resp_order != m_resp_order)
@@ -168,7 +168,7 @@ void AnisotropicAngleIntegrator::resize(
     m_trunc_order = trunc_order;
 }
 
-void AnisotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
@@ -193,7 +193,7 @@ void AnisotropicAngleIntegrator::integrate(
                 top_order, out[i]);
 }
 
-void AnisotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<double> out,
@@ -212,7 +212,7 @@ void AnisotropicAngleIntegrator::integrate(
     integrate(response, offset, rotation_angle, shells, geg_order, top_order, out);
 }
 
-void AnisotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::size_t geg_order,
@@ -251,7 +251,7 @@ void AnisotropicAngleIntegrator::integrate(
                 shells[i], m_wigner_d_pi2);
 }
 
-IsotropicTransverseAngleIntegrator::IsotropicTransverseAngleIntegrator(
+TransverseAngleIntegrator<DistType::aniso, RespType::iso>::TransverseAngleIntegrator(
     std::size_t dist_order):
     m_wigner_d_pi2(dist_order + 4),
     m_rotor(dist_order + 4),
@@ -266,7 +266,7 @@ IsotropicTransverseAngleIntegrator::IsotropicTransverseAngleIntegrator(
     m_integrator_core(dist_order + 4),
     m_dist_order(dist_order) {}
 
-void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
+void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size_t dist_order)
 {
     if (dist_order == m_dist_order) return;
     const std::size_t const_geg_order = dist_order + 2;
@@ -286,7 +286,7 @@ void IsotropicTransverseAngleIntegrator::resize(std::size_t dist_order)
     m_dist_order = dist_order;
 }
 
-void IsotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> distribution,
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<std::array<double, 2>, 2> out)
@@ -309,7 +309,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
         integrate(offsets[i], shells, out[i]);
 }
 
-void IsotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> distribution,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
@@ -329,7 +329,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
     integrate(offset, shells, out);
 }
 
-void IsotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
@@ -372,7 +372,7 @@ void IsotropicTransverseAngleIntegrator::integrate(
                 m_rotated_geg_zernike_exp, m_rotated_trans_geg_zernike_exp, offset_len, shells[i]);
 }
 
-AnisotropicTransverseAngleIntegrator::AnisotropicTransverseAngleIntegrator(
+TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::TransverseAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2(std::max(dist_order + 4, resp_order)),
     m_geg_zernike_exp(dist_order + 2),
@@ -396,7 +396,7 @@ AnisotropicTransverseAngleIntegrator::AnisotropicTransverseAngleIntegrator(
     m_resp_order(resp_order),
     m_trunc_order(trunc_order) {}
 
-void AnisotropicTransverseAngleIntegrator::resize(
+void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::resize(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order)
 {
     if (dist_order != m_dist_order || resp_order != m_resp_order)
@@ -433,7 +433,7 @@ void AnisotropicTransverseAngleIntegrator::resize(
     m_trunc_order = trunc_order;
 }
 
-void AnisotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
@@ -462,7 +462,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
         integrate(response, offsets[i], rotation_angles[i], shells, out[i]);
 }
 
-void AnisotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out,
@@ -485,7 +485,7 @@ void AnisotropicTransverseAngleIntegrator::integrate(
     integrate(response, offset, rotation_angle, shells, out);
 }
 
-void AnisotropicTransverseAngleIntegrator::integrate(
+void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out)

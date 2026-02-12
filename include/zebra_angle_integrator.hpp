@@ -37,17 +37,27 @@ SOFTWARE.
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
 
-namespace zdm::zebra
+namespace zdm
 {
+
+enum class DistType { iso, aniso };
+enum class RespType { iso, aniso };
+
+namespace zebra
+{
+
+template <DistType dist_type, RespType resp_type>
+class AngleIntegrator {};
 
 /**
     @brief Angle integrated Radon transforms using the Zernike based Radon transform.
 */
-class IsotropicAngleIntegrator
+template <>
+class AngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicAngleIntegrator() = default;
-    explicit IsotropicAngleIntegrator(std::size_t dist_order);
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -123,11 +133,12 @@ private:
     @brief Angle integrated Radon transforms with anisotropic response function using the
     Zernike based Radon transform.
 */
-class AnisotropicAngleIntegrator
+template <>
+class AngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicAngleIntegrator() = default;
-    AnisotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    AngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
@@ -265,15 +276,19 @@ private:
     std::size_t m_trunc_order{};
 };
 
+template <DistType dist_type, RespType resp_type>
+class TransverseAngleIntegrator {};
+
 /**
     @brief Angle integrated regular and transverse Radon transforms and using the Zernike
     based Radon transform.
 */
-class IsotropicTransverseAngleIntegrator
+template <>
+class TransverseAngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicTransverseAngleIntegrator() = default;
-    explicit IsotropicTransverseAngleIntegrator(std::size_t dist_order);
+    TransverseAngleIntegrator() = default;
+    explicit TransverseAngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -357,11 +372,12 @@ private:
     @brief Angle integrated regular and transverse Radon transforms with anisotropic
     response function using the Zernike based Radon transform.
 */
-class AnisotropicTransverseAngleIntegrator
+template <>
+class TransverseAngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicTransverseAngleIntegrator() = default;
-    AnisotropicTransverseAngleIntegrator(
+    TransverseAngleIntegrator() = default;
+    TransverseAngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
@@ -505,4 +521,6 @@ private:
     std::size_t m_trunc_order{};
 };
 
-} // namespace zdm::zebra
+} // namespace zebra
+
+} // namespace zdm
