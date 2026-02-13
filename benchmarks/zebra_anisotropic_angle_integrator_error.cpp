@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,18 +19,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
 #include <fstream>
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <print>
+#include <random>
 
+#include "zebra_util.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
 #include "zebra_angle_integrator.hpp"
 
 #include "distributions.hpp"
 #include "responses.hpp"
+
+namespace
+{
 
 inline double relative_error(double test, double reference)
 {
@@ -45,42 +50,39 @@ inline double absolute_error(double test, double reference)
 
 void zebra_evaluate(
     DistributionSpherical dist, Response resp, std::size_t dist_order,
-    std::size_t resp_order, std::span<const std::array<double, 3>> offsets,
+    std::size_t resp_order, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles,
-    zest::MDSpan<double, 2> out)
+    zest::DynamicMDSpan<double, 2> out)
 {
-    zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
+    zdm::ZernikeExpansion distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 dist, 1.0, dist_order);
 
-    std::vector<std::array<double, 2>> response_buffer(
-        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {shells.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
+    zdm::SHExpansionVector response(shells.size(), resp_order);
+    zdm::zebra::ResponseTransformer(resp_order).forward_transform(resp, shells, response);
 
-    zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, offsets, rotation_angles, shells, out);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
+        .integrate(distribution, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename S, typename F>
 void print(
-    S&& stream, zest::MDSpan<double, 2> test, zest::MDSpan<double, 2> reference, F&& error_func)
+    S&& stream, zest::DynamicMDSpan<double, 2> test, zest::DynamicMDSpan<double, 2> reference, F&& error_func)
 {
     stream << std::scientific << std::setprecision(16);
     for (std::size_t i = 0; i < test.extent(0); ++i)
     {
         for (std::size_t j = 0; j < test.extent(1); ++j)
-            stream << error_func(test(i, j), reference(i, j)) << ' ';
+            stream << error_func(test[i, j], reference[i, j]) << ' ';
         stream << '\n';
     }
 }
 
 void fill_reference(
     DistributionSpherical dist, Response resp,
-    std::span<const std::array<double, 3>> offsets,
+    std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double > rotation_angles,
-    std::span<const double> shells, zest::MDSpan<double, 2> reference)
+    std::span<const double> shells, zest::DynamicMDSpan<double, 2> reference)
 {
     std::printf("Initalizing reference... ");
     std::fflush(stdout);
@@ -90,19 +92,18 @@ void fill_reference(
     zebra_evaluate(
             dist, resp, reference_dist_order, reference_resp_order, offsets,
             shells, rotation_angles, reference);
-    std::printf("Done\n");
+    std::println("Done");
 }
 
 void angle_integrator_error(
-    std::span<const std::array<double, 3>> offsets,
+    std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
-    zest::MDSpan<double, 2> reference, DistributionSpherical dist,
+    zest::DynamicMDSpan<double, 2> reference, DistributionSpherical dist,
     [[maybe_unused]] const char* dist_name, Response resp,
     [[maybe_unused]] const char* resp_name, std::size_t dist_order,
     std::size_t resp_order, [[maybe_unused]] bool use_relative_error)
 {
-    std::vector<double> out_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> out(offsets.size(), shells.size());
     zebra_evaluate(
             dist, resp, dist_order, resp_order, offsets, shells, rotation_angles, out);
 
@@ -129,7 +130,7 @@ void angle_integrator_errors(
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     std::vector<double> rotation_angles(num_offsets);
     for (std::size_t i = 0; i < num_offsets; ++i)
     {
@@ -146,9 +147,7 @@ void angle_integrator_errors(
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
-    std::vector<double> reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> reference(offsets.size(), shells.size());
 
     fill_reference(dist, resp, offsets, rotation_angles, shells, reference);
 
@@ -161,7 +160,7 @@ void angle_integrator_errors(
     {
         for (std::size_t resp_order : resp_orders)
         {
-            std::printf("%lu %lu\n", dist_order, resp_order);
+            std::println("{} {}", dist_order, resp_order);
             angle_integrator_error(
                     offsets, rotation_angles, shells, reference, dist, dist_name,
                     resp, resp_name, dist_order, resp_order, relative_error);
@@ -175,6 +174,8 @@ struct Labeled
     Object object;
     const char* label;
 };
+
+} // namespace
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -193,23 +194,26 @@ int main([[maybe_unused]] int argc, char** argv)
     };
 
     if (argc < 6)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
-            "   resp_ind:       index of response {0,1}\n"
-            "   offset_len:     length of offset vector (float)\n"
-            "   num_offsets:    number of offset vectors (positive integer)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}{}{}",
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n",
+            "   resp_ind:       index of response {0,1}\n",
+            "   offset_len:     length of offset vector (float)\n",
+            "   num_offsets:    number of offset vectors (positive integer)\n",
             "   num_shells:     number of shell values (positive integer)");
+        std::exit(1);
+    }
 
-    const std::size_t dist_ind = atoi(argv[1]);
-    const std::size_t resp_ind = atoi(argv[2]);
+    const std::size_t dist_ind = std::size_t(atoi(argv[1]));
+    const std::size_t resp_ind = std::size_t(atoi(argv[2]));
     const double offset_len = atof(argv[3]);
-    const std::size_t num_offsets = atoi(argv[4]);
-    const std::size_t num_shells = atoi(argv[5]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[4]));
+    const std::size_t num_shells = std::size_t(atoi(argv[5]));
 
     const Labeled<DistributionSpherical> dist = distributions[dist_ind];
     const Labeled<Response> resp = responses[resp_ind];
-    std::printf("%s %s\n", dist.label, resp.label);
+    std::println("{} {}", dist.label, resp.label);
 
     angle_integrator_errors(
         dist.object, dist.label, resp.object, resp.label, relative_error, 

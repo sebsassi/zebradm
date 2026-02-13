@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,30 +19,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
+
 #include <fstream>
+#include <print>
+#include <random>
 
 #include "zebra_angle_integrator.hpp"
-#include "types.hpp"
 #include "nanobench.h"
+#include "types.hpp"
+
+namespace
+{
 
 void benchmark_zebra_anisotropic_angle_integrator_transverse(
-    ankerl::nanobench::Bench& bench, const char* name, double offset_len, std::size_t num_offsets, std::size_t num_shells, std::size_t dist_order, std::size_t resp_order)
+    ankerl::nanobench::Bench& bench, const char* name, double offset_len,
+    std::size_t num_offsets, std::size_t num_shells, std::size_t dist_order,
+    std::size_t resp_order)
 {
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zest::zt::RealZernikeExpansionNormalGeo distribution(dist_order);
+    zdm::ZernikeExpansion distribution(dist_order);
     for (auto& element : distribution.flatten())
-        element = {dist(gen), dist(gen)};
-    
-    std::vector<std::array<double, 2>> response_buffer(zdm::SHExpansionVectorSpan<std::array<double, 2>>::size(num_shells, resp_order));
-    for (auto& element : response_buffer)
-        element = {dist(gen), dist(gen)};
-    zdm::SHExpansionVectorSpan<const std::array<double, 2>> response(
-            response_buffer, num_shells, resp_order);
+        element = dist(gen);
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    zdm::SHExpansionVector response(num_shells, resp_order);
+    for (auto& element : response.flatten())
+        element = dist(gen);
+
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     for (auto& element : offsets)
     {
         const double ct = 2.0*dist(gen) - 1.0;
@@ -61,15 +66,18 @@ void benchmark_zebra_anisotropic_angle_integrator_transverse(
     for (auto& element : rotation_angles)
         element = 2.0*std::numbers::pi*dist(gen);
 
-    std::vector<std::array<double, 2>> out_buffer(num_offsets*num_shells);
-    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> out(offsets.size(), shells.size());
 
-    zdm::zebra::AnisotropicTransverseAngleIntegrator integrator(dist_order, resp_order);
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>
+    integrator(dist_order, resp_order);
+
     bench.run(name, [&](){
         integrator.integrate(
                 distribution, response, offsets, rotation_angles, shells, out);
     });
 }
+
+} // namespace
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -78,15 +86,18 @@ int main([[maybe_unused]] int argc, char** argv)
     bench.minEpochTime(std::chrono::nanoseconds(1000000000));
 
     if (argc < 4)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   offset_len:      length of offset vector (float)\n"
-            "   num_offsets:     number of offset vectors (positive integer)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}",
+            "   offset_len:      length of offset vector (float)\n",
+            "   num_offsets:     number of offset vectors (positive integer)\n",
             "   num_shells: number of shell values (positive integer)");
+        std::exit(1);
+    }
 
     const double offset_len = atof(argv[1]);
-    const std::size_t num_offsets = atoi(argv[2]);
-    const std::size_t num_shells = atoi(argv[3]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[2]));
+    const std::size_t num_shells = std::size_t(atoi(argv[3]));
 
     std::vector<std::size_t> dist_orders = {
         2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180

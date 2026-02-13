@@ -64,8 +64,8 @@ void test_mutual_convergence_isotropic(
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::IsotropicAngleIntegrator(order).integrate(
-            distribution, offsets, shells, transformer_test);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
+        .integrate(distribution, offsets, shells, transformer_test);
 
     std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -116,8 +116,8 @@ void test_mutual_convergence_transverse_isotropic(
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::IsotropicTransverseAngleIntegrator(order).integrate(
-            distribution, offsets, shells, transformer_test);
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
+        .integrate(distribution, offsets, shells, transformer_test);
 
     std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -177,8 +177,8 @@ void test_mutual_convergence_anisotropic(
     zdm::zebra::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, offsets, rotation_angles, shells, transformer_test);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
+        .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
     std::println("integrator");
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -236,7 +236,7 @@ void test_mutual_convergence_transverse_anisotropic(
     zdm::zebra::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::AnisotropicTransverseAngleIntegrator(dist_order, resp_order)
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(
             distribution, response, offsets, rotation_angles, shells, transformer_test);
 

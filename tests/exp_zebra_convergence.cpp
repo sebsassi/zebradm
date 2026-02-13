@@ -56,8 +56,8 @@ void zebra_evaluate(
     zdm::SHExpansionVector response{shells.size(), resp_order};
     zdm::zebra::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, offsets, rotation_angles, shells, out);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
+        .integrate(distribution, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename DistType, typename RespType>

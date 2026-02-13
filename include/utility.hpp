@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -31,11 +31,7 @@ namespace zdm::util
 {
 
 [[nodiscard]] std::string format_error(
-    std::string_view error_type, const std::source_location& location, std::string_view message)
-{
-    return std::format("{}: in {}:{} `{}` {}",
-            error_type, location.file_name(), location.line(), location.function_name(), message);
-}
+    std::string_view error_type, const std::source_location& location, std::string_view message);
 
 /**
     @brief Create an evenly spaced interval of real numbers.

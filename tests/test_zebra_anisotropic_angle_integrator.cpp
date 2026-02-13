@@ -97,7 +97,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
 
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
-    zdm::zebra::AnisotropicAngleIntegrator(order, order)
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
         .integrate(distribution, resp, offsets, rotation_angles, shells, test);
 
     constexpr double tol = 1.0e-13;
@@ -115,7 +115,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", reference(i, j));
+                std::print("{:.16e} ", reference[i, j]);
             }
             std::println("");
         }
@@ -125,7 +125,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", test(i, j));
+                std::print("{:.16e} ", test[i, j]);
             }
             std::println("");
         }
@@ -192,8 +192,8 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
     for (std::size_t i = 0; i < shells.size(); ++i)
         resp[i, 0, 0, 0] = 1.0;
 
-    zdm::zebra::AnisotropicAngleIntegrator(order, order).integrate(
-            distribution, resp, offsets, rotation_angles, shells, shm_test);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
+        .integrate(distribution, resp, offsets, rotation_angles, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -211,7 +211,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", shm_reference(i, j));
+                std::print("{:.16e} ", shm_reference[i, j]);
             }
             std::println("");
         }
@@ -221,7 +221,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", shm_test(i, j));
+                std::print("{:.16e} ", shm_test[i, j]);
             }
             std::println("");
         }
@@ -231,7 +231,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", 1.0 - shm_test(i, j)/shm_reference(i, j));
+                std::print("{:.16e} ", 1.0 - shm_test[i, j]/shm_reference[i, j]);
             }
             std::println("");
         }

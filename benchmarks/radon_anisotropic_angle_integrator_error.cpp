@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,16 +19,21 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
 #include <fstream>
+#include <print>
+#include <random>
 
+#include "zebra_util.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
-#include "zebra_angle_integrator.hpp"
-#include "radon_integrator.hpp"
-#include "nanobench.h"
 #include "distributions.hpp"
+#include "nanobench.h"
+#include "radon_integrator.hpp"
 #include "responses.hpp"
+#include "zebra_angle_integrator.hpp"
+
+namespace
+{
 
 constexpr double relative_error(double test, double ref)
 {
@@ -36,10 +41,12 @@ constexpr double relative_error(double test, double ref)
 }
 
 void radon_angle_integrator_anisotropic_error(
-    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, const std::span<const std::array<double, 3>> offsets, std::span<const double> rotation_angles, std::span<const double> shells, double relerr, std::size_t max_subdiv, zest::MDSpan<const double, 2> reference)
+    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name,
+    const std::span<const zdm::la::Vector<double, 3>> offsets,
+    std::span<const double> rotation_angles, std::span<const double> shells, double relerr,
+    std::size_t max_subdiv, zest::DynamicMDSpan<const double, 2> reference)
 {
-    std::vector<double> out_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> out(offsets.size(), shells.size());
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
@@ -55,9 +62,9 @@ void radon_angle_integrator_anisotropic_error(
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
             double error = 0.0;
-            if (reference(i, j) != 0.0)
+            if (reference[i, j] != 0.0)
             {
-                error = relative_error(out(i, j), reference(i, j));
+                error = relative_error(out[i, j], reference[i, j]);
             }
             output << error << ' ';
         }
@@ -67,13 +74,15 @@ void radon_angle_integrator_anisotropic_error(
 }
 
 void run_errors(
-    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, double relerr, std::size_t max_subdiv, double offset_len, std::size_t num_offsets, std::size_t num_shells)
+    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name,
+    double relerr, std::size_t max_subdiv, double offset_len, std::size_t num_offsets,
+    std::size_t num_shells)
 {
-    std::printf("Initalizing... ");
+    std::print("Initalizing... ");
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     for (auto& element : offsets)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -94,27 +103,24 @@ void run_errors(
 
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
-    zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).transform(
+    zdm::ZernikeExpansion reference_distribution
+        = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).forward_transform(
             dist, 1.0, reference_dist_order);
 
-    std::vector<std::array<double, 2>> response_buffer(
-        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(reference_resp_order));
-    zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    reference_response(response_buffer.data(), {shells.size()}, reference_resp_order);
-    zdm::zebra::ResponseTransformer(reference_resp_order).transform(resp, shells, reference_response);
-    
-    std::vector<double> reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {offsets.size(), shells.size()});
-    
-    zdm::zebra::AnisotropicAngleIntegrator integrator(reference_dist_order, reference_resp_order);
+    zdm::SHExpansionVector reference_response(shells.size(), reference_resp_order);
+    zdm::zebra::ResponseTransformer(reference_resp_order).forward_transform(resp, shells, reference_response);
+
+    zest::DynamicMDArray<double, 2> reference(offsets.size(), shells.size());
+
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>
+
+    integrator(reference_dist_order, reference_resp_order);
     integrator.integrate(reference_distribution, reference_response, offsets, rotation_angles, shells, reference);
-    std::printf("Done\n Integrating... ");
+    std::print("Done\n Integrating... ");
 
     radon_angle_integrator_anisotropic_error(
             dist, dist_name, resp, resp_name, offsets, rotation_angles, shells, relerr, max_subdiv, reference);
-    std::printf("Done\n");
+    std::println("Done");
 }
 
 template <typename Object>
@@ -123,6 +129,8 @@ struct Labeled
     Object object;
     const char* label;
 };
+
+} // namespace
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -140,23 +148,26 @@ int main([[maybe_unused]] int argc, char** argv)
     };
 
     if (argc < 8)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
-            "   resp_ind:       index of response {0,1}\n"
-            "   offset_len:      length of offset vector (float)\n"
-            "   num_offsets:     number of offset vectors (positive integer)\n"
-            "   num_shells: number of shell values (positive integer)\n"
-            "   relerr:         target relative error for integrator (float)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}{}{}{}{}",
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n",
+            "   resp_ind:       index of response {0,1}\n",
+            "   offset_len:      length of offset vector (float)\n",
+            "   num_offsets:     number of offset vectors (positive integer)\n",
+            "   num_shells: number of shell values (positive integer)\n",
+            "   relerr:         target relative error for integrator (float)\n",
             "   max_subdiv:     maximum number of subdivisions for integrator (positive integer)");
+        std::exit(1);
+    }
 
-    const std::size_t dist_ind = atoi(argv[1]);
-    const std::size_t resp_ind = atoi(argv[2]);
+    const std::size_t dist_ind = std::size_t(atoi(argv[1]));
+    const std::size_t resp_ind = std::size_t(atoi(argv[2]));
     const double offset_len = atof(argv[3]);
-    const std::size_t num_offsets = atoi(argv[4]);
-    const std::size_t num_shells = atoi(argv[5]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[4]));
+    const std::size_t num_shells = std::size_t(atoi(argv[5]));
     const double relerr = double(atof(argv[6]));
-    const std::size_t max_subdiv = atoi(argv[7]);
+    const std::size_t max_subdiv = std::size_t(atoi(argv[7]));
     std::printf("dist_ind: %lu\nresp_ind: %lu\noffset_len: %.2f\nnum_offsets: %lu\nnum_speeds: %lu\nrelerr: %.0e\nmax_subdiv: %lu\n", dist_ind, resp_ind, offset_len, num_offsets, num_shells, relerr, max_subdiv);
 
     const Labeled<DistributionCartesian> dist = distributions[dist_ind];

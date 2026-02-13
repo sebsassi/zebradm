@@ -21,7 +21,6 @@ SOFTWARE.
 */
 #include <array>
 #include <cmath>
-#include <numbers>
 
 #include "linalg.hpp"
 #include "coordinate_transforms.hpp"
@@ -30,14 +29,14 @@ using Response = double(*)(double, double, double);
 
 double smooth_exponential(double shell, double longitude, double colatitude)
 {
-    static const std::array<double, 3> ref_dir
-        = zdm::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
-    const std::array<double, 3> dir
+    static const zdm::la::Vector<double, 3> ref_dir
+        = zdm::la::normalize(zdm::la::Vector<double, 3>{0.5, 0.5, 0.5});
+    const zdm::la::Vector<double, 3> dir
         = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
     constexpr double rate = 2.0;
     const double u2 = shell*shell;
     const double u4 = u2*u2;
-    return (u4/(1 + u4))*std::exp(rate*(zdm::dot(dir, ref_dir)));
+    return (u4/(1 + u4))*std::exp(rate*(zdm::la::dot(dir, ref_dir)));
 }
 
 inline double smooth_step(double x, double slope)
@@ -64,32 +63,32 @@ double smooth_dots(double shell, double longitude, double colatitude)
 
 double fcc_dots(double shell, double longitude, double colatitude)
 {
-    static const std::array<std::array<double, 3>, 14> ref_dirs = {
-        std::array<double, 3>{1.0, 0.0, 0.0},
-        std::array<double, 3>{-1.0, 0.0, 0.0},
-        std::array<double, 3>{0.0, 1.0, 0.0},
-        std::array<double, 3>{0.0, -1.0, 0.0},
-        std::array<double, 3>{0.0, 0.0, 1.0},
-        std::array<double, 3>{0.0, 0.0, -1.0},
-        std::array<double, 3>{1.0, 1.0, 1.0},
-        std::array<double, 3>{1.0, 1.0, -1.0},
-        std::array<double, 3>{1.0, -1.0, 1.0},
-        std::array<double, 3>{1.0, -1.0, -1.0},
-        std::array<double, 3>{-1.0, 1.0, 1.0},
-        std::array<double, 3>{-1.0, 1.0, -1.0},
-        std::array<double, 3>{-1.0, -1.0, 1.0},
-        std::array<double, 3>{-1.0, -1.0, -1.0}
+    static const std::array<zdm::la::Vector<double, 3>, 14> ref_dirs = {
+        zdm::la::Vector<double, 3>{1.0, 0.0, 0.0},
+        zdm::la::Vector<double, 3>{-1.0, 0.0, 0.0},
+        zdm::la::Vector<double, 3>{0.0, 1.0, 0.0},
+        zdm::la::Vector<double, 3>{0.0, -1.0, 0.0},
+        zdm::la::Vector<double, 3>{0.0, 0.0, 1.0},
+        zdm::la::Vector<double, 3>{0.0, 0.0, -1.0},
+        zdm::la::Vector<double, 3>{1.0, 1.0, 1.0},
+        zdm::la::Vector<double, 3>{1.0, 1.0, -1.0},
+        zdm::la::Vector<double, 3>{1.0, -1.0, 1.0},
+        zdm::la::Vector<double, 3>{1.0, -1.0, -1.0},
+        zdm::la::Vector<double, 3>{-1.0, 1.0, 1.0},
+        zdm::la::Vector<double, 3>{-1.0, 1.0, -1.0},
+        zdm::la::Vector<double, 3>{-1.0, -1.0, 1.0},
+        zdm::la::Vector<double, 3>{-1.0, -1.0, -1.0}
     };
-    
-    const std::array<double, 3> dir
+
+    const zdm::la::Vector<double, 3> dir
         = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
-    
+
     const double radius = std::acos((1.0/1.5)*shell);
     const double c_rad = std::cos(radius);
 
     double res = 0.0;
     for (const auto& ref_dir : ref_dirs)
-        res += double(zdm::dot(dir, ref_dir) < c_rad);
-    
+        res += double(zdm::la::dot(dir, ref_dir) < c_rad);
+
     return res;
 }

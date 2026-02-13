@@ -86,7 +86,7 @@ bool test_angle_integrator_is_correct_for_constant_dist()
 
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
-    zdm::zebra::IsotropicAngleIntegrator(order)
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;
@@ -176,8 +176,8 @@ bool test_angle_integrator_is_accurate_for_shm()
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 shm_dist, 1.0, order);
 
-    zdm::zebra::IsotropicAngleIntegrator(order).integrate(
-            distribution, offsets, shells, shm_test);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
+        .integrate(distribution, offsets, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -195,7 +195,7 @@ bool test_angle_integrator_is_accurate_for_shm()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", shm_reference(i, j));
+                std::print("{:.16e} ", shm_reference[i, j]);
             }
             std::println("");
         }
@@ -205,7 +205,7 @@ bool test_angle_integrator_is_accurate_for_shm()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", shm_test(i, j));
+                std::print("{:.16e} ", shm_test[i, j]);
             }
             std::println("");
         }
@@ -215,7 +215,7 @@ bool test_angle_integrator_is_accurate_for_shm()
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
             {
-                std::print("{:.16e} ", 1.0 - shm_test(i, j)/shm_reference(i, j));
+                std::print("{:.16e} ", 1.0 - shm_test[i, j]/shm_reference[i, j]);
             }
             std::println("");
         }

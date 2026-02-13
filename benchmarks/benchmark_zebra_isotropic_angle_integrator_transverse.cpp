@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,11 +19,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
+
 #include <fstream>
+#include <print>
+#include <random>
 
 #include "zebra_angle_integrator.hpp"
 #include "nanobench.h"
+
+namespace
+{
 
 void benchmark_zebra_isotropic_angle_integrator_transverse(
     ankerl::nanobench::Bench& bench, const char* name, double offset_len,
@@ -32,11 +37,11 @@ void benchmark_zebra_isotropic_angle_integrator_transverse(
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zest::zt::RealZernikeExpansionNormalGeo distribution(order);
+    zdm::ZernikeExpansion distribution(order);
     for (auto& element : distribution.flatten())
-        element = {dist(gen), dist(gen)};
+        element = dist(gen);
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     for (auto& element : offsets)
     {
         const double ct = 2.0*dist(gen) - 1.0;
@@ -51,15 +56,17 @@ void benchmark_zebra_isotropic_angle_integrator_transverse(
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
-    std::vector<std::array<double, 2>> out_buffer(num_offsets*num_shells);
-    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> out(offsets.size(), shells.size());
 
-    zdm::zebra::IsotropicTransverseAngleIntegrator integrator(order);
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
+    integrator(order);
+
     bench.run(name, [&](){
-        integrator.integrate(
-                distribution, offsets, shells, out);
+        integrator.integrate(distribution, offsets, shells, out);
     });
 }
+
+} // namespace
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -68,15 +75,18 @@ int main([[maybe_unused]] int argc, char** argv)
     bench.minEpochTime(std::chrono::nanoseconds(1000000000));
 
     if (argc < 4)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   offset_len:     length of offset vector (float)\n"
-            "   num_offsets:    number of offset vectors (positive integer)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}",
+            "   offset_len:     length of offset vector (float)\n",
+            "   num_offsets:    number of offset vectors (positive integer)\n",
             "   num_shells:     number of shell values (positive integer)");
+        std::exit(1);
+    }
 
     const double offset_len = atof(argv[1]);
-    const std::size_t num_offsets = atoi(argv[2]);
-    const std::size_t num_shells = atoi(argv[3]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[2]));
+    const std::size_t num_shells = std::size_t(atoi(argv[3]));
 
     std::vector<std::size_t> order_vec = {
         2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200

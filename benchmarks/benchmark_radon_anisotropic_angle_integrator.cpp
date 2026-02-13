@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,27 +19,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
 #include <fstream>
+#include <print>
+#include <random>
 
-#include "zest/zernike_glq_transformer.hpp"
+#include <zest/md_array.hpp>
 
-#include "zebra_angle_integrator.hpp"
 #include "radon_integrator.hpp"
-#include "nanobench.h"
 #include "distributions.hpp"
+#include "nanobench.h"
 #include "responses.hpp"
 
-constexpr double relative_error(double test, double ref)
+namespace
 {
-    return std::fabs(1.0 - test/ref);
-}
 
 void benchmark_radon_angle_integrator_anisotropic(
-    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist, Response resp, const std::span<const std::array<double, 3>> offsets, std::span<const double> rotation_angles, std::span<const double> shells, double relerr, std::size_t max_subdiv)
+    ankerl::nanobench::Bench& bench, const char* name, DistributionCartesian dist,
+    Response resp, const std::span<const zdm::la::Vector<double, 3>> offsets,
+    std::span<const double> rotation_angles, std::span<const double> shells, double relerr,
+    std::size_t max_subdiv)
 {
-    std::vector<double> out_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 2> out(offsets.size(), shells.size());
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     bench.run(name, [&](){
@@ -49,7 +49,10 @@ void benchmark_radon_angle_integrator_anisotropic(
 }
 
 void run_benchmarks(
-    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name, std::span<const double> relerrs, std::span<const std::size_t> max_subdiv, double offset_len, std::size_t num_offsets, std::size_t num_shells, double time_limit_lo_s, double time_limit_hi_s)
+    DistributionCartesian dist, const char* dist_name, Response resp, const char* resp_name,
+    std::span<const double> relerrs, std::span<const std::size_t> max_subdiv,
+    double offset_len, std::size_t num_offsets, std::size_t num_shells,
+    double time_limit_lo_s, double time_limit_hi_s)
 {
     ankerl::nanobench::Bench bench{};
     bench.performanceCounters(true);
@@ -59,7 +62,7 @@ void run_benchmarks(
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     for (auto& element : offsets)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -78,7 +81,7 @@ void run_benchmarks(
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
-    std::printf("Begin benchmarks\n");
+    std::println("Begin benchmarks");
     bench.title("integrate::RadonAngleIntegrator::integrate");
     bool soft_break = false;
     for (std::size_t i = 0; i < relerrs.size(); ++i)
@@ -110,6 +113,8 @@ struct Labeled
     const char* label;
 };
 
+} // namespace
+
 int main([[maybe_unused]] int argc, char** argv)
 {
     constexpr std::array<Labeled<DistributionCartesian>, 5> distributions = {
@@ -126,24 +131,34 @@ int main([[maybe_unused]] int argc, char** argv)
     };
 
     if (argc < 8)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   dist_ind:           index of distribution {0,1,2,3,4}\n"
-            "   resp_ind:           index of response {0,1}\n"
-            "   offset_len:          length of offset vector (float)\n"
-            "   num_offsets:         number of offset vectors (positive integer)\n"
-            "   num_shells:     number of shell values (positive integer)\n"
-            "   time_limit_lo_s:    shoft time cutoff in seconds (positive integer)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}{}{}{}{}",
+            "   dist_ind:           index of distribution {0,1,2,3,4}\n",
+            "   resp_ind:           index of response {0,1}\n",
+            "   offset_len:          length of offset vector (float)\n",
+            "   num_offsets:         number of offset vectors (positive integer)\n",
+            "   num_shells:     number of shell values (positive integer)\n",
+            "   time_limit_lo_s:    shoft time cutoff in seconds (positive integer)\n",
             "   time_limit_hi_s:    hard time cutoff in seconds (positive integer)");
+        std::exit(1);
+    }
 
-    const std::size_t dist_ind = atoi(argv[1]);
-    const std::size_t resp_ind = atoi(argv[2]);
+    const std::size_t dist_ind = std::size_t(atoi(argv[1]));
+    const std::size_t resp_ind = std::size_t(atoi(argv[2]));
     const double offset_len = atof(argv[3]);
-    const std::size_t num_offsets = atoi(argv[4]);
-    const std::size_t num_shells = atoi(argv[5]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[4]));
+    const std::size_t num_shells = std::size_t(atoi(argv[5]));
     const double time_limit_lo_s = double(atoi(argv[6]));
     const double time_limit_hi_s = double(atoi(argv[7]));
-    std::printf("dist_ind: %lu\nresp_ind: %lu\noffset_len: %.2f\nnum_offsets: %lu\nnum_speeds: %lu\ntime_limit_lo_s: %.0f\ntime_limit_hi_s: %.0f\n", dist_ind, resp_ind, offset_len, num_offsets, num_shells, time_limit_lo_s, time_limit_hi_s);
+
+    std::println("dist_ind: {}", dist_ind);
+    std::println("resp_ind: {}", resp_ind);
+    std::println("offset_len: {}", offset_len);
+    std::println("num_offsets: {}", num_offsets);
+    std::println("num_speeds: {}", num_shells);
+    std::println("time_limit_lo_s: {:.0f}", time_limit_lo_s);
+    std::println("time_limit_hi_s: {:.0f}", time_limit_hi_s);
 
     const std::vector<double> relerrs = {
         /*1.0e+2, 1.0e+1, 1.0e+0, 1.0e-1, 1.0e-2, 1.0e-3, 1.0e-4, 1.0e-5, 1.0e-6,*/ 1.0e-7/*, 1.0e-8, 1.0e-9, 1.0e-10*/

@@ -144,7 +144,7 @@ public:
     void forward_transform(
         const RespType& resp, std::span<const double> shells, SHVectorSpan<double> out)
     {
-        assert(shells.size() == out.extent(0));
+        assert(shells.size() == std::get<0>(out.extents())[0]);
         for (std::size_t i = 0; i < shells.size(); ++i)
         {
             const double shell = shells[i];

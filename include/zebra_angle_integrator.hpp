@@ -46,6 +46,51 @@ enum class RespType { iso, aniso };
 namespace zebra
 {
 
+namespace detail
+{
+
+enum class RadonType { regular, transverse };
+
+class ZernikeExpansionWorkspace
+{
+public:
+    ZernikeExpansionWorkspace() = default;
+
+    template <RadonType radon_type>
+    ZernikeExpansionWorkspace(std::size_t order):
+        m_data{(radon_type == RadonType::regular) ? 2 : 7, order + 4} {}
+
+    template <RadonType radon_type>
+    void expand(std::size_t order)
+    {
+        if constexpr (radon_type == RadonType::transverse)
+            m_data.reshape(7, order + 4);
+        else
+            m_data.reshape(std::get<0>(m_data.extents())[0], order + 4);
+    }
+
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion() noexcept { return m_data[0]; };
+    [[nodiscard]] ZernikeSpan<double> rotated_geg_zernike_expansion() noexcept { return m_data[1]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_x() noexcept { return m_data[2]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_y() noexcept { return m_data[3]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_z() noexcept { return m_data[4]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_r2() noexcept { return m_data[5]; };
+    [[nodiscard]] ZernikeSpan<double> rotated_transverse_zernike_expansion() noexcept { return m_data[6]; };
+
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion() const noexcept { return m_data[0]; };
+    [[nodiscard]] ZernikeSpan<const double> rotated_geg_zernike_expansion() const noexcept { return m_data[1]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_x() const noexcept { return m_data[2]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_y() const noexcept { return m_data[3]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_z() const noexcept { return m_data[4]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_r2() const noexcept { return m_data[5]; };
+    [[nodiscard]] ZernikeSpan<const double> rotated_transverse_zernike_expansion() const noexcept { return m_data[6]; };
+
+private:
+    zest::zt::ZernikeExpansionVectorNormalGeo<double, zest::IndexingMode::zero_based> m_data;
+};
+
+} // namespace detail
+
 template <DistType dist_type, RespType resp_type>
 class AngleIntegrator {};
 
@@ -125,6 +170,7 @@ private:
     zest::Rotor m_rotor;
     ZernikeExpansion m_geg_zernike_exp;
     ZernikeExpansion m_rotated_geg_zernike_exp;
+    detail::ZernikeExpansionWorkspace m_zernike_expansions;
     detail::IsotropicAngleIntegratorCore m_integrator_core;
     std::size_t m_dist_order{};
 };

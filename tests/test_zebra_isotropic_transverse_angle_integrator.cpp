@@ -103,7 +103,7 @@ bool test_transverse_angle_integrator_is_correct_for_constant_dist()
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
-    zdm::zebra::IsotropicTransverseAngleIntegrator(order)
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;

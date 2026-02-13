@@ -85,17 +85,17 @@ void legendre_recursion(std::span<double> legendre, double x)
 }
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::size_t size):
-    m_swap_chain{size}, m_x(size), m_size{size} {}
+    m_swap_chain{size}, m_x(size) {}
 
 LegendreArrayRecursion::LegendreArrayRecursion(std::span<const double> x):
-    m_swap_chain{x.size()}, m_x(x.size()), m_size{x.size()}
+    m_swap_chain{x.size()}, m_x(x.size())
 {
     init(x);
 }
 
 void LegendreArrayRecursion::resize(std::size_t size)
 {
-    if (size != m_size)
+    if (size != this->size())
     {
         m_swap_chain.resize(size);
         m_x.resize(size);
@@ -144,7 +144,7 @@ void LegendreArrayRecursion::iterate(std::size_t n) noexcept
         const double inv_l = 1.0/double(m_l + 1);
         const double a = double(2*m_l + 1)*inv_l;
         const double b = double(m_l)*inv_l;
-        for (std::size_t i = 0; i < m_size; ++i)
+        for (std::size_t i = 0; i < size(); ++i)
             m_swap_chain.current()[i] = a*m_x[i]*m_swap_chain.previous<1>()[i] - b*m_swap_chain.previous<2>()[i];
         ++m_l;
     }

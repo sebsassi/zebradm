@@ -178,6 +178,18 @@ template <arithmetic T, typename... Ts>
     requires (std::same_as<T, Ts> && ...)
 Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr T& get(Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr T&& get(Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr const T& get(const Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr const T&& get(const Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
+
 } // namespace zdm::la
 
 namespace std
