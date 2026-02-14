@@ -56,11 +56,10 @@ public:
         double offset_len, double shell);
 
 private:
-    TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
-        double shell, double offset_len, std::size_t geg_order);
+    void evaluate_aff_leg_ylm_integrals(double shell, double offset_len);
 
     AffineLegendreIntegrals m_aff_leg_integrals;
-    std::vector<double> m_aff_leg_ylm_integrals;
+    TrapezoidArray<double> m_aff_leg_ylm_integrals;
     std::vector<double> m_ylm_integral_norms;
 };
 
@@ -93,8 +92,7 @@ public:
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
 private:
-    TrapezoidSpan<double> evaluate_aff_leg_ylm_integrals(
-        double shell, double offset_len, std::size_t geg_order, std::size_t resp_order);
+    void evaluate_aff_leg_ylm_integrals(double shell, double offset_len);
 
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
@@ -102,7 +100,7 @@ private:
     zest::st::SphereGLQGrid<double> m_rotated_response_grid;
 
     AffineLegendreIntegrals m_aff_leg_integrals;
-    std::vector<double> m_aff_leg_ylm_integrals;
+    TrapezoidArray<double> m_aff_leg_ylm_integrals;
     std::vector<double> m_ylm_integral_norms;
 
     ZonalGLQTransformer<zest::st::SHNorm::geo> m_zonal_transformer;

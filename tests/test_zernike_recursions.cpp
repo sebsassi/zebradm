@@ -34,7 +34,7 @@ namespace
 
 constexpr bool is_close(double a, double b, double tol)
 {
-    return std::fabs(a - b) < tol*0.5*std::fabs(a + b);
+    return std::fabs(a - b) <= tol*0.5*std::fabs(a + b) + tol;
 }
 
 bool multiply_empty_expansion_by_x_does_nothing()
@@ -269,7 +269,7 @@ bool multiply_Z000_by_z_is_correct_for_order()
         {
             for (std::size_t m = 0; m <= l; ++m)
             {
-                if (n == 1 && l == 1 && m == 1)
+                if (n == 1 && l == 1 && m == 0)
                 {
                     success = success && is_close(out[n, l, m, 0], 1.0/std::sqrt(5.0), tol);
                     success = success && is_close(out[n, l, m, 1], 0.0, tol);

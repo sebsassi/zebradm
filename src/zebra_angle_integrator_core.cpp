@@ -32,7 +32,7 @@ namespace zdm::zebra::detail
 IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
     std::size_t geg_order):
     m_aff_leg_integrals(geg_order, 0),
-    m_aff_leg_ylm_integrals(TrapezoidShape::size(geg_order, 0)),
+    m_aff_leg_ylm_integrals(geg_order, 0),
     m_ylm_integral_norms(geg_order)
 {
     for (std::size_t l = 0; l  < geg_order; ++l)
@@ -44,12 +44,10 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
 {
     if (order() == geg_order) return;
     m_aff_leg_integrals.resize(geg_order, 0);
-    m_aff_leg_ylm_integrals.resize(
-            TrapezoidShape::size(geg_order, 0));
+    m_aff_leg_ylm_integrals.reshape(geg_order, 0);
     m_ylm_integral_norms.resize(geg_order);
     for (std::size_t l = 0; l  < geg_order; ++l)
-        m_ylm_integral_norms[l]
-            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
+        m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
 double IsotropicAngleIntegratorCore::integrate(
@@ -58,17 +56,15 @@ double IsotropicAngleIntegratorCore::integrate(
 {
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
-    TrapezoidSpan<double>
-    aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
-            shell, offset_len, rotated_geg_zernike_exp.order());
+    evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
     double res = 0;
-    for (std::size_t n = 0; n < rotated_geg_zernike_exp.order(); ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
         auto rotated_geg_n = rotated_geg_zernike_exp[n];
-        auto aff_leg_ylm_integrals_n = aff_leg_ylm_integrals[n];
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
-            res += rotated_geg_n(l, 0)[0]*aff_leg_ylm_integrals_n[l];
+            res += rotated_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
     return (2.0*std::numbers::pi)*res;
@@ -83,31 +79,28 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
 
     const double shell_sq = shell*shell;
 
-    TrapezoidSpan<double>
-    aff_leg_ylm_integrals = evaluate_aff_leg_ylm_integrals(
-            shell, offset_len, rotated_trans_geg_zernike_exp.order());
+    evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
     std::array<double, 2> res = {0.0, 0.0};
 
     // transverse contribution
-    for (std::size_t n = 0; n < rotated_trans_geg_zernike_exp.order(); ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
         auto rotated_trans_geg_n = rotated_trans_geg_zernike_exp[n];
-        auto aff_leg_ylm_integrals_n = aff_leg_ylm_integrals[n];
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
-            res[1] += rotated_trans_geg_n(l, 0)[0]*aff_leg_ylm_integrals_n[l];
+            res[1] += rotated_trans_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
     // nontransverse contribution
-    for (std::size_t n = 0; n < rotated_geg_zernike_exp.order(); ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
         auto rotated_geg_n = rotated_geg_zernike_exp[n];
-        auto aff_leg_ylm_integrals_n = aff_leg_ylm_integrals[n];
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
 
         for (std::size_t l = n & 1; l <= n; l += 2)
         {
-            const double nontrans
-                = rotated_geg_n(l, 0)[0]*aff_leg_ylm_integrals_n[l];
+            const double nontrans = rotated_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
             res[0] += nontrans;
             res[1] -= shell_sq*nontrans;
         }
@@ -116,36 +109,29 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
     return {(2.0*std::numbers::pi)*res[0], (2.0*std::numbers::pi)*res[1]};
 }
 
-TrapezoidSpan<double> 
-IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
-    double shell, double offset_len, std::size_t geg_order)
+void IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
+    double shell, double offset_len)
 {
-    TrapezoidSpan<double> integrals(
-            m_aff_leg_ylm_integrals.data(), geg_order, 0);
-    m_aff_leg_integrals.integrals(integrals, shell, offset_len);
-
-    for (std::size_t n = 0; n < geg_order; ++n)
+    m_aff_leg_integrals.integrals(m_aff_leg_ylm_integrals, shell, offset_len);
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto integrals_n = integrals[n];
-        for (std::size_t l = 0; l <= n; ++l)
-            integrals_n[l] *= m_ylm_integral_norms[l];
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
+        for (std::size_t l : aff_leg_ylm_integrals_n.indices())
+            aff_leg_ylm_integrals_n[l] *= m_ylm_integral_norms[l];
     }
-
-    return integrals;
 }
 
 AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order):
-    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order), 
-    m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order), 
+    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order),
+    m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order),
     m_aff_leg_integrals(geg_order, resp_order),
-    m_aff_leg_ylm_integrals(TrapezoidShape::size(geg_order, resp_order)), 
-    m_ylm_integral_norms(top_order), m_zonal_transformer(top_order), 
+    m_aff_leg_ylm_integrals(geg_order, resp_order),
+    m_ylm_integral_norms(top_order), m_zonal_transformer(top_order),
     m_rotated_grid(top_order), m_rotated_exp(top_order)
 {
     for (std::size_t l = 0; l  < top_order; ++l)
-        m_ylm_integral_norms[l]
-            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
+        m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
 void AnisotropicAngleIntegratorCore::resize(
@@ -157,12 +143,10 @@ void AnisotropicAngleIntegratorCore::resize(
     m_rotated_response_grid.reshape(top_order);
 
     m_aff_leg_integrals.resize(geg_order, resp_order);
-    m_aff_leg_ylm_integrals.resize(
-            TrapezoidShape::size(geg_order, resp_order));
+    m_aff_leg_ylm_integrals.reshape(geg_order, resp_order);
     m_ylm_integral_norms.resize(top_order);
     for (std::size_t l = 0; l  < top_order; ++l)
-        m_ylm_integral_norms[l]
-            = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
+        m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 
     m_zonal_transformer.resize(top_order);
     m_rotated_grid.reshape(top_order);
@@ -172,11 +156,12 @@ void AnisotropicAngleIntegratorCore::resize(
 double AnisotropicAngleIntegratorCore::integrate(
     zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
     SHSpan<const double> response_exp,
-    const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+    const la::Vector<double, 3>& offset, double rotation_angle, double shell,
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
+
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
@@ -184,33 +169,23 @@ double AnisotropicAngleIntegratorCore::integrate(
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
-    std::ranges::copy(
-            response_exp.flatten(), m_rotated_response_exp.flatten().begin());
+    std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(
-            m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
 
-    m_glq_transformer.backward_transform(
-            m_rotated_response_exp, m_rotated_response_grid);
+    m_glq_transformer.backward_transform(m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.extent(0);
-    const std::size_t resp_order = response_exp.order();
-    TrapezoidSpan<double> aff_leg_ylm_integrals
-        = evaluate_aff_leg_ylm_integrals(
-                shell, offset_len, geg_order, resp_order);
+    evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
-    const std::size_t extra_extent = resp_order - std::min(1UL, resp_order);
     double res = 0.0;
-    for (std::size_t n = 0; n < geg_order; ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        std::ranges::copy(
-                m_rotated_response_grid.flatten(),
-                m_rotated_grid.flatten().begin());
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
+        std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
         util::mul(m_rotated_grid.flatten(), rotated_geg_zernike_grids[n].flatten());
-        m_zonal_transformer.forward_transform(
-                m_rotated_grid, m_rotated_exp);
-        for (std::size_t l = 0; l <= n + extra_extent; ++l)
-            res += m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
+        m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
+        for (std::size_t l : aff_leg_ylm_integrals_n.indices())
+            res += m_rotated_exp[l]*aff_leg_ylm_integrals_n[l];
     }
 
     return (2.0*std::numbers::pi)*res;
@@ -222,7 +197,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
     zest::st::SphereGLQGridVectorSpan<double> rotated_trans_geg_zernike_grids,
     SHSpan<const double> response_exp,
-    const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+    const la::Vector<double, 3>& offset, double rotation_angle, double shell,
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
     const auto& [offset_az, offset_colat, offset_len]
@@ -234,55 +209,47 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
-    std::ranges::copy(
-            response_exp.flatten(), m_rotated_response_exp.flatten().begin());
+    std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(
-            m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
 
-    m_glq_transformer.backward_transform(
-            m_rotated_response_exp, m_rotated_response_grid);
+    m_glq_transformer.backward_transform(m_rotated_response_exp, m_rotated_response_grid);
 
-    const std::size_t geg_order = rotated_geg_zernike_grids.order();
-    const std::size_t trans_geg_order = rotated_trans_geg_zernike_grids.order();
-    const std::size_t resp_order = response_exp.order();
-    TrapezoidSpan<double> aff_leg_ylm_integrals
-        = evaluate_aff_leg_ylm_integrals(
-                shell, offset_len, trans_geg_order, resp_order);
+    evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
-    const std::size_t extra_extent = resp_order - std::min(1UL, resp_order);
     std::array<double, 2> res = {0.0, 0.0};
 
     //transverse contribution
-    for (std::size_t n = 0; n < trans_geg_order; ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        std::ranges::copy(
-                m_rotated_response_grid.flatten(),
-                m_rotated_grid.flatten().begin());
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
+        std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
         assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
         util::mul(m_rotated_grid.flatten(), rotated_trans_geg_zernike_grids[n].flatten());
-        m_zonal_transformer.forward_transform(
-                m_rotated_grid, m_rotated_exp);
-        for (std::size_t l = 0; l <= n + extra_extent; ++l)
-            res[1] += m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
+        m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
+        for (std::size_t l : aff_leg_ylm_integrals_n.indices())
+            res[1] += m_rotated_exp[l]*aff_leg_ylm_integrals_n[l];
     }
 
     const double shell_sq = shell*shell;
 
+    TrapezoidSpan<const double>
+    non_trans_aff_leg_ylm_integrals(
+            m_aff_leg_ylm_integrals.data(),
+            m_aff_leg_ylm_integrals.order() - 2,
+            m_aff_leg_ylm_integrals.shape().extra_extent());
+
     // nontransverse contribution
-    for (std::size_t n = 0; n < geg_order; ++n)
+    for (std::size_t n : non_trans_aff_leg_ylm_integrals.indices())
     {
-        std::ranges::copy(
-                m_rotated_response_grid.flatten(),
-                m_rotated_grid.flatten().begin());
+        auto non_trans_aff_leg_ylm_integrals_n = non_trans_aff_leg_ylm_integrals[n];
+        std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
         assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
         util::mul(m_rotated_grid.flatten(), rotated_geg_zernike_grids[n].flatten());
-        m_zonal_transformer.forward_transform(
-                m_rotated_grid, m_rotated_exp);
-        for (std::size_t l = 0; l <= n + extra_extent; ++l)
+        m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
+        for (std::size_t l : non_trans_aff_leg_ylm_integrals_n.indices())
         {
-            const double nontrans
-                = m_rotated_exp[l]*aff_leg_ylm_integrals(n, l);
+            const double nontrans = m_rotated_exp[l]*non_trans_aff_leg_ylm_integrals_n[l];
             res[0] += nontrans;
             res[1] -= shell_sq*nontrans;
         }
@@ -291,24 +258,17 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     return {2.0*std::numbers::pi*res[0], 2.0*std::numbers::pi*res[1]};
 }
 
-TrapezoidSpan<double> 
-AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
-    double shell, double offset_len, std::size_t geg_order,
-    std::size_t resp_order)
+void AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
+    double shell, double offset_len)
 {
-    const std::size_t extra_extent = resp_order - std::min(1UL, resp_order);
-    TrapezoidSpan<double> integrals(
-            m_aff_leg_ylm_integrals.data(), geg_order, extra_extent);
-    m_aff_leg_integrals.integrals(integrals, shell, offset_len);
+    m_aff_leg_integrals.integrals(m_aff_leg_ylm_integrals, shell, offset_len);
 
-    for (std::size_t n = 0; n < geg_order; ++n)
+    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto integrals_n = integrals[n];
-        for (std::size_t l = 0; l <= n + extra_extent; ++l)
-            integrals_n[l] *= m_ylm_integral_norms[l];
+        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
+        for (std::size_t l : aff_leg_ylm_integrals_n.indices())
+            aff_leg_ylm_integrals_n[l] *= m_ylm_integral_norms[l];
     }
-
-    return integrals;
 }
 
 } // namespace zdm::zebra::detail

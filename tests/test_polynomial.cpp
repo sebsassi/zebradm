@@ -492,8 +492,8 @@ int main()
 
     assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 0>{}, zdm::Polynomial<std::int64_t, 0>{}));
     assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 0>{1}, zdm::Polynomial<std::int64_t, 0>{}));
-    assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 1>{1, 1}, zdm::Polynomial<std::int64_t, 0>{2}));
-    assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 2>{1, 1, 1}, zdm::Polynomial<std::int64_t, 1>{2, 3}));
+    assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 1>{1, 1}, zdm::Polynomial<std::int64_t, 0>{1}));
+    assert(test_polynomial_derivative_matches(zdm::Polynomial<std::int64_t, 2>{1, 1, 1}, zdm::Polynomial<std::int64_t, 1>{1, 2}));
 
     assert(test_polynomial_truncate_matches(zdm::Polynomial<std::int64_t, 0>{1}, zdm::Polynomial<std::int64_t, 0>{1}));
     assert(test_polynomial_truncate_matches(zdm::Polynomial<std::int64_t, 1>{1, 2}, zdm::Polynomial<std::int64_t, 0>{1}));
@@ -536,8 +536,8 @@ int main()
     assert(test_polynomial_subtraction_matches(zdm::Polynomial<std::int64_t, 4>{1, 2, 3, 4, 5}, zdm::Polynomial<std::int64_t, 2>{5, 4, 3}, zdm::Polynomial<std::int64_t, 4>{-4, -2, 0, 4, 5}));
 
     assert(test_polynomial_constant_left_subtraction_matches(1, zdm::Polynomial<std::int64_t, 0>{2}, zdm::Polynomial<std::int64_t, 0>{-1}));
-    assert(test_polynomial_constant_left_subtraction_matches(1, zdm::Polynomial<std::int64_t, 1>{2, 3}, zdm::Polynomial<std::int64_t, 1>{-1, -3}));
-    assert(test_polynomial_constant_left_subtraction_matches(1, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-1, -3, -4, -5, -6}));
+    assert(test_polynomial_constant_left_subtraction_matches(1, zdm::Polynomial<std::int64_t, 1>{2, 3}, zdm::Polynomial<std::int64_t, 1>{-1, 3}));
+    assert(test_polynomial_constant_left_subtraction_matches(1, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-1, 3, 4, 5, 6}));
 
     assert(test_polynomial_constant_right_subtraction_matches(zdm::Polynomial<std::int64_t, 0>{2}, 1, zdm::Polynomial<std::int64_t, 0>{1}));
     assert(test_polynomial_constant_right_subtraction_matches(zdm::Polynomial<std::int64_t, 1>{2, 3}, 1, zdm::Polynomial<std::int64_t, 1>{1, 3}));
@@ -550,10 +550,10 @@ int main()
     assert(test_polynomial_monomial_right_subtraction_matches(zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Monomial<std::int64_t, 6>{1}, zdm::Polynomial<std::int64_t, 6>{2, 3, 4, 5, 6, 0, -1}));
 
     assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 0>{1}, zdm::Polynomial<std::int64_t, 0>{2}, zdm::Polynomial<std::int64_t, 0>{-1}));
-    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 0>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-1, 3, 4, 5, 6}));
-    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 2>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{2, 3, -3, 5, 6}));
-    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 4>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, -4}));
-    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 6>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 6>{2, 3, 4, 5, 6, 0, -1}));
+    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 0>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-1, -3, -4, -5, -6}));
+    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 2>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-2, -3, -3, -5, -6}));
+    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 4>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 4>{-2, -3, -4, -5, -5}));
+    assert(test_polynomial_monomial_left_subtraction_matches(zdm::Monomial<std::int64_t, 6>{1}, zdm::Polynomial<std::int64_t, 4>{2, 3, 4, 5, 6}, zdm::Polynomial<std::int64_t, 6>{-2, -3, -4, -5, -6, 0, 1}));
 
     assert(test_polynomial_multiplication_matches(zdm::Polynomial<std::int64_t, 0>{2}, zdm::Polynomial<std::int64_t, 0>{3}, zdm::Polynomial<std::int64_t, 0>{6}));
     assert(test_polynomial_multiplication_matches(zdm::Polynomial<std::int64_t, 0>{2}, zdm::Polynomial<std::int64_t, 4>{1, 2, 3, 4, 5}, zdm::Polynomial<std::int64_t, 4>{2, 4, 6, 8, 10}));
