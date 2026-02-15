@@ -23,106 +23,12 @@ SOFTWARE.
 
 #include <array>
 #include <cassert>
-#include <span>
 
 #include <zest/rotor.hpp>
 #include <zest/zernike_conventions.hpp>
 
-#if defined(__GNUC__)
-    #define RESTRICT __restrict__
-#elif defined(_MSC_VER)
-    #define RESTRICT __restrict
-#endif
-
 namespace zdm::util
 {
-
-/**
-    @brief Check whether two spans overlap
-*/
-template <typename T, typename S>
-    requires std::same_as<std::remove_cv_t<T>, std::remove_cv_t<S>>
-[[nodiscard]] constexpr bool
-have_overlap(std::span<T> a, std::span<S> b) noexcept
-{
-    const T* a_begin = a.data();
-    const T* a_end = a.data() + a.size();
-    const T* b_begin = b.data();
-    const T* b_end = b.data() + b.size();
-    return std::max(a_begin, b_begin) < std::min(a_end, b_end);
-}
-
-// multiply `b` to `a`: `a *= b`
-constexpr void
-mul(double* RESTRICT a, const double* b, std::size_t size) noexcept
-{
-    for (std::size_t i = 0; i < size; ++i)
-        a[i] *= b[i];
-}
-
-// multiply `b` to `a`: `a *= b`
-constexpr void mul(std::span<double> a, std::span<const double> b) noexcept
-{
-    assert(!have_overlap(a, b));
-    const std::size_t size = std::min(a.size(), b.size());
-    mul(a.data(), b.data(), size);
-}
-
-// multiply `c` and `b` and add to `a`: `a += b*c`
-constexpr void fmadd(
-    double* RESTRICT a, const double* b, const double* c,
-    std::size_t size) noexcept
-{
-    for (std::size_t i = 0; i < size; ++i)
-        a[i] += b[i]*c[i];
-}
-
-// multiply `c` and `b` and add to `a`: `a += b*c`
-constexpr void fmadd(
-    std::span<double> a, std::span<const double> b,
-    std::span<const double> c) noexcept
-{
-    assert(!have_overlap(a, b));
-    assert(!have_overlap(a, c));
-    assert(b.size() == c.size());
-    const std::size_t size = std::min(a.size(), b.size());
-    fmadd(a.data(), b.data(), c.data(), size);
-}
-
-// multiply `c` and `b` and add to `a`: `a += b*c`
-constexpr void fmadd(
-    double* RESTRICT a, double b, const double* c, std::size_t size) noexcept
-{
-    for (std::size_t i = 0; i < size; ++i)
-        a[i] += b*c[i];
-}
-
-// multiply `c` and `b` and add to `a`: `a += b*c`
-constexpr void fmadd(
-    std::span<double> a, double b, std::span<const double> c) noexcept
-{
-    assert(!have_overlap(a, c));
-    const std::size_t size = std::min(a.size(), c.size());
-    fmadd(a.data(), b, c.data(), size);
-}
-
-// multiply `d` and `c`, add `b`, and save to `a`: `a = b + c*d`
-constexpr void fmadd(
-    double* RESTRICT a, double b, double c, const double* d,
-    std::size_t size) noexcept
-{
-    for (std::size_t i = 0; i < size; ++i)
-        a[i] = b + c*d[i];
-}
-
-// multiply `d` and `c`, add `b`, and save to `a`: `a = b + c*d`
-constexpr void fmadd(
-    std::span<double> a, double b, double c, std::span<const double> d) noexcept
-{
-    assert(!have_overlap(a, d));
-    const std::size_t size = std::min(a.size(), d.size());
-    fmadd(a.data(), b, c, d.data(), size);
-}
 
 template <zest::zt::ZernikeNorm NORM>
 inline double geg_rec_coeff(std::size_t n) noexcept

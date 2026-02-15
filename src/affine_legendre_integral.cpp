@@ -22,11 +22,10 @@ SOFTWARE.
 #include "affine_legendre_integral.hpp"
 
 #include <cassert>
-#include <utility>
 
 #include <zest/gauss_legendre.hpp>
 
-#include "radon_util.hpp"
+#include "utility.hpp"
 
 namespace zdm::zebra
 {
@@ -88,44 +87,6 @@ void AffineLegendreIntegrals::integrals(
 
 namespace
 {
-
-[[nodiscard]] double
-inner_product(std::span<const double> a, std::span<const double> b) noexcept
-{
-    assert(a.size() == b.size());
-    const std::size_t size = a.size();
-    std::array<double, 4> partial_res{};
-
-    const std::size_t remainder = size & 3;
-    for (std::size_t i = 0; i < size - remainder; i += 4)
-    {
-        partial_res[0] += a[i + 0]*b[i + 0];
-        partial_res[1] += a[i + 1]*b[i + 1];
-        partial_res[2] += a[i + 2]*b[i + 2];
-        partial_res[3] += a[i + 3]*b[i + 3];
-    }
-
-    switch (remainder)
-    {
-        case 0: break;
-        case 1:
-            partial_res[0] += a[size - 1]*b[size - 1];
-            break;
-        case 2:
-            partial_res[0] += a[size - 2]*b[size - 2];
-            partial_res[1] += a[size - 1]*b[size - 1];
-            break;
-        case 3:
-            partial_res[0] += a[size - 3]*b[size - 3];
-            partial_res[1] += a[size - 2]*b[size - 2];
-            partial_res[2] += a[size - 1]*b[size - 1];
-            break;
-        default:
-            std::unreachable();
-    }
-
-    return (partial_res[0] + partial_res[2]) + (partial_res[1] + partial_res[3]);
-}
 
 } // namespace
 
@@ -304,7 +265,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     const double half_width = 0.5*(zmax - zmin);
     const double mid_point = 0.5*(zmin + zmax);
 
-    util::fmadd(m_nodes, mid_point, half_width, m_glq_nodes);
+    util::fmadd(std::span(m_nodes), mid_point, half_width, std::span(m_glq_nodes));
 
     const std::size_t last_extent
         = integrals.order() + integrals.shape().extra_extent();
@@ -314,11 +275,11 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     for (std::size_t l = 0; l < weighted_legendre.extents()[0]; ++l)
     {
         auto legendre_l = weighted_legendre[l];
-        util::mul(legendre_l, m_glq_weights);
+        util::mul(legendre_l.flatten(), std::span(m_glq_weights));
     }
 
     m_affine_legendre.init([&](std::span<double> x){
-        util::fmadd(x, shift, scale, m_nodes);
+        util::fmadd(x, shift, scale, std::span(m_nodes));
     });
 
     // Integrals for `n == 0` row.
@@ -454,9 +415,9 @@ void AffineLegendreIntegrals::first_step(
                     + double(l)*integrals_0[l - 1]);
     }
 
-    integrals_1[lmax - 1] = half_width*inner_product(
+    integrals_1[lmax - 1] = half_width*util::inner_product(
             affine_legendre, weighted_legendre[lmax - 1].flatten());
-    integrals_1[lmax] = half_width*inner_product(
+    integrals_1[lmax] = half_width*util::inner_product(
             affine_legendre, weighted_legendre[lmax].flatten());
 }
 
@@ -471,7 +432,7 @@ void AffineLegendreIntegrals::glq_step(
     auto integrals_n = integrals[n];
     integrals_n[0] = -inv_scale*m_leg_int_bot[n];
     for (std::size_t l = 1; l < extent; ++l)
-        integrals_n[l] = half_width*inner_product(
+        integrals_n[l] = half_width*util::inner_product(
                 affine_legendre, weighted_legendre[l].flatten());
 }
 
@@ -499,9 +460,9 @@ void AffineLegendreIntegrals::forward_recursion_step(
                     + double(l)*integrals_nm1[l - 1]);
     }
 
-    integrals_n[lmax - 1] = half_width*inner_product(
+    integrals_n[lmax - 1] = half_width*util::inner_product(
             affine_legendre, weighted_legendre[lmax - 1].flatten());
-    integrals_n[lmax] = half_width*inner_product(
+    integrals_n[lmax] = half_width*util::inner_product(
             affine_legendre, weighted_legendre[lmax].flatten());
 }
 

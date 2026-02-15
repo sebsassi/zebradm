@@ -26,6 +26,7 @@ SOFTWARE.
 #include <zest/zernike_conventions.hpp>
 
 #include "radon_util.hpp"
+#include "utility.hpp"
 
 namespace zdm::zebra
 {
@@ -74,17 +75,31 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
 
         const double coeff_n = util::geg_rec_coeff<zernike_norm>(n);
         const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
-        for (std::size_t l = n & 1; l <= n - 2; l += 2)
-        {
-            auto out_n_l = out_n[l];
-            auto in_n_l = in_n[l];
-            auto in_nm2_l = in_nm2[l];
-            for (std::size_t m = 0; m <= l; ++m)
-            {
-                out_n_l[m, 0] = coeff_n*in_n_l[m, 0] + coeff_nm2*in_nm2_l[m, 0];
-                out_n_l[m, 1] = coeff_n*in_n_l[m, 1] + coeff_nm2*in_nm2_l[m, 1];
-            }
-        }
+        auto out_n_flat = out_n.flatten();
+        auto in_n_flat = in_n.flatten();
+        auto in_nm2_flat = in_nm2.flatten();
+
+        const std::size_t out_n_size = out_n_flat.size();
+        const std::size_t in_n_size = in_n_flat.size();
+        const std::size_t in_nm2_size = in_nm2_flat.size();
+        [[assume(out_n_size == in_n_size)]];
+        [[assume(out_n_size >= in_nm2_size)]];
+        util::linear_combination(out_n_flat, coeff_n, in_n_flat, coeff_nm2, in_nm2_flat);
+
+        // for (std::size_t i = 0; i < in_nm2_flat.size(); ++i)
+        //     out_n_flat[i] = coeff_n*in_n_flat[i] + coeff_nm2*in_nm2_flat[i];
+
+        // for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        // {
+        //     auto out_n_l = out_n[l];
+        //     auto in_n_l = in_n[l];
+        //     auto in_nm2_l = in_nm2[l];
+        //     for (std::size_t m = 0; m <= l; ++m)
+        //     {
+        //         out_n_l[m, 0] = coeff_n*in_n_l[m, 0] + coeff_nm2*in_nm2_l[m, 0];
+        //         out_n_l[m, 1] = coeff_n*in_n_l[m, 1] + coeff_nm2*in_nm2_l[m, 1];
+        //     }
+        // }
 
         auto out_n_n = out_n[n];
         auto in_n_n = in_n[n];
@@ -101,16 +116,27 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
         auto in_nm2 = in[n - 2];
 
         const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
-        for (std::size_t l = n & 1; l <= n - 2; l += 2)
-        {
-            auto out_n_l = out_n[l];
-            auto in_nm2_l = in_nm2[l];
-            for (std::size_t m = 0; m <= l; ++m)
-            {
-                out_n_l[m, 0] = coeff_nm2*in_nm2_l[m, 0];
-                out_n_l[m, 1] = coeff_nm2*in_nm2_l[m, 1];
-            }
-        }
+        auto out_n_flat = out_n.flatten();
+        auto in_nm2_flat = in_nm2.flatten();
+
+        const std::size_t out_n_size = out_n_flat.size();
+        const std::size_t in_nm2_size = in_nm2_flat.size();
+        [[assume(out_n_size >= in_nm2_size)]];
+        util::mul(out_n_flat, coeff_nm2, in_nm2_flat);
+
+        // for (std::size_t i = 0; i < in_nm2_flat.size(); ++i)
+        //     out_n_flat[i] = coeff_nm2*in_nm2_flat[i];
+
+        // for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        // {
+        //     auto out_n_l = out_n[l];
+        //     auto in_nm2_l = in_nm2[l];
+        //     for (std::size_t m = 0; m <= l; ++m)
+        //     {
+        //         out_n_l[m, 0] = coeff_nm2*in_nm2_l[m, 0];
+        //         out_n_l[m, 1] = coeff_nm2*in_nm2_l[m, 1];
+        //     }
+        // }
 
         auto out_n_n = out_n[n];
         for (std::size_t m = 0; m <= n; ++m)
@@ -136,16 +162,27 @@ void radon_transform_inplace(
         auto exp_nm2 = exp[n - 2];
 
         const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
-        for (std::size_t l = n & 1; l <= n - 2; l += 2)
-        {
-            auto exp_n_l = exp_n[l];
-            auto exp_nm2_l = exp_nm2[l];
-            for (std::size_t m = 0; m <= l; ++m)
-            {
-                exp_n_l[m, 0] = coeff_nm2*exp_nm2_l[m, 0];
-                exp_n_l[m, 1] = coeff_nm2*exp_nm2_l[m, 1];
-            }
-        }
+        auto exp_n_flat = exp_n.flatten();
+        auto exp_nm2_flat = exp_nm2.flatten();
+
+        const std::size_t exp_n_size = exp_n_flat.size();
+        const std::size_t exp_nm2_size = exp_nm2_flat.size();
+        [[assume(exp_n_size >= exp_nm2_size)]];
+        util::mul(exp_n_flat, coeff_nm2, exp_nm2_flat);
+
+        // for (std::size_t i = 0; i < exp_nm2.size(); ++i)
+        //     exp_n_flat[i] = coeff_nm2*exp_nm2_flat[i];
+
+        // for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        // {
+        //     auto exp_n_l = exp_n[l];
+        //     auto exp_nm2_l = exp_nm2[l];
+        //     for (std::size_t m = 0; m <= l; ++m)
+        //     {
+        //         exp_n_l[m, 0] = coeff_nm2*exp_nm2_l[m, 0];
+        //         exp_n_l[m, 1] = coeff_nm2*exp_nm2_l[m, 1];
+        //     }
+        // }
 
         auto out_n_n = exp_n[n];
         for (std::size_t m = 0; m <= n; ++m)
@@ -163,16 +200,22 @@ void radon_transform_inplace(
 
         const double coeff_n = util::geg_rec_coeff<zernike_norm>(n);
         const double coeff_nm2 = -util::geg_rec_coeff<zernike_norm>(n - 2);
-        for (std::size_t l = n & 1; l <= n - 2; l += 2)
-        {
-            auto exp_n_l = exp_n[l];
-            auto exp_nm2_l = exp_nm2[l];
-            for (std::size_t m = 0; m <= l; ++m)
-            {
-                exp_n_l[m, 0] = coeff_n*exp_n_l[m, 0] + coeff_nm2*exp_nm2_l[m, 0];
-                exp_n_l[m, 1] = coeff_n*exp_n_l[m, 1] + coeff_nm2*exp_nm2_l[m, 1];
-            }
-        }
+        auto exp_n_flat = exp_n.flatten();
+        auto exp_nm2_flat = exp_nm2.flatten();
+
+        for (std::size_t i = 0; i < exp_nm2.size(); ++i)
+            exp_n_flat[i] = coeff_n*exp_n_flat[i] + coeff_nm2*exp_nm2_flat[i];
+
+        // for (std::size_t l = n & 1; l <= n - 2; l += 2)
+        // {
+        //     auto exp_n_l = exp_n[l];
+        //     auto exp_nm2_l = exp_nm2[l];
+        //     for (std::size_t m = 0; m <= l; ++m)
+        //     {
+        //         exp_n_l[m, 0] = coeff_n*exp_n_l[m, 0] + coeff_nm2*exp_nm2_l[m, 0];
+        //         exp_n_l[m, 1] = coeff_n*exp_n_l[m, 1] + coeff_nm2*exp_nm2_l[m, 1];
+        //     }
+        // }
 
         auto exp_n_n = exp_n[n];
         for (std::size_t m = 0; m <= n; ++m)

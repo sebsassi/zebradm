@@ -79,14 +79,14 @@ public:
         std::size_t geg_order, std::size_t resp_order, std::size_t top_order);
 
     [[nodiscard]] double integrate(
-        zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
         SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        zest::st::SphereGLQGridVectorSpan<double> rotated_geg_zernike_grids,
-        zest::st::SphereGLQGridVectorSpan<double> rotated_trans_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_trans_geg_zernike_grids,
         SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
         const zest::WignerdPiHalfCollection& wigner_d_pi2);

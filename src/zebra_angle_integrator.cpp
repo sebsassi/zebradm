@@ -30,6 +30,7 @@ SOFTWARE.
 #include "coordinate_transforms.hpp"
 
 #include "radon_util.hpp"
+#include "utility.hpp"
 #include "zebra_radon.hpp"
 
 namespace zdm::zebra
