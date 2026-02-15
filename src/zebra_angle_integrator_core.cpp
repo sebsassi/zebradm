@@ -92,11 +92,17 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
             res[1] += rotated_trans_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
+    TrapezoidSpan<const double>
+    non_trans_aff_leg_ylm_integrals(
+            m_aff_leg_ylm_integrals.data(),
+            m_aff_leg_ylm_integrals.order() - 2,
+            m_aff_leg_ylm_integrals.shape().extra_extent());
+
     // nontransverse contribution
-    for (std::size_t n : m_aff_leg_ylm_integrals.indices())
+    for (std::size_t n : non_trans_aff_leg_ylm_integrals.indices())
     {
         auto rotated_geg_n = rotated_geg_zernike_exp[n];
-        auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
+        auto aff_leg_ylm_integrals_n = non_trans_aff_leg_ylm_integrals[n];
 
         for (std::size_t l = n & 1; l <= n; l += 2)
         {
@@ -224,7 +230,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     {
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
-        assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
+        assert(m_rotated_grid.flatten().size() == rotated_trans_geg_zernike_grids[n].flatten().size());
         util::mul(m_rotated_grid.flatten(), rotated_trans_geg_zernike_grids[n].flatten());
         m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
         for (std::size_t l : aff_leg_ylm_integrals_n.indices())

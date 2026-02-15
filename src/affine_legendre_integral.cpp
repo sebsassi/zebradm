@@ -107,6 +107,7 @@ inner_product(std::span<const double> a, std::span<const double> b) noexcept
 
     switch (remainder)
     {
+        case 0: break;
         case 1:
             partial_res[0] += a[size - 1]*b[size - 1];
             break;
