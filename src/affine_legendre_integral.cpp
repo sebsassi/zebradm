@@ -96,11 +96,11 @@ void AffineLegendreIntegrals::integrals_full_interval(
     TrapezoidSpan<double> integrals, double shift, double scale)
 {
     assert(shift + scale <= 1.0);
-    integrals(0, 0) = 2.0;
+    integrals[0, 0] = 2.0;
     if (integrals.order() == 1) return;
 
-    integrals(1, 0) = 2.0*shift;
-    integrals(1, 1) = (2.0/3.0)*scale;
+    integrals[1, 0] = 2.0*shift;
+    integrals[1, 1] = (2.0/3.0)*scale;
     for (std::size_t n = 2; n < integrals.order(); ++n)
     {
         const double inv_n = 1.0/double(n);
@@ -140,20 +140,20 @@ void AffineLegendreIntegrals::integrals_full_dual_interval(
     assert(shift + 1.0 < scale);
     const double new_scale = 1.0/scale;
     const double new_shift = -shift*new_scale;
-    integrals(0, 0) = 2.0*new_scale;
+    integrals[0, 0] = 2.0*new_scale;
     if (integrals.order() == 1) return;
 
-    integrals(1, 1) = (2.0/3.0)*new_scale*new_scale;
+    integrals[1, 1] = (2.0/3.0)*new_scale*new_scale;
 
     m_leg_int_rec.legendre_integral(m_leg_int_top, (1.0 - shift)/scale);
     m_leg_int_rec.legendre_integral(m_leg_int_bot, -(1.0 + shift)/scale);
     for (std::size_t l = 0; l < integrals.shape().extra_extent() + 1; ++l)
-        integrals(0, l) = m_leg_int_top[l] - m_leg_int_bot[l];
+        integrals[0, l] = m_leg_int_top[l] - m_leg_int_bot[l];
 
     for (std::size_t n = 1; n < integrals.order(); ++n)
     {
         // Boundary condition: `integrals(n, l) == 0` for `l < n`
-        integrals(n, n) = (double(2*n - 1)/double(2*n + 1))*new_scale*integrals(n - 1, n - 1);
+        integrals[n, n] = (double(2*n - 1)/double(2*n + 1))*new_scale*integrals[n - 1, n - 1];
     }
 
     if (integrals.shape().extra_extent() > 0)
@@ -161,9 +161,9 @@ void AffineLegendreIntegrals::integrals_full_dual_interval(
         for (std::size_t n = 1; n < integrals.order(); ++n)
         {
             // Boundary condition: `integrals(n, l) == 0` for `l < n`
-            integrals(n, n + 1)
-                = (double(2*n + 1)/double(n + 1))*new_shift*integrals(n, n)
-                    + (double(n)/double(n + 1))*new_scale*integrals(n - 1, n);
+            integrals[n, n + 1]
+                = (double(2*n + 1)/double(n + 1))*new_shift*integrals[n, n]
+                    + (double(n)/double(n + 1))*new_scale*integrals[n - 1, n];
         }
     }
 
@@ -288,7 +288,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     std::span<double> integrals_0 = integrals[0];
     for (std::size_t l = 0; l < integrals.shape().extra_extent() + 1; ++l)
         integrals_0[l] = m_leg_int_top[l];
-    
+
     if (integrals.order() == 1) return;
 
     // Integrals for `l == 0`.
@@ -319,7 +319,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     const std::size_t block_size = 2*(max_recursion + 1);
     const std::size_t num_blocks
         = (integrals.order() - (max_recursion + 1))/block_size;
-    
+
     // Do full blocks.
     for (std::size_t block_index = 0; block_index < num_blocks; ++block_index)
     {

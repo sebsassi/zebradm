@@ -123,12 +123,7 @@ public:
         if constexpr (std::same_as<GridLayout, zest::st::LatLonLayout<typename GridLayout::Alignment>>)
         {
             for (std::size_t i = 0; i < values.extent(lat_axis); ++i)
-            {
-                auto values_i = values[i];
-                m_longitudinal_average[i] = 0.0;
-                for (std::size_t j = 0; j < values.extent(lon_axis); ++j)
-                    m_longitudinal_average[i] += values_i[j];
-            }
+                m_longitudinal_average[i] = util::sum(values[i].flatten());
         }
         else if constexpr (std::same_as<GridLayout, zest::st::LonLatLayout<typename GridLayout::Alignment>>)
         {
