@@ -153,25 +153,40 @@ struct Vector
     operator*(const Vector& a, const value_type& b) noexcept { return mul(a, b); }
 
     [[nodiscard]] friend constexpr Vector
+    operator*(const Vector& a, const Vector& b) noexcept { return mul(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
     operator/(const Vector& a, const value_type& b) noexcept { return div(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    [[nodiscard]] friend constexpr Vector
+    operator/(const value_type& a, const Vector& b) noexcept { return div(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator/(const Vector& a, const Vector& b) noexcept { return div(a, b); }
+
+    friend constexpr Vector&
     operator+=(Vector& a, const Vector& b) noexcept { return add_assign(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    friend constexpr Vector&
     operator+=(Vector& a, const value_type& b) noexcept { return add_assign(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    friend constexpr Vector&
     operator-=(Vector& a, const Vector& b) noexcept { return sub_assign(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    friend constexpr Vector&
     operator-=(Vector& a, const value_type& b) noexcept { return sub_assign(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    friend constexpr Vector&
     operator*=(Vector& a, const value_type& b) noexcept { return mul_assign(a, b); }
 
-    [[nodiscard]] friend constexpr Vector&
+    friend constexpr Vector&
+    operator*=(Vector& a, const Vector& b) noexcept { return mul_assign(a, b); }
+
+    friend constexpr Vector&
     operator/=(Vector& a, const value_type& b) noexcept { return div_assign(a, b); }
+
+    friend constexpr Vector&
+    operator/=(Vector& a, const Vector& b) noexcept { return div_assign(a, b); }
 };
 
 template <arithmetic T, typename... Ts>

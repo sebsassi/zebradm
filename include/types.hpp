@@ -27,6 +27,10 @@ SOFTWARE.
 namespace zdm
 {
 
+enum class DistType { iso, aniso };
+enum class RespType { iso, aniso };
+enum class RadonType { regular, transverse };
+
 /**
     @brief Alias
 */
@@ -52,6 +56,22 @@ using ZernikeExpansion = zest::zt::ZernikeExpansionNormalGeo<double, zest::Index
 */
 template <std::floating_point ElementType>
 using ZernikeSpan = zest::zt::ZernikeSpanNormalGeo<ElementType, zest::IndexingMode::zero_based>;
+
+/**
+    @brief Alias
+
+    @tparam ElementType
+*/
+template <std::floating_point ElementType>
+using IsotropicZernikeExpansion = zest::zt::IsotropicZernikeExpansionNormalGeo<ElementType>;
+
+/**
+    @brief Alias
+
+    @tparam ElementType
+*/
+template <std::floating_point ElementType>
+using IsotropicZernikeSpan = zest::zt::IsotropicZernikeSpanNormalGeo<ElementType>;
 
 /**
     @brief Alias

@@ -145,8 +145,8 @@ void AffineLegendreIntegrals::integrals_full_dual_interval(
 
     integrals[1, 1] = (2.0/3.0)*new_scale*new_scale;
 
-    m_leg_int_rec.legendre_integral(m_leg_int_top, (1.0 - shift)/scale);
-    m_leg_int_rec.legendre_integral(m_leg_int_bot, -(1.0 + shift)/scale);
+    m_leg_int_rec.generate(m_leg_int_top, (1.0 - shift)/scale);
+    m_leg_int_rec.generate(m_leg_int_bot, -(1.0 + shift)/scale);
     for (std::size_t l = 0; l < integrals.shape().extra_extent() + 1; ++l)
         integrals[0, l] = m_leg_int_top[l] - m_leg_int_bot[l];
 
@@ -283,7 +283,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     });
 
     // Integrals for `n == 0` row.
-    m_leg_int_rec.legendre_integral(m_leg_int_top, (1.0 - shift)/scale);
+    m_leg_int_rec.generate(m_leg_int_top, (1.0 - shift)/scale);
 
     std::span<double> integrals_0 = integrals[0];
     for (std::size_t l = 0; l < integrals.shape().extra_extent() + 1; ++l)
@@ -292,7 +292,7 @@ void AffineLegendreIntegrals::integrals_partial_interval(
     if (integrals.order() == 1) return;
 
     // Integrals for `l == 0`.
-    m_leg_int_rec.legendre_integral(m_leg_int_bot, shift - scale);
+    m_leg_int_rec.generate(m_leg_int_bot, shift - scale);
 
     const double inv_scale = 1.0/scale;
 

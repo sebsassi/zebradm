@@ -25,12 +25,32 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 #include "radon_util.hpp"
+#include "types.hpp"
 #include "utility.hpp"
 
 namespace zdm::zebra::detail
 {
 
-IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
+AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size_t geg_order):
+    m_legendre_integral_recursion(geg_order),
+    m_legendre_integrals(geg_order) {}
+
+double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
+    IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell)
+{
+    const double xmin = 0.0;
+    const double xmax = 0.0;
+    const la::Vector<double, 2> x = {xmin, xmax};
+    m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
+
+    la::Vector<double, 2> res = {geg_zernike_exp[0], geg_zernike_exp[0]};
+    for (auto n : geg_zernike_exp.indices(2))
+        res += geg_zernike_exp[n]*m_legendre_integrals[n];
+
+    return (2.0*std::numbers::pi)*(res[1] - res[0]);
+}
+
+AngleIntegratorCore<DistType::aniso, RespType::iso>::AngleIntegratorCore(
     std::size_t geg_order):
     m_aff_leg_integrals(geg_order, 0),
     m_aff_leg_ylm_integrals(geg_order, 0),
@@ -41,7 +61,7 @@ IsotropicAngleIntegratorCore::IsotropicAngleIntegratorCore(
             = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
-void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
+void AngleIntegratorCore<DistType::aniso, RespType::iso>::resize(std::size_t geg_order)
 {
     if (order() == geg_order) return;
     m_aff_leg_integrals.resize(geg_order, 0);
@@ -51,7 +71,8 @@ void IsotropicAngleIntegratorCore::resize(std::size_t geg_order)
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
-double IsotropicAngleIntegratorCore::integrate(
+[[nodiscard]] double
+AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> rotated_geg_zernike_exp,
     double offset_len, double shell)
 {
@@ -71,7 +92,8 @@ double IsotropicAngleIntegratorCore::integrate(
     return (2.0*std::numbers::pi)*res;
 }
 
-std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
+[[nodiscard]] std::array<double, 2>
+AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
     ZernikeSpan<const double> rotated_geg_zernike_exp,
     ZernikeSpan<const double> rotated_trans_geg_zernike_exp,
     double offset_len, double shell)
@@ -111,7 +133,7 @@ std::array<double, 2> IsotropicAngleIntegratorCore::integrate_transverse(
     return {(2.0*std::numbers::pi)*nontrans, (2.0*std::numbers::pi)*(trans - shell_sq*nontrans)};
 }
 
-void IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
+void AngleIntegratorCore<DistType::aniso, RespType::iso>::evaluate_aff_leg_ylm_integrals(
     double shell, double offset_len)
 {
     m_aff_leg_integrals.integrals(m_aff_leg_ylm_integrals, shell, offset_len);
@@ -122,7 +144,7 @@ void IsotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
     }
 }
 
-AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
+AngleIntegratorCore<DistType::aniso, RespType::aniso>::AngleIntegratorCore(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order):
     m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order),
     m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order),
@@ -135,7 +157,7 @@ AnisotropicAngleIntegratorCore::AnisotropicAngleIntegratorCore(
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
-void AnisotropicAngleIntegratorCore::resize(
+void AngleIntegratorCore<DistType::aniso, RespType::aniso>::resize(
     std::size_t geg_order, std::size_t resp_order, std::size_t top_order)
 {
     m_rotor.expand(std::max(geg_order, resp_order));
@@ -154,7 +176,8 @@ void AnisotropicAngleIntegratorCore::resize(
     m_rotated_exp.resize(top_order);
 }
 
-double AnisotropicAngleIntegratorCore::integrate(
+[[nodiscard]] double
+AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
     zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
     SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell,
@@ -193,7 +216,8 @@ double AnisotropicAngleIntegratorCore::integrate(
 
 
 
-std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
+[[nodiscard]] std::array<double, 2>
+AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
     zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
     zest::st::SphereGLQGridVectorSpan<const double> rotated_trans_geg_zernike_grids,
     SHSpan<const double> response_exp,
@@ -251,7 +275,7 @@ std::array<double, 2> AnisotropicAngleIntegratorCore::integrate_transverse(
     return {2.0*std::numbers::pi*nontrans, 2.0*std::numbers::pi*(trans - shell_sq*nontrans)};
 }
 
-void AnisotropicAngleIntegratorCore::evaluate_aff_leg_ylm_integrals(
+void AngleIntegratorCore<DistType::aniso, RespType::aniso>::evaluate_aff_leg_ylm_integrals(
     double shell, double offset_len)
 {
     m_aff_leg_integrals.integrals(m_aff_leg_ylm_integrals, shell, offset_len);

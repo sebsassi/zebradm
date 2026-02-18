@@ -26,8 +26,8 @@ SOFTWARE.
 #include <vector>
 
 #include "coordinate_transforms.hpp"
+#include "transform_utilities.hpp"
 #include "types.hpp"
-#include "zebra_util.hpp"
 
 namespace
 {

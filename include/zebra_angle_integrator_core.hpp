@@ -28,19 +28,61 @@ SOFTWARE.
 #include <zest/sh_expansion.hpp>
 #include <zest/sh_glq_transformer.hpp>
 
-#include "vector.hpp"
+#include "legendre.hpp"
 #include "affine_legendre_integral.hpp"
 #include "types.hpp"
+#include "vector.hpp"
 #include "zonal_glq_transformer.hpp"
 
 namespace zdm::zebra::detail
 {
 
-class IsotropicAngleIntegratorCore
+template <DistType dist_type, RespType resp_type>
+class AngleIntegratorCore {};
+
+template <>
+class AngleIntegratorCore<DistType::iso, RespType::iso>
 {
 public:
-    IsotropicAngleIntegratorCore() = default;
-    explicit IsotropicAngleIntegratorCore(std::size_t geg_order);
+    AngleIntegratorCore() = default;
+    explicit AngleIntegratorCore(std::size_t geg_order);
+
+    [[nodiscard]] std::size_t
+    order() const noexcept { return m_legendre_integral_recursion.order(); }
+
+    void resize(std::size_t geg_order);
+
+    [[nodiscard]] double integrate(
+        IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell);
+
+private:
+    LegendreIntegralRecursion m_legendre_integral_recursion;
+    std::vector<la::Vector<double, 2>> m_legendre_integrals;
+};
+
+template <>
+class AngleIntegratorCore<DistType::iso, RespType::aniso>
+{
+public:
+    AngleIntegratorCore() = default;
+    explicit AngleIntegratorCore(std::size_t geg_order);
+
+    [[nodiscard]] std::size_t
+    order() const noexcept { return 0; }
+
+    void resize(std::size_t geg_order);
+
+    [[nodiscard]] double integrate(
+        IsotropicZernikeSpan<const double> geg_zernike_exp, SHSpan<const double> response_exp,
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell);
+};
+
+template <>
+class AngleIntegratorCore<DistType::aniso, RespType::iso>
+{
+public:
+    AngleIntegratorCore() = default;
+    explicit AngleIntegratorCore(std::size_t geg_order);
 
     [[nodiscard]] std::size_t
     order() const noexcept { return m_aff_leg_integrals.order(); }
@@ -63,11 +105,12 @@ private:
     std::vector<double> m_ylm_integral_norms;
 };
 
-class AnisotropicAngleIntegratorCore
+template <>
+class AngleIntegratorCore<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicAngleIntegratorCore() = default;
-    AnisotropicAngleIntegratorCore(
+    AngleIntegratorCore() = default;
+    AngleIntegratorCore(
         std::size_t geg_order, std::size_t resp_order, std::size_t top_order);
 
     [[nodiscard]] zest::Rotor& rotor() { return m_rotor; }
@@ -81,14 +124,14 @@ public:
     [[nodiscard]] double integrate(
         zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
         SHSpan<const double> response_exp,
-        const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
     [[nodiscard]] std::array<double, 2> integrate_transverse(
         zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
         zest::st::SphereGLQGridVectorSpan<const double> rotated_trans_geg_zernike_grids,
         SHSpan<const double> response_exp,
-        const la::Vector<double, 3>& offset, double rotation_angle, double shell, 
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
 private:

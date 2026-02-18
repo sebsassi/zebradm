@@ -188,21 +188,4 @@ void LegendreIntegralRecursion::expand(std::size_t order)
     m_order = order;
 }
 
-void LegendreIntegralRecursion::legendre_integral(
-    std::span<double> pl, double x)
-{
-    if (pl.size() == 0) return;
-
-    std::size_t lmax = pl.size() - 1;
-    expand(lmax);
-
-    pl[0] = x + 1.0;
-
-    if (lmax == 0) return;
-    pl[1] = 0.5*(x - 1.0)*(x + 1.0);
-
-    for (std::size_t l = 2; l <= lmax; ++l)
-        pl[l] = m_a[l]*x*pl[l - 1] - m_b[l]*pl[l - 2];
-}
-
 } // namespace zdm::zebra

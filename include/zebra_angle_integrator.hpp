@@ -37,19 +37,11 @@ SOFTWARE.
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
 
-namespace zdm
-{
-
-enum class DistType { iso, aniso };
-enum class RespType { iso, aniso };
-
-namespace zebra
+namespace zdm::zebra
 {
 
 namespace detail
 {
-
-enum class RadonType { regular, transverse };
 
 class ZernikeExpansionWorkspace
 {
@@ -171,7 +163,7 @@ private:
     ZernikeExpansion m_geg_zernike_exp;
     ZernikeExpansion m_rotated_geg_zernike_exp;
     detail::ZernikeExpansionWorkspace m_zernike_expansions;
-    detail::IsotropicAngleIntegratorCore m_integrator_core;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
 };
 
@@ -316,7 +308,7 @@ private:
     std::vector<double> m_rotated_geg_zernike_grids;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator_core;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
     std::size_t m_resp_order{};
     std::size_t m_trunc_order{};
@@ -410,7 +402,7 @@ private:
     ZernikeExpansion m_rotated_geg_zernike_exp;
     ZernikeExpansion m_rotated_trans_geg_zernike_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
-    detail::IsotropicAngleIntegratorCore m_integrator_core;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
 };
 
@@ -561,12 +553,12 @@ private:
     detail::ZernikeCoordinateMultiplier m_multiplier;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator_core;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
     std::size_t m_resp_order{};
     std::size_t m_trunc_order{};
 };
 
-} // namespace zebra
+} // namespace zdm::zebra
 
-} // namespace zdm
+
