@@ -31,7 +31,7 @@ namespace zdm::util
 {
 
 template <zest::zt::ZernikeNorm NORM>
-inline double geg_rec_coeff(std::size_t n) noexcept
+inline double zernike_radon_coeff(std::size_t n) noexcept
 {
     if constexpr (NORM == zest::zt::ZernikeNorm::unnormed)
         return 1.0/double(2*n + 3);

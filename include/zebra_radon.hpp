@@ -21,12 +21,28 @@ SOFTWARE.
 */
 #pragma once
 
+#include <zest/zernike_conventions.hpp>
 #include <zest/zernike_expansion.hpp>
 
+#include "radon_util.hpp"
 #include "types.hpp"
 
 namespace zdm::zebra
 {
+
+template <zest::zt::ZernikeNorm zernike_norm>
+void generate_zernike_radon_coeff(std::span<double> zernike_radon_coeff) noexcept
+{
+    for (std::size_t n = 0; n < zernike_radon_coeff.size(); ++n)
+        zernike_radon_coeff[n] = util::zernike_radon_coeff<zernike_norm>(n);
+}
+
+template <zest::zt::ZernikeNorm zernike_norm>
+void generate_zernike_radon_coeff(IsotropicZernikeSpan<double> zernike_radon_coeff) noexcept
+{
+    for (std::size_t n : zernike_radon_coeff.indices())
+        zernike_radon_coeff[n] = util::zernike_radon_coeff<zernike_norm>(n);
+}
 
 /**
     @brief Apply the Radon transform onto a Zernike expansion.
@@ -46,6 +62,16 @@ namespace zdm::zebra
 */
 void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
+void radon_transform(
+    ZernikeSpan<const double> in, ZernikeSpan<double> out,
+    std::span<const double> zernike_radon_coeff) noexcept;
+
+void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
+
+void radon_transform(
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out,
+    IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept;
+
 /**
     @brief Apply the Radon transform onto a Zernike expansion.
 
@@ -62,5 +88,11 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
     @f]
 */
 void radon_transform_inplace(ZernikeSpan<double> exp) noexcept;
+
+void radon_transform_inplace(ZernikeSpan<double> exp, std::span<const double> zernike_radon_coeff) noexcept;
+
+void radon_transform_inplace(IsotropicZernikeSpan<double> exp) noexcept;
+
+void radon_transform_inplace(IsotropicZernikeSpan<double> exp, IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept;
 
 } // namespace zdm::zebra

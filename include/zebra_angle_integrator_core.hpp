@@ -68,16 +68,32 @@ class AngleIntegratorCore<DistType::iso, RespType::aniso>
 {
 public:
     AngleIntegratorCore() = default;
-    explicit AngleIntegratorCore(std::size_t geg_order);
+    explicit AngleIntegratorCore(std::size_t geg_order, std::size_t resp_order);
 
     [[nodiscard]] std::size_t
-    order() const noexcept { return 0; }
+    order() const noexcept { return m_aff_leg_integrals.order(); }
 
-    void resize(std::size_t geg_order);
+    void resize(std::size_t geg_order, std::size_t resp_order);
 
     [[nodiscard]] double integrate(
         IsotropicZernikeSpan<const double> geg_zernike_exp, SHSpan<const double> response_exp,
-        const la::Vector<double, 3>& offset, double rotation_angle, double shell);
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
+        const zest::WignerdPiHalfCollection& wigner_d_pi2);
+
+    [[nodiscard]] std::array<double, 2> integrate_transverse(
+        IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, SHSpan<const double> response_exp,
+        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
+        const zest::WignerdPiHalfCollection& wigner_d_pi2);
+
+private:
+    void evaluate_aff_leg_ylm_integrals(double shell, double offset_len);
+
+    zest::Rotor m_rotor;
+    SHExpansion<double> m_rotated_response_exp;
+    std::vector<double> m_zonal_rotated_response_exp;
+    AffineLegendreIntegrals m_aff_leg_integrals;
+    TrapezoidArray<double> m_aff_leg_ylm_integrals;
+    std::vector<double> m_ylm_integral_norms;
 };
 
 template <>
