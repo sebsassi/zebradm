@@ -34,44 +34,47 @@ enum class RadonType { regular, transverse };
 /**
     @brief Alias
 */
-using SHExpansion = zest::st::SHExpansionGeo<double, zest::IndexingMode::zero_based>;
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using SHExpansion = zest::st::SHExpansionGeo<ElementType, zest::IndexingMode::zero_based, inner_extents...>;
 
 /**
     @brief Alias
 
     @tparam ElementType
 */
-template <std::floating_point ElementType>
-using SHSpan = zest::st::SHSpanGeo<ElementType, zest::IndexingMode::zero_based>;
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using SHSpan = zest::st::SHSpanGeo<ElementType, zest::IndexingMode::zero_based, inner_extents...>;
 
 /**
     @brief Alias
 */
-using ZernikeExpansion = zest::zt::ZernikeExpansionNormalGeo<double, zest::IndexingMode::zero_based>;
-
-/**
-    @brief Alias
-
-    @tparam ElementType
-*/
-template <std::floating_point ElementType>
-using ZernikeSpan = zest::zt::ZernikeSpanNormalGeo<ElementType, zest::IndexingMode::zero_based>;
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using ZernikeExpansion = zest::zt::ZernikeExpansionNormalGeo<double, zest::IndexingMode::zero_based, inner_extents...>;
 
 /**
     @brief Alias
 
     @tparam ElementType
 */
-template <std::floating_point ElementType>
-using IsotropicZernikeExpansion = zest::zt::IsotropicZernikeExpansionNormalGeo<ElementType>;
+template <std::floating_point ElementType, std::size_t... inner_extents>
+    using ZernikeSpan = zest::zt::ZernikeSpanNormalGeo<ElementType, zest::IndexingMode::zero_based, inner_extents...>;
 
 /**
     @brief Alias
 
     @tparam ElementType
 */
-template <std::floating_point ElementType>
-using IsotropicZernikeSpan = zest::zt::IsotropicZernikeSpanNormalGeo<ElementType>;
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using IsotropicZernikeExpansion = zest::zt::IsotropicZernikeExpansionNormalGeo<ElementType, inner_extents...>;
+
+
+/**
+    @brief Alias
+
+    @tparam ElementType
+*/
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using IsotropicZernikeSpan = zest::zt::IsotropicZernikeSpanNormalGeo<ElementType, inner_extents...>;
 
 /**
     @brief Alias

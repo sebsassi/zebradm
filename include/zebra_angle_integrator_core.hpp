@@ -55,6 +55,9 @@ public:
     [[nodiscard]] double integrate(
         IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell);
 
+    [[nodiscard]] std::array<double, 2> integrate_transverse(
+        IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, double offset_len, double shell);
+
 private:
     LegendreIntegralRecursion m_legendre_integral_recursion;
     std::vector<la::Vector<double, 2>> m_legendre_integrals;
@@ -139,7 +142,7 @@ private:
 
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    SHExpansion m_rotated_response_exp;
+    SHExpansion<double> m_rotated_response_exp;
     zest::st::SphereGLQGrid<double> m_rotated_response_grid;
 
     AffineLegendreIntegrals m_aff_leg_integrals;

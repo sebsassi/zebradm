@@ -38,8 +38,8 @@ AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size
 double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
     IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell)
 {
-    const double xmin = 0.0;
-    const double xmax = 0.0;
+    const double xmin = std::max(-1.0, shell - offset_len);
+    const double xmax = std::min(1.0, shell + offset_len);
     const la::Vector<double, 2> x = {xmin, xmax};
     m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
 
@@ -47,8 +47,39 @@ double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
     for (auto n : geg_zernike_exp.indices(2))
         res += geg_zernike_exp[n]*m_legendre_integrals[n];
 
-    return (2.0*std::numbers::pi)*(res[1] - res[0]);
+    constexpr double two_pi_sq = (2.0*std::numbers::pi)*(2.0*std::numbers::pi);
+    return two_pi_sq*(res[1] - res[0])/offset_len;
 }
+
+std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integrate_transverse(
+    IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, double offset_len, double shell)
+{
+    const double xmin = std::max(-1.0, shell - offset_len);
+    const double xmax = std::min(1.0, shell + offset_len);
+    const la::Vector<double, 2> x = {xmin, xmax};
+    m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
+
+    std::array<la::Vector<double, 2>, 3> res = {
+        la::Vector<double, 2>{trans_geg_zernike_exp[0, 0], trans_geg_zernike_exp[0, 0]},
+        la::Vector<double, 2>{trans_geg_zernike_exp[0, 1], trans_geg_zernike_exp[0, 1]},
+        la::Vector<double, 2>{trans_geg_zernike_exp[0, 2], trans_geg_zernike_exp[0, 2]}
+    };
+    for (auto n : trans_geg_zernike_exp.indices(2))
+    {
+        res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
+        res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n];
+        res[2] += trans_geg_zernike_exp[n, 2]*m_legendre_integrals[n];
+    }
+
+    la::Vector<double, 2> nontrans_res = res[2];
+    la::Vector<double, 2> trans_res = res[0] - shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
+    constexpr double two_pi_sq = (2.0*std::numbers::pi)*(2.0*std::numbers::pi);
+    return {
+        two_pi_sq*(nontrans_res[1] - nontrans_res[0])/offset_len,
+        two_pi_sq*(trans_res[1] - trans_res[0])/offset_len
+    };
+}
+
 
 AngleIntegratorCore<DistType::aniso, RespType::iso>::AngleIntegratorCore(
     std::size_t geg_order):
