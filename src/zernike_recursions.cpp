@@ -1810,12 +1810,116 @@ void multiply_by_r2_impl(
         }
     }
 }
+void multiply_by_r2_impl(
+    const ZernikeRecursionData& coeff_data,
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept
+{
+    /*
+    The base case is that `out(n,l,m)` is a linear combination of the coefficients
+    ```
+    in(n + 2, l, m)
+    in(n, l, m)
+    in(n - 2, l, m)
+    ```
+    However, for `in(n,l,m)`, we have
+    ```
+    abs(m) <= l <= n < in.order()
+    ```
+    These conditions on the indices lead to multiple edge cases where different coefficients are neglected.
+    */
+    constexpr double sqrt3 = std::numbers::sqrt3;
+    constexpr double sqrt7 = 2.6457513110645905905016158;
+    constexpr double sqrt11 = 3.316624790355399849114933;
+
+    assert(in.order() + 1 < out.order());
+    assert(out.order() <= coeff_data.order());
+
+    const std::size_t nmax = (in.order() + 1) & (~1UL);
+    if (nmax == 0) return;
+
+    std::ranges::fill(out.flatten(), 0.0);
+
+    out[0] = (3.0/5.0)*in[0];
+    out[2] = (2.0*sqrt3/(5.0*sqrt7))*in[0];
+    if (nmax == 2) return;
+
+    if (nmax > 2)
+    {
+        out[0] += (2.0*sqrt3/(5.0*sqrt7))*in[2];
+        out[2] += (23.0/45.0)*in[2];
+    }
+
+    if (nmax > 4)
+    {
+        out[2] += (20.0/(9.0*sqrt7*sqrt11))*in[4];
+    }
+
+    for (std::size_t n = 4; n < nmax - 3; n += 2)
+    {
+        const auto dn = double(n);
+        const double d_2np1 = 2.0*dn + 1.0;
+        const double d_2np5 = 2.0*dn + 5.0;
+        const double _2np1_2np5 = d_2np1*d_2np5;
+
+        const double n_coeff_m_denom
+            = coeff_data.inv_sqrt_2nm1_2np1(n)*coeff_data.inv_sqrt_2np1_2np3(n);
+        const double n_coeff_mid_denom = 0.5/_2np1_2np5;
+        const double n_coeff_p_denom
+            = coeff_data.inv_sqrt_2np3_2np5(n)*coeff_data.inv_sqrt_2np5_2np7(n);
+
+        const double np2 = dn + 2.0;
+        const double np1 = dn + 1.0;
+        const double np3 = dn + 3.0;
+
+        const double n_coeff_m = dn*np1*n_coeff_m_denom;
+        const double n_coeff_mid = (1.0 + _2np1_2np5)*n_coeff_mid_denom;
+        const double n_coeff_p = np2*np3*n_coeff_p_denom;
+
+        out[n] = n_coeff_m*in[n - 2] + n_coeff_mid*in[n] + n_coeff_p*in[n + 2];
+    }
+
+    if (nmax > 4)
+    {
+        const auto dn = double(nmax - 2);
+        const double d_2np5 = 2.0*dn + 5.0;
+        const double _2np1_2np5 = (2.0*dn + 1.0)*d_2np5;
+
+        const double n_coeff_m_denoom
+            = coeff_data.inv_sqrt_2nm1_2np1(nmax - 2)*coeff_data.inv_sqrt_2np1_2np3(nmax - 2);
+        const double n_coeff_mid_denom = 0.5/_2np1_2np5;
+
+        const double np1 = dn + 1.0;
+
+        const double n_coeff_m = dn*np1*n_coeff_m_denoom;
+        const double n_coeff_mid = (1.0 + _2np1_2np5)*n_coeff_mid_denom;
+
+        out[nmax - 2] = n_coeff_m*in[nmax - 4] + n_coeff_mid*in[nmax - 2];
+    }
+
+    const auto dn = double(nmax);
+
+    const double n_coeff_m_denom
+        = coeff_data.inv_sqrt_2nm1_2np1(nmax)*coeff_data.inv_sqrt_2np1_2np3(nmax);
+
+    const double np1 = dn + 1.0;
+
+    const double n_coeff_m = dn*np1*n_coeff_m_denom;
+
+    out[nmax] = n_coeff_m*in[nmax - 2];
+}
 
 } // namespace
 
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
+{
+    multiply_by_r2_impl(coeff_data, in, out);
+}
+
+void multiply_by_r2(
+    const ZernikeRecursionData& coeff_data,
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept
 {
     multiply_by_r2_impl(coeff_data, in, out);
 }
@@ -1851,6 +1955,15 @@ void multiply_by_z_and_radon_transform_inplace(
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
+{
+    assert(in.order() + 3 < out.order());
+    multiply_by_r2_impl(coeff_data, in, out);
+    zebra::radon_transform_inplace(out);
+}
+
+void multiply_by_r2_and_radon_transform_inplace(
+    const ZernikeRecursionData& coeff_data,
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept
 {
     assert(in.order() + 3 < out.order());
     multiply_by_r2_impl(coeff_data, in, out);

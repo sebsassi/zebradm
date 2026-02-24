@@ -36,7 +36,7 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
     constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeSpan<const double>::shape_type::zernike_norm;
 
     assert(!util::have_overlap(in.flatten(), out.flatten()));
-    assert(in.order() + 2 == out.order());
+    assert(in.order() + 2 <= out.order());
 
     if (in.order() == 0) return;
 
@@ -121,8 +121,8 @@ void radon_transform(
     std::span<const double> zernike_radon_coeff) noexcept
 {
     assert(!util::have_overlap(in.flatten(), out.flatten()));
-    assert(in.order() + 2 == out.order());
-    assert(zernike_radon_coeff.size() == in.order());
+    assert(in.order() + 2 <= out.order());
+    assert(zernike_radon_coeff.size() >= in.order());
 
     if (in.order() == 0) return;
 
@@ -207,7 +207,7 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
     constexpr zest::zt::ZernikeNorm zernike_norm = ZernikeSpan<const double>::shape_type::zernike_norm;
 
     assert(!util::have_overlap(in.flatten(), out.flatten()));
-    assert(in.order() + 2 == out.order());
+    assert(in.order() + 2 <= out.order());
 
     if (in.order() == 0) return;
 
@@ -227,9 +227,9 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t n_max = (out.order() - 1) & (~1UL);
-    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(n_max - 2);
-    out[n_max] = coeff_nm2*in[n_max - 2];
+    const std::size_t nmax = (in.order() + 1) & (~1UL);
+    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(nmax - 2);
+    out[nmax] = coeff_nm2*in[nmax - 2];
 }
 
 void radon_transform(
@@ -237,7 +237,8 @@ void radon_transform(
     IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept
 {
     assert(!util::have_overlap(in.flatten(), out.flatten()));
-    assert(in.order() + 2 == out.order());
+    assert(in.order() + 2 <= out.order());
+    assert(zernike_radon_coeff.size() >= in.order());
 
     if (in.order() == 0) return;
 
@@ -257,9 +258,9 @@ void radon_transform(
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t n_max = (out.order() - 1) & (~1UL);
-    const double coeff_nm2 = zernike_radon_coeff[n_max - 2];
-    out[n_max] = coeff_nm2*in[n_max - 2];
+    const std::size_t nmax = (in.order() + 1) & (~1UL);
+    const double coeff_nm2 = zernike_radon_coeff[nmax - 2];
+    out[nmax] = coeff_nm2*in[nmax - 2];
 }
 
 void radon_transform_inplace(
@@ -329,6 +330,7 @@ void radon_transform_inplace(
 void radon_transform_inplace(
     ZernikeSpan<double> exp, std::span<const double> zernike_radon_coeff) noexcept
 {
+    assert(zernike_radon_coeff.size() >= exp.order());
     const std::size_t order = exp.order();
 
     if (order < 3) return;
@@ -415,6 +417,7 @@ void radon_transform_inplace(
 void radon_transform_inplace(
     IsotropicZernikeSpan<double> exp, IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept
 {
+    assert(zernike_radon_coeff.size() >= exp.order());
     const std::size_t order = exp.order();
 
     if (order < 3) return;

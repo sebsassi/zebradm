@@ -1,2 +1,0 @@
-Zernike-based Radon Transforms
-==============================

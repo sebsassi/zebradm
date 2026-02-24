@@ -29,7 +29,8 @@ namespace zdm::zebra::detail
 {
 
 /**
-    @brief Storage of precomputed values appearing in coefficients in Zernike function recursion relations.
+    @brief Storage of precomputed values appearing in coefficients in Zernike
+    function recursion relations.
 */
 class ZernikeRecursionData
 {
@@ -68,104 +69,145 @@ private:
 };
 
 /**
-    @brief Multiply Zernike expansion by `x`.
+    @brief Multiply a Zernike expansion by `x`.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_x(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Multiply Zernike expansion by `y`.
+    @brief Multiply a Zernike expansion by `y`.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_y(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Multiply Zernike expansion by `z`.
+    @brief Multiply a Zernike expansion by `z`.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_z(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Multiply Zernike expansion by `r*r`.
+    @brief Multiply a Zernike expansion by `r*r`.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 1 < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 1 < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_r2(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the resulting expansion coefficients.
+    @brief Multiply an isotropic Zernike expansion by `r*r`.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 1 < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_r2(
+    const ZernikeRecursionData& coeff_data,
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
+
+/**
+    @brief Compute coefficients of a Zernike expansion multiplied by `x` and
+    apply the resulting expansion coefficients.
+
+    @param coeff_data Precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_x_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `y` and
+    apply the resulting expansion coefficients.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_y_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `z` and
+    apply the resulting expansion coefficients.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_z_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
 
 /**
-    @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `r2` and
+    apply the resulting expansion coefficients.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 3 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 3 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
+*/
+void multiply_by_r2_and_radon_transform_inplace(
+    const ZernikeRecursionData& coeff_data,
+    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
+
+/**
+    @brief Compute coefficients of an isotropic Zernike expansion multiplied by
+    `r2` and apply the resulting expansion coefficients.
+
+    @param coeff_data Precomputed data to speed up computation
+    @param in input expansion
+    @param out output expansion
+
+    @note This function expects `in.order() + 3 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
 */
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
@@ -180,86 +222,98 @@ public:
     void expand(std::size_t order);
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `x`.
+    @brief Compute coefficients of a Zernike expansion multiplied by `x`.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_x(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `y`.
+    @brief Compute coefficients of a Zernike expansion multiplied by `y`.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_y(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `z`.
+    @brief Compute coefficients of a Zernike expansion multiplied by `z`.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_z(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `r*r`.
+    @brief Compute coefficients of a Zernike expansion multiplied by `r*r`.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 1 < out.order() <= coeff.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 1 < out.order() <=
+    coeff.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_r2(ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `x` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `x` and
+    apply the resulting expansion coefficients.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_x_and_radon_transform_inplace(
         ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `y` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `y` and
+    apply the resulting expansion coefficients.
 
-    @param coeff_data precomputed data to speed up computation
+    @param coeff_data Precomputed data to speed up computation
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_y_and_radon_transform_inplace(
         ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `z` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `z` and
+    apply the resulting expansion coefficients.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 2 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 2 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_z_and_radon_transform_inplace(
         ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
 
     /**
-    @brief Compute coefficients of Zernike expansion multiplied by `r2` and apply the resulting expansion coefficients.
+    @brief Compute coefficients of a Zernike expansion multiplied by `r2` and
+    apply the resulting expansion coefficients.
 
     @param in input expansion
     @param out output expansion
 
-    @note This function expects `in.order() + 3 < out.order() <= coeff_data.order()`. If `in.order() == 0` no work is done.
+    @note This function expects `in.order() + 3 < out.order() <=
+    coeff_data.order()`. If `in.order() == 0` no work is done.
     */
     void multiply_by_r2_and_radon_transform_inplace(
         ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept;
@@ -267,5 +321,14 @@ public:
 private:
     ZernikeRecursionData m_coeff_data;
 };
+
+class IsotropicZernikeTransverseRadonHelper
+{
+public:
+    IsotropicZernikeTransverseRadonHelper() = default;
+    explicit IsotropicZernikeTransverseRadonHelper(std::size_t order);
+
+private:
+}
 
 } // namespace zdm::zebra::detail

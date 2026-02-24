@@ -9,4 +9,4 @@ ZebraDM -- Zernike-based Radon transforms
    usage
    math
    coordinates
-   zebra
+   theory
