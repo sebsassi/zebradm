@@ -81,6 +81,7 @@ using IsotropicZernikeSpan = zest::zt::IsotropicZernikeSpanNormalGeo<ElementType
 
     @tparam ElementType
 */
+template <std::floating_point ElementType>
 using SHExpansionVector = zest::st::SHExpansionVectorGeo<double, zest::IndexingMode::zero_based>;
 
 /**

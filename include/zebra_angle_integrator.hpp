@@ -160,8 +160,8 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    ZernikeExpansion m_geg_zernike_exp;
-    ZernikeExpansion m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
     detail::ZernikeExpansionWorkspace m_zernike_expansions;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -303,7 +303,7 @@ private:
         std::size_t top_order, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    ZernikeExpansion m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     zest::Rotor m_rotor;
@@ -394,13 +394,13 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    ZernikeExpansion m_geg_zernike_exp;
-    ZernikeExpansion m_geg_zernike_exp_x;
-    ZernikeExpansion m_geg_zernike_exp_y;
-    ZernikeExpansion m_geg_zernike_exp_z;
-    ZernikeExpansion m_geg_zernike_exp_r2;
-    ZernikeExpansion m_rotated_geg_zernike_exp;
-    ZernikeExpansion m_rotated_trans_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp_x;
+    ZernikeExpansion<double> m_geg_zernike_exp_y;
+    ZernikeExpansion<double> m_geg_zernike_exp_z;
+    ZernikeExpansion<double> m_geg_zernike_exp_r2;
+    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -541,13 +541,13 @@ private:
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    ZernikeExpansion m_geg_zernike_exp;
-    ZernikeExpansion m_geg_zernike_exp_x;
-    ZernikeExpansion m_geg_zernike_exp_y;
-    ZernikeExpansion m_geg_zernike_exp_z;
-    ZernikeExpansion m_geg_zernike_exp_r2;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp_x;
+    ZernikeExpansion<double> m_geg_zernike_exp_y;
+    ZernikeExpansion<double> m_geg_zernike_exp_z;
+    ZernikeExpansion<double> m_geg_zernike_exp_r2;
     std::vector<double> m_rotated_geg_zernike_exp;
-    ZernikeExpansion m_rotated_trans_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     std::vector<double> m_rotated_trans_geg_zernike_grids;
     detail::ZernikeCoordinateMultiplier m_multiplier;

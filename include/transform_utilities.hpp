@@ -41,7 +41,7 @@ SOFTWARE.
 namespace zdm
 {
 
-[[nodiscard]] ZernikeExpansion
+[[nodiscard]] ZernikeExpansion<double>
 from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, std::size_t order)
 {
     assert(points.size() == values.size());
@@ -77,7 +77,7 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     auto spherical_harmonics = zest::st::RealSHGenerator()
         .generate<indexing_mode, sh_norm, sh_phase>(longitudes, colatitudes, order);
 
-    ZernikeExpansion expansion{order};
+    ZernikeExpansion<double> expansion{order};
 
     std::vector<double> partial_integrand(points.size());
 

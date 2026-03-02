@@ -23,6 +23,7 @@ SOFTWARE.
 #include <print>
 #include <random>
 
+#include "transform_utilities.hpp"
 #include "zebra_util.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -103,12 +104,12 @@ void run_errors(
 
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
-    zdm::ZernikeExpansion reference_distribution
+    zdm::ZernikeExpansion<double> reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).forward_transform(
             dist, 1.0, reference_dist_order);
 
-    zdm::SHExpansionVector reference_response(shells.size(), reference_resp_order);
-    zdm::zebra::ResponseTransformer(reference_resp_order).forward_transform(resp, shells, reference_response);
+    zdm::SHExpansionVector<double> reference_response(shells.size(), reference_resp_order);
+    zdm::ResponseTransformer(reference_resp_order).forward_transform(resp, shells, reference_response);
 
     zest::DynamicMDArray<double, 2> reference(offsets.size(), shells.size());
 

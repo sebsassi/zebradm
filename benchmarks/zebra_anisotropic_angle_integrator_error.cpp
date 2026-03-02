@@ -26,6 +26,7 @@ SOFTWARE.
 #include <print>
 #include <random>
 
+#include "transform_utilities.hpp"
 #include "zebra_util.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -54,12 +55,12 @@ void zebra_evaluate(
     std::span<const double> shells, std::span<const double> rotation_angles,
     zest::DynamicMDSpan<double, 2> out)
 {
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 dist, 1.0, dist_order);
 
-    zdm::SHExpansionVector response(shells.size(), resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).forward_transform(resp, shells, response);
+    zdm::SHExpansionVector<double> response(shells.size(), resp_order);
+    zdm::ResponseTransformer(resp_order).forward_transform(resp, shells, response);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, out);

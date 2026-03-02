@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "types.hpp"
+#include "zebra_radon.hpp"
 #include "zernike_recursions.hpp"
 
 #include <algorithm>
@@ -39,9 +40,9 @@ constexpr bool is_close(double a, double b, double tol)
 
 bool multiply_empty_expansion_by_x_does_nothing()
 {
-    zdm::ZernikeExpansion in{};
+    zdm::ZernikeExpansion<double> in{};
 
-    zdm::ZernikeExpansion out{4};
+    zdm::ZernikeExpansion<double> out{4};
     std::ranges::fill(out.flatten(), 2.0);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
@@ -66,9 +67,9 @@ bool multiply_empty_expansion_by_x_does_nothing()
 
 bool multiply_empty_expansion_by_y_does_nothing()
 {
-    zdm::ZernikeExpansion in{};
+    zdm::ZernikeExpansion<double> in{};
 
-    zdm::ZernikeExpansion out{4};
+    zdm::ZernikeExpansion<double> out{4};
     std::ranges::fill(out.flatten(), 2.0);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
@@ -93,9 +94,9 @@ bool multiply_empty_expansion_by_y_does_nothing()
 
 bool multiply_empty_expansion_by_z_does_nothing()
 {
-    zdm::ZernikeExpansion in{};
+    zdm::ZernikeExpansion<double> in{};
 
-    zdm::ZernikeExpansion out{4};
+    zdm::ZernikeExpansion<double> out{4};
     std::ranges::fill(out.flatten(), 2.0);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
@@ -120,9 +121,9 @@ bool multiply_empty_expansion_by_z_does_nothing()
 
 bool multiply_empty_expansion_by_r2_does_nothing()
 {
-    zdm::ZernikeExpansion in{};
+    zdm::ZernikeExpansion<double> in{};
 
-    zdm::ZernikeExpansion out{4};
+    zdm::ZernikeExpansion<double> out{4};
     std::ranges::fill(out.flatten(), 2.0);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
@@ -150,8 +151,8 @@ bool multiply_Z000_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[0, 0, 0, 0] = 1.0;
 
@@ -201,8 +202,8 @@ bool multiply_Z000_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[0, 0, 0, 0] = 1.0;
 
@@ -252,8 +253,8 @@ bool multiply_Z000_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[0, 0, 0, 0] = 1.0;
 
@@ -303,8 +304,8 @@ bool multiply_Z000_by_r2_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 2;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[0, 0, 0, 0] = 1.0;
 
@@ -360,8 +361,8 @@ bool multiply_Z111_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 0] = 1.0;
 
@@ -427,8 +428,8 @@ bool multiply_Z111_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 0] = 1.0;
 
@@ -479,8 +480,8 @@ bool multiply_Z111_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 0] = 1.0;
 
@@ -531,8 +532,8 @@ bool multiply_Z11m1_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 1] = 1.0;
 
@@ -583,8 +584,8 @@ bool multiply_Z11m1_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 1] = 1.0;
 
@@ -650,8 +651,8 @@ bool multiply_Z11m1_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 1, 1] = 1.0;
 
@@ -702,8 +703,8 @@ bool multiply_Z110_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 0, 0] = 1.0;
 
@@ -754,8 +755,8 @@ bool multiply_Z110_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 0, 0] = 1.0;
 
@@ -806,8 +807,8 @@ bool multiply_Z110_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
 
     in[1, 1, 0, 0] = 1.0;
 
@@ -865,9 +866,9 @@ bool multiply_Z110_by_z_is_correct_for_order()
 bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
-    zdm::ZernikeExpansion reference_out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
+    zdm::ZernikeExpansion<double> reference_out{out_order};
 
     for (std::size_t n = 0; n < in.order(); ++n)
     {
@@ -939,9 +940,9 @@ bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
-    zdm::ZernikeExpansion reference_out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
+    zdm::ZernikeExpansion<double> reference_out{out_order};
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1016,9 +1017,9 @@ bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
-    zdm::ZernikeExpansion reference_out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
+    zdm::ZernikeExpansion<double> reference_out{out_order};
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1093,9 +1094,9 @@ bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zdm::ZernikeExpansion in{in_order};
-    zdm::ZernikeExpansion out{out_order};
-    zdm::ZernikeExpansion reference_out{out_order};
+    zdm::ZernikeExpansion<double> in{in_order};
+    zdm::ZernikeExpansion<double> out{out_order};
+    zdm::ZernikeExpansion<double> reference_out{out_order};
 
     for (std::size_t n = 0; n < in.order(); ++n)
     {
@@ -1167,9 +1168,9 @@ bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
-    zdm::ZernikeExpansion in(in_order);
-    zdm::ZernikeExpansion out(out_order);
-    zdm::ZernikeExpansion reference_out(out_order);
+    zdm::ZernikeExpansion<double> in(in_order);
+    zdm::ZernikeExpansion<double> out(out_order);
+    zdm::ZernikeExpansion<double> reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1244,9 +1245,9 @@ bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 2;
-    zdm::ZernikeExpansion in(in_order);
-    zdm::ZernikeExpansion out(out_order);
-    zdm::ZernikeExpansion reference_out(out_order);
+    zdm::ZernikeExpansion<double> in(in_order);
+    zdm::ZernikeExpansion<double> out(out_order);
+    zdm::ZernikeExpansion<double> reference_out(out_order);
 
     std::mt19937 rng(29837490);
     std::uniform_real_distribution dist;
@@ -1316,6 +1317,46 @@ bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
     }
 
     return success;
+}
+
+bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order)
+{
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
+    
+    zdm::IsotropicZernikeExpansion<double> expansion{order};
+
+    zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
+
+    zdm::IsotropicZernikeExpansion<double> radon{order + 2};
+    zdm::zebra::radon_transform(expansion, radon);
+
+    zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
+
+    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order};
+    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(recursion_data, expansion, r2_radon);
+
+    zdm::IsotropicZernikeExpansion<double, 3> composite_components{order + 4};
+    zdm::zebra::detail::transverse_radon_components(radon, r2_radon, composite_components);
+
+    zdm::IsotropicZernikeExpansion<double, 3> direct_components{order + 4};
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
+        .evaluate_transverse_components(expansion, direct_components);
+
+    bool success = true;
+    for (std::size_t n : direct_components.indices())
+        success = success
+                && direct_components[n, 0] == composite_components[n, 0]
+                && direct_components[n, 1] == composite_components[n, 1]
+                && direct_components[n, 2] == composite_components[n, 2];
+
+    if (!success)
+    {
+        std::println("direct composite");
+        for (std::size_t n : direct_components.indices())
+            std::println("[{}, {}, {}] [{}, {}, {}]",
+                    direct_components[n, 0], direct_components[n, 1], direct_components[n, 2],
+                    composite_components[n, 0], composite_components[n, 1], composite_components[n, 2]);
+    }
 }
 
 } // namespace

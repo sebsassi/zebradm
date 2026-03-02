@@ -322,13 +322,129 @@ private:
     ZernikeRecursionData m_coeff_data;
 };
 
+void transverse_radon_components(
+    IsotropicZernikeSpan<const double> in_radon,
+    IsotropicZernikeSpan<const double> in_r2_radon,
+    IsotropicZernikeSpan<double, 3> out);
+
 class IsotropicZernikeTransverseRadonHelper
 {
 public:
     IsotropicZernikeTransverseRadonHelper() = default;
-    explicit IsotropicZernikeTransverseRadonHelper(std::size_t order);
+    explicit IsotropicZernikeTransverseRadonHelper(std::size_t order):
+        m_coeffs(order + 4)
+    {
+        constexpr double sqrt7 = 2.6457513110645905905016158;
+        constexpr double sqrt11 = 3.316624790355399849114933;
+        m_coeffs[0, 0] = 0.0;
+        m_coeffs[0, 1] = 0.0;
+        m_coeffs[0, 2] = 1.0/std::numbers::sqrt3;
+        m_coeffs[0, 3] = 1.0/(15.0*sqrt7);
+        m_coeffs[0, 4] = 0.0;
+        m_coeffs[0, 5] = std::numbers::sqrt3/5.0;
+        m_coeffs[0, 6] = 2.0/(5.0*sqrt7);
+        m_coeffs[0, 7] = 1.0;
+
+        m_coeffs[2, 0] = 0.0;
+        m_coeffs[2, 1] = -5.0/(7.0*std::numbers::sqrt3);
+        m_coeffs[2, 2] = -20.0/(27.0*sqrt7);
+        m_coeffs[2, 3] = -1.0/(63.0*sqrt11);
+        m_coeffs[2, 4] = -std::numbers::sqrt3/5.0;
+        m_coeffs[2, 5] = sqrt7/45.0;
+        m_coeffs[2, 6] = 4.0/(9.0*sqrt11);
+        m_coeffs[2, 7] = 1.0;
+
+        for (std::size_t n : m_coeffs.indices(4))
+        {
+            const auto dn = double(n);
+            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
+            m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
+            m_coeffs[n, 2] = ((2.0 - 3.0*dn)*(dn + 3.0) - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
+            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 7] = 1.0;
+        }
+    }
+
+    std::size_t order() { return m_coeffs.order(); }
+
+    void expand(std::size_t order)
+    {
+        const std::size_t old_nmax = (m_coeffs.order() - 1) & (~1UL);
+        m_coeffs.reshape(order + 4);
+        for (std::size_t n : m_coeffs.indices(old_nmax + 2))
+        {
+            const auto dn = double(n);
+            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
+            m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
+            m_coeffs[n, 2] = ((2.0 - 3.0*dn)*(dn + 3.0) - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
+            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 7] = 1.0;
+        }
+    }
+
+    void evaluate_transverse_components(
+        IsotropicZernikeSpan<const double> in,
+        IsotropicZernikeSpan<double, 3> out) const noexcept
+    {
+        if (in.order() == 0) return;
+
+        assert(out.order() >= in.order() + 4);
+        out[0, 0] = m_coeffs[0, 2]*in[0];
+        out[0, 1] = m_coeffs[0, 5]*in[0];
+        out[0, 2] = in[0];
+
+        out[2, 0] = m_coeffs[2, 1]*in[0];
+        out[2, 1] = m_coeffs[2, 4]*in[0];
+
+        if (in.order() > 2)
+        {
+            out[0, 0] += m_coeffs[0, 3]*in[2];
+            out[0, 1] += m_coeffs[0, 6]*in[2];
+
+            out[2, 0] += m_coeffs[2, 2]*in[2];
+            out[2, 1] += m_coeffs[2, 5]*in[2];
+            out[2, 2] = in[2];
+        }
+
+        if (in.order() > 4)
+        {
+            out[2, 0] += m_coeffs[2, 3]*in[4];
+            out[2, 1] += m_coeffs[2, 6]*in[4];
+        }
+
+        const std::size_t nmax = ((in.order() + 3) & (~1UL));
+        for (std::size_t n = 4; n < nmax - 4; n += 2)
+        {
+            out[n, 0] = m_coeffs[n, 0]*in[n - 4] + m_coeffs[n, 1]*in[n - 2] + m_coeffs[n, 2]*in[n] + m_coeffs[n, 3]*in[n + 2];
+            out[n, 1] = m_coeffs[n, 4]*in[n - 2] + m_coeffs[n, 5]*in[n] + m_coeffs[n, 6]*in[n + 2];
+            out[n, 2] = in[n];
+        }
+
+        out[nmax, 0] = m_coeffs[nmax, 0]*in[nmax - 4];
+        out[nmax, 1] = 0.0;
+        out[nmax, 2] = 0.0;
+
+        if (nmax == 4) return;
+
+        out[nmax - 2, 0] = m_coeffs[nmax - 2, 0]*in[nmax - 6] + m_coeffs[nmax - 2, 1]*in[nmax - 4];
+        out[nmax - 2, 1] = m_coeffs[nmax - 2, 4]*in[nmax - 4];
+        out[nmax - 2, 2] = 0.0;
+
+        if (nmax == 6) return;
+
+        out[nmax - 4, 0] = m_coeffs[nmax - 4, 0]*in[nmax - 8] + m_coeffs[nmax - 4, 1]*in[nmax - 6] + m_coeffs[nmax - 4, 2]*in[nmax - 4];
+        out[nmax - 4, 1] = m_coeffs[nmax - 4, 4]*in[nmax - 6] + m_coeffs[nmax - 4, 5]*in[nmax - 4];
+        out[nmax - 4, 2] = in[nmax - 4];
+    }
 
 private:
-}
+    IsotropicZernikeExpansion<double, 8> m_coeffs;
+};
 
 } // namespace zdm::zebra::detail

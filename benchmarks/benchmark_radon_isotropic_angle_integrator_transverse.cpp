@@ -111,7 +111,7 @@ void run_benchmarks(
         shells[i] = double(i)*(offset_len + 1.0)/double(num_shells - 1);
 
     constexpr std::size_t reference_order = 200;
-    zdm::ZernikeExpansion reference_distribution
+    zdm::ZernikeExpansion<double> reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_order).forward_transform(
             dist, 1.0, reference_order);
 

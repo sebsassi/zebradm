@@ -39,11 +39,11 @@ void benchmark_zebra_anisotropic_angle_integrator_transverse(
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zdm::ZernikeExpansion distribution(dist_order);
+    zdm::ZernikeExpansion<double> distribution(dist_order);
     for (auto& element : distribution.flatten())
         element = dist(gen);
 
-    zdm::SHExpansionVector response(num_shells, resp_order);
+    zdm::SHExpansionVector<double> response(num_shells, resp_order);
     for (auto& element : response.flatten())
         element = dist(gen);
 

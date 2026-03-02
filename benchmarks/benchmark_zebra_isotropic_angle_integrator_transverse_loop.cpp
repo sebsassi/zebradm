@@ -38,7 +38,7 @@ void benchmark_zebra_isotropic_angle_integrator_transverse(
     std::mt19937 gen;
     std::uniform_real_distribution dist{0.0, 1.0};
 
-    zdm::ZernikeExpansion distribution(order);
+    zdm::ZernikeExpansion<double> distribution(order);
     for (auto& element : distribution.flatten())
         element = dist(gen);
 

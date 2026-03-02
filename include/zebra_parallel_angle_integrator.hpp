@@ -67,7 +67,7 @@ private:
     struct ThreadContext
     {
         zest::Rotor rotor;
-        detail::IsotropicAngleIntegratorCore integrator;
+        detail::AngleIntegratorCore<DistType::aniso, RespType::iso> integrator;
     };
 
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(
@@ -85,7 +85,7 @@ private:
         std::span<const double> shells, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    ZernikeExpansion m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<ThreadContext> m_contexts;
     std::size_t m_dist_order;
@@ -165,10 +165,10 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     std::vector<zest::Rotor> m_rotors;
-    ZernikeExpansion m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
-    std::vector<detail::AnisotropicAngleIntegratorCore> m_integrators;
+    std::vector<detail::AngleIntegratorCore<DistType::aniso, RespType::aniso>> m_integrators;
     std::size_t m_dist_order;
     std::size_t m_resp_order;
     std::size_t m_trunc_order;

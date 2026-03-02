@@ -80,7 +80,7 @@ bool test_angle_integrator_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zdm::ZernikeExpansion distribution{order};
+    zdm::ZernikeExpansion<double> distribution{order};
     distribution[0, 0, 0, 0] = std::numbers::inv_sqrt3;
     distribution[0, 0, 0, 1] = 0.0;
 
@@ -172,7 +172,7 @@ bool test_angle_integrator_is_accurate_for_shm()
     zest::DynamicMDArray<double, 2> shm_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 100;
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 shm_dist, 1.0, order);
 

@@ -38,7 +38,7 @@ void angle_integrator_error(
     zest::DynamicMDSpan<double, 2> reference, DistributionSpherical dist,
     const char* name, std::size_t order, bool relative_error)
 {
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo(order).forward_transform(
             dist, 1.0, order);
 
@@ -99,7 +99,7 @@ void angle_integrator_errors(
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*max_shell/double(num_shells - 1);
 
-    zdm::ZernikeExpansion reference_distribution
+    zdm::ZernikeExpansion<double> reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_order).forward_transform(
             dist, 1.0, reference_order);
 

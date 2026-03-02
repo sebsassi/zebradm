@@ -61,7 +61,7 @@ bool test_from_points_is_correct_for_Z000(double radius)
         values[i] = function(lon, colat, r);
     }
 
-    zdm::ZernikeExpansion expansion = zdm::from_points(points, values, 10);
+    zdm::ZernikeExpansion<double> expansion = zdm::from_points(points, values, 10);
 
     constexpr double tol = 2.0e-3;
     constexpr double reference_coeff = 1.0;

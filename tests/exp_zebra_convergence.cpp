@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 
+#include "transform_utilities.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator.hpp"
 
@@ -49,12 +50,12 @@ void zebra_evaluate(
     std::size_t resp_order, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles, zest::DynamicMDSpan<double, 2> out)
 {
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
-    zdm::SHExpansionVector response{shells.size(), resp_order};
-    zdm::zebra::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
+    zdm::SHExpansionVector<double> response{shells.size(), resp_order};
+    zdm::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, out);

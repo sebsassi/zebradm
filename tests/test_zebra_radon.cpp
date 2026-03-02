@@ -37,8 +37,8 @@ constexpr bool is_close(double a, double b, double tol)
 
 bool test_zebra_radon_accepts_order(std::size_t order)
 {
-    zdm::ZernikeExpansion in{order};
-    zdm::ZernikeExpansion out{order + 2};
+    zdm::ZernikeExpansion<double> in{order};
+    zdm::ZernikeExpansion<double> out{order + 2};
     zdm::zebra::radon_transform(in, out);
     return true;
 }
@@ -47,7 +47,7 @@ bool test_zebra_radon_is_correct_to_order_5()
 {
     static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
-    zdm::ZernikeExpansion in{order};
+    zdm::ZernikeExpansion<double> in{order};
     in[0, 0, 0, 0] = 1.0;
     in[0, 0, 0, 1] = -1.0;
     in[1, 1, 0, 0] = 2.0;
@@ -93,7 +93,7 @@ bool test_zebra_radon_is_correct_to_order_5()
     in[4, 4, 4, 0] = 22.0;
     in[4, 4, 4, 1] = -22.0;
 
-    zdm::ZernikeExpansion out_ref{order + 2};
+    zdm::ZernikeExpansion<double> out_ref{order + 2};
     out_ref[0, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 0];
     out_ref[0, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 1];
     out_ref[1, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 0];
@@ -209,7 +209,7 @@ bool test_zebra_radon_is_correct_to_order_5()
     out_ref[6, 6, 6, 0] = 0.0;
     out_ref[6, 6, 6, 1] = 0.0;
 
-    zdm::ZernikeExpansion out{order + 2};
+    zdm::ZernikeExpansion<double> out{order + 2};
 
     zdm::zebra::radon_transform(in, out);
 
@@ -257,7 +257,7 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
 {
     static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
     constexpr std::size_t order = 5;
-    zdm::ZernikeExpansion exp{order + 2};
+    zdm::ZernikeExpansion<double> exp{order + 2};
     exp[0, 0, 0, 0] = 1.0;
     exp[0, 0, 0, 1] = -1.0;
     exp[1, 1, 0, 0] = 2.0;
@@ -303,7 +303,7 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     exp[4, 4, 4, 0] = 22.0;
     exp[4, 4, 4, 1] = -22.0;
 
-    zdm::ZernikeExpansion out_ref{order + 2};
+    zdm::ZernikeExpansion<double> out_ref{order + 2};
     out_ref[0, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 0];
     out_ref[0, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 1];
     out_ref[1, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 0];

@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 #include "radon_integrator.hpp"
+#include "transform_utilities.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator.hpp"
 
@@ -60,7 +61,7 @@ void test_mutual_convergence_isotropic(
     zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 200;
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
@@ -112,7 +113,7 @@ void test_mutual_convergence_transverse_isotropic(
     zest::DynamicMDArray<std::array<double, 2>, 2> transformer_test{offsets.size(), shells.size()};
 
     constexpr std::size_t order = 200;
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
@@ -169,12 +170,12 @@ void test_mutual_convergence_anisotropic(
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
-    zdm::SHExpansionVector response{shells.size(), resp_order};
-    zdm::zebra::ResponseTransformer(resp_order)
+    zdm::SHExpansionVector<double> response{shells.size(), resp_order};
+    zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
@@ -228,12 +229,12 @@ void test_mutual_convergence_transverse_anisotropic(
 
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
-    zdm::SHExpansionVector response{shells.size(), resp_order};
-    zdm::zebra::ResponseTransformer(resp_order)
+    zdm::SHExpansionVector<double> response{shells.size(), resp_order};
+    zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)

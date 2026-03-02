@@ -98,7 +98,7 @@ bool test_transverse_angle_integrator_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zdm::ZernikeExpansion distribution{order};
+    zdm::ZernikeExpansion<double> distribution{order};
     distribution[0, 0, 0, 0] = std::numbers::inv_sqrt3;
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};

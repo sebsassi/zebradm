@@ -25,6 +25,7 @@ SOFTWARE.
 #include <print>
 #include <random>
 
+#include "transform_utilities.hpp"
 #include "zebra_util.hpp"
 #include "zest/zernike_glq_transformer.hpp"
 
@@ -60,12 +61,12 @@ void angle_integrator_error(
     DistributionSpherical dist, const char* dist_name, Response resp, const char* resp_name,
     std::size_t dist_order, std::size_t resp_order, bool use_relative_error)
 {
-    zdm::ZernikeExpansion distribution
+    zdm::ZernikeExpansion<double> distribution
         = zest::zt::ZernikeTransformerNormalGeo(dist_order).forward_transform(
             dist, 1.0, dist_order);
 
-    zdm::SHExpansionVector response(shells.size(), resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).forward_transform(resp, shells, response);
+    zdm::SHExpansionVector<double> response(shells.size(), resp_order);
+    zdm::ResponseTransformer(resp_order).forward_transform(resp, shells, response);
 
     zest::DynamicMDArray<std::array<double, 2>, 2> out(offsets.size(), shells.size());
 
@@ -124,12 +125,12 @@ void fill_reference(
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
 
-    zdm::ZernikeExpansion reference_distribution
+    zdm::ZernikeExpansion<double> reference_distribution
         = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).forward_transform(
             dist, 1.0, reference_dist_order);
 
-    zdm::SHExpansionVector reference_response(shells.size(), reference_resp_order);
-    zdm::zebra::ResponseTransformer(reference_resp_order).forward_transform(resp, shells, reference_response);
+    zdm::SHExpansionVector<double> reference_response(shells.size(), reference_resp_order);
+    zdm::ResponseTransformer(reference_resp_order).forward_transform(resp, shells, reference_response);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>
     integrator(reference_dist_order, reference_resp_order);
