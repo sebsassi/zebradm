@@ -143,4 +143,46 @@ angle-integrated Radon transform
 .. math::
 
     \overline{\mathcal{R}}_W[f](w,\vec{x}_0)
-        \equiv \int_{S^2}W(w,\hat{q})\mathcal{R}[f](w + \vec{x}_0\cdot\hat{q},\hat{q})\,d\Omega.
+        \equiv \int_{S^2}W(w,\hat{q})\mathcal{R}[f](w + \vec{x}_\text{off}\cdot\hat{q},\hat{q})\,d\Omega,
+
+where :math:`W(w,\hat{q})` is a general weight function. In the context of dark matter direct
+detection, this typically corresponds to some type of detector response. The weight function can be
+multiplied into the Radon transform, and then in the spherical harmonic basis the above formula
+becomes
+
+.. math::
+
+    \overline{\mathcal{R}}_W[f](w,\vec{x}_0)
+        = 2\pi\sum_{n = 0}^N\sum{l = 0}^{n + L'}\sum_{|m| \leq l} \hat{f}^{(S)}_{nlm}(w)
+            \int_{S^2} P_n(w + \vec{x}_\text{off}\cdot\hat{q})Y_{lm}(\hat{q})\,d\Omega.
+
+Note that generally the weight function and the Radon transform are not defined in the same frame,
+so in general the above process involves their rotation to a common basis before the
+multiplication. For the weight function this in practice means that it is transformed to a
+spherical harmonic basis, rotated, and then transformed back.
+
+The integral is best performed in a frame where the :math:`z`-axis is in the direction of
+:math:`\vec{x}_\text{off}`. Using this frame, in general, requires rotation of the coefficients
+:math:`\hat{f}^{(S)}_{nlm}(w)` to the correct frame. The integral then vanishes for
+:math:`m \neq 0`, and otherwise reduces to
+
+.. math::
+
+    A_{nl}(w,x_\text{off})
+        = 2\pi\sqrt{2l + 1}\int_{z_\text{min}}^{z_\text{max}} P_n(w + x_\text{off}z)P_l(z)\,dz
+
+with limits
+
+.. math::
+
+    z_\text{min} = \max\left\{-1,-\frac{1 + w}{x_\text{off}}\right\},\qquad
+    z_\text{max} = \min\left\{1,\frac{1 - w}{x_\text{off}}\right\}.
+
+The weighted angle-integrated Radon transform is then given by
+
+.. math::
+
+    \overline{\mathcal{R}}_W[f](w,\vec{x}_0)
+        = 2\pi\sum_{n = 0}^N\sum{l = 0}^{n + L'} \hat{f}^{(S,R)}_{nl0}(w)A_{nl}(w,x_\text{off}),
+
+where :math:`\hat{f}^{(S,R)}_{nlm}(w)` denote the rotated coefficients.

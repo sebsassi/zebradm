@@ -1322,7 +1322,7 @@ bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order)
 {
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
-    
+
     zdm::IsotropicZernikeExpansion<double> expansion{order};
 
     zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
@@ -1333,7 +1333,8 @@ bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order
     zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
 
     const zdm::zebra::detail::ZernikeRecursionData recursion_data{order};
-    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(recursion_data, expansion, r2_radon);
+    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
+        recursion_data, zdm::IsotropicZernikeSpan<const double>(expansion), r2_radon);
 
     zdm::IsotropicZernikeExpansion<double, 3> composite_components{order + 4};
     zdm::zebra::detail::transverse_radon_components(radon, r2_radon, composite_components);
