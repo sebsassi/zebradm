@@ -25,16 +25,17 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
+#include "types.hpp"
 #include "zebra_radon.hpp"
 
 namespace zdm::zebra::parallel
 {
 
-IsotropicAngleIntegrator::IsotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::iso>::AngleIntegrator(
     std::size_t num_threads):
     m_contexts(num_threads), m_num_threads(num_threads) {}
 
-IsotropicAngleIntegrator::IsotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::iso>::AngleIntegrator(
     std::size_t dist_order, std::size_t num_threads):
     m_wigner_d_pi2(dist_order + 2), m_geg_zernike_exp(dist_order + 2),
     m_rotated_geg_zernike_exp(num_threads*zernike_exp_size(dist_order + 2)),
@@ -43,11 +44,11 @@ IsotropicAngleIntegrator::IsotropicAngleIntegrator(
     for (auto& context : m_contexts)
         context = {
             .rotor = zest::Rotor(),
-            .integrator = detail::IsotropicAngleIntegratorCore(dist_order + 2)
+            .integrator = detail::AngleIntegratorCore<DistType::aniso, RespType::iso>(dist_order + 2)
         };
 }
 
-void IsotropicAngleIntegrator::resize(std::size_t dist_order)
+void AngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size_t dist_order)
 {
     if (m_dist_order == dist_order) return;
     const std::size_t geg_order = dist_order + 2;
@@ -60,7 +61,7 @@ void IsotropicAngleIntegrator::resize(std::size_t dist_order)
     m_dist_order = dist_order;
 }
 
-void IsotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     ZernikeSpan<const double> distribution, std::span<const std::array<double, 3>> offsets,
     std::span<const double> shells, zest::DynamicMDSpan<double, 2> out)
 {
@@ -72,7 +73,7 @@ void IsotropicAngleIntegrator::integrate(
         integrate(std::size_t(omp_get_thread_num()), offsets[i], shells, out[i]);
 }
 
-void IsotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     std::size_t thread_id, const std::array<double, 3>& offset,
     std::span<const double> shells, std::span<double> out)
 {
@@ -96,7 +97,7 @@ void IsotropicAngleIntegrator::integrate(
         rotor.rotate(
                 rotated_geg_zernike_exp[n], m_wigner_d_pi2, euler_angles, rotation_type);
 
-    detail::IsotropicAngleIntegratorCore& integrator
+    detail::AngleIntegratorCore<DistType::aniso, RespType::iso>& integrator
         = m_contexts[thread_id].integrator;
     for (std::size_t i = 0; i < shells.size(); ++i)
     {
@@ -106,7 +107,7 @@ void IsotropicAngleIntegrator::integrate(
 }
 
 ZernikeSpan<double>
-IsotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
+AngleIntegrator<DistType::aniso, RespType::iso>::accesss_rotated_geg_zernike_exp(
     std::size_t thread_id) noexcept
 {
     const std::size_t geg_order = m_dist_order + 2;
@@ -115,12 +116,12 @@ IsotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
     return ZernikeSpan<double>(m_rotated_geg_zernike_exp.data() + thread_id*size, geg_order);
 }
 
-AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::aniso>::AngleIntegrator(
     std::size_t num_teams, std::size_t threads_per_team):
     m_rotors(num_teams), m_integrators(num_teams*threads_per_team),
     m_num_teams(num_teams), m_threads_per_team(threads_per_team) {}
 
-AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
+AngleIntegrator<DistType::aniso, RespType::aniso>::AngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order, 
     std::size_t num_teams, std::size_t threads_per_team):
     m_wigner_d_pi2(std::max(dist_order + 2, resp_order)),
@@ -138,20 +139,20 @@ AnisotropicAngleIntegrator::AnisotropicAngleIntegrator(
 {
     for (auto& rotor : m_rotors)
         rotor = zest::Rotor(dist_order + 2);
-    
+
     for (auto& integrator : m_integrators)
-        integrator = detail::AnisotropicAngleIntegratorCore(
+        integrator = detail::AngleIntegratorCore<DistType::aniso, RespType::aniso>(
                 dist_order + 2, resp_order,
                 std::max(dist_order + 2, resp_order));
 }
 
-void AnisotropicAngleIntegrator::resize(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::resize(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order)
 {
     const std::size_t geg_order = dist_order + 2;
     if (dist_order != m_dist_order || resp_order != m_resp_order)
         m_wigner_d_pi2.expand(std::max(geg_order, resp_order));
-    
+
     if (dist_order != m_dist_order)
     {
         m_geg_zernike_exp.reshape(geg_order);
@@ -176,7 +177,7 @@ void AnisotropicAngleIntegrator::resize(
     m_trunc_order = trunc_order;
 }
 
-void AnisotropicAngleIntegrator::integrate(
+void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     ZernikeSpan<const double> distribution, std::span<const std::array<double, 3>> offsets,
     std::span<const double> shells, SHVectorSpan<const double> response,
     std::span<const double> rotation_angles, zest::DynamicMDSpan<double, 2> out,
@@ -237,7 +238,7 @@ void AnisotropicAngleIntegrator::integrate(
 }
 
 ZernikeSpan<double>::subspan_type<1>
-AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
+AngleIntegrator<DistType::aniso, RespType::aniso>::accesss_rotated_geg_zernike_exp(
     std::size_t team_id, std::size_t order) noexcept
 {
     const std::size_t geg_order = m_dist_order + 2;
@@ -247,7 +248,7 @@ AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp(
 }
 
 zest::st::SphereGLQGridVectorSpan<double>
-AnisotropicAngleIntegrator::accesss_rotated_geg_zernike_exp_grids(
+AngleIntegrator<DistType::aniso, RespType::aniso>::accesss_rotated_geg_zernike_exp_grids(
     std::size_t team_id)
 {
     const std::size_t geg_order = m_dist_order + 2;

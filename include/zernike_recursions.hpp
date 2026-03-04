@@ -211,7 +211,7 @@ void multiply_by_r2_and_radon_transform_inplace(
 */
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept;
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
 
 class ZernikeCoordinateMultiplier
 {

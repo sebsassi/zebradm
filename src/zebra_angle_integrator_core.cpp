@@ -35,6 +35,12 @@ AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size
     m_legendre_integral_recursion(geg_order),
     m_legendre_integrals(geg_order) {}
 
+void AngleIntegratorCore<DistType::iso, RespType::iso>::resize(std::size_t geg_order)
+{
+    m_legendre_integral_recursion.expand(geg_order);
+    m_legendre_integrals.resize(geg_order);
+}
+
 double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
     IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell)
 {

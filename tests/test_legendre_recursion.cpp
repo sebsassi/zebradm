@@ -56,7 +56,7 @@ bool test_legendre_array_recursion_next_is_correct_to_order_6(double x)
     bool success = true;
     for (std::size_t i = 0; i < p_ref.size(); ++i)
         success = success && (is_close(p[i], p_ref[i], tol));
-    
+
     if (!success)
     {
         for (std::size_t i = 0; i < p_ref.size(); ++i)
@@ -85,7 +85,7 @@ bool test_legendre_array_recursion_iterate_is_correct_to_order_6(double x)
     bool success =  (is_close(recursion.current()[0], p_ref[order - 1], tol))
         && (is_close(recursion.prev()[0], p_ref[order - 2], tol))
         && (is_close(recursion.second_prev()[0], p_ref[order - 3], tol));
-    
+
     if (!success)
     {
         std::printf("P%lu: %f %f\n", order - 1, recursion.current()[0], p_ref[order - 1]);
@@ -111,12 +111,12 @@ bool test_legendre_integral_recursion_is_correct_to_order_6(double x)
     zdm::zebra::LegendreIntegralRecursion recursion(order);
 
     std::array<double, order> integrals;
-    recursion.legendre_integral(integrals, x);
+    recursion.generate(std::span<double>(integrals), x);
 
     bool success = true;
     for (std::size_t i = 0; i < integral_ref.size(); ++i)
         success = success && (integrals[i] == integral_ref[i]);
-    
+
     if (!success)
     {
         for (std::size_t i = 0; i < integral_ref.size(); ++i)

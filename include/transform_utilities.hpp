@@ -65,9 +65,9 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
         radius *= 1.0/max_radius;
 
     constexpr zest::IndexingMode indexing_mode = zest::IndexingMode::zero_based;
-    constexpr zest::zt::ZernikeNorm zernike_norm = zest::zt::zernike_norm_of<ZernikeExpansion>();
-    constexpr zest::st::SHNorm sh_norm = zest::st::sh_norm_of<ZernikeExpansion>();
-    constexpr zest::st::SHPhase sh_phase = zest::st::sh_phase_of<ZernikeExpansion>();
+    constexpr zest::zt::ZernikeNorm zernike_norm = zest::zt::zernike_norm_of<ZernikeExpansion<double>>();
+    constexpr zest::st::SHNorm sh_norm = zest::st::sh_norm_of<ZernikeExpansion<double>>();
+    constexpr zest::st::SHPhase sh_phase = zest::st::sh_phase_of<ZernikeExpansion<double>>();
 
     zest::zt::RadialZernikeExpansion<double, zernike_norm, std::dynamic_extent>
     radial_zernike{order, points.size()};
@@ -167,9 +167,9 @@ public:
         @return spherical harmonic expansions of the response
     */
     template <std::regular_invocable<double, double, double> RespType>
-    SHExpansionVector forward_transform(const RespType& resp, std::span<const double> shells, std::size_t order)
+    SHExpansionVector<double> forward_transform(const RespType& resp, std::span<const double> shells, std::size_t order)
     {
-        SHExpansionVector res(shells.size(), order);
+        SHExpansionVector<double> res(shells.size(), order);
         forward_transform(resp, shells, res);
         return res;
     }

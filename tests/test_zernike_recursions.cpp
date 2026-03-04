@@ -38,7 +38,7 @@ constexpr bool is_close(double a, double b, double tol)
     return std::fabs(a - b) <= tol*0.5*std::fabs(a + b) + tol;
 }
 
-bool multiply_empty_expansion_by_x_does_nothing()
+bool test_multiply_empty_expansion_by_x_does_nothing()
 {
     zdm::ZernikeExpansion<double> in{};
 
@@ -65,7 +65,7 @@ bool multiply_empty_expansion_by_x_does_nothing()
     return success;
 }
 
-bool multiply_empty_expansion_by_y_does_nothing()
+bool test_multiply_empty_expansion_by_y_does_nothing()
 {
     zdm::ZernikeExpansion<double> in{};
 
@@ -92,7 +92,7 @@ bool multiply_empty_expansion_by_y_does_nothing()
     return success;
 }
 
-bool multiply_empty_expansion_by_z_does_nothing()
+bool test_multiply_empty_expansion_by_z_does_nothing()
 {
     zdm::ZernikeExpansion<double> in{};
 
@@ -119,7 +119,7 @@ bool multiply_empty_expansion_by_z_does_nothing()
     return success;
 }
 
-bool multiply_empty_expansion_by_r2_does_nothing()
+bool test_multiply_empty_expansion_by_r2_does_nothing()
 {
     zdm::ZernikeExpansion<double> in{};
 
@@ -147,7 +147,7 @@ bool multiply_empty_expansion_by_r2_does_nothing()
 }
 
 template <std::size_t in_order_param>
-bool multiply_Z000_by_x_is_correct_for_order()
+bool test_multiply_Z000_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -198,7 +198,7 @@ bool multiply_Z000_by_x_is_correct_for_order()
 }
 
 template <std::size_t in_order_param>
-bool multiply_Z000_by_y_is_correct_for_order()
+bool test_multiply_Z000_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -249,7 +249,7 @@ bool multiply_Z000_by_y_is_correct_for_order()
 }
 
 template <std::size_t in_order_param>
-bool multiply_Z000_by_z_is_correct_for_order()
+bool test_multiply_Z000_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -300,7 +300,7 @@ bool multiply_Z000_by_z_is_correct_for_order()
 }
 
 template <std::size_t in_order_param>
-bool multiply_Z000_by_r2_is_correct_for_order()
+bool test_multiply_Z000_by_r2_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 2;
@@ -357,7 +357,7 @@ bool multiply_Z000_by_r2_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z111_by_x_is_correct_for_order()
+bool test_multiply_Z111_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -424,7 +424,7 @@ bool multiply_Z111_by_x_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z111_by_y_is_correct_for_order()
+bool test_multiply_Z111_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -476,7 +476,7 @@ bool multiply_Z111_by_y_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z111_by_z_is_correct_for_order()
+bool test_multiply_Z111_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -528,7 +528,7 @@ bool multiply_Z111_by_z_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z11m1_by_x_is_correct_for_order()
+bool test_multiply_Z11m1_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -580,7 +580,7 @@ bool multiply_Z11m1_by_x_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z11m1_by_y_is_correct_for_order()
+bool test_multiply_Z11m1_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -647,7 +647,7 @@ bool multiply_Z11m1_by_y_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z11m1_by_z_is_correct_for_order()
+bool test_multiply_Z11m1_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -699,7 +699,7 @@ bool multiply_Z11m1_by_z_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z110_by_x_is_correct_for_order()
+bool test_multiply_Z110_by_x_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -751,7 +751,7 @@ bool multiply_Z110_by_x_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z110_by_y_is_correct_for_order()
+bool test_multiply_Z110_by_y_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -803,7 +803,7 @@ bool multiply_Z110_by_y_is_correct_for_order()
 
 template <std::size_t in_order_param>
     requires (in_order_param > 1)
-bool multiply_Z110_by_z_is_correct_for_order()
+bool test_multiply_Z110_by_z_is_correct_for_order()
 {
     constexpr std::size_t in_order = in_order_param;
     constexpr std::size_t out_order = in_order_param + 1;
@@ -863,7 +863,7 @@ bool multiply_Z110_by_z_is_correct_for_order()
     return success;
 }
 
-bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
+bool test_multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
     zdm::ZernikeExpansion<double> in{in_order};
@@ -937,7 +937,7 @@ bool multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
-bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
+bool test_multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
     zdm::ZernikeExpansion<double> in{in_order};
@@ -1014,7 +1014,7 @@ bool multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
-bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
+bool test_multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
     zdm::ZernikeExpansion<double> in{in_order};
@@ -1091,7 +1091,7 @@ bool multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
-bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
+bool test_multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
     zdm::ZernikeExpansion<double> in{in_order};
@@ -1165,7 +1165,7 @@ bool multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
-bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
+bool test_multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 1;
     zdm::ZernikeExpansion<double> in(in_order);
@@ -1242,7 +1242,7 @@ bool multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
-bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
+bool test_multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 {
     const std::size_t out_order = in_order + 2;
     zdm::ZernikeExpansion<double> in(in_order);
@@ -1279,7 +1279,7 @@ bool multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
 
     for (std::size_t i = 0; i < reference_grid.flatten().size(); ++i)
         reference_grid.flatten()[i] *= r2.flatten()[i];
-    
+
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
@@ -1332,7 +1332,7 @@ bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order
 
     zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
 
-    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order};
+    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order + 4};
     zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
         recursion_data, zdm::IsotropicZernikeSpan<const double>(expansion), r2_radon);
 
@@ -1358,55 +1358,60 @@ bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order
                     direct_components[n, 0], direct_components[n, 1], direct_components[n, 2],
                     composite_components[n, 0], composite_components[n, 1], composite_components[n, 2]);
     }
+
+    return success;
 }
 
 } // namespace
 
 int main()
 {
-    assert(multiply_empty_expansion_by_x_does_nothing());
-    assert(multiply_empty_expansion_by_y_does_nothing());
-    assert(multiply_empty_expansion_by_z_does_nothing());
-    assert(multiply_empty_expansion_by_r2_does_nothing());
+    assert(test_multiply_empty_expansion_by_x_does_nothing());
+    assert(test_multiply_empty_expansion_by_y_does_nothing());
+    assert(test_multiply_empty_expansion_by_z_does_nothing());
+    assert(test_multiply_empty_expansion_by_r2_does_nothing());
 
-    assert(multiply_Z000_by_x_is_correct_for_order<1>());
-    assert(multiply_Z000_by_y_is_correct_for_order<1>());
-    assert(multiply_Z000_by_z_is_correct_for_order<1>());
-    assert(multiply_Z000_by_r2_is_correct_for_order<1>());
+    assert(test_multiply_Z000_by_x_is_correct_for_order<1>());
+    assert(test_multiply_Z000_by_y_is_correct_for_order<1>());
+    assert(test_multiply_Z000_by_z_is_correct_for_order<1>());
+    assert(test_multiply_Z000_by_r2_is_correct_for_order<1>());
 
-    assert(multiply_Z000_by_x_is_correct_for_order<2>());
-    assert(multiply_Z000_by_y_is_correct_for_order<2>());
-    assert(multiply_Z000_by_z_is_correct_for_order<2>());
+    assert(test_multiply_Z000_by_x_is_correct_for_order<2>());
+    assert(test_multiply_Z000_by_y_is_correct_for_order<2>());
+    assert(test_multiply_Z000_by_z_is_correct_for_order<2>());
 
-    assert(multiply_Z000_by_r2_is_correct_for_order<3>());
+    assert(test_multiply_Z000_by_r2_is_correct_for_order<3>());
 
-    assert(multiply_Z111_by_x_is_correct_for_order<2>());
-    assert(multiply_Z111_by_y_is_correct_for_order<2>());
-    assert(multiply_Z111_by_z_is_correct_for_order<2>());
-    assert(multiply_Z11m1_by_x_is_correct_for_order<2>());
-    assert(multiply_Z11m1_by_y_is_correct_for_order<2>());
-    assert(multiply_Z11m1_by_z_is_correct_for_order<2>());
-    assert(multiply_Z110_by_x_is_correct_for_order<2>());
-    assert(multiply_Z110_by_y_is_correct_for_order<2>());
-    assert(multiply_Z110_by_z_is_correct_for_order<2>());
+    assert(test_multiply_Z111_by_x_is_correct_for_order<2>());
+    assert(test_multiply_Z111_by_y_is_correct_for_order<2>());
+    assert(test_multiply_Z111_by_z_is_correct_for_order<2>());
+    assert(test_multiply_Z11m1_by_x_is_correct_for_order<2>());
+    assert(test_multiply_Z11m1_by_y_is_correct_for_order<2>());
+    assert(test_multiply_Z11m1_by_z_is_correct_for_order<2>());
+    assert(test_multiply_Z110_by_x_is_correct_for_order<2>());
+    assert(test_multiply_Z110_by_y_is_correct_for_order<2>());
+    assert(test_multiply_Z110_by_z_is_correct_for_order<2>());
 
-    assert(multiply_Z111_by_x_is_correct_for_order<3>());
-    assert(multiply_Z111_by_y_is_correct_for_order<3>());
-    assert(multiply_Z111_by_z_is_correct_for_order<3>());
-    assert(multiply_Z11m1_by_x_is_correct_for_order<3>());
-    assert(multiply_Z11m1_by_y_is_correct_for_order<3>());
-    assert(multiply_Z11m1_by_z_is_correct_for_order<3>());
-    assert(multiply_Z110_by_x_is_correct_for_order<3>());
-    assert(multiply_Z110_by_y_is_correct_for_order<3>());
-    assert(multiply_Z110_by_z_is_correct_for_order<3>());
+    assert(test_multiply_Z111_by_x_is_correct_for_order<3>());
+    assert(test_multiply_Z111_by_y_is_correct_for_order<3>());
+    assert(test_multiply_Z111_by_z_is_correct_for_order<3>());
+    assert(test_multiply_Z11m1_by_x_is_correct_for_order<3>());
+    assert(test_multiply_Z11m1_by_y_is_correct_for_order<3>());
+    assert(test_multiply_Z11m1_by_z_is_correct_for_order<3>());
+    assert(test_multiply_Z110_by_x_is_correct_for_order<3>());
+    assert(test_multiply_Z110_by_y_is_correct_for_order<3>());
+    assert(test_multiply_Z110_by_z_is_correct_for_order<3>());
 
-    assert(multiply_unit_input_by_x_is_correct_for_order(10));
-    assert(multiply_unit_input_by_z_is_correct_for_order(10));
+    assert(test_multiply_unit_input_by_x_is_correct_for_order(10));
+    assert(test_multiply_unit_input_by_z_is_correct_for_order(10));
 
-    assert(multiply_random_input_by_x_is_correct_for_order(10));
-    assert(multiply_random_input_by_y_is_correct_for_order(10));
-    assert(multiply_random_input_by_z_is_correct_for_order(10));
-    assert(multiply_random_input_by_r2_is_correct_for_order(10));
+    assert(test_multiply_random_input_by_x_is_correct_for_order(10));
+    assert(test_multiply_random_input_by_y_is_correct_for_order(10));
+    assert(test_multiply_random_input_by_z_is_correct_for_order(10));
+    assert(test_multiply_random_input_by_r2_is_correct_for_order(10));
 
-    assert(multiply_random_input_by_r2_is_correct_for_order(1));
+    assert(test_multiply_random_input_by_r2_is_correct_for_order(1));
+
+    assert(test_isotropic_zernike_transverse_radon_helper_components(20));
+    assert(test_isotropic_zernike_transverse_radon_helper_components(21));
 }

@@ -209,7 +209,7 @@ namespace
 [[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(
     std::size_t order)
 {
-    return ZernikeExpansion::subspan_type<1>::size(order);
+    return ZernikeExpansion<double>::subspan_type<1>::size(order);
 }
 
 } // namespace

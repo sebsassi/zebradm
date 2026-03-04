@@ -35,12 +35,16 @@ SOFTWARE.
 namespace zdm::zebra::parallel
 {
 
-class IsotropicAngleIntegrator
+template <DistType dist_type, RespType resp_type>
+class AngleIntegrator {};
+
+template<>
+class AngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicAngleIntegrator() = default;
-    explicit IsotropicAngleIntegrator(std::size_t num_threads);
-    IsotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t num_threads);
+    AngleIntegrator(
         std::size_t dist_order, std::size_t num_threads);
 
     [[nodiscard]] std::size_t
@@ -88,17 +92,18 @@ private:
     ZernikeExpansion<double> m_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<ThreadContext> m_contexts;
-    std::size_t m_dist_order;
-    std::size_t m_num_threads;
+    std::size_t m_dist_order{};
+    std::size_t m_num_threads{};
 };
 
-class AnisotropicAngleIntegrator
+template<>
+class AngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicAngleIntegrator() = default;
-    AnisotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    AngleIntegrator(
         std::size_t num_teams, std::size_t threads_per_team);
-    AnisotropicAngleIntegrator(
+    AngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order, std::size_t num_teams,
         std::size_t threads_per_team);
