@@ -79,6 +79,7 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
 
 AngleIntegrator<DistType::iso, RespType::aniso>::AngleIntegrator(
     std::size_t dist_order, std::size_t resp_order):
+    m_wigner_d_pi2(resp_order),
     m_geg_zernike_exp(dist_order + 2),
     m_integrator_core(dist_order + 2, resp_order),
     m_dist_order(dist_order), m_resp_order(resp_order) {}
@@ -86,12 +87,16 @@ AngleIntegrator<DistType::iso, RespType::aniso>::AngleIntegrator(
 void AngleIntegrator<DistType::iso, RespType::aniso>::resize(
     std::size_t dist_order, std::size_t resp_order)
 {
-    if (dist_order == m_dist_order) return;
+    if (dist_order == m_dist_order && resp_order == m_resp_order) return;
+
     const std::size_t geg_order = dist_order + 2;
-    m_geg_zernike_exp.reshape(geg_order);
+    m_wigner_d_pi2.expand(resp_order);
     m_integrator_core.resize(geg_order, resp_order);
-    m_dist_order = dist_order;
     m_resp_order = resp_order;
+    if (dist_order == m_dist_order) return;
+
+    m_geg_zernike_exp.reshape(geg_order);
+    m_dist_order = dist_order;
 }
 
 
@@ -107,7 +112,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
                     m_geg_zernike_exp, response[j], offsets[i], rotation_angles[i], 
-                    shells[i], m_wigner_d_pi2);
+                    shells[j], m_wigner_d_pi2);
     }
 }
 

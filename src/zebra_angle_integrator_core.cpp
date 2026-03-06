@@ -51,7 +51,7 @@ double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
     const la::Vector<double, 2> x = {xmin, xmax};
     m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
 
-    la::Vector<double, 2> res = {geg_zernike_exp[0], geg_zernike_exp[0]};
+    la::Vector<double, 2> res = geg_zernike_exp[0]*m_legendre_integrals[0];
     for (auto n : geg_zernike_exp.indices(2))
         res += geg_zernike_exp[n]*m_legendre_integrals[n];
 
@@ -69,8 +69,12 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
     const la::Vector<double, 2> x = {xmin, xmax};
     m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
 
-    std::array<la::Vector<double, 2>, 3> res = {};
-    for (auto n : trans_geg_zernike_exp.indices())
+    std::array<la::Vector<double, 2>, 3> res = {
+        trans_geg_zernike_exp[0, 0]*m_legendre_integrals[0],
+        trans_geg_zernike_exp[0, 1]*m_legendre_integrals[1],
+        trans_geg_zernike_exp[0, 2]*m_legendre_integrals[2]
+    };
+    for (auto n : trans_geg_zernike_exp.indices(2))
     {
         res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
         res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n + 1];
@@ -88,7 +92,7 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
 
 AngleIntegratorCore<DistType::iso, RespType::aniso>::AngleIntegratorCore(
     std::size_t geg_order, std::size_t resp_order):
-    m_rotor(std::max(geg_order, resp_order)),
+    m_rotor(resp_order),
     m_rotated_response_exp(resp_order),
     m_zonal_rotated_response_exp(resp_order),
     m_aff_leg_integrals(geg_order, resp_order),
@@ -102,7 +106,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::AngleIntegratorCore(
 void AngleIntegratorCore<DistType::iso, RespType::aniso>::resize(
     std::size_t geg_order, std::size_t resp_order)
 {
-    m_rotor.expand(std::max(geg_order, resp_order));
+    m_rotor.expand(resp_order);
     m_rotated_response_exp.reshape(resp_order);
     m_zonal_rotated_response_exp.resize(resp_order);
 
