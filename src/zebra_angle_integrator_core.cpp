@@ -32,8 +32,8 @@ namespace zdm::zebra::detail
 {
 
 AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size_t geg_order):
-    m_legendre_integral_recursion(geg_order),
-    m_legendre_integrals(geg_order) {}
+    m_legendre_integral_recursion(geg_order + 2),
+    m_legendre_integrals(geg_order + 2) {}
 
 void AngleIntegratorCore<DistType::iso, RespType::iso>::resize(std::size_t geg_order)
 {
@@ -72,14 +72,17 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
     std::array<la::Vector<double, 2>, 3> res = {
         trans_geg_zernike_exp[0, 0]*m_legendre_integrals[0],
         trans_geg_zernike_exp[0, 1]*m_legendre_integrals[1],
-        trans_geg_zernike_exp[0, 2]*m_legendre_integrals[2]
+        trans_geg_zernike_exp[0, 2]*m_legendre_integrals[0]
     };
-    for (auto n : trans_geg_zernike_exp.indices(2))
+    for (std::size_t n = 2; n < trans_geg_zernike_exp.order() - 2; n += 2)
     {
         res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
         res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n + 1];
         res[2] += trans_geg_zernike_exp[n, 2]*m_legendre_integrals[n];
     }
+
+    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
+    res[0] += trans_geg_zernike_exp[nmax, 0]*m_legendre_integrals[nmax];
 
     la::Vector<double, 2> nontrans_res = res[2];
     la::Vector<double, 2> trans_res = res[0] - shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];

@@ -33,6 +33,11 @@ SOFTWARE.
 namespace
 {
 
+constexpr bool is_close(double a, double b, double tol)
+{
+    return std::fabs(a - b) <= 0.5*std::fabs(a + b)*tol;
+}
+
 double quadratic_form(
     const std::array<std::array<double, 3>, 3>& arr,
     const std::array<double, 3>& vec)
@@ -48,7 +53,7 @@ double quadratic_form(
 }
 
 template <typename DistType>
-void test_mutual_convergence_iso_iso(
+[[nodiscard]] bool test_mutual_convergence_iso_iso(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
@@ -71,40 +76,56 @@ void test_mutual_convergence_iso_iso(
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("{:.16e} ", integrator_test[i, j]);
+            success = success && is_close(integrator_test[i, j], transformer_test[i, j], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", integrator_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", transformer_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", transformer_test[i, j]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType>
-void test_mutual_convergence_aniso_iso(
+[[nodiscard]] bool test_mutual_convergence_aniso_iso(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
@@ -124,40 +145,56 @@ void test_mutual_convergence_aniso_iso(
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("{:.16e} ", integrator_test[i, j]);
+            success = success && is_close(integrator_test[i, j], transformer_test[i, j], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", integrator_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", transformer_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", transformer_test[i, j]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType>
-void test_mutual_convergence_transverse_iso_iso(
+[[nodiscard]] bool test_mutual_convergence_transverse_iso_iso(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
@@ -182,44 +219,62 @@ void test_mutual_convergence_transverse_iso_iso(
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("[{:.16e}, {:.16e}] ",
-                    integrator_test[i, j][0], integrator_test[i, j][1]);
+            success = success
+                && is_close(integrator_test[i, j][0], transformer_test[i, j][0], tol)
+                && is_close(integrator_test[i, j][1], transformer_test[i, j][1], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        integrator_test[i, j][0], integrator_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        transformer_test[i, j][0], transformer_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
+                        1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    transformer_test[i, j][0], transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
-                    1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType>
-void test_mutual_convergence_transverse_aniso_iso(
+[[nodiscard]] bool test_mutual_convergence_transverse_aniso_iso(
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
@@ -241,44 +296,62 @@ void test_mutual_convergence_transverse_aniso_iso(
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("[{:.16e}, {:.16e}] ",
-                    integrator_test[i, j][0], integrator_test[i, j][1]);
+            success = success
+                && is_close(integrator_test[i, j][0], transformer_test[i, j][0], tol)
+                && is_close(integrator_test[i, j][1], transformer_test[i, j][1], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        integrator_test[i, j][0], integrator_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        transformer_test[i, j][0], transformer_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
+                        1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    transformer_test[i, j][0], transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
-                    1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType, typename RespType>
-void test_mutual_convergence_iso_aniso(
+[[nodiscard]] bool test_mutual_convergence_iso_aniso(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
@@ -307,40 +380,56 @@ void test_mutual_convergence_iso_aniso(
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("{:.16e} ", integrator_test[i, j]);
+            success = success && is_close(integrator_test[i, j], transformer_test[i, j], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", integrator_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", transformer_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", transformer_test[i, j]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType, typename RespType>
-void test_mutual_convergence_aniso_aniso(
+[[nodiscard]] bool test_mutual_convergence_aniso_aniso(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
@@ -366,40 +455,56 @@ void test_mutual_convergence_aniso_aniso(
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("{:.16e} ", integrator_test[i, j]);
+            success = success && is_close(integrator_test[i, j], transformer_test[i, j], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", integrator_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", transformer_test[i, j]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", transformer_test[i, j]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("{:.16e} ", 1.0 - integrator_test[i, j]/transformer_test[i, j]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType, typename RespType>
-void test_mutual_convergence_transverse_iso_aniso(
+[[nodiscard]] bool test_mutual_convergence_transverse_iso_aniso(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
@@ -430,44 +535,62 @@ void test_mutual_convergence_transverse_iso_aniso(
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("[{:.16e}, {:.16e}] ",
-                    integrator_test[i, j][0], integrator_test[i, j][1]);
+            success = success
+                && is_close(integrator_test[i, j][0], transformer_test[i, j][0], tol)
+                && is_close(integrator_test[i, j][1], transformer_test[i, j][1], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        integrator_test[i, j][0], integrator_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        transformer_test[i, j][0], transformer_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
+                        1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    transformer_test[i, j][0], transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
-                    1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 template <typename DistType, typename RespType>
-void test_mutual_convergence_transverse_aniso_aniso(
+[[nodiscard]] bool test_mutual_convergence_transverse_aniso_aniso(
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
@@ -495,40 +618,58 @@ void test_mutual_convergence_transverse_aniso_aniso(
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate( distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    std::println("integrator");
+    constexpr double tol = 1.0e-11;
+
+    bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::print("[{:.16e}, {:.16e}] ",
-                    integrator_test[i, j][0], integrator_test[i, j][1]);
+            success = success
+                && is_close(integrator_test[i, j][0], transformer_test[i, j][0], tol)
+                && is_close(integrator_test[i, j][1], transformer_test[i, j][1], tol);
+        }
+    }
+
+    if (!success)
+    {
+        std::println("integrator");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        integrator_test[i, j][0], integrator_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntransformer");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        transformer_test[i, j][0], transformer_test[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\nrelative error");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ",
+                        1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
+                        1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
+            }
+            std::println("");
         }
         std::println("");
     }
 
-    std::println("\ntransformer");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    transformer_test[i, j][0], transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-
-    std::println("\nrelative error");
-    for (std::size_t i = 0; i < offsets.size(); ++i)
-    {
-        for (std::size_t j = 0; j < shells.size(); ++j)
-        {
-            std::print("[{:.16e}, {:.16e}] ",
-                    1.0 - integrator_test[i, j][0]/transformer_test[i, j][0],
-                    1.0 - integrator_test[i, j][1]/transformer_test[i, j][1]);
-        }
-        std::println("");
-    }
-    std::println("");
+    return success;
 }
 
 } // namespace
@@ -601,24 +742,21 @@ int main()
         /*0.0, */0.15//, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
-    test_mutual_convergence_iso_iso(gaussian_isotropic, offsets, shells);
-    test_mutual_convergence_transverse_iso_iso(gaussian_isotropic, offsets, shells);
+    assert(test_mutual_convergence_iso_iso(gaussian_isotropic, offsets, shells));
+    assert(test_mutual_convergence_transverse_iso_iso(gaussian_isotropic, offsets, shells));
 
-    test_mutual_convergence_aniso_iso(gaussian, offsets, shells);
-    test_mutual_convergence_aniso_iso(aniso_gaussian, offsets, shells);
+    assert(test_mutual_convergence_aniso_iso(gaussian, offsets, shells));
+    assert(test_mutual_convergence_aniso_iso(aniso_gaussian, offsets, shells));
 
-    test_mutual_convergence_transverse_aniso_iso(gaussian, offsets, shells);
-    test_mutual_convergence_transverse_aniso_iso(aniso_gaussian, offsets, shells);
+    assert(test_mutual_convergence_transverse_aniso_iso(gaussian, offsets, shells));
+    assert(test_mutual_convergence_transverse_aniso_iso(aniso_gaussian, offsets, shells));
 
-    test_mutual_convergence_iso_aniso(gaussian_isotropic, smooth_exponential, offsets, shells, rotation_angles);
-    test_mutual_convergence_transverse_iso_aniso(
-           gaussian_isotropic, test_response, offsets, shells, rotation_angles);
+    assert(test_mutual_convergence_iso_aniso(gaussian_isotropic, smooth_exponential, offsets, shells, rotation_angles));
+    assert(test_mutual_convergence_transverse_iso_aniso(gaussian_isotropic, test_response, offsets, shells, rotation_angles));
 
-    test_mutual_convergence_aniso_aniso(gaussian, smooth_exponential, offsets, shells, rotation_angles);
-    test_mutual_convergence_aniso_aniso(aniso_gaussian, smooth_exponential, offsets, shells, rotation_angles);
+    assert(test_mutual_convergence_aniso_aniso(gaussian, smooth_exponential, offsets, shells, rotation_angles));
+    assert(test_mutual_convergence_aniso_aniso(aniso_gaussian, smooth_exponential, offsets, shells, rotation_angles));
 
-    test_mutual_convergence_transverse_aniso_aniso(
-           gaussian, test_response, offsets, shells, rotation_angles);
-    test_mutual_convergence_transverse_aniso_aniso(
-           aniso_gaussian, test_response, offsets, shells, rotation_angles);
+    assert(test_mutual_convergence_transverse_aniso_aniso(gaussian, test_response, offsets, shells, rotation_angles));
+    assert(test_mutual_convergence_transverse_aniso_aniso(aniso_gaussian, test_response, offsets, shells, rotation_angles));
 }

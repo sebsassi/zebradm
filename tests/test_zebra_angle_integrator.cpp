@@ -714,6 +714,68 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
     return {two_pi_sq*nontrans_res, two_pi_sq*trans_res};
 }
 
+bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
+{
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
+        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+        {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
+    };
+
+    std::vector<double> shells = {0.0, 0.5, 1.0, 1.5};
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> reference{offsets.size(), shells.size()};
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+        {
+            reference[i, j] = angle_integrated_const_dist_radon_pair(
+                    shells[j], offsets[i]);
+        }
+    }
+
+    constexpr std::size_t order = 1;
+    zdm::IsotropicZernikeExpansion<double> distribution{order};
+    distribution[0] = std::numbers::inv_sqrt3;
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
+
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
+        .integrate(distribution, offsets, shells, test);
+
+    constexpr double tol = 1.0e-13;
+    bool success = true;
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+            success = success && is_close(test[i, j], reference[i, j], tol);
+    }
+
+    if (!success)
+    {
+        std::println("reference");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ", reference[i, j][0], reference[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntest");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ", test[i, j][0], test[i, j][1]);
+            }
+            std::println("");
+        }
+    }
+
+    return success;
+}
+
 bool test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist()
 {
     std::vector<zdm::la::Vector<double, 3>> offsets = {
@@ -776,6 +838,142 @@ bool test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist()
     return success;
 }
 
+bool test_transverse_angle_integrator_iso_aniso_is_correct_for_constant_dist_constant_resp()
+{
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
+        {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
+        {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
+    };
+    std::vector<double> rotation_angles = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    std::vector<double> shells = {0.0, 0.5, 1.0, 1.5};
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> reference{offsets.size(), shells.size()};
+
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+        {
+            reference[i, j]
+                = angle_integrated_const_dist_radon_pair(shells[j], offsets[i]);
+        }
+    }
+
+    constexpr std::size_t order = 1;
+    zdm::IsotropicZernikeExpansion<double> distribution{order};
+    distribution[0] = std::numbers::inv_sqrt3;
+
+    zdm::SHExpansionVector<double> resp{shells.size(), order};
+    for (std::size_t i = 0; i < shells.size(); ++i)
+        resp[i, 0, 0, 0] = 1.0;
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
+
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(order, order)
+        .integrate(distribution, resp, offsets, rotation_angles, shells, test);
+
+    constexpr double tol = 1.0e-13;
+    bool success = true;
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+            success = success && is_close(test[i, j], reference[i, j], tol);
+    }
+
+    if (!success)
+    {
+        std::println("reference");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ", reference[i, j][0], reference[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntest");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e} {:.16e}] ", test[i, j][0], test[i, j][1]);
+            }
+            std::println("");
+        }
+    }
+
+    return success;
+}
+
+bool test_transverse_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_resp()
+{
+    std::vector<zdm::la::Vector<double, 3>> offsets = {
+        {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
+        {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
+    };
+    std::vector<double> rotation_angles = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    std::vector<double> shells = {0.0, 0.5, 1.0, 1.5};
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> reference{offsets.size(), shells.size()};
+
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+        {
+            reference[i, j]
+                = angle_integrated_const_dist_radon_pair(shells[j], offsets[i]);
+        }
+    }
+
+    constexpr std::size_t order = 1;
+    zdm::ZernikeExpansion<double> distribution{order};
+    distribution[0, 0, 0, 0] = std::numbers::inv_sqrt3;
+
+    zdm::SHExpansionVector<double> resp{shells.size(), order};
+    for (std::size_t i = 0; i < shells.size(); ++i)
+        resp[i, 0, 0, 0] = 1.0;
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
+
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
+        .integrate(distribution, resp, offsets, rotation_angles, shells, test);
+
+    constexpr double tol = 1.0e-13;
+    bool success = true;
+    for (std::size_t i = 0; i < offsets.size(); ++i)
+    {
+        for (std::size_t j = 0; j < shells.size(); ++j)
+            success = success && is_close(test[i, j], reference[i, j], tol);
+    }
+
+    if (!success)
+    {
+        std::println("reference");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e}, {:.16e}] ", reference[i, j][0], reference[i, j][1]);
+            }
+            std::println("");
+        }
+
+        std::println("\ntest");
+        for (std::size_t i = 0; i < offsets.size(); ++i)
+        {
+            for (std::size_t j = 0; j < shells.size(); ++j)
+            {
+                std::print("[{:.16e} {:.16e}] ", test[i, j][0], test[i, j][1]);
+            }
+            std::println("");
+        }
+    }
+
+    return success;
+}
+
 
 } // namespace
 
@@ -793,5 +991,8 @@ int main()
     assert(test_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_resp());
     assert(test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp());
 
+    assert(test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist());
     assert(test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist());
+    assert(test_transverse_angle_integrator_iso_aniso_is_correct_for_constant_dist_constant_resp());
+    assert(test_transverse_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_resp());
 }

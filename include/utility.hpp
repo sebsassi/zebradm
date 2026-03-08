@@ -37,6 +37,15 @@ namespace zdm::util
 {
 
 /**
+    @brief Largest even number less than or equal to the input.
+*/
+template <std::unsigned_integral T>
+[[nodiscard]] constexpr T even_floor(T n) noexcept
+{
+    return n & (~T(1));
+}
+
+/**
     @brief Check whether two spans overlap
 */
 template <typename T, typename S>
