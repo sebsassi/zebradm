@@ -85,7 +85,7 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
     res[0] += trans_geg_zernike_exp[nmax, 0]*m_legendre_integrals[nmax];
 
     la::Vector<double, 2> nontrans_res = res[2];
-    la::Vector<double, 2> trans_res = res[0] - shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
+    la::Vector<double, 2> trans_res = res[0] + shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
     constexpr double two_pi_sq = (2.0*std::numbers::pi)*(2.0*std::numbers::pi);
     return {
         two_pi_sq*(nontrans_res[1] - nontrans_res[0])/offset_len,

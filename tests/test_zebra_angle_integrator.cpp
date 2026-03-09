@@ -689,6 +689,8 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
     double shell, const zdm::la::Vector<double, 3>& offset)
 {
     const double offset_len = zdm::la::length(offset);
+    if (std::fabs(shell) > 1.0 + offset_len) return {};
+
     const double v = offset_len;
     const double v2 = v*v;
     const double w = shell;
@@ -711,7 +713,8 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
     constexpr double two_pi_sq = 2.0*std::numbers::pi*std::numbers::pi;
     const double trans_res = zmax*horner(trans_coeffs, zmax) - zmin*horner(trans_coeffs, zmin);
     const double nontrans_res = zmax*horner(nontrans_coeffs, zmax) - zmin*horner(nontrans_coeffs, zmin);
-    return {two_pi_sq*nontrans_res, two_pi_sq*trans_res};
+    const double step = (zmax > zmin) ? 1.0 : 0.0;
+    return {two_pi_sq*nontrans_res*step, two_pi_sq*trans_res*step};
 }
 
 bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
