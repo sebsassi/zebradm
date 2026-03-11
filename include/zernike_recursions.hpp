@@ -339,7 +339,7 @@ public:
         constexpr double sqrt11 = 3.316624790355399849114933;
         m_coeffs[0, 0] = 0.0;
         m_coeffs[0, 1] = 0.0;
-        m_coeffs[0, 2] = 1.0/std::numbers::sqrt3;
+        m_coeffs[0, 2] = 1.0/(5.0*std::numbers::sqrt3);
         m_coeffs[0, 3] = 1.0/(15.0*sqrt7);
         m_coeffs[0, 4] = 0.0;
         m_coeffs[0, 5] = std::numbers::sqrt3/5.0;
@@ -348,7 +348,7 @@ public:
 
         m_coeffs[2, 0] = 0.0;
         m_coeffs[2, 1] = -5.0/(7.0*std::numbers::sqrt3);
-        m_coeffs[2, 2] = -20.0/(27.0*sqrt7);
+        m_coeffs[2, 2] = -33.0/(135.0*sqrt7);
         m_coeffs[2, 3] = -1.0/(63.0*sqrt11);
         m_coeffs[2, 4] = -std::numbers::sqrt3/5.0;
         m_coeffs[2, 5] = sqrt7/45.0;
@@ -360,7 +360,7 @@ public:
             const auto dn = double(n);
             m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
             m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
-            m_coeffs[n, 2] = ((2.0 - 3.0*dn)*(dn + 3.0) - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 2] = ((2.0*dn + 3.0)*dn*dn + 3.0*dn - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 5.0));
             m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
             m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
             m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
@@ -380,7 +380,7 @@ public:
             const auto dn = double(n);
             m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
             m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
-            m_coeffs[n, 2] = ((2.0 - 3.0*dn)*(dn + 3.0) - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 2] = ((2.0*dn + 3.0)*dn*dn + 3.0*dn - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 5.0));
             m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
             m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
             m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));

@@ -1339,12 +1339,14 @@ bool test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_dist
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
         .evaluate_transverse_components(expansion, components);
 
+    constexpr double tol = 1.0e-13;
+
     bool success = true;
     for (std::size_t n : components.indices())
         success = success
-                && components[n, 0] == reference_components[n, 0]
-                && components[n, 1] == reference_components[n, 1]
-                && components[n, 2] == reference_components[n, 2];
+                && is_close(components[n, 0], reference_components[n, 0], tol)
+                && is_close(components[n, 1], reference_components[n, 1], tol)
+                && is_close(components[n, 2], reference_components[n, 2], tol);
 
     if (!success)
     {
@@ -1382,12 +1384,14 @@ bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
         .evaluate_transverse_components(expansion, direct_components);
 
+    constexpr double tol = 1.0e-13;
+
     bool success = true;
     for (std::size_t n : direct_components.indices())
         success = success
-                && direct_components[n, 0] == composite_components[n, 0]
-                && direct_components[n, 1] == composite_components[n, 1]
-                && direct_components[n, 2] == composite_components[n, 2];
+                && is_close(direct_components[n, 0], composite_components[n, 0], tol)
+                && is_close(direct_components[n, 1], composite_components[n, 1], tol)
+                && is_close(direct_components[n, 2], composite_components[n, 2], tol);
 
     if (!success)
     {
