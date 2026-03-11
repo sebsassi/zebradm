@@ -343,7 +343,7 @@ public:
         m_coeffs[0, 3] = 1.0/(15.0*sqrt7);
         m_coeffs[0, 4] = 0.0;
         m_coeffs[0, 5] = std::numbers::sqrt3/5.0;
-        m_coeffs[0, 6] = 2.0/(5.0*sqrt7);
+        m_coeffs[0, 6] = -2.0/(5.0*sqrt7);
         m_coeffs[0, 7] = 1.0/std::numbers::sqrt3;
 
         m_coeffs[2, 0] = 0.0;
@@ -352,7 +352,7 @@ public:
         m_coeffs[2, 3] = -1.0/(63.0*sqrt11);
         m_coeffs[2, 4] = -std::numbers::sqrt3/5.0;
         m_coeffs[2, 5] = sqrt7/45.0;
-        m_coeffs[2, 6] = 4.0/(9.0*sqrt11);
+        m_coeffs[2, 6] = -4.0/(9.0*sqrt11);
         m_coeffs[2, 7] = 1.0/sqrt7;
 
         for (std::size_t n : m_coeffs.indices(4))
@@ -364,7 +364,7 @@ public:
             m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
             m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
             m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = -(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
             m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
         }
     }
@@ -384,7 +384,7 @@ public:
             m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
             m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
             m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = -(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
             m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
         }
     }
