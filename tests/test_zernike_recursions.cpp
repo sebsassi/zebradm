@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <algorithm>
 #include <cassert>
+#include <numbers>
 #include <print>
 #include <random>
 
@@ -1319,6 +1320,44 @@ bool test_multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
+bool test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(std::size_t order)
+{
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
+    zdm::IsotropicZernikeExpansion<double> expansion{order};
+    expansion[0] = 1.0/std::numbers::sqrt3;
+
+    zdm::IsotropicZernikeExpansion<double, 3> reference_components{order + 4};
+    reference_components[0, 0] = 1.0/15.0;
+    reference_components[0, 1] = 1.0/5.0;
+    reference_components[0, 2] = 1.0/3.0;
+    reference_components[2, 0] = -5.0/21.0;
+    reference_components[2, 1] = -1.0/5.0;
+    reference_components[2, 2] = -1.0/3.0;
+    reference_components[4, 0] = 6.0/35.0;
+
+    zdm::IsotropicZernikeExpansion<double, 3> components{order + 4};
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
+        .evaluate_transverse_components(expansion, components);
+
+    bool success = true;
+    for (std::size_t n : components.indices())
+        success = success
+                && components[n, 0] == reference_components[n, 0]
+                && components[n, 1] == reference_components[n, 1]
+                && components[n, 2] == reference_components[n, 2];
+
+    if (!success)
+    {
+        std::println("components reference");
+        for (std::size_t n : components.indices())
+            std::println("[{}, {}, {}] [{}, {}, {}]",
+                    components[n, 0], components[n, 1], components[n, 2],
+                    reference_components[n, 0], reference_components[n, 1], reference_components[n, 2]);
+    }
+
+    return success;
+}
+
 bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order)
 {
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
@@ -1411,6 +1450,8 @@ int main()
     assert(test_multiply_random_input_by_r2_is_correct_for_order(10));
 
     assert(test_multiply_random_input_by_r2_is_correct_for_order(1));
+
+    assert(test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(10));
 
     assert(test_isotropic_zernike_transverse_radon_helper_components(20));
     assert(test_isotropic_zernike_transverse_radon_helper_components(21));
