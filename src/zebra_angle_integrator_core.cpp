@@ -74,18 +74,19 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
         trans_geg_zernike_exp[0, 1]*m_legendre_integrals[1],
         trans_geg_zernike_exp[0, 2]*m_legendre_integrals[0]
     };
-    for (std::size_t n = 2; n < trans_geg_zernike_exp.order() - 2; n += 2)
+
+    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
+    for (std::size_t n = 2; n < nmax; n += 2)
     {
         res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
         res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n + 1];
         res[2] += trans_geg_zernike_exp[n, 2]*m_legendre_integrals[n];
     }
 
-    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
     res[0] += trans_geg_zernike_exp[nmax, 0]*m_legendre_integrals[nmax];
 
     la::Vector<double, 2> nontrans_res = res[2];
-    la::Vector<double, 2> trans_res = res[0] + shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
+    la::Vector<double, 2> trans_res = res[0] + 2.0*shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
     constexpr double two_pi_sq = (2.0*std::numbers::pi)*(2.0*std::numbers::pi);
     return {
         two_pi_sq*(nontrans_res[1] - nontrans_res[0])/offset_len,
@@ -98,8 +99,8 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::AngleIntegratorCore(
     m_rotor(resp_order),
     m_rotated_response_exp(resp_order),
     m_zonal_rotated_response_exp(resp_order),
-    m_aff_leg_integrals(geg_order, resp_order),
-    m_aff_leg_ylm_integrals(geg_order, resp_order),
+    m_aff_leg_integrals(geg_order + 2, resp_order),
+    m_aff_leg_ylm_integrals(geg_order + 2, resp_order),
     m_ylm_integral_norms(resp_order)
 {
     for (std::size_t l = 0; l  < resp_order; ++l)
@@ -113,8 +114,8 @@ void AngleIntegratorCore<DistType::iso, RespType::aniso>::resize(
     m_rotated_response_exp.reshape(resp_order);
     m_zonal_rotated_response_exp.resize(resp_order);
 
-    m_aff_leg_integrals.resize(geg_order, resp_order);
-    m_aff_leg_ylm_integrals.reshape(geg_order, resp_order);
+    m_aff_leg_integrals.resize(geg_order + 2, resp_order);
+    m_aff_leg_ylm_integrals.reshape(geg_order + 2, resp_order);
     m_ylm_integral_norms.resize(resp_order);
     for (std::size_t l = 0; l  < resp_order; ++l)
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
@@ -177,9 +178,10 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
 
     evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
-    double trans = 0.0;
-    double nontrans = 0.0;
-    for (std::size_t n : trans_geg_zernike_exp.indices())
+    std::array<double, 3> res = {};
+
+    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
+    for (std::size_t n = 0; n < nmax; n += 2)
     {
         const std::array<double, 2> angle_integrals = {
             util::inner_product(
@@ -190,14 +192,18 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
                 m_aff_leg_ylm_integrals[n + 1].flatten())
         };
 
-        trans += trans_geg_zernike_exp[n, 0]*angle_integrals[0]
-            - shell*trans_geg_zernike_exp[n, 1]*angle_integrals[1];
-        nontrans += trans_geg_zernike_exp[n, 2]*angle_integrals[2];
+        res[0] += trans_geg_zernike_exp[n, 0]*angle_integrals[0];
+        res[1] += trans_geg_zernike_exp[n, 1]*angle_integrals[1];
+        res[2] += trans_geg_zernike_exp[n, 2]*angle_integrals[0];
     }
 
+    res[0] += trans_geg_zernike_exp[nmax, 0]*util::inner_product(
+            std::span<double>(m_zonal_rotated_response_exp),
+            m_aff_leg_ylm_integrals[nmax].flatten());
+
     return {
-        2.0*std::numbers::pi*nontrans,
-        2.0*std::numbers::pi*(trans + (offset_len*offset_len - shell*shell)*nontrans)
+        2.0*std::numbers::pi*res[2],
+        2.0*std::numbers::pi*(res[0] + 2.0*shell*res[1] + (offset_len*offset_len - shell*shell)*res[2])
     };
 }
 

@@ -420,7 +420,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate_transverse(
                     m_transverse_geg_zernike_exp_components, response[j], offsets[i],
-                    rotation_angles[i], shells[i], m_wigner_d_pi2);
+                    rotation_angles[i], shells[j], m_wigner_d_pi2);
     }
 
 }

@@ -355,18 +355,7 @@ public:
         m_coeffs[2, 6] = -4.0/(9.0*sqrt11);
         m_coeffs[2, 7] = 1.0/sqrt7;
 
-        for (std::size_t n : m_coeffs.indices(4))
-        {
-            const auto dn = double(n);
-            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
-            m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
-            m_coeffs[n, 2] = ((2.0*dn + 3.0)*dn*dn + 3.0*dn - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
-            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 6] = -(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
-        }
+        generate_coeffs(4);
     }
 
     std::size_t order() { return m_coeffs.order(); }
@@ -375,18 +364,7 @@ public:
     {
         const std::size_t old_nmax = util::even_floor(m_coeffs.order() - 1);
         m_coeffs.reshape(order + 4);
-        for (std::size_t n : m_coeffs.indices(old_nmax + 2))
-        {
-            const auto dn = double(n);
-            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
-            m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
-            m_coeffs[n, 2] = ((2.0*dn + 3.0)*dn*dn + 3.0*dn - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
-            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 6] = -(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
-        }
+        generate_coeffs(old_nmax + 2);
     }
 
     void evaluate_transverse_components(
@@ -446,6 +424,22 @@ public:
     }
 
 private:
+    void generate_coeffs(std::size_t start_index)
+    {
+        for (std::size_t n : m_coeffs.indices(start_index))
+        {
+            const auto dn = double(n);
+            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
+            m_coeffs[n, 1] = ((4.0*dn*dn + 3.0)*(dn + 1.0) + 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 3.0));
+            m_coeffs[n, 2] = ((2.0*dn + 3.0)*dn*dn + 3.0*dn - 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 3] = (1.0 - dn)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
+            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = -(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
+        }
+    }
+
     IsotropicZernikeExpansion<double, 8> m_coeffs;
 };
 

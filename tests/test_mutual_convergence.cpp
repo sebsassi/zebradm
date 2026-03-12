@@ -739,7 +739,7 @@ int main()
     };
 
     const std::vector<double> shells = {
-        /*0.0, */0.15//, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
+        0.0, 0.15//, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2, 1.35
     };
 
     assert(test_mutual_convergence_iso_iso(gaussian_isotropic, offsets, shells));
