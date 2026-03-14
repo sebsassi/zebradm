@@ -251,8 +251,6 @@ bool test_zebra_radon_is_correct_to_order_5()
     return success;
 }
 
-
-
 bool test_inplace_zebra_radon_is_correct_to_order_5()
 {
     static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
@@ -459,6 +457,88 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     return success;
 }
 
+bool test_isotropic_zebra_radon_is_correct_to_order_9()
+{
+    static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
+    constexpr std::size_t order = 9;
+    zdm::IsotropicZernikeExpansion<double> in{order};
+    in[0] = 1.0;
+    in[2] = 2.0;
+    in[4] = 3.0;
+    in[6] = 4.0;
+    in[8] = 5.0;
+
+    zdm::IsotropicZernikeExpansion<double> out_ref{order + 2};
+    out_ref[0] = zdm::util::zernike_radon_coeff<norm>(0)*in[0];
+    out_ref[2] = zdm::util::zernike_radon_coeff<norm>(2)*in[2]
+                        - zdm::util::zernike_radon_coeff<norm>(0)*in[0];
+    out_ref[4] = zdm::util::zernike_radon_coeff<norm>(4)*in[4]
+                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2];
+    out_ref[6] = zdm::util::zernike_radon_coeff<norm>(6)*in[6]
+                        - zdm::util::zernike_radon_coeff<norm>(4)*in[4];
+    out_ref[8] = zdm::util::zernike_radon_coeff<norm>(8)*in[8]
+                        - zdm::util::zernike_radon_coeff<norm>(6)*in[6];
+    out_ref[10] = -zdm::util::zernike_radon_coeff<norm>(8)*in[8];
+
+    zdm::IsotropicZernikeExpansion<double> out{order + 2};
+
+    zdm::zebra::radon_transform(in, out);
+
+    constexpr double tol = 1.0e-13;
+
+    bool success = true;
+    for (std::size_t n : out.indices())
+        success = success && is_close(out[n], out_ref[n], tol);
+
+    if (!success)
+    {
+        for (std::size_t n : out.indices())
+            std::println("{}: {} {}", n, out[n], out_ref[n]);
+    }
+
+    return success;
+}
+
+bool test_inplace_isotropic_zebra_radon_is_correct_to_order_9()
+{
+    static constexpr zest::zt::ZernikeNorm norm = zest::zt::ZernikeNorm::normed;
+    constexpr std::size_t order = 9;
+    zdm::IsotropicZernikeExpansion<double> exp{order + 2};
+    exp[0] = 1.0;
+    exp[2] = 2.0;
+    exp[4] = 3.0;
+    exp[6] = 4.0;
+    exp[8] = 5.0;
+
+    zdm::IsotropicZernikeExpansion<double> out_ref{order + 2};
+    out_ref[0] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0];
+    out_ref[2] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2]
+                        - zdm::util::zernike_radon_coeff<norm>(0)*exp[0];
+    out_ref[4] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4]
+                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2];
+    out_ref[6] = zdm::util::zernike_radon_coeff<norm>(6)*exp[6]
+                        - zdm::util::zernike_radon_coeff<norm>(4)*exp[4];
+    out_ref[8] = zdm::util::zernike_radon_coeff<norm>(8)*exp[8]
+                        - zdm::util::zernike_radon_coeff<norm>(6)*exp[6];
+    out_ref[10] = -zdm::util::zernike_radon_coeff<norm>(8)*exp[8];
+
+    zdm::zebra::radon_transform_inplace(exp);
+
+    constexpr double tol = 1.0e-13;
+
+    bool success = true;
+    for (std::size_t n : exp.indices())
+        success = success && is_close(exp[n], out_ref[n], tol);
+
+    if (!success)
+    {
+        for (std::size_t n : exp.indices())
+            std::println("{}: {} {}", n, exp[n], out_ref[n]);
+    }
+
+    return success;
+}
+
 } // namespace
 
 int main()
@@ -469,4 +549,7 @@ int main()
     assert(test_zebra_radon_accepts_order(3));
     assert(test_zebra_radon_is_correct_to_order_5());
     assert(test_inplace_zebra_radon_is_correct_to_order_5());
+
+    assert(test_isotropic_zebra_radon_is_correct_to_order_9());
+    assert(test_inplace_isotropic_zebra_radon_is_correct_to_order_9());
 }

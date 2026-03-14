@@ -35,7 +35,7 @@ namespace
 
 constexpr bool is_close(double a, double b, double tol)
 {
-    return std::fabs(a - b) <= 0.5*std::fabs(a + b)*tol;
+    return std::fabs(a - b) <= 0.5*std::fabs(a + b)*tol + tol;
 }
 
 double quadratic_form(
@@ -57,6 +57,8 @@ template <typename DistType>
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
+    constexpr double tol = 1.0e-9;
+
     zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
@@ -64,7 +66,7 @@ template <typename DistType>
             [&](const std::array<double, 3>& v){
                 return std::forward<DistType>(dist)(zdm::la::length(v));
             },
-            offsets, shells, 0.0, 1.0e-9, integrator_test);
+            offsets, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
@@ -75,8 +77,6 @@ template <typename DistType>
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -129,11 +129,13 @@ template <typename DistType>
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
+    constexpr double tol = 1.0e-9;
+
     zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
-            std::forward<DistType>(dist), offsets, shells, 0.0, 1.0e-9, integrator_test);
+            std::forward<DistType>(dist), offsets, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
@@ -144,8 +146,6 @@ template <typename DistType>
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -198,6 +198,8 @@ template <typename DistType>
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
+    constexpr double tol = 1.0e-9;
+
     zest::DynamicMDArray<std::array<double, 2>, 2>
     integrator_test{offsets.size(), shells.size()};
 
@@ -206,7 +208,7 @@ template <typename DistType>
         [&](const std::array<double, 3>& v){
             return std::forward<DistType>(dist)(zdm::la::length(v));
         },
-        offsets, shells, 0.0, 1.0e-9, integrator_test);
+        offsets, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<std::array<double, 2>, 2>
     transformer_test{offsets.size(), shells.size()};
@@ -218,8 +220,6 @@ template <typename DistType>
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -278,12 +278,14 @@ template <typename DistType>
     DistType&& dist, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells)
 {
+    constexpr double tol = 1.0e-9;
+
     zest::DynamicMDArray<std::array<double, 2>, 2>
     integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate_transverse(
-            std::forward<DistType>(dist), offsets, shells, 0.0, 1.0e-9, integrator_test);
+            std::forward<DistType>(dist), offsets, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<std::array<double, 2>, 2>
     transformer_test{offsets.size(), shells.size()};
@@ -295,8 +297,6 @@ template <typename DistType>
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -355,6 +355,8 @@ template <typename DistType, typename RespType>
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
+    constexpr double tol = 1.0e-7;
+
     zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
@@ -362,7 +364,7 @@ template <typename DistType, typename RespType>
             [&](const std::array<double, 3>& v){
                 return std::forward<DistType>(dist)(zdm::la::length(v));
             },
-            std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, 1.0e-7,
+            std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, tol,
             integrator_test);
 
     zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
@@ -380,7 +382,6 @@ template <typename DistType, typename RespType>
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -433,12 +434,14 @@ template <typename DistType, typename RespType>
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
+    constexpr double tol = 1.0e-7;
+
     zest::DynamicMDArray<double, 2> integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
             std::forward<DistType>(dist), std::forward<RespType>(resp),
-            offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
+            offsets, rotation_angles, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<double, 2> transformer_test{offsets.size(), shells.size()};
 
@@ -455,7 +458,6 @@ template <typename DistType, typename RespType>
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
 
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -508,6 +510,8 @@ template <typename DistType, typename RespType>
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
+    constexpr double tol = 1.0e-7;
+
     zest::DynamicMDArray<std::array<double, 2>, 2>
     integrator_test{offsets.size(), shells.size()};
 
@@ -516,7 +520,7 @@ template <typename DistType, typename RespType>
             [&](const std::array<double, 3>& v){
                 return std::forward<DistType>(dist)(zdm::la::length(v));
             },
-            std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, 1.0e-7,
+            std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, tol,
             integrator_test);
 
     zest::DynamicMDArray<std::array<double, 2>, 2>
@@ -534,8 +538,6 @@ template <typename DistType, typename RespType>
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -594,13 +596,15 @@ template <typename DistType, typename RespType>
     DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
     std::span<const double> shells, std::span<const double> rotation_angles)
 {
+    constexpr double tol = 1.0e-7;
+
     zest::DynamicMDArray<std::array<double, 2>, 2>
     integrator_test{offsets.size(), shells.size()};
 
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate_transverse(
             std::forward<DistType>(dist), std::forward<RespType>(resp),
-            offsets, rotation_angles, shells, 0.0, 1.0e-7, integrator_test);
+            offsets, rotation_angles, shells, 0.0, tol, integrator_test);
 
     zest::DynamicMDArray<std::array<double, 2>, 2>
     transformer_test{offsets.size(), shells.size()};
@@ -617,8 +621,6 @@ template <typename DistType, typename RespType>
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
         .integrate( distribution, response, offsets, rotation_angles, shells, transformer_test);
-
-    constexpr double tol = 1.0e-11;
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)

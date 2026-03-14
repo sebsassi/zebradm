@@ -391,6 +391,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
 
 TransverseAngleIntegrator<DistType::iso, RespType::aniso>::TransverseAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order):
+    m_wigner_d_pi2(resp_order),
     m_transverse_geg_zernike_exp_components(dist_order + 4),
     m_transverse_radon_helper(dist_order),
     m_integrator_core(dist_order + 2, resp_order),
@@ -401,6 +402,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::resize(
 {
     if (dist_order == m_dist_order) return;
     const std::size_t geg_order = dist_order + 2;
+    m_wigner_d_pi2.expand(resp_order);
     m_transverse_geg_zernike_exp_components.reshape(geg_order);
     m_integrator_core.resize(geg_order, resp_order);
     m_dist_order = dist_order;

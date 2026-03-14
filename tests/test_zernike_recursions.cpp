@@ -1320,6 +1320,61 @@ bool test_multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
     return success;
 }
 
+bool test_multiply_random_isotropic_input_by_r2_is_correct_for_order(std::size_t in_order)
+{
+    const std::size_t out_order = in_order + 2;
+    zdm::IsotropicZernikeExpansion<double> in(in_order);
+    zdm::IsotropicZernikeExpansion<double> out(out_order);
+    zdm::IsotropicZernikeExpansion<double> reference_out(out_order);
+
+    std::mt19937 rng(29837490);
+    std::uniform_real_distribution dist;
+
+    for (std::size_t n = 0; n < in.order(); ++n)
+    {
+        for (std::size_t l = n & 1; l <= n; l += 2)
+        {
+            in[n] = dist(rng);
+            for (std::size_t m = 1; m <= l; ++m)
+            {
+                in[n] = dist(rng);
+                in[n] = dist(rng);
+            }
+        }
+    }
+
+    std::ranges::copy(in.flatten(), reference_out.flatten().begin());
+
+    zest::zt::IsotropicGLQTransformerNormalGeo transformer(out_order);
+    zest::zt::RadialGLQGrid reference_grid
+        = transformer.backward_transform(reference_out, out_order);
+
+    auto gen_r2 = [](double r) { return r*r; };
+    zest::zt::RadialGLQGridPoints points(out_order);
+    zest::zt::RadialGLQGrid r2 = points.generate_values(gen_r2, out_order);
+
+    for (std::size_t i = 0; i < reference_grid.flatten().size(); ++i)
+        reference_grid.flatten()[i] *= r2.flatten()[i];
+
+    transformer.forward_transform(reference_grid, reference_out);
+
+    zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
+    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
+
+    constexpr double tol = 1.0e-14;
+    bool success = true;
+    for (std::size_t n = 0; n < out.order(); ++n)
+        success = success && is_close(out[n], reference_out[n], tol);
+
+    if (!success)
+    {
+        for (std::size_t n = 0; n < out.order(); ++n)
+            std::println("{}: {} {}", n, out[n], reference_out[n]);
+    }
+
+    return success;
+}
+
 bool test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(std::size_t order)
 {
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
@@ -1360,11 +1415,59 @@ bool test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_dist
     return success;
 }
 
-bool test_isotropic_zernike_transverse_radon_helper_components(std::size_t order)
+bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(std::size_t order)
 {
     zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
 
     zdm::IsotropicZernikeExpansion<double> expansion{order};
+    for (auto& element : expansion.flatten())
+        element = 1.0;
+
+    zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
+
+    zdm::IsotropicZernikeExpansion<double> radon{order + 2};
+    zdm::zebra::radon_transform(expansion, radon);
+
+    zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
+
+    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order + 4};
+    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
+        recursion_data, zdm::IsotropicZernikeSpan<const double>(expansion), r2_radon);
+
+    zdm::IsotropicZernikeExpansion<double, 3> composite_components{order + 4};
+    zdm::zebra::detail::transverse_radon_components(radon, r2_radon, composite_components);
+
+    zdm::IsotropicZernikeExpansion<double, 3> direct_components{order + 4};
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
+        .evaluate_transverse_components(expansion, direct_components);
+
+    constexpr double tol = 1.0e-13;
+
+    bool success = true;
+    for (std::size_t n : direct_components.indices())
+        success = success
+                && is_close(direct_components[n, 0], composite_components[n, 0], tol)
+                && is_close(direct_components[n, 1], composite_components[n, 1], tol)
+                && is_close(direct_components[n, 2], composite_components[n, 2], tol);
+
+    if (!success)
+    {
+        std::println("direct composite");
+        for (std::size_t n : direct_components.indices())
+            std::println("[{}, {}, {}] [{}, {}, {}]",
+                    direct_components[n, 0], direct_components[n, 1], direct_components[n, 2],
+                    composite_components[n, 0], composite_components[n, 1], composite_components[n, 2]);
+    }
+
+    return success;
+}
+
+bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(std::size_t order, std::size_t index)
+{
+    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
+
+    zdm::IsotropicZernikeExpansion<double> expansion{order};
+    expansion[index] = 1.0;
 
     zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
 
@@ -1455,8 +1558,14 @@ int main()
 
     assert(test_multiply_random_input_by_r2_is_correct_for_order(1));
 
+    assert(test_multiply_random_isotropic_input_by_r2_is_correct_for_order(10));
+
     assert(test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(10));
 
-    assert(test_isotropic_zernike_transverse_radon_helper_components(20));
-    assert(test_isotropic_zernike_transverse_radon_helper_components(21));
+    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 0));
+    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 2));
+    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 4));
+
+    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20));
+    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(21));
 }
