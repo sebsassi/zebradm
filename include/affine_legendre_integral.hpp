@@ -34,6 +34,19 @@ SOFTWARE.
 namespace zdm::zebra
 {
 
+/**
+    @brief Shape of a buffer with trapezoidal indexing.
+
+    This class describes the shape of a two-dimensional buffer in the shape of
+    a right trapezoid such that the elements are contiguous in memory in the
+    (row-major) order
+    ```
+    (0, 0) (0, 1) (0, 2)
+    (1, 0) (1, 2) (1, 3) (1, 4)
+    (2, 0) (2, 2) (2, 3) (2, 4) (2, 5)
+    ...
+    ```
+*/
 class TrapezoidShape
 {
 public:
@@ -56,6 +69,11 @@ private:
     struct subshape_helper<N> { using type = zest::NullShape; };
 
 public:
+    /**
+        @brief Type of the shape of a lower-dimensional slice.
+
+        @tparam N Number of dimensions to go down by.
+    */
     template <std::size_t N>
         requires (0 < N && N < rank)
     using subshape_type = subshape_helper<N>::type;
@@ -67,36 +85,60 @@ public:
     constexpr TrapezoidShape(size_type order, size_type extra_extent):
         m_order{order}, m_extra_extent{extra_extent}, m_size{size(order, extra_extent)} {}
 
+    /**
+        @brief Size of the shape with given parameters.
+    */
     [[nodiscard]] static constexpr std::size_t
     size(std::size_t order, std::size_t extra_extent) noexcept
     {
         return ((order*(order + 1)) >> 1) + order*extra_extent;
     }
 
+    /**
+        @brief Size of the shape.
+    */
     [[nodiscard]] constexpr size_type
     size() const noexcept { return m_size; }
 
+    /**
+        @brief Number of rows in the shape.
+    */
     [[nodiscard]] constexpr size_type
     order() const noexcept { return m_order; }
 
+    /**
+        @brief Number of elements in the first row of the shape.
+    */
     [[nodiscard]] constexpr size_type
     extra_extent() const noexcept { return m_extra_extent; }
 
+    /**
+        @brief Extent parameters determining the shape.
+    */
     [[nodiscard]] constexpr extent_type
     extents() const noexcept { return {m_order, m_extra_extent}; }
 
+    /**
+        @brief Get lower dimensional slice.
+    */
     [[nodiscard]] constexpr auto
     subshape(index_type l) const noexcept
     {
         return zest::TensorShape<std::dynamic_extent>{m_extra_extent + l + 1};
     }
 
+    /**
+        @brief Get lower dimensional slice.
+    */
     [[nodiscard]] constexpr auto
     subshape([[maybe_unused]] index_type l, [[maybe_unused]] index_type m) const noexcept
     {
         return zest::NullShape{};
     }
 
+    /**
+        @brief Get linear index.
+    */
     [[nodiscard]] constexpr index_type
     operator()(index_type l, index_type m) const noexcept
     {
@@ -104,15 +146,24 @@ public:
         return ((l*(l + 1)) >> 1) + l*m_extra_extent + m;
     }
 
+    /**
+        @brief Get linear index.
+    */
     [[nodiscard]] constexpr index_type
     operator()(index_type l) const noexcept
     {
         return ((l*(l + 1)) >> 1) + l*m_extra_extent;
     }
 
+    /**
+        @brief Get index range iterator.
+    */
     [[nodiscard]] constexpr index_range
     indices() const noexcept { return {index_type(m_order)}; }
 
+    /**
+        @brief Get index range iterator.
+    */
     [[nodiscard]] constexpr index_range
     indices(index_type index) const noexcept
     {
@@ -125,12 +176,34 @@ private:
     size_type m_size;
 };
 
+/**
+    @brief A non-owning view of data with trapezoidal shape.
+
+    @tparam ElementType Type of elements.
+*/
 template <typename ElementType>
 using TrapezoidSpan = zest::ShapedSpan<ElementType, TrapezoidShape>;
 
+/**
+    @brief A container for data with trapezoidal shape.
+
+    @tparam ElementType Type of elements.
+*/
 template <typename ElementType>
 using TrapezoidArray = zest::ShapedArray<ElementType, TrapezoidShape>;
 
+/**
+    @brief Class for evaluating affine legendre integrals.
+
+    This class evaluates the affine Legendre integrals
+    \f[
+        A_{nl}(w,x_\text{off})
+            = \int^{z_\text{max}}_{z_\text{min}}
+                P_n(w + x_\text{off}z)P_l(z)\,dz
+    \f]
+    for a range of indices \f$0 \leq l \leq n \leq N\f$.
+
+*/
 class AffineLegendreIntegrals
 {
 public:
@@ -140,8 +213,14 @@ public:
 
     [[nodiscard]] std::size_t order() const noexcept { return m_order; }
 
+    /**
+        @brief Resize the object.
+    */
     void resize(std::size_t order, std::size_t extra_extent);
 
+    /**
+        @brief Evaluate the affine legendre integrals.
+    */
     void integrals(
         TrapezoidSpan<double> integrals, double shift, double scale);
 
