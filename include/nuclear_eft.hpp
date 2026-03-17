@@ -57,10 +57,13 @@ harmonic_oscillator_parameter_sq(std::size_t mass_number) noexcept
 }
 
 /**
-    @brief Enumerator for specifying isospin basis.
+    @brief Choice of isospin basis for nuclear form factor computations.
 */
 enum class IsospinBasis { nucleon, isospin };
 
+/**
+    @brief Labels for particle spin representations.
+*/
 enum class ParticleSpin
 {
     scalar = 0,
@@ -68,11 +71,18 @@ enum class ParticleSpin
     vector = 2
 };
 
+/**
+    @brief Convert particle spin representation label to spin value.
+*/
 [[nodiscard]] static constexpr double to_value(ParticleSpin spin_type) noexcept
 {
-    return double(std::to_underlying(spin_type));
+    return 0.5*double(std::to_underlying(spin_type));
 }
 
+/**
+    @brief Calculate spin factor in the nonrelativistic nuclear effective
+    theory of DM interactions.
+*/
 [[nodiscard]] static constexpr double spin_factor(ParticleSpin spin_type) noexcept
 {
     const double spin = to_value(spin_type);
@@ -113,9 +123,49 @@ struct NuclearResponseFormFactors
     zest::MDArray<Polynomial<double, order>, 2, 2> m_phi2;
 };
 
+/*
+    This is just a convoluted way of implementing a function-like object to
+    make use of partial template specialization. You know, because this is
+    C++. Being able to just write a partial specialization for a template
+    function would be too straightforward.
+*/
+namespace detail
+{
+
+template <IsospinBasis basis, std::size_t order, std::size_t I, std::size_t J>
+struct EFTFormFactorInitHelper
+{
+    // This is actually what we care about specializing. All else is just
+    // boilerplate.
+    static constexpr std::array<Polynomial<double, order>, 2> operator()(
+        [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept {}
+};
+
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 1, 1>
+{
+    static constexpr std::array<Polynomial<double, order>, 2> operator()(
+        [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        return {
+            nuclear_form_factors.m,
+            Polynomial<double, order>{}
+        };
+    }
+};
+
+template <IsospinBasis basis, std::size_t order, std::size_t I, std::size_t J>
+static constexpr auto eft_form_factor_init = EFTFormFactorInitHelper<basis, order, I, J>{};
+
+} // namespace detail
+
 /**
     @brief Class for nonrelativistic nuclear effective theory form factors.
 
+    @tparam basis_param Choice of isospin basis for the form factors.
     @tparam order Polynomial order in squared momentum transfer.
     @tparam I Effective theory operator index.
     @tparam J Effective theory operator index.
@@ -180,37 +230,16 @@ public:
     constexpr EFTFormFactor(
         [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept:
-        m_polynomial{} {}
+        m_polynomial{detail::eft_form_factor_init<basis, order, I, J>(spin, nucleus_mass, nuclear_form_factors)} {}
 
-private:
-    std::array<Polynomial<double, order>, 2> m_polynomial;
-};
-
-template <IsospinBasis basis_param, std::size_t order>
-class EFTFormFactor<basis_param, order, 1, 1>
-{
-public:
-    static constexpr IsospinBasis basis = basis_param;
-    static constexpr std::array<std::size_t, 2> indices = {1, 1};
-
-    constexpr EFTFormFactor(
-        ParticleSpin spin, double nucleus_mass,
-        const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept:
-        m_polynomial{init(spin, nucleus_mass, nuclear_form_factors)} {}
-
-private:
-
-    [[nodiscard]] static constexpr std::array<Polynomial<double, order>, 2>
-    init(
-        [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
-        const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    [[nodiscard]] constexpr const Polynomial<double, order>&
+    operator[](std::size_t i) const noexcept
     {
-        return {
-            nuclear_form_factors.m,
-            Polynomial<double, order>{}
-        };
+        assert(i < 2);
+        return m_polynomial[i];
     }
 
+private:
     std::array<Polynomial<double, order>, 2> m_polynomial;
 };
 
@@ -218,7 +247,7 @@ private:
     @brief The spin-averaged squared matrix element of the nonrelativistic
     effective theory.
 
-    @tparam order Order of the polynomial in squared momentum transfer.
+    @tparam order order of the polynomial in squared momentum transfer.
 
     This class stores the spin-averaged squared matrix element
     \f[
@@ -256,8 +285,10 @@ private:
 };
 
 /**
-    @brief Class for describing combinations of operators in the
-    nonrelativistic effective theory.
+    @brief Class for describing DM interactions in the nonrelativistc effective
+    theory of DM nuclear interactions.
+
+    @tparam basis_param Choice of isospin basis for the form factors.
 */
 template <IsospinBasis basis_param, std::size_t order, typename... FormFactorTypes>
 class DMInteraction
