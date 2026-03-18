@@ -59,7 +59,11 @@ harmonic_oscillator_parameter_sq(std::size_t mass_number) noexcept
 /**
     @brief Choice of isospin basis for nuclear form factor computations.
 */
-enum class IsospinBasis { nucleon, isospin };
+enum class IsospinBasis
+{
+    nucleon,
+    isospin
+};
 
 /**
     @brief Labels for particle spin representations.
@@ -69,6 +73,13 @@ enum class ParticleSpin
     scalar = 0,
     fermion = 1,
     vector = 2
+};
+
+enum class TransverseVelocityDependence
+{
+    none,
+    mono,
+    poly
 };
 
 /**
@@ -98,14 +109,14 @@ enum class ParticleSpin
     This structure is used for storing the polynomial parts of the nuclear
     response form factors
     \f[
-        F_J^{(N,N')}(y) = e^{-y}P_J^{(N,N')}(y),
+        F_K^{(N,N')}(y) = e^{-y}P_K^{(N,N')}(y),
     \f]
-    where \f$P_J^{(N,N')}(y)\f$ is a polynomial of \f$y = (qb/2)\f$, with
+    where \f$P_K^{(N,N')}(y)\f$ is a polynomial of \f$y = (qb/2)\f$, with
     \f$q\f$ the magnitude of the momentum transfer, and \f$b\f$ the harmonic
     oscillator parameter. The indices \f$N\f$ and \f$N'\f$ are isospin indices,
     with values in \f$\{0,1\}\f$ or in \f$\{n,p\}\f$, depending on whether the
     form factors are expressed in the isospin or nucleon basis. The index
-    \f$J\f$ is one of \f$\{M, \Delta, \Sigma', \Sigma'', Delta\Sigma', \Phi'',
+    \f$K\f$ is one of \f$\{M, \Delta, \Sigma', \Sigma'', Delta\Sigma', \Phi'',
     M\Phi''\}\f$ for the different response combinations applicable to the
     effective theory.
 */
@@ -132,13 +143,27 @@ struct NuclearResponseFormFactors
 namespace detail
 {
 
+// This is miscellaneous data that appears in the definition of multiple EFT
+// form factors, and is collected here to avoid unnecessary duplication.
+struct EFTFormFactorInputData
+{
+    double eft_spin_factor{};
+    double inverse_nucleus_mass{};
+    double quad_inverse_b_sq{};
+
+    EFTFormFactorInputData(ParticleSpin spin, Isotope isotope):
+        eft_spin_factor(spin_factor(spin)),
+        inverse_nucleus_mass{1.0/(isotope.mass()*isotope.mass())},
+        quad_inverse_b_sq{4.0/harmonic_oscillator_parameter_sq(isotope.mass_number)} {}
+};
+
 template <IsospinBasis basis, std::size_t order, std::size_t I, std::size_t J>
 struct EFTFormFactorInitHelper
 {
     // This is actually what we care about specializing. All else is just
     // boilerplate.
-    static constexpr std::array<Polynomial<double, order>, 2> operator()(
-        [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
+    static constexpr void operator()(
+        [[maybe_unused]] const EFTFormFactorInputData& input_data,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept {}
 };
 
@@ -146,14 +171,194 @@ struct EFTFormFactorInitHelper
 template <IsospinBasis basis, std::size_t order>
 struct EFTFormFactorInitHelper<basis, order, 1, 1>
 {
-    static constexpr std::array<Polynomial<double, order>, 2> operator()(
-        [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        [[maybe_unused]] const EFTFormFactorInputData& input_data,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
     {
+        return nuclear_form_factors.m;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 3, 3>
+{
+    [[nodiscard]] static constexpr std::array<Polynomial<double, order>, 2> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double nontrans_coeff
+            = 0.25*input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+                *input_data.quad_inverse_b_sq*input_data.quad_inverse_b_sq;
+        const double trans_coeff
+            = 0.125*input_data.quad_inverse_b_sq;
         return {
-            nuclear_form_factors.m,
-            Polynomial<double, order>{}
+            Monomial<double, 2>{nontrans_coeff}*nuclear_form_factors.phi2,
+            Monomial<double, 1>{trans_coeff}*nuclear_form_factors.sigma1
         };
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 4, 4>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        return 0.0625*input_data.eft_spin_factor*(nuclear_form_factors.sigma1 + nuclear_form_factors.sigma2);
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 5, 5>
+{
+    [[nodiscard]] static constexpr std::array<Polynomial<double, order>, 2> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double nontrans_coeff
+            = 0.25*input_data.eft_spin_factor
+                *input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+                *input_data.quad_inverse_b_sq*input_data.quad_inverse_b_sq;
+        const double trans_coeff 
+            = 0.25*input_data.eft_spin_factor*input_data.quad_inverse_b_sq;
+        return {
+            Monomial<double, 2>{nontrans_coeff}*nuclear_form_factors.delta,
+            Monomial<double, 1>{trans_coeff}*nuclear_form_factors.m
+        };
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 6, 6>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff
+            = 0.0625*input_data.eft_spin_factor
+                *input_data.quad_inverse_b_sq*input_data.quad_inverse_b_sq;
+        return Monomial<double, 2>{coeff}*nuclear_form_factors.sigma2;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 7, 7>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        [[maybe_unused]] const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        return 0.125*nuclear_form_factors.sigma1;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 8, 8>
+{
+    [[nodiscard]] static constexpr std::array<Polynomial<double, order>, 2> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double nontrans_coeff
+            = 0.25*input_data.eft_spin_factor
+                *input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+                *input_data.quad_inverse_b_sq;
+        const double trans_coeff
+            = 0.25*input_data.eft_spin_factor;
+        return {
+            Monomial<double, 2>{nontrans_coeff}*nuclear_form_factors.delta,
+            Monomial<double, 1>{trans_coeff}*nuclear_form_factors.m
+        };
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 9, 9>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff = 0.0625*input_data.eft_spin_factor*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.sigma1;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 10, 10>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        [[maybe_unused]] const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff = 0.25*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.sigma2;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 11, 11>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff = 0.25*input_data.eft_spin_factor*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.m;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 1, 3>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff = 0.5*input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.m_phi2;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 4, 5>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff
+            = -0.125*input_data.eft_spin_factor
+                *input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.delta_sigma1;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 4, 6>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff = 0.0625*input_data.eft_spin_factor*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.sigma2;
+    }
+};
+
+template <IsospinBasis basis, std::size_t order>
+struct EFTFormFactorInitHelper<basis, order, 8, 9>
+{
+    [[nodiscard]] static constexpr Polynomial<double, order> operator()(
+        const EFTFormFactorInputData& input_data,
+        [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
+    {
+        const double coeff
+            = 0.125*input_data.eft_spin_factor
+                *input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+        return Monomial<double, 1>{coeff}*nuclear_form_factors.delta_sigma1;
     }
 };
 
@@ -171,9 +376,32 @@ static constexpr auto eft_form_factor_init = EFTFormFactorInitHelper<basis, orde
     @tparam J Effective theory operator index.
 
     This class encodes the dependence of the form factors
-    \f$F_{IJ}^{(N,N')}(q^2)\f$ of the nonerlativistic effective theory of DM
-    nuclear interactions on the nuclear response form factors. These form
-    factors are given by [1]
+    \f$F_{I,J}^{(N,N')}(y)\f$ of the nonerlativistic effective theory of DM
+    nuclear interactions on the nuclear response form factors. Although these
+    form factors are typically expressed as functions of the squared momentum
+    transfer \f$q^2\f$, this class expresses them in terms of the parameter
+    \f&y = (bq/2)^2\f$, where \f$b\f$ is the harmonic oscillator parameter.
+    This is consistent with the fact that the effective theory form factors are
+    expressed in terms of the nuclear form factors \f$F_K^{(N,N')}(y)\f$, where
+    \f$K\f$ is one of \f$\{M, \Delta, \Sigma', \Sigma'', Delta\Sigma', \Phi'',
+    M\Phi''\}\f$.
+
+    Each form factor can in general be written as a linear function of
+    \f$v_\perp^2\f$, that is
+    \f[
+        F_{I,J}^{(N,N')} = F_{I,J,0}^{(N,N')} + v_\perp^2F_{I,J,1}^{(N,N')}.
+    \f]
+    Furthermore, since \f$F_K^{(N,N')}(y)\f$ are generally of the form
+    \f[
+        F_K^{(N,N')}(y) = e^{-y}P_K^{(N,N)}(y),
+    \f]
+    where \f$P_K^{(N,N)}(y)\f$ is a polynomial, what this class stores are
+    in fact the polynomials
+    \f[
+        e^yF_{I,J,0}^{(N,N')},\qquad e^yF_{I,J,1}^{(N,N')}.
+    \f]
+
+    The form factors are given by [1]
     \f{align}{
         F_{1,1}^{(N,N')}
             &= F_{M}^{(N,N')},\\
@@ -222,9 +450,23 @@ static constexpr auto eft_form_factor_init = EFTFormFactorInitHelper<basis, orde
 template <IsospinBasis basis_param, std::size_t order, std::size_t I, std::size_t J>
 class EFTFormFactor
 {
+private:
+    [[nodiscard]] static consteval TransverseVelocityDependence
+    evaluate_transverse_velocity_dependence() noexcept
+    {
+        if constexpr (I == J && J == 7)
+            return TransverseVelocityDependence::mono;
+        else if constexpr (I == J && (J == 3 || J == 5 || J == 8))
+            return TransverseVelocityDependence::poly;
+        else
+            return TransverseVelocityDependence::none;
+    }
+
 public:
     static constexpr IsospinBasis basis = basis_param;
     static constexpr std::array<std::size_t, 2> indices = {I, J};
+    static constexpr TransverseVelocityDependence transverse_velocity_dependence
+        = evaluate_transverse_velocity_dependence();
 
     template <IsospinBasis basis>
     constexpr EFTFormFactor(
@@ -232,15 +474,61 @@ public:
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept:
         m_polynomial{detail::eft_form_factor_init<basis, order, I, J>(spin, nucleus_mass, nuclear_form_factors)} {}
 
-    [[nodiscard]] constexpr const Polynomial<double, order>&
-    operator[](std::size_t i) const noexcept
+    /**
+        @brief Tells whether the form factor depends on DM spin.
+    */
+    [[nodiscard]] static consteval bool is_spin_dependent() noexcept
     {
-        assert(i < 2);
-        return m_polynomial[i];
+        return ((I == 4) || (I == 5) || (I == 6) || (I == 8) || (I == 9) || (I == 11))
+            && ((J == 4) || (J == 5) || (J == 6) || (J == 8) || (J == 9) || (J == 11));
+    }
+
+    /**
+        @brief Retrieve given component of the form factor.
+
+        @tparam transverse_order Order of the component in squared transverse
+        velocity.
+    */
+    template <std::size_t transverse_order>
+        requires (transverse_order < 2)
+    [[nodiscard]] constexpr const Polynomial<double, order>&
+    component() const noexcept
+    {
+        if constexpr (transverse_order == 0)
+            return nontransverse_component();
+        else
+            return transverse_component();
     }
 
 private:
-    std::array<Polynomial<double, order>, 2> m_polynomial;
+    static constexpr Polynomial<double, order> zero_polynomial = {};
+
+    [[nodiscard]] constexpr const Polynomial<double, order>&
+    nontransverse_component() const noexcept
+    {
+        if constexpr (transverse_velocity_dependence == TransverseVelocityDependence::mono)
+            return zero_polynomial;
+        else if constexpr (transverse_velocity_dependence == TransverseVelocityDependence::none)
+            return m_polynomial;
+        else
+            return m_polynomial[0];
+    }
+
+    [[nodiscard]] constexpr const Polynomial<double, order>&
+    transverse_component() const noexcept
+    {
+        if constexpr (transverse_velocity_dependence == TransverseVelocityDependence::mono)
+            return m_polynomial;
+        else if constexpr (transverse_velocity_dependence == TransverseVelocityDependence::none)
+            return zero_polynomial;
+        else
+            return m_polynomial[1];
+    }
+
+    using StorageType = std::conditional<transverse_velocity_dependence == TransverseVelocityDependence::poly,
+        std::array<Polynomial<double, order>, 2>,
+        Polynomial<double, order>>;
+    StorageType m_polynomial;
 };
 
 /**
@@ -264,7 +552,11 @@ public:
     InteractionFactor(const double b_sq, const std::array<Polynomial<double, order>, 2>& polynomial):
         m_polynomial{polynomial}, m_b_sq{b_sq} {}
 
-    [[nodiscard]] constexpr std::array<double, 2>
+    /**
+        @brief Evaluate the spin-average squared matrix element at a given
+        momentum transfer.
+    */
+    [[nodiscard]] std::array<double, 2>
     operator()(double momentum_transfer) const noexcept
     {
         const double q_sq = momentum_transfer*momentum_transfer;
@@ -274,10 +566,43 @@ public:
         return {decay*m_polynomial[0](y), decay*m_polynomial[1](y)};
     }
 
-private:
-    [[nodiscard]] double exponential(double x)
+    /**
+        @brief Retrieve given component of the spin-averaged squared matrix element.
+
+        @tparam transverse_order Order of the component in squared transverse
+        velocity.
+    */
+    template <std::size_t transverse_order>
+        requires (transverse_order < 2)
+    [[nodiscard]] constexpr const Polynomial<double, order>&
+    component() const noexcept
     {
-        return std::exp(x);
+        return m_polynomial[transverse_order];
+    }
+
+private:
+    /**
+        @brief Generate coefficients of Taylor polynomial of exponential
+        function.
+    */
+    template <std::size_t taylor_order>
+    [[nodiscard]] static consteval Polynomial<double, taylor_order>
+    exp_taylor_polynomial() noexcept
+    {
+        Polynomial<double, taylor_order> res{};
+        res[0] = 1.0;
+        for (std::size_t i = 1; i <= order; ++i)
+            res[i] = res[i - 1]/double(i);
+        return res;
+    }
+
+    template <typename T>
+    [[nodiscard]] double exponential(double x) noexcept
+    {
+        if constexpr (std::same_as<T, int>)
+            return std::exp(x);
+        else
+            return exp_taylor_polynomial<order>()(x);
     }
 
     std::array<Polynomial<double, order>, 2> m_polynomial;
@@ -299,9 +624,17 @@ public:
     DMInteraction(
         ParticleSpin spin, Isotope isotope,
         const NuclearResponseFormFactors<basis, order>& nuclear_form_factors):
-        m_form_factors{FormFactorTypes{spin, isotope.mass(), nuclear_form_factors}...},
+        m_form_factors{FormFactorTypes{detail::EFTFormFactorInputData{spin, isotope}, nuclear_form_factors}...},
         m_b_sq{harmonic_oscillator_parameter_sq(isotope.mass_number)} {}
 
+    /**
+        @brief Generate spin-averaged squared matrix-element.
+
+        @param wilson_coefficients
+
+        @return Function-like object representing the spin-averaged squared
+        matrix element.
+    */
     [[nodiscard]] constexpr InteractionFactor<order>
     operator()(zest::MDSpan<const double, 15, 2> wilson_coefficients) const noexcept
     {
@@ -310,14 +643,31 @@ public:
             std::array<Polynomial<double, order>, 2> res{};
             ([&]{
                 const auto& [I, J] = FormFactorTypes::indices;
-                res[0] += form_factors[0][0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
-                    + form_factors[0][0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
-                    + form_factors[0][1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
-                    + form_factors[0][1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
-                res[1] += form_factors[1][0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
-                    + form_factors[1][0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
-                    + form_factors[1][1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
-                    + form_factors[1][1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
+                if constexpr (FormFactorTypes::transverse_velocity_dependence == TransverseVelocityDependence::poly)
+                {
+                    res[0] += form_factors.template component<0>()[0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<0>()[0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
+                        + form_factors.template component<0>()[1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<0>()[1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
+                    res[1] += form_factors.template component<1>()[0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<1>()[0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
+                        + form_factors.template component<1>()[1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<1>()[1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
+                }
+                else if constexpr (FormFactorTypes::transverse_velocity_dependence == TransverseVelocityDependence::mono)
+                {
+                    res[1] += form_factors.template component<1>()[0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<1>()[0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
+                        + form_factors.template component<1>()[1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<1>()[1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
+                }
+                else
+                {
+                    res[0] += form_factors.template component<0>()[0, 0]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<0>()[0, 1]*wilson_coefficients[I - 1, 0]*wilson_coefficients[J - 1, 1]
+                        + form_factors.template component<0>()[1, 0]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 0]
+                        + form_factors.template component<0>()[1, 1]*wilson_coefficients[I - 1, 1]*wilson_coefficients[J - 1, 1];
+                }
             }(), ...);
             return InteractionFactor{m_b_sq, res};
         }, m_form_factors);
