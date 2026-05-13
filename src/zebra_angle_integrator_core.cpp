@@ -74,14 +74,15 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
         trans_geg_zernike_exp[0, 1]*m_legendre_integrals[1],
         trans_geg_zernike_exp[0, 2]*m_legendre_integrals[0]
     };
-    for (std::size_t n = 2; n < trans_geg_zernike_exp.order() - 2; n += 2)
+
+    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
+    for (std::size_t n = 2; n < nmax; n += 2)
     {
         res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
         res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n + 1];
         res[2] += trans_geg_zernike_exp[n, 2]*m_legendre_integrals[n];
     }
 
-    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
     res[0] += trans_geg_zernike_exp[nmax, 0]*m_legendre_integrals[nmax];
 
     la::Vector<double, 2> nontrans_res = res[2];
