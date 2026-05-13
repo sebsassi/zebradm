@@ -227,9 +227,9 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t nmax = (in.order() + 1) & (~1UL);
+    const std::size_t nmax = util::even_floor(in.order() + 1);
     const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(nmax - 2);
-    out[nmax] = coeff_nm2*in[nmax - 2];
+    out[nmax] = -coeff_nm2*in[nmax - 2];
 }
 
 void radon_transform(
@@ -258,9 +258,9 @@ void radon_transform(
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t nmax = (in.order() + 1) & (~1UL);
+    const std::size_t nmax = util::even_floor(in.order() + 1);
     const double coeff_nm2 = zernike_radon_coeff[nmax - 2];
-    out[nmax] = coeff_nm2*in[nmax - 2];
+    out[nmax] = -coeff_nm2*in[nmax - 2];
 }
 
 void radon_transform_inplace(
@@ -399,11 +399,11 @@ void radon_transform_inplace(
 
     if (order < 3) return;
 
-    const std::size_t n_max = (exp.order() - 1) & (~1UL);
-    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(n_max - 2);
-    exp[n_max] = coeff_nm2*exp[n_max - 2];
+    const std::size_t nmax = util::even_floor(exp.order() - 1);
+    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(nmax - 2);
+    exp[nmax] = -coeff_nm2*exp[nmax - 2];
 
-    for (std::size_t n = n_max - 4; n > 1; n -= 2)
+    for (std::size_t n = nmax - 2; n > 1; n -= 2)
     {
         const double coeff_n = util::zernike_radon_coeff<zernike_norm>(n);
         const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(n - 2);
@@ -422,11 +422,11 @@ void radon_transform_inplace(
 
     if (order < 3) return;
 
-    const std::size_t n_max = (exp.order() - 1) & (~1UL);
-    const double coeff_nm2 = zernike_radon_coeff[n_max - 2];
-    exp[n_max] = coeff_nm2*exp[n_max - 2];
+    const std::size_t nmax = util::even_floor(exp.order() - 1);
+    const double coeff_nm2 = zernike_radon_coeff[nmax - 2];
+    exp[nmax] = -coeff_nm2*exp[nmax - 2];
 
-    for (std::size_t n = n_max - 4; n > 1; n -= 2)
+    for (std::size_t n = nmax - 2; n > 1; n -= 2)
     {
         const double coeff_n = zernike_radon_coeff[n];
         const double coeff_nm2 = zernike_radon_coeff[n - 2];

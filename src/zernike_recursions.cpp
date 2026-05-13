@@ -2056,15 +2056,15 @@ void transverse_radon_components(
     {
         const auto dn = double(n);
         out[n, 0] = in_r2_radon[n] - 2.0*(in_radon[n - 2]*dn*(dn - 1.0)/((2.0*dn - 3.0)*(2.0*dn - 1.0))
-            - in_radon[n]*((dn + 1.0)*(dn + 1.0)/(2.0*dn + 3.0) + dn*dn/(2.0*dn - 1.0))/(2.0*dn + 1.0)
-            - in_radon[n + 2]*(dn + 1.0)*(dn + 2.0)/((2.0*dn + 3.0)*(2.0*dn + 5.0)));
+            + in_radon[n]*((dn + 1.0)*(dn + 1.0)/(2.0*dn + 3.0) + dn*dn/(2.0*dn - 1.0))/(2.0*dn + 1.0)
+            + in_radon[n + 2]*(dn + 1.0)*(dn + 2.0)/((2.0*dn + 3.0)*(2.0*dn + 5.0)));
         out[n, 1] = in_radon[n]*(dn + 1.0)/(2.0*dn + 1.0) + in_radon[n + 2]*(dn + 2.0)/(2.0*dn + 5.0);
         out[n, 2] = in_radon[n];
     }
 
     const auto dn = double(nmax);
     out[nmax - 2, 0] = in_r2_radon[nmax - 2] - 2.0*(in_radon[nmax - 4]*(dn - 2.0)*(dn - 3.0)/((2.0*dn - 7.0)*(2.0*dn - 5.0))
-        - in_radon[nmax - 2]*((dn - 1.0)*(dn - 1.0)/(2.0*dn - 1.0) + (dn - 2.0)*(dn - 2.0)/(2.0*dn - 5.0))/(2.0*dn - 3.0));
+        + in_radon[nmax - 2]*((dn - 1.0)*(dn - 1.0)/(2.0*dn - 1.0) + (dn - 2.0)*(dn - 2.0)/(2.0*dn - 5.0))/(2.0*dn - 3.0));
     out[nmax - 2, 1] = in_radon[nmax - 2]*(dn - 1.0)/(2.0*dn - 3.0);
     out[nmax - 2, 2] = in_radon[nmax - 2];
 
