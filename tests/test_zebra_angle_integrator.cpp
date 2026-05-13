@@ -720,7 +720,7 @@ std::array<double, 2> angle_integrated_const_dist_radon_pair(
 bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
 {
     std::vector<zdm::la::Vector<double, 3>> offsets = {
-        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+        {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
 
@@ -782,7 +782,7 @@ bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
 bool test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist()
 {
     std::vector<zdm::la::Vector<double, 3>> offsets = {
-        {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0},
+        {1.0, 0.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 1.0},
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
 

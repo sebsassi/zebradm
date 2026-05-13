@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2025 Sebastian Sassi
+Copyright (c) 2025, 2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -46,6 +46,20 @@ concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, 
 
 } // namespace detail
 
+/**
+    @brief Concept checking if a type is a parametric rigid transform
+    compatible with a given rigid transform type.
+
+    @tparam T Candidate type.
+    @tparam RigidTransformType Expected return type of the parametric transform.
+
+    A parametric transform type `T` compatible with `RigidTransformType` is a
+    type which defines a call operator that takes a parameter of type
+    `RigidTransformType::value_type` and returns a value whose type is one of
+    `RigidTransformType`,
+    `RigidTransformType::rotation_matrix_type`, or
+    `RigidTransformType::vector_type`.
+*/
 template <typename T, typename RigidTransformType>
 concept parametric_rigid_transform
     = std::same_as<RigidTransformType,
@@ -61,6 +75,17 @@ concept parametric_rigid_transform
         typename RigidTransformType::rotation_matrix_type,
         typename RigidTransformType::vector_type>;
 
+/**
+    @brief Checks if type represents a celestial coordinate transform.
+
+    @tparam T
+
+    A celestial coordinate transform is a parametric rigid transform
+    parameterized by a `double` representing time, such that calling the
+    transform with a time parameter returns one of
+    `la::RigidTransform<double, 3>`, `la::RotationMatrix<double, 3>`, or
+    `la::Vector<double, 3>`.
+*/
 template <typename T>
 concept celestial_coordinate_transform
     = parametric_rigid_transform<T, la::RigidTransform<double, 3>>;
@@ -431,9 +456,21 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const ITRStoHCS& other) const noexcept = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return ITRS to HCS transform at the given time.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()([[maybe_unused]] double days_since_j2000) const noexcept { return m_transform; }
 
+    /**
+        @brief Call operator of the constant transform.
+
+        @return ITRS to HCS transform.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()() const noexcept { return m_transform; }
 
@@ -452,6 +489,13 @@ private:
     la::RigidTransform<double, 3> m_transform;
 };
 
+/**
+    @brief Transformation from the Galactic Coordinate System (GCS) to a
+    Horizontal Coordinate System (HCS) at a point on Earth's surface.
+
+    This transformation implementes the transformation from the Galactic
+    Coordinate System (GCS) to a Horizontal Coordinate System (HCS).
+*/
 class GCStoHCS
 {
 public:
@@ -471,6 +515,13 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const GCStoHCS& other) const noexcept = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return GCS to HCS transform at the given time.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -485,6 +536,14 @@ private:
     > m_transform;
 };
 
+/**
+    @brief Transformation from the Galactic Coordinate System (GCS) to the
+    Celestial Intermediate Reference System (CIRS).
+
+    This transformation implementes the transformation from the Galactic
+    Coordinate System (GCS) to the Celestial Intermediate Reference System
+    (CIRS).
+*/
 class GCStoCIRS
 {
 public:
@@ -501,6 +560,13 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const GCStoCIRS& other) const noexcept = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return GCS to CIRS transform at the given time.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -512,6 +578,15 @@ private:
     > m_transform;
 };
 
+/**
+    @brief Transformation from the Celestial Intermediate Reference System
+    (CIRS) to a Horizontal Coordinate System (HCS) at a point on Earth's
+    surface.
+
+    This transformation implementes the transformation from the Celestial
+    Intermediate Reference System (CIRS) to a Horizontal Coordinate System
+    (HCS).
+*/
 class CIRStoHCS
 {
 public:
@@ -525,6 +600,13 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const CIRStoHCS& other) const noexcept = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return CIRS to HCS transform at the given time.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -536,6 +618,15 @@ private:
     > m_transform;
 };
 
+/**
+    @brief Transformation from the Terrestrial Intermediate Reference System
+    (TIRS) to a Horizontal Coordinate System (HCS) at a point on Earth's
+    surface.
+
+    This transformation implementes the transformation from the Terrestrial
+    Intermediate Reference System (TIRS) to a Horizontal Coordinate System
+    (HCS).
+*/
 class TIRStoHCS
 {
 public:
@@ -548,6 +639,13 @@ public:
 
     [[nodiscard]] constexpr bool operator==(const TIRStoHCS& other) const noexcept = default;
 
+    /**
+        @brief Call operator of the parametric transform.
+
+        @param days_since_j2000 Number of 24-hour days since the J2000 epoch.
+
+        @return TIRS to HCS transform at the given time.
+    */
     [[nodiscard]] la::RigidTransform<double, 3>
     operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
 
@@ -558,10 +656,48 @@ private:
     > m_transform;
 };
 
+/**
+    @brief Transform a velocity using a celestial coordinate transform.
+
+    @tparam T Type of celestial coordinate transform.
+
+    @param transform Celestial coordinate transform.
+    @param days_since_j2000 Number of days since the J2000 epoch.
+    @param velocity Velocity to be transformed.
+
+    This function transforms a velocity from the source coordinate system
+    of `transform` to its destination coordinate system. The velocity can be
+    omitted, in which case the it is assumed to be zero, corresponding to the
+    velocity of the source coordinate system in the destination coordinate
+    system.
+*/
 template <celestial_coordinate_transform T>
-la::Vector<double, 3> source_velocity_in_destinatioinationn_cs(T celestial_coordinate_transform, double days_since_j2000)
+la::Vector<double, 3> transform_velocity(
+    T transform, double days_since_j2000, la::Vector<double, 3> velocity)
 {
-    return celestial_coordinate_transform(days_since_j2000)(la::Vector<double, 3>{});
+    return transform(days_since_j2000)(velocity);
+}
+
+/**
+    @brief Transform a velocity using a celestial coordinate transform.
+
+    @tparam T Type of celestial coordinate transform.
+
+    @param transform Celestial coordinate transform.
+    @param days_since_j2000 Number of days since the J2000 epoch.
+    @param velocity Velocity to be transformed.
+
+    This function transforms a velocity from the source coordinate system
+    of `transform` to its destination coordinate system. The velocity can be
+    omitted, in which case the it is assumed to be zero, corresponding to the
+    velocity of the source coordinate system in the destination coordinate
+    system.
+*/
+template <celestial_coordinate_transform T>
+la::Vector<double, 3> transform_velocity(
+    T transform, double days_since_j2000)
+{
+    return transform(days_since_j2000).translation();
 }
 
 } // namespace zdm::celestial
