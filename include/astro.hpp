@@ -534,7 +534,7 @@ Planet(Orbit<N, M, P, K, L>, OblateSpheroid, Polynomial<double, 1>) -> Planet<N,
         Monthly Notices of the Royal Astronomical Society, vol. 465, no. 1,
         OUP, pp. 472–481, 2017. doi:10.1093/mnras/stw2772.
 */
-constexpr GalacticOrientation orientation_km_2017 = {
+static constexpr GalacticOrientation orientation_km_2017 = {
     .ngp_dec = 27.084*std::numbers::pi/180.0,
     .ngp_ra = 192.729*std::numbers::pi/180.0,
     .ncp_lon = 122.928*std::numbers::pi/180.0
@@ -550,7 +550,7 @@ constexpr GalacticOrientation orientation_km_2017 = {
         Society, vol. 403, no. 4, OUP, pp. 1829–1833, 2010.
         doi:10.1111/j.1365-2966.2010.16253.x.
 */
-constexpr la::Vector peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
+static constexpr la::Vector peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
 
 /**
     @brief Constant parameters defining Earth.
@@ -578,7 +578,7 @@ constexpr la::Vector peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
         the Celestial Ephemeris origin and of UT1 in the International
         Celestial Reference Frame,” Astron. Astrophys., 355(1), pp. 398–405.
 */
-constexpr Planet earth = {
+static constexpr Planet earth = {
     .orbit = Orbit{
         .orientation = DynamicalOrbitOrientation{
             .inclination = Polynomial{
@@ -632,7 +632,7 @@ constexpr Planet earth = {
         locating the celestial intermediate pole and origin,” Astron.
         Astrophys., 450, pp. 855–872, doi:10.1051/0004-6361:20054550.8-989-6
 */
-constexpr std::array<Polynomial<double, 3>, 2> cip = {
+static constexpr std::array<Polynomial<double, 3>, 2> cip = {
     Polynomial{
         -8.0561489389971590e-08,  9.7165965171928760e-03,
         -2.0836462982693160e-06, -9.6292888551265400e-07

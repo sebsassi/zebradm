@@ -41,11 +41,26 @@ public:
 
     [[nodiscard]] constexpr operator std::string_view() noexcept { return std::string_view(m_data.data(), m_data.size()); }
 
-    [[nodiscard]] constexpr std::string_view view() noexcept { return std::string_view(m_data.data(), m_data.size()); }
+    [[nodiscard]] constexpr std::string_view view() const noexcept { return std::string_view(m_data.data(), m_data.size()); }
 
 private:
     std::array<char, N> m_data;
 };
+
+constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number)
+{
+    static constexpr std::array<TinyString<2>, 118> periodic_table = {
+        "H", "He",
+        "Li", "Be",                                                                                                                                                 "B",  "C",  "N",  "O",  "F",  "Ne",
+        "Na", "Mg",                                                                                                                                                 "Al", "Si", "P",  "S",  "Cl", "Ar",
+        "K",  "Ca",                                                                                     "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+        "Rb", "Sr",                                                                                     "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",
+        "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
+        "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
+    };
+
+    return periodic_table[atomic_number].view();
+}
 
 struct Isotope
 {
@@ -56,12 +71,15 @@ struct Isotope
 
     [[nodiscard]] constexpr double
     mass() const noexcept { return double(mass_number)*amu; }
+
+    [[nodiscard]] constexpr std::string_view symbol() const { return chemical_symbol_of(atomic_number); }
 };
 
 struct Element
 {
-    TinyString<2> symbol;
     std::uint16_t atomic_number;
+
+    [[nodiscard]] constexpr std::string_view symbol() const { return chemical_symbol_of(atomic_number); }
 };
 
 } // namespace zdm
