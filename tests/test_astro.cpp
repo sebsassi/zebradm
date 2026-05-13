@@ -20,10 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "astro.hpp"
-
 #include <cmath>
-#include <print>
+
+#include <zebradm/astro.hpp>
 
 bool is_close(double a, double b, double error)
 {

@@ -19,9 +19,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "radon_integrator.hpp"
 
 #include <zest/md_array.hpp>
+
+#include <zebradm/radon_integrator.hpp>
 
 double angle_integrated_radon_shm(
     const zdm::la::Vector<double, 3>& offset, double shell, double disp_speed)

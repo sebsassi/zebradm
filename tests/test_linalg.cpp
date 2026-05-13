@@ -20,12 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "linalg.hpp"
-#include "matrix.hpp"
-#include "vector.hpp"
-
 #include <cassert>
 #include <numbers>
+
+#include <zebradm/linalg.hpp>
+#include <zebradm/matrix.hpp>
+#include <zebradm/vector.hpp>
 
 bool is_close(double a, double b, double error)
 {

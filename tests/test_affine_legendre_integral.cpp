@@ -19,14 +19,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "affine_legendre_integral.hpp"
-
-#include <zest/gauss_legendre.hpp>
-#include <zest/md_array.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <print>
+
+#include <zest/gauss_legendre.hpp>
+#include <zest/md_array.hpp>
+
+#include <zebradm/affine_legendre_integral.hpp>
 
 constexpr bool is_close(double a, double b, double tol)
 {

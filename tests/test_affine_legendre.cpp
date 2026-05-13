@@ -19,7 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "affine_legendre.hpp"
 
 #include <array>
 #include <cassert>
@@ -28,6 +27,8 @@ SOFTWARE.
 #include <print>
 
 #include <zest/sequence.hpp>
+
+#include <zebradm/affine_legendre.hpp>
 
 namespace
 {

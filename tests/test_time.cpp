@@ -20,10 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "time.hpp"
-#include <print>
-
 #include <cassert>
+
+#include <zebradm/time.hpp>
 
 using namespace std::literals;
 

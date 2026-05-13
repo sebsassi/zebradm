@@ -20,12 +20,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "zebra_angle_integrator.hpp"
 
 #include <cassert>
 #include <print>
 
 #include <zest/md_array.hpp>
+
+#include <zebradm/zebra_angle_integrator.hpp>
 
 namespace
 {

@@ -19,16 +19,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "radon_integrator.hpp"
-#include "transform_utilities.hpp"
-#include "types.hpp"
-#include "zebra_angle_integrator.hpp"
-
-#include "coordinate_transforms.hpp"
 
 #include <print>
 
 #include <zest/md_array.hpp>
+
+#include <zebradm/coordinate_transforms.hpp>
+#include <zebradm/radon_integrator.hpp>
+#include <zebradm/transform_utilities.hpp>
+#include <zebradm/types.hpp>
+#include <zebradm/zebra_angle_integrator.hpp>
 
 namespace
 {

@@ -19,9 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "types.hpp"
-#include "zebra_radon.hpp"
-#include "zernike_recursions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -29,7 +26,11 @@ SOFTWARE.
 #include <print>
 #include <random>
 
-#include "zest/zernike_glq_transformer.hpp"
+#include <zest/zernike_glq_transformer.hpp>
+
+#include <zebradm/types.hpp>
+#include <zebradm/zebra_radon.hpp>
+#include <zebradm/zernike_recursions.hpp>
 
 namespace
 {
