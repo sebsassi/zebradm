@@ -179,7 +179,7 @@ struct Polynomial
     [[nodiscard]] constexpr value_type
     operator()(DomainType x) const noexcept
     {
-        return detail::estrin_eval<const std::array<value_type, order + 1>&, DomainType, value_type>(coeffs, x);
+        return detail::estrin_eval<std::array<value_type, order + 1>, DomainType, value_type>(coeffs, x);
     }
 
     [[nodiscard]] constexpr auto

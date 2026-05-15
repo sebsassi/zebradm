@@ -25,6 +25,7 @@ SOFTWARE.
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <span>
 #include <string_view>
 
@@ -110,25 +111,106 @@ constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number)
 
 } // namespace detail
 
+enum class IsotopeError { invalid_isotope };
+enum class ElementError { invalid_element };
+
+/**
+    @brief Isotope of a chemical element.
+
+    This class uniquely describes an isotope by its atomic number and mass
+    number.
+
+    Apart from isotopes that can in principle exist, this class allows for an
+    additional set of isotopes with atomic number 0. The isotope with both
+    atomic number 0 and mass number 0 is reserved as a special value: the null
+    isotope. It is used in instances, where no valid isotope can be returned.
+*/
 class Isotope
 {
 public:
     static constexpr double amu = 0.93149410372;
 
+    /**
+        @brief Costruct the null isotope.
+    */
     constexpr Isotope() = default;
 
+    /**
+        @brief Construct an isotope with given atomic number and mass_number.
+
+        @param atomic_number
+        @param mass_number
+    */
     constexpr Isotope(std::uint8_t atomic_number, std::uint16_t mass_number):
         m_mass_number(mass_number), m_atomic_number(atomic_number) {}
 
+    /**
+        @brief Construct an isotope, checking its validity.
+
+        @param atomic_number
+        @param mass_number
+
+        @return Isotope or `invalid_isotope` error if invalid.
+    */
+    [[nodiscard]] static constexpr std::expected<Isotope, IsotopeError>
+    create(std::uint8_t atomic_number, std::uint16_t mass_number)
+    {
+        const Isotope isotope{atomic_number, mass_number};
+        if (isotope.is_valid())
+            return isotope;
+        else
+            return std::unexpected(IsotopeError::invalid_isotope);
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Isotope& other) const noexcept = default;
+
+    /**
+        @brief Check if isotope is the null isotope.
+    */
+    [[nodiscard]] constexpr bool is_null() const noexcept
+    {
+        return m_mass_number == 0 && m_atomic_number == 0;
+    }
+
+    /**
+        @brief Check if isotope is valid.
+
+        This method checks if a given isotope is a valid isotope. A valid isotope
+        is one whose atomic number is greater than zero and whose mass number
+        is at least as large as its atomic number.
+    */
+    [[nodiscard]] constexpr bool is_valid() const noexcept
+    {
+        return m_atomic_number != 0 && m_mass_number >= m_atomic_number;
+    }
+
+    /**
+        @brief Mass of the isotope.
+    */
     [[nodiscard]] constexpr double
     mass() const noexcept { return double(m_mass_number)*amu; }
 
+    /**
+        @brief Atomic number of the isotope.
+    */
     [[nodiscard]] constexpr std::uint8_t
     atomic_number() const noexcept { return m_atomic_number; }
 
+    /**
+        @brief Mass number of the isotope.
+    */
     [[nodiscard]] constexpr std::uint16_t
     mass_number() const noexcept { return m_mass_number; }
 
+    /**
+        @brief Chemical symbol of the isotope's element.
+
+        @return A string view of the element's symbol.
+
+        This function returns the chemical symbol of the element of the
+        isotope. For atomic numbers which don't correspond to any chemical
+        symbol it returns a view of an empty string.
+    */
     [[nodiscard]] constexpr std::string_view
     symbol() const noexcept { return detail::chemical_symbol_of(m_atomic_number); }
 
@@ -137,42 +219,129 @@ private:
     std::uint8_t m_atomic_number;
 };
 
+/**
+    @brief A chemical element.
+
+    This class describes a chemical element by its atomic number. The atomic
+    number 0 is reserved as a special value: the null element. It is used in
+    instances where no valid element can be returned.
+*/
 class Element
 {
 public:
     static constexpr std::uint8_t max_atomic_number = 118;
 
+    /**
+        @brief Costruct the null element.
+    */
     constexpr Element() = default;
 
-    constexpr Element(std::uint8_t atomic_number):
-        m_atomic_number(std::uint8_t(atomic_number < max_atomic_number)*atomic_number) {}
+    /**
+        @brief Construct an element with given atomic number.
 
+        @param atomic_number
+    */
+    constexpr Element(std::uint8_t atomic_number):
+        m_atomic_number(atomic_number) {}
+
+    /**
+        @brief Construct an element from its chemical symbol.
+
+        @param chemical_symbol
+
+        Construct an element from its chemical symbol. If the argument does not
+        correspond to any existing chemical symbol, the null element is
+        constructed.
+    */
     constexpr Element(std::string_view chemical_symbol):
         m_atomic_number(detail::atomic_number_of(chemical_symbol)) {}
 
+    /**
+        @brief Construct an element, checking its validity.
+
+        @param chemical_symbol
+
+        @return Element or `invalid_element` error if invalid.
+    */
+    [[nodiscard]] static constexpr std::expected<Element, ElementError>
+    create(std::string_view chemical_symbol)
+    {
+        const Element element{chemical_symbol};
+        if (element.is_valid())
+            return element;
+        else
+            return std::unexpected(ElementError::invalid_element);
+    }
+
+    /**
+        @brief Check if element is the null element.
+    */
+    [[nodiscard]] constexpr bool is_null() const noexcept
+    {
+        return m_atomic_number == 0;
+    }
+
+    /**
+        @brief Check if element is a valid element.
+    */
+    [[nodiscard]] constexpr bool is_valid() const noexcept
+    {
+        return !is_null();
+    }
+
+    /**
+        @brief Atomic number of the element.
+    */
     [[nodiscard]] constexpr std::uint8_t
     atomic_number() const noexcept { return m_atomic_number; }
 
+    /**
+        @brief Chemical symbol of the element.
+
+        @return A string view of the element's symbol.
+
+        This method returns a string view of the chemical symbol of the
+        element. For atomic numbers which don't correspond to any chemical
+        it returns a view of an empty string.
+    */
     [[nodiscard]] constexpr std::string_view
     symbol() const noexcept { return detail::chemical_symbol_of(m_atomic_number); }
 
+    /**
+        @brief Primordial isotopes of the element.
+
+        @return A span of a range of primordial isotopes.
+
+        This method returns a view of the primordial isotopes of the element.
+        For elements with no primordial isotopes, it returns a span with zero
+        length.
+    */
     [[nodiscard]] constexpr std::span<const Isotope>
     primordial_isotopes() const noexcept
     {
-        const auto offset_len = isotope_table_offsets_lengths[m_atomic_number];
-        return std::span<const Isotope>(&isotope_tables[offset_len[0]], offset_len[1]);
+        const auto& [offset, length] = isotope_table_offsets_lengths[m_atomic_number];
+        return {&isotope_tables[offset], length};
     }
 
+    /**
+        @brief Natural abundances of the primordial isotopes of the element.
+
+        @return A span of a range of natural abundances.
+
+        This method returns a view of the natural abundances of primordial
+        isotopes of the element. For elements with no primordial isotopes, it
+        returns a span with zero length.
+    */
     [[nodiscard]] constexpr std::span<const double>
-    isotope_abundances() const noexcept
+    natural_abundances_of_primordial_isotopes() const noexcept
     {
-        const auto offset_len = isotope_table_offsets_lengths[m_atomic_number];
-        return std::span<const double>(&isotope_abundance_tables[offset_len[0]], offset_len[2]);
+        const auto& [offset, length] = isotope_table_offsets_lengths[m_atomic_number];
+        return {&isotope_abundance_tables[offset], length};
     }
 
 private:
     static constexpr std::array<std::array<std::uint8_t, 2>, 119> isotope_table_offsets_lengths = {
-        std::array<std::uint8_t, 2>{0,   0 },    // 0
+        std::array<std::uint8_t, 2>{0,   0 },    // 0   Null element
         std::array<std::uint8_t, 2>{1,   2 },    // 1   H
         std::array<std::uint8_t, 2>{3,   2 },    // 2   He
         std::array<std::uint8_t, 2>{5,   2 },    // 3   Li
@@ -262,9 +431,9 @@ private:
         std::array<std::uint8_t, 2>{0,   0 },    // 87  Fr
         std::array<std::uint8_t, 2>{0,   0 },    // 88  Ra
         std::array<std::uint8_t, 2>{0,   0 },    // 89  Ac
-        std::array<std::uint8_t, 2>{253, 0 },    // 90  Th
+        std::array<std::uint8_t, 2>{253, 1 },    // 90  Th
         std::array<std::uint8_t, 2>{0,   0 },    // 91  Pa
-        std::array<std::uint8_t, 2>{254, 0 },    // 92  U
+        std::array<std::uint8_t, 2>{254, 2 },    // 92  U
         std::array<std::uint8_t, 2>{0,   0 },    // 93  Np
         std::array<std::uint8_t, 2>{0,   0 },    // 94  Pu
         std::array<std::uint8_t, 2>{0,   0 },    // 95  Am
@@ -293,7 +462,7 @@ private:
         std::array<std::uint8_t, 2>{0,   0 },    // 118 Og
     };
     static constexpr std::array<Isotope, 287> isotope_tables = {
-        Isotope{},                                                                                                                                                                          // 0        0
+        Isotope{},                                                                                                                                                                          // 0   Null Element     0
         Isotope{1, 1}, Isotope{1, 2},                                                                                                                                                       // 1   H    1
         Isotope{2, 3}, Isotope{2, 4},                                                                                                                                                       // 2   He   3
         Isotope{3, 6}, Isotope{3, 7},                                                                                                                                                       // 3   Li   5
@@ -415,100 +584,125 @@ private:
     };
 
     static constexpr std::array<double, 287> isotope_abundance_tables = {
-        0.0,
-        0.999855, 0.000115,
-        0.000002, 0.999998,
-        0.048500, 0.951500,
-        1.000000,
-        0.199000, 0.801000,
-        0.989000, 0.010600,
-        0.996000, 0.003800,
-        0.998000, 0.000384, 0.002050,
-        1.000000,
-        0.905000, 0.002700, 0.092500,
-        1.000000,
-        0.790000, 0.100000, 0.110000,
-        1.000000,
-        0.922000, 0.046700, 0.030700,
-        1.000000,
-        0.094800, 0.007600, 0.043700, 0.000200,
-        0.758000, 0.242000,
-        0.003340, 0.000630, 0.996000,
-        0.933000, 0.000117, 0.067300,
-        0.969000, 0.006470, 0.001350, 0.020900, 0.000040, 0.0018700,
-        1.000000,
-        0.082500, 0.074400, 0.737000, 0.054100, 0.051800,
-        0.002500, 0.998000,
-        0.043400, 0.838000, 0.095000, 0.023700,
-        1.000000,
-        0.058500, 0.918000, 0.021200, 0.002800,
-        1.000000,
-        0.681000, 0.262000, 0.011400, 0.036300, 0.009260,
-        0.692000, 0.309000,
-        0.492000, 0.277000, 0.040400, 0.184000, 0.006100,
-        0.601000, 0.399000,
-        0.205000, 0.274000, 0.077600, 0.365000, 0.077500,
-        1.000000,
-        0.008600, 0.092300, 0.076000, 0.237000, 0.498000, 0.088200,
-        0.506000, 0.494000,
-        0.003600, 0.022900, 0.116000, 0.115000, 0.570000, 0.173000,
-        0.722000, 0.278000,
-        0.005600, 0.098600, 0.070000, 0.826000,
-        1.000000,
-        0.515000, 0.112000, 0.171000, 0.174000, 0.028000,
-        1.000000,
-        0.147000, 0.091900, 0.159000, 0.167000, 0.095800, 0.243000, 0.097400,
-
-        0.055400, 0.018700, 0.128000, 0.126000, 0.171000, 0.316000, 0.186000,
-        1.000000,
-        0.010200, 0.111000, 0.223000, 0.273000, 0.265000, 0.117000,
-        0.518000, 0.482000,
-        0.012500, 0.008900, 0.125000, 0.128000, 0.241000, 0.122000, 0.288000, 0.075100,
-        0.042800, 0.957000,
-        0.009700, 0.006600, 0.003400, 0.145000, 0.076800, 0.242000, 0.085900, 0.326000, 0.046300, 0.057900,
-        0.572000, 0.428000,
-        0.000900, 0.025500, 0.008900, 0.047400, 0.070700, 0.188000, 0.317000, 0.341000,
-        1.000000,
-        0.000950, 0.000890, 0.019100, 0.264000, 0.040700, 0.212000, 0.269000, 0.104000, 0.088600,
-        1.000000,
-        0.001100, 0.001000, 0.024200, 0.065900, 0.078500, 0.112000, 0.717000,
-        0.000890, 0.999000,
-        0.001860, 0.002510, 0.884000, 0.111000,
-        1.000000,
-        0.272000, 0.122000, 0.238000, 0.083000, 0.172000, 0.058000, 0.056000,
-
-        0.030800, 0.150000, 0.113000, 0.138000, 0.073700, 0.267000, 0.227000,
-        0.478000, 0.522000,
-        0.002000, 0.021800, 0.148000, 0.205000, 0.157000, 0.248000, 0.219000,
-        1.000000,
-        0.000560, 0.000950, 0.023300, 0.189000, 0.255000, 0.249000, 0.283000,
-        1.000000,
-        0.001390, 0.016000, 0.335000, 0.229000, 0.270000, 0.149000,
-        1.000000,
-        0.001260, 0.030200, 0.142000, 0.218000, 0.161000, 0.319000, 0.129000,
-        0.974000, 0.026000,
-        0.001600, 0.052600, 0.186000, 0.273000, 0.136000, 0.351000,
-        0.000120, 0.999880,
-        0.001200, 0.265000, 0.143000, 0.306000, 0.284000,
-        0.374000, 0.626000,
-        0.000200, 0.015900, 0.019600, 0.132000, 0.161000, 0.263000, 0.408000,
-        0.373000, 0.627000,
-        0.000120, 0.007820, 0.329000, 0.338000, 0.252000, 0.073600,
-        1.000000,
-        0.001500, 0.100000, 0.169000, 0.231000, 0.132000, 0.297000, 0.068200,
-        0.295000, 0.705000,
-        0.014000, 0.241000, 0.221000, 0.524000,
-        1.000000,
-
-
-
-
-
-
-        0.000200, 1.000000,
-
-        0.007200, 0.993000,
-
+        0.000000,                                                                                           // 0   Null element
+        0.999855, 0.000115,                                                                                 // 1   H
+        0.000002, 0.999998,                                                                                 // 2   He
+        0.048500, 0.951500,                                                                                 // 3   Li
+        1.000000,                                                                                           // 4   Be
+        0.199000, 0.801000,                                                                                 // 5   B
+        0.989000, 0.010600,                                                                                 // 6   C
+        0.996000, 0.003800,                                                                                 // 7   N
+        0.998000, 0.000384, 0.002050,                                                                       // 8   O
+        1.000000,                                                                                           // 9   F
+        0.905000, 0.002700, 0.092500,                                                                       // 10  Ne
+        1.000000,                                                                                           // 11  Na
+        0.790000, 0.100000, 0.110000,                                                                       // 12  Mg
+        1.000000,                                                                                           // 13  Al
+        0.922000, 0.046700, 0.030700,                                                                       // 14  Si
+        1.000000,                                                                                           // 15  P
+        0.094800, 0.007600, 0.043700, 0.000200,                                                             // 16  S
+        0.758000, 0.242000,                                                                                 // 17  Cl
+        0.003340, 0.000630, 0.996000,                                                                       // 18  Ar
+        0.933000, 0.000117, 0.067300,                                                                       // 19  K
+        0.969000, 0.006470, 0.001350, 0.020900, 0.000040, 0.0018700,                                        // 20  Ca
+        1.000000,                                                                                           // 21  Sc
+        0.082500, 0.074400, 0.737000, 0.054100, 0.051800,                                                   // 22  Ti
+        0.002500, 0.998000,                                                                                 // 23  V
+        0.043400, 0.838000, 0.095000, 0.023700,                                                             // 24  Cr
+        1.000000,                                                                                           // 25  Mn
+        0.058500, 0.918000, 0.021200, 0.002800,                                                             // 26  Fe
+        1.000000,                                                                                           // 27  Co
+        0.681000, 0.262000, 0.011400, 0.036300, 0.009260,                                                   // 28  Ni
+        0.692000, 0.309000,                                                                                 // 29  Cu
+        0.492000, 0.277000, 0.040400, 0.184000, 0.006100,                                                   // 30  Zn
+        0.601000, 0.399000,                                                                                 // 31  Ga
+        0.205000, 0.274000, 0.077600, 0.365000, 0.077500,                                                   // 32  Ge
+        1.000000,                                                                                           // 33  As
+        0.008600, 0.092300, 0.076000, 0.237000, 0.498000, 0.088200,                                         // 34  Se
+        0.506000, 0.494000,                                                                                 // 35  Br
+        0.003600, 0.022900, 0.116000, 0.115000, 0.570000, 0.173000,                                         // 36  Kr
+        0.722000, 0.278000,                                                                                 // 37  Rb
+        0.005600, 0.098600, 0.070000, 0.826000,                                                             // 38  Sr
+        1.000000,                                                                                           // 39  Y
+        0.515000, 0.112000, 0.171000, 0.174000, 0.028000,                                                   // 40  Zr
+        1.000000,                                                                                           // 41  Nb
+        0.147000, 0.091900, 0.159000, 0.167000, 0.095800, 0.243000, 0.097400,                               // 42  Mo
+                                                                                                            // 43  Tc
+        0.055400, 0.018700, 0.128000, 0.126000, 0.171000, 0.316000, 0.186000,                               // 44  Ru
+        1.000000,                                                                                           // 45  Rh
+        0.010200, 0.111000, 0.223000, 0.273000, 0.265000, 0.117000,                                         // 46  Pd
+        0.518000, 0.482000,                                                                                 // 47  Ag
+        0.012500, 0.008900, 0.125000, 0.128000, 0.241000, 0.122000, 0.288000, 0.075100,                     // 48  Cd
+        0.042800, 0.957000,                                                                                 // 49  In
+        0.009700, 0.006600, 0.003400, 0.145000, 0.076800, 0.242000, 0.085900, 0.326000, 0.046300, 0.057900, // 50  Sn
+        0.572000, 0.428000,                                                                                 // 51  Sb
+        0.000900, 0.025500, 0.008900, 0.047400, 0.070700, 0.188000, 0.317000, 0.341000,                     // 52  Te
+        1.000000,                                                                                           // 53  I
+        0.000950, 0.000890, 0.019100, 0.264000, 0.040700, 0.212000, 0.269000, 0.104000, 0.088600,           // 54  Xe
+        1.000000,                                                                                           // 55  Cs
+        0.001100, 0.001000, 0.024200, 0.065900, 0.078500, 0.112000, 0.717000,                               // 56  Ba
+        0.000890, 0.999000,                                                                                 // 57  La
+        0.001860, 0.002510, 0.884000, 0.111000,                                                             // 58  Ce
+        1.000000,                                                                                           // 59  Pr
+        0.272000, 0.122000, 0.238000, 0.083000, 0.172000, 0.058000, 0.056000,                               // 60  Nd
+                                                                                                            // 61  Pm
+        0.030800, 0.150000, 0.113000, 0.138000, 0.073700, 0.267000, 0.227000,                               // 62  Sm
+        0.478000, 0.522000,                                                                                 // 63  Eu
+        0.002000, 0.021800, 0.148000, 0.205000, 0.157000, 0.248000, 0.219000,                               // 64  Gd
+        1.000000,                                                                                           // 65  Tb
+        0.000560, 0.000950, 0.023300, 0.189000, 0.255000, 0.249000, 0.283000,                               // 66  Dy
+        1.000000,                                                                                           // 67  Ho
+        0.001390, 0.016000, 0.335000, 0.229000, 0.270000, 0.149000,                                         // 68  Er
+        1.000000,                                                                                           // 69  Tm
+        0.001260, 0.030200, 0.142000, 0.218000, 0.161000, 0.319000, 0.129000,                               // 70  Yb
+        0.974000, 0.026000,                                                                                 // 71  Lu
+        0.001600, 0.052600, 0.186000, 0.273000, 0.136000, 0.351000,                                         // 72  Hf
+        0.000120, 0.999880,                                                                                 // 73  Ta
+        0.001200, 0.265000, 0.143000, 0.306000, 0.284000,                                                   // 74  W
+        0.374000, 0.626000,                                                                                 // 75  Re
+        0.000200, 0.015900, 0.019600, 0.132000, 0.161000, 0.263000, 0.408000,                               // 76  Os
+        0.373000, 0.627000,                                                                                 // 77  Ir
+        0.000120, 0.007820, 0.329000, 0.338000, 0.252000, 0.073600,                                         // 78  Pt
+        1.000000,                                                                                           // 79  Au
+        0.001500, 0.100000, 0.169000, 0.231000, 0.132000, 0.297000, 0.068200,                               // 80  Hg
+        0.295000, 0.705000,                                                                                 // 81  Tl
+        0.014000, 0.241000, 0.221000, 0.524000,                                                             // 82  Pb
+        1.000000,                                                                                           // 83  Bi
+                                                                                                            // 84  Po
+                                                                                                            // 85  At
+                                                                                                            // 86  Rn
+                                                                                                            // 87  Fr
+                                                                                                            // 88  Ra
+                                                                                                            // 89  Ac
+        1.000000,                                                                                           // 90  Th
+                                                                                                            // 91  Pa
+        0.007200, 0.993000,                                                                                 // 92  U
+                                                                                                            // 93  Np
+                                                                                                            // 94  Pu
+                                                                                                            // 95  Am
+                                                                                                            // 96  Cm
+                                                                                                            // 97  Bk
+                                                                                                            // 98  Cf
+                                                                                                            // 99  Es
+                                                                                                            // 100 Fm
+                                                                                                            // 101 Md
+                                                                                                            // 102 No
+                                                                                                            // 103 Lr
+                                                                                                            // 104 Rf
+                                                                                                            // 105 Db
+                                                                                                            // 106 Sg
+                                                                                                            // 107 Bh
+                                                                                                            // 108 Hs
+                                                                                                            // 109 Mt
+                                                                                                            // 110 Ds
+                                                                                                            // 111 Rg
+                                                                                                            // 112 Cn
+                                                                                                            // 113 Nh
+                                                                                                            // 114 Fl
+                                                                                                            // 115 Mc
+                                                                                                            // 116 Lv
+                                                                                                            // 117 Ts
+                                                                                                            // 118 Og
     };
 
     std::uint8_t m_atomic_number;

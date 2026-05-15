@@ -406,7 +406,7 @@ public:
     operator()(double days_since_j2000) const noexcept
     {
         const double day_fraction = days_since_j2000 - std::floor(days_since_j2000);
-        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.rotation_angle(day_fraction));
+        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.body.rotation_angle(day_fraction));
     }
 };
 
@@ -481,7 +481,7 @@ private:
         constexpr auto chaining = la::Chaining::intrinsic;
         const auto rotation = la::RotationMatrix<double, 3>::composite_axes<Axis::z, Axis::y, chaining>(std::numbers::pi + longitude, -latitude);
 
-        const la::Vector<double, 3> translation = {0.0, -astro::earth.surface_speed(latitude), 0.0};
+        const la::Vector<double, 3> translation = {0.0, -astro::earth.body.surface_speed(latitude), 0.0};
 
         return la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(rotation, translation);
     }

@@ -190,6 +190,21 @@ struct OrbitalState
     }
 
     /**
+        @brief Mean anomaly of the body in radians, restricted to
+        \f$[-\pi,\pi]f$.
+
+        The mean anomaly \f$M\f$ of an elliptical orbit is an angle parameter
+        which evolves at a constant rate. It can be computed as the difference
+        of the mean longitude \f$L\f$ and the longitude of the periapsis
+        \f$\varpi\f$ of the orbit: \f$M = L - \varpi\f$.
+    */
+    [[nodiscard]] constexpr double
+    mean_anomaly_restricted() const noexcept
+    {
+        return std::remainder(mean_anomaly(), 2.0*std::numbers::pi);
+    }
+
+    /**
         @brief Eccentric anomaly of the body in radians.
 
         The eccentric anomaly \f$E\f$ of the body is determined from the mean
@@ -202,13 +217,10 @@ struct OrbitalState
     [[nodiscard]] double
     eccentric_anomaly() const noexcept
     {
-        const double ma = mean_anomaly();
-
-        // Mean anomaly to [-pi,pi]
-        const double ma_mod = std::remainder(ma, 2.0*std::numbers::pi);
+        const double ma = mean_anomaly_restricted();
 
         // Use absolute value to solve Kepler's equation.
-        const double ma_abs = std::fabs(ma_mod);
+        const double ma_abs = std::fabs(ma);
 
         // Initial guess:
         // Danby, J.M.A. The solution of Kepler's equation, III. Celestial
@@ -224,7 +236,7 @@ struct OrbitalState
         }
 
         // restrict eccentric anomaly to [0,2pi]
-        const double ea_mod = (ma_mod >= 0.0) ? ea : 2.0*std::numbers::pi - ea;
+        const double ea_mod = (ma >= 0.0) ? ea : 2.0*std::numbers::pi - ea;
 
         assert(0 <= ea_mod && ea_mod <= 2.0*std::numbers::pi);
         return ea_mod;
@@ -471,26 +483,12 @@ struct OblateSpheroid
     [[nodiscard]] constexpr bool operator==(const OblateSpheroid& other) const noexcept = default;
 };
 
-/**
-    @brief A planet specified by its orbit, shape and rate of rotation.
-
-    @tparam N Order of polynomial expansion for inclination.
-    @tparam M Order of polynomial expansion for longitude of the ascending node.
-    @tparam P Order of polynomial expansion for longitude of periapsis.
-    @tparam K Order of polynomial expansion for eccentricity.
-    @tparam L Order of polynomial expansion for mean longitude.
-
-    This structure describes a planet as a rotating oblate spheroid on a
-    perturbed elliptical orbit.
-*/
-template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
-struct Planet
+struct PlanetaryBody
 {
-    Orbit<N, M, P, K, L> orbit;
     OblateSpheroid spheroid;
     Polynomial<double, 1> rotation_angle;
 
-    [[nodiscard]] constexpr bool operator==(const Planet& other) const noexcept = default;
+    [[nodiscard]] constexpr bool operator==(const PlanetaryBody& other) const noexcept = default;
 
     /**
         @brief Speed of a point on the planet's surface relative to its center.
@@ -516,13 +514,35 @@ struct Planet
         const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
         const double pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
-        return ((1.0/86400.0)*rotation_angle.derivative()(0.0))*pvroc;
+        const double equatorial_speed = (1.0/86400.0)*rotation_angle.derivative()(0.0);
+        return equatorial_speed*pvroc*std::cos(latitude);
 
     }
 };
 
+/**
+    @brief A planet specified by its orbit, shape and rate of rotation.
+
+    @tparam N Order of polynomial expansion for inclination.
+    @tparam M Order of polynomial expansion for longitude of the ascending node.
+    @tparam P Order of polynomial expansion for longitude of periapsis.
+    @tparam K Order of polynomial expansion for eccentricity.
+    @tparam L Order of polynomial expansion for mean longitude.
+
+    This structure describes a planet as a rotating oblate spheroid on a
+    perturbed elliptical orbit.
+*/
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
-Planet(Orbit<N, M, P, K, L>, OblateSpheroid, Polynomial<double, 1>) -> Planet<N, M, P, K, L>;
+struct Planet
+{
+    Orbit<N, M, P, K, L> orbit;
+    PlanetaryBody body;
+
+    [[nodiscard]] constexpr bool operator==(const Planet& other) const noexcept = default;
+};
+
+template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
+Planet(Orbit<N, M, P, K, L>, PlanetaryBody) -> Planet<N, M, P, K, L>;
 
 /**
     @brief Orientation parameters of the galactic coordinate system according
@@ -607,11 +627,13 @@ static constexpr Planet earth = {
         },
         .epoch = time::j2000_utc
     },
-    .spheroid = OblateSpheroid{
-        .flattening = 3.352819697896193e-03,
-        .equatorial_radius = 6.3781366e+03,
-    },
-    .rotation_angle = Polynomial{4.894961212823756, 0.01720217957524373}
+    .body = PlanetaryBody{
+        .spheroid = OblateSpheroid{
+            .flattening = 3.352819697896193e-03,
+            .equatorial_radius = 6.3781366e+03,
+        },
+        .rotation_angle = Polynomial{4.894961212823756, 0.01720217957524373}
+    }
 };
 /**
     @brief X and Y coordinates of the celestial intermediate pole.

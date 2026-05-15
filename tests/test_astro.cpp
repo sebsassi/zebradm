@@ -141,6 +141,76 @@ bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
     return is_close(orbital_plane_z, true_orbital_plane_z, error);
 }
 
+bool test_mean_anomaly_vanishes_for_zeros()
+{
+    return zdm::astro::OrbitalState{}.mean_anomaly() == 0.0;
+}
+
+bool test_eccentric_anomaly_vanishes_for_zeros()
+{
+    return zdm::astro::OrbitalState{}.eccentric_anomaly() == 0.0;
+}
+
+bool test_eccentric_anomaly_is_mean_anomaly_for_zero_eccentricity(
+    double mean_longitude, double longitude_of_periapsis, double error)
+{
+    const zdm::astro::OrbitalState state = {
+        .orientation = {
+            .inclination = 0.0,
+            .longitude_of_the_ascending_node = 0.0,
+            .longitude_of_periapsis = longitude_of_periapsis
+        },
+        .position = {
+            .eccentricity = 0.0,
+            .semi_major_axis = 0.0,
+            .mean_longitude = mean_longitude,
+            .mean_motion = 0.0
+        }
+    };
+
+    const double ma = state.mean_anomaly_restricted();
+    const double ma_2pi = (ma >= 0.0) ? ma : ma + 2.0*std::numbers::pi;
+
+    return is_close(ma_2pi, state.eccentric_anomaly(), error);
+}
+
+bool test_keplers_equation_holds_for_eccentric_anomaly(
+    double longitude_of_periapsis, double eccentricity, double mean_longitude,
+    double error)
+{
+    const zdm::astro::OrbitalState state = {
+        .orientation = {
+            .inclination = 0.0,
+            .longitude_of_the_ascending_node = 0.0,
+            .longitude_of_periapsis = longitude_of_periapsis
+        },
+        .position = {
+            .eccentricity = eccentricity,
+            .semi_major_axis = 0.0,
+            .mean_longitude = mean_longitude,
+            .mean_motion = 0.0,
+        }
+    };
+    const double ea = state.eccentric_anomaly();
+    const double ma = state.mean_anomaly_restricted();
+    const double ma_2pi = (ma >= 0.0) ? ma : ma + 2.0*std::numbers::pi;
+
+    return is_close(ma_2pi, ea - eccentricity*std::sin(ea), error);
+}
+
+bool test_planet_surface_speed_at_north_pole_is_zero(double angular_speed, double error)
+{
+    const zdm::astro::PlanetaryBody body = {
+        .spheroid = {
+            .flattening = 1.4,
+            .equatorial_radius = 1.0
+        },
+        .rotation_angle = {0.0, angular_speed}
+    };
+
+    return is_close(0.0, body.surface_speed(0.5*std::numbers::pi), error);
+}
+
 } // namespace
 
 int main()
@@ -192,4 +262,13 @@ int main()
         zdm::astro::OrbitOrientation{0.0, 1.5, 2.3}, 1.0e-15));
     assert(test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
         zdm::astro::OrbitOrientation{0.4, 1.5, 2.3}, 1.0e-15));
+
+    assert(test_mean_anomaly_vanishes_for_zeros());
+    assert(test_eccentric_anomaly_vanishes_for_zeros());
+
+    assert(test_eccentric_anomaly_is_mean_anomaly_for_zero_eccentricity(2.3, 2.1, 1.0e-15));
+    assert(test_keplers_equation_holds_for_eccentric_anomaly(0.0, 0.3, 0.0, 1.0e-15));
+    assert(test_keplers_equation_holds_for_eccentric_anomaly(2.3, 0.3, 2.1, 1.0e-15));
+
+    assert(test_planet_surface_speed_at_north_pole_is_zero(2.2, 1.0e-15));
 }
