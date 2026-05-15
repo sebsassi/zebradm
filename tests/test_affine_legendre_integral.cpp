@@ -29,6 +29,9 @@ SOFTWARE.
 
 #include <zebradm/affine_legendre_integral.hpp>
 
+namespace
+{
+
 constexpr bool is_close(double a, double b, double tol)
 {
     return std::fabs(a - b) < tol*0.5*std::fabs(a + b) + tol;
@@ -189,15 +192,15 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     const double half_width = 0.5*(b - a);
     const double mid_point = 0.5*(b + a);
 
-    for (std::size_t i = 0; i < glq_nodes.size(); ++i)
-        glq_nodes[i] = half_width*glq_nodes[i] + mid_point;
+    for (double & glq_node : glq_nodes)
+        glq_node = half_width*glq_node + mid_point;
 
     zest::DynamicMDArray<double, 2> legendre{last_extent, glq_weights.size()};
     if (scale > shift - 1.0)
         zdm::zebra::legendre_recursion_vec(legendre, glq_nodes);
 
-    for (std::size_t i = 0; i < glq_nodes.size(); ++i)
-        glq_nodes[i] = shift + scale*glq_nodes[i];
+    for (double & glq_node : glq_nodes)
+        glq_node = shift + scale*glq_node;
 
     zest::DynamicMDArray<double, 2> affine_legendre{order, glq_weights.size()};
     if (scale > shift - 1.0)
@@ -248,6 +251,8 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
 
     return success;
 }
+
+} // namespace
 
 int main()
 {

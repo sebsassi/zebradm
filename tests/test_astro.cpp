@@ -24,6 +24,9 @@ SOFTWARE.
 
 #include <zebradm/astro.hpp>
 
+namespace
+{
+
 bool is_close(double a, double b, double error)
 {
     return std::abs(a - b) < error;
@@ -67,7 +70,9 @@ bool test_gcs_to_icrs_maps_x_approximately_to_sag_a_star_pos(double error)
     // OUP, pp. 472–481, 2017. doi:10.1093/mnras/stw2772.
     const double sag_a_star_offset = -std::atan2(17.0, 8200.0);
 
-    const zdm::la::Vector approximate_sag_a_star_pos = zdm::astro::orientation_km_2017.gcs_to_reference_cs()*zdm::la::Vector{std::cos(sag_a_star_offset), 0.0, std::sin(sag_a_star_offset)};
+    const zdm::la::Vector approximate_sag_a_star_pos
+        = zdm::astro::orientation_km_2017.gcs_to_reference_cs()
+            *zdm::la::Vector{std::cos(sag_a_star_offset), 0.0, std::sin(sag_a_star_offset)};
 
     // Sagittarius A* position from Reid and Brunthaler (2004):
     // Reid, M. J. and Brunthaler, A., “The Proper Motion of Sagittarius A*.
@@ -91,11 +96,17 @@ bool test_gcs_to_icrs_maps_x_approximately_to_sag_a_star_pos(double error)
 bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_x(
     const zdm::astro::OrbitOrientation& orientation, double error)
 {
-    const zdm::la::Vector orbital_plane_x = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{1.0, 0.0, 0.0};
-    const double argument_of_periapsis = orientation.longitude_of_periapsis - orientation.longitude_of_the_ascending_node;
+    const zdm::la::Vector orbital_plane_x
+        = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{1.0, 0.0, 0.0};
+    const double argument_of_periapsis
+        = orientation.longitude_of_periapsis - orientation.longitude_of_the_ascending_node;
     const zdm::la::Vector true_orbital_plane_x = {
-        std::cos(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis) - std::sin(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
-        std::sin(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis) + std::cos(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
+        + std::cos(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis)
+        - std::sin(orientation.longitude_of_the_ascending_node)
+            *std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
+        + std::sin(orientation.longitude_of_the_ascending_node)*std::cos(argument_of_periapsis)
+        + std::cos(orientation.longitude_of_the_ascending_node)
+            *std::cos(orientation.inclination)*std::sin(argument_of_periapsis),
         std::sin(orientation.inclination)*std::sin(argument_of_periapsis)
     };
     return is_close(orbital_plane_x, true_orbital_plane_x, error);
@@ -107,8 +118,12 @@ bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_y(
     const zdm::la::Vector orbital_plane_y = orientation.orbital_plane_to_reference_cs()*zdm::la::Vector{0.0, 1.0, 0.0};
     const double argument_of_periapsis = orientation.longitude_of_periapsis - orientation.longitude_of_the_ascending_node;
     const zdm::la::Vector true_orbital_plane_y = {
-       -std::cos(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis) - std::sin(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
-       -std::sin(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis) + std::cos(orientation.longitude_of_the_ascending_node)*std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
+        - std::cos(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis)
+        - std::sin(orientation.longitude_of_the_ascending_node)
+            *std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
+        - std::sin(orientation.longitude_of_the_ascending_node)*std::sin(argument_of_periapsis)
+        + std::cos(orientation.longitude_of_the_ascending_node)
+            *std::cos(orientation.inclination)*std::cos(argument_of_periapsis),
         std::sin(orientation.inclination)*std::cos(argument_of_periapsis)
     };
     return is_close(orbital_plane_y, true_orbital_plane_y, error);
@@ -125,6 +140,8 @@ bool test_orbital_plane_to_reference_cs_gives_nearly_correct_orbital_plane_z(
     };
     return is_close(orbital_plane_z, true_orbital_plane_z, error);
 }
+
+} // namespace
 
 int main()
 {

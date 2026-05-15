@@ -27,6 +27,9 @@ SOFTWARE.
 #include <zebradm/matrix.hpp>
 #include <zebradm/vector.hpp>
 
+namespace
+{
+
 bool is_close(double a, double b, double error)
 {
     return std::abs(a - b) < error;
@@ -383,12 +386,6 @@ bool test_active_rotation_matrix_3x3_coordinate_axis_z_angle_90_nearly_maps_pxpy
     const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::active, layout>::template coordinate_axis<zdm::Axis::z>(0.5*std::numbers::pi);
     const zdm::la::Vector<double, 3> v = {1.0, 2.0, 3.0};
     return is_close(zdm::la::matmul(r, v), zdm::la::Vector<double, 3>{-2.0, 1.0, 3.0}, error);
-}
-
-bool test_passive_rotation_matrix_3x3_coordinate_axis_x_is_nearly_orthogonal(double error)
-{
-    const auto r = zdm::la::RotationMatrix<double, 3, zdm::la::Action::passive>::template coordinate_axis<zdm::Axis::x>(1.3);
-    return is_nearly_orthogonal(r, error);
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
@@ -1899,6 +1896,8 @@ void action_linalg_tests()
     assert((test_rotation_matrix_3x3_product_axes_zxy_nearly_equals_axis_z_axis_x_and_axis_y<action, layout>(1.0e-15)));
     assert((test_rotation_matrix_3x3_product_axes_zyx_nearly_equals_axis_z_axis_y_and_axis_x<action, layout>(1.0e-15)));
 }
+
+} // namespace
 
 int main()
 {

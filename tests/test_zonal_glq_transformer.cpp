@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,7 +19,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+
+#include <print>
+
 #include <zebradm/zonal_glq_transformer.hpp>
+
+namespace
+{
 
 constexpr bool is_close(double a, double b, double tol)
 {
@@ -50,24 +56,20 @@ bool test_zonal_glq_forward_transform_expands_Y00(std::size_t order)
     {
         if (l == 0)
         {
-            if (is_close(expansion[l], reference_coeff, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], reference_coeff, tol))
+                success = false;
         }
         else
         {
-            if (is_close(expansion[l], 0.0, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], 0.0, tol))
+                success = false;
         }
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -81,7 +83,7 @@ bool test_zonal_glq_forward_transform_expands_Y10(std::size_t order)
 
         constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
-        return shnorm*std::sqrt(3.0)*z;
+        return shnorm*std::numbers::sqrt3*z;
     };
     
     zdm::zebra::ZonalGLQTransformer<sh_norm_param, GridLayout> transformer(order);
@@ -98,24 +100,20 @@ bool test_zonal_glq_forward_transform_expands_Y10(std::size_t order)
     {
         if (l == 1)
         {
-            if (is_close(expansion[l], reference_coeff, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], reference_coeff, tol))
+                success = false;
         }
         else
         {
-            if (is_close(expansion[l], 0.0, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], 0.0, tol))
+                success = false;
         }
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -146,24 +144,20 @@ bool test_zonal_glq_forward_transform_expands_Y20(std::size_t order)
     {
         if (l == 2)
         {
-            if (is_close(expansion[l], reference_coeff, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], reference_coeff, tol))
+                success = false;
         }
         else
         {
-            if (is_close(expansion[l], 0.0, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], 0.0, tol))
+                success = false;
         }
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -190,16 +184,14 @@ bool test_zonal_glq_forward_transform_expands_Y21(std::size_t order)
     bool success = true;
     for (std::size_t l = 0; l < expansion.size(); ++l)
     {
-        if (is_close(expansion[l], 0.0, tol))
-            success = success && true;
-        else
-            success = success && false;
+        if (!is_close(expansion[l], 0.0, tol))
+            success = false;
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -230,24 +222,20 @@ bool test_zonal_glq_forward_transform_expands_Y30(std::size_t order)
     {
         if (l == 3)
         {
-            if (is_close(expansion[l], reference_coeff, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], reference_coeff, tol))
+                success = false;
         }
         else
         {
-            if (is_close(expansion[l], 0.0, tol))
-                success = success && true;
-            else
-                success = success && false;
+            if (!is_close(expansion[l], 0.0, tol))
+                success = false;
         }
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -274,16 +262,14 @@ bool test_zonal_glq_forward_transform_expands_Y31(std::size_t order)
     bool success = true;
     for (std::size_t l = 0; l < expansion.size(); ++l)
     {
-        if (is_close(expansion[l], 0.0, tol))
-            success = success && true;
-        else
-            success = success && false;
+        if (!is_close(expansion[l], 0.0, tol))
+            success = false;
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -310,16 +296,14 @@ bool test_zonal_glq_forward_transform_expands_Y4m3(std::size_t order)
     bool success = true;
     for (std::size_t l = 0; l < expansion.size(); ++l)
     {
-        if (is_close(expansion[l], 0.0, tol))
-            success = success && true;
-        else
-            success = success && false;
+        if (!is_close(expansion[l], 0.0, tol))
+            success = false;
     }
 
     if (!success)
     {
         for (std::size_t l = 0; l < order; ++l)
-                std::printf("%lu %f\n", l, expansion[l]);
+            std::println("{} {:.16e}", l, expansion[l]);
     }
     return success;
 }
@@ -336,6 +320,8 @@ void test_glq(std::size_t order)
     assert((test_zonal_glq_forward_transform_expands_Y31<GridLayout, sh_norm_param>(order)));
     assert((test_zonal_glq_forward_transform_expands_Y4m3<GridLayout, sh_norm_param>(order)));
 }
+
+} // namespace
 
 int main()
 {

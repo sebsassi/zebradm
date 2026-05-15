@@ -26,6 +26,9 @@ SOFTWARE.
 
 using namespace std::literals;
 
+namespace
+{
+
 void test_leap_year()
 {
     assert(zdm::time::is_leap_year(0) == true);
@@ -81,7 +84,9 @@ void test_day_of_year()
     assert(zdm::time::day_of_year(2000, 1, 1) == 1);
 }
 
-bool month_of_year_gives_correct_month_and_day_of_month_for(std::int32_t year, std::uint32_t day_of_year, std::uint32_t real_month, std::uint32_t real_day_of_month)
+bool month_of_year_gives_correct_month_and_day_of_month_for(
+    std::int32_t year, std::uint32_t day_of_year, std::uint32_t real_month,
+    std::uint32_t real_day_of_month)
 {
     const auto& [month, day_of_month] = zdm::time::month_of_year(year, day_of_year);
     return month == real_month && day_of_month == real_day_of_month;
@@ -198,7 +203,9 @@ void test_time_comparison_operations()
     assert((zdm::time::DateTime{2000, 1, 1, 0, 0, 1, 0} > zdm::time::DateTime{2000, 1, 1, 0, 0, 0, 0}));
 }
 
-bool test_time_add_time_zone_offset_gives_correct_time(zdm::time::DateTime time, zdm::time::TimeZoneOffset offset, zdm::time::DateTime offset_time)
+bool test_time_add_time_zone_offset_gives_correct_time(
+    zdm::time::DateTime time, zdm::time::TimeZoneOffset offset,
+    zdm::time::DateTime offset_time)
 {
     return time.add(offset) == offset_time;
 }
@@ -220,7 +227,8 @@ void test_find_next_non_whitespace()
     assert(zdm::time::detail::find_next_non_whitespace(" \f\n\r\t\vhello"sv) == "hello"sv);
 }
 
-bool test_parse_unsigned_gives_correct_result(std::string_view input, std::uint64_t expected_number, std::string_view expected_output)
+bool test_parse_unsigned_gives_correct_result(
+    std::string_view input, std::uint64_t expected_number, std::string_view expected_output)
 {
     const auto result = zdm::time::detail::parse_unsigned(input);
     if (!result.has_value()) return false;
@@ -241,7 +249,8 @@ void test_parse_unsigned()
     assert(test_parse_unsigned_gives_correct_result("237489 hello"sv, 237489, " hello"sv));
 }
 
-bool test_parse_signed_gives_correct_result(std::string_view input, std::int64_t expected_number, std::string_view expected_output)
+bool test_parse_signed_gives_correct_result(
+    std::string_view input, std::int64_t expected_number, std::string_view expected_output)
 {
     const auto result = zdm::time::detail::parse_signed(input);
     if (!result.has_value()) return false;
@@ -263,7 +272,9 @@ void test_parse_signed()
     assert(test_parse_signed_gives_correct_result("-237489 a", -237489, " a"sv));
 }
 
-bool test_parse_time_zone_offset_gives_correct_result(std::string_view input, zdm::time::TimeZoneOffset expected_offset, std::string_view expected_output)
+bool test_parse_time_zone_offset_gives_correct_result(
+    std::string_view input, zdm::time::TimeZoneOffset expected_offset,
+    std::string_view expected_output)
 {
     const auto result = zdm::time::detail::parse_time_zone_offset(input);
     if (!result.has_value()) return false;
@@ -289,7 +300,9 @@ void test_parse_time_zone_offset()
     assert(test_parse_time_zone_offset_gives_correct_result("+12:00hello"sv, zdm::time::TimeZoneOffset{+1, 12, 0}, "hello"sv));
 }
 
-bool test_parse_time_is_correct(std::string_view time_string, std::string_view format, zdm::time::DateTime expected_time, std::string_view expected_output)
+bool test_parse_time_is_correct(
+    std::string_view time_string, std::string_view format, zdm::time::DateTime expected_time,
+    std::string_view expected_output)
 {
     const auto result = zdm::time::parse_date_time(time_string, format);
     if (!result.has_value()) return false;
@@ -510,6 +523,8 @@ void test_parse_date_time()
 
     assert(test_parse_time_is_correct("June 11, 2005 was a nice day"sv, "%b %e, %Y"sv, zdm::time::DateTime{2005, 6, 11, 0, 0, 0, 0}, " was a nice day"sv));
 }
+
+} // namespace
 
 int main()
 {

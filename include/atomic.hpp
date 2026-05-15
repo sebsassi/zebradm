@@ -117,7 +117,7 @@ public:
 
     constexpr Isotope() = default;
 
-    constexpr Isotope(std::uint16_t atomic_number, std::uint16_t mass_number):
+    constexpr Isotope(std::uint8_t atomic_number, std::uint16_t mass_number):
         m_mass_number(mass_number), m_atomic_number(atomic_number) {}
 
     [[nodiscard]] constexpr double

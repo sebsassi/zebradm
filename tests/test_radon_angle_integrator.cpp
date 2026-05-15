@@ -20,9 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <print>
+
 #include <zest/md_array.hpp>
 
 #include <zebradm/radon_integrator.hpp>
+
+namespace
+{
 
 double angle_integrated_radon_shm(
     const zdm::la::Vector<double, 3>& offset, double shell, double disp_speed)
@@ -32,10 +37,10 @@ double angle_integrated_radon_shm(
     const double erf_part
         = std::erf(std::min(1.0,shell + offset_len)/disp_speed)
         - std::erf((shell - offset_len)/disp_speed);
-    
+
     const double exp_prefactor
         = (1.0 + offset_len - std::max(1.0 - offset_len, shell));
-    
+
     const double inv_disp = 1.0/disp_speed;
     const double prefactor = std::numbers::pi*disp_speed*disp_speed/offset_len;
 
@@ -75,26 +80,27 @@ void test_radon_integrator_is_accurate_for_shm()
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(shm_dist, offsets, shells, 0.0, 1.0e-9, shm_test);
 
-    std::printf("reference\n");
+    std::println("reference");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_reference[i, j]);
+            std::print("{:.16e} ", shm_reference[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
+    std::println("");
 
-    std::printf("\ntest\n");
+    std::println("test");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_test[i, j]);
+            std::print("{:.16e} ", shm_test[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
 
 void test_radon_integrator_resp_is_accurate_for_shm()
@@ -139,27 +145,30 @@ void test_radon_integrator_resp_is_accurate_for_shm()
     integrator.integrate(
             shm_dist, resp, offsets, rotation_angles, shells, 0.0, 1.0e-9, shm_test);
 
-    std::printf("reference\n");
+    std::println("reference");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_reference[i, j]);
+            std::print("{:.16e} ", shm_reference[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
+    std::println("");
 
-    std::printf("\ntest\n");
+    std::println("test");
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            std::printf("%.16e ", shm_test[i, j]);
+            std::print("{:.16e} ", shm_test[i, j]);
         }
-        std::printf("\n");
+        std::println("");
     }
-    std::printf("\n");
+    std::println("");
 }
+
+} // namespace
 
 int main()
 {
