@@ -87,15 +87,33 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-find_package(cubage CONFIG)
-if((NOT cubage_FOUND) AND (BUILD_BENCHMARKS OR BUILD_TESTING))
-    message(FATAL_ERROR "cubage not found: benchmarks or tests cannot be built without cubage")
+if(NOT USE_ZEST_DEV_BRANCH)
+    set(ZEST_GIT_TAG origin/master)
 else()
+    set(ZEST_GIT_TAG origin/dev)
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    zest
+    GIT_REPOSITORY https://github.com/sebsassi/zest.git
+    GIT_TAG ${ZEST_TAG}
+    FIND_PACKAGE_ARGS NAMES zest
+)
+FetchContent_MakeAvailable(zest)
+target_link_libraries(zebradm PUBLIC zest::zest)
+
+if(BUILD_BENCHMARKS OR BUILD_TESTING)
+    FetchContent_Declare(
+        cubage
+        GIT_REPOSITORY https://github.com/sebsassi/cubage.git
+        GIT_TAG origin/master
+        FIND_PACKAGE_ARGS NAMES cubage
+    )
+    FetchContent_MakeAvailable(cubage)
     target_link_libraries(zebradm PUBLIC cubage::cubage)
 endif()
 
-find_package(zest CONFIG REQUIRED)
-target_link_libraries(zebradm PUBLIC zest::zest)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     enable_testing()
