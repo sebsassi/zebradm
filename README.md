@@ -28,16 +28,17 @@ other basic utilities. This library acts as a reference implementation for these
 ## Build and installation
 
 This library depends on two other libraries:
-- [zest](https://github.com/sebsassi/zest) (REQUIRED) is a companion library, which provides
+- [zest](https://github.com/sebsassi/zest) is a companion library, which provides
 utilities for performing Zernike and spherical harmonic transforms.
-- [cubage](https://github.com/sebsassi/cubage) (OPTIONAL) provides capabilities for
+- [cubage](https://github.com/sebsassi/cubage) provides capabilities for
 multidimensional numerical integration. This library is only used by the numerical integration
-implementation of the Radon transforms, which are implemented for comparison. If you don't plan on
-building the included benchmarks, you likely have no need for this.
+implementation of the Radon transforms, which are implemented for comparison.
 
-This library uses CMake for its build/install process. Therefore, provided you have the required
-dependencies installed, the following three commands configure, build, and install the project to
-your preferred install directory
+These dependencies are automatically installed by CMake when needed. The library `cubage` is
+installed only if either benchmaks or tests are built.
+
+This library uses CMake for its build/install process. The following three commands configure,
+build, and install the project to your preferred install directory
 ```bash
 cmake --preset=default
 cmake --build build
