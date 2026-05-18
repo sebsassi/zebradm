@@ -39,7 +39,7 @@ namespace detail
 {
 
 template <typename T, typename ValueType>
-concept noop_transform = parametric_transform_on<T, ValueType, void>;
+    concept noop_transform = parametric_transform_on<T, ValueType, la::Identity>;
 
 template <typename T, typename ValueType, typename... TransformTypes>
 concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, TransformTypes> || ...);
@@ -118,7 +118,9 @@ concept celestial_coordinate_transform
 template <
     la::Chaining chaining,
     std::floating_point T, std::size_t N,
-    parametric_rigid_transform<la::RigidTransform<T, N>>... Types>
+    parametric_rigid_transform<la::RigidTransform<T, N>>... Types
+>
+    requires (sizeof...(Types) > 0)
 class Composite
 {
 public:
@@ -138,15 +140,12 @@ public:
     [[nodiscard]] rigid_transform_type
     operator()(const rigid_transform_type::value_type& parameter) const noexcept
     {
-        return std::apply([&](Types... transforms)
+        return [&]<std::size_t... I>(std::index_sequence<I...>)
         {
-            auto res = rigid_transform_type::identity();
-            ([&]{
-                if constexpr (!detail::noop_transform<Types, typename rigid_transform_type::value_type>)
-                    res = la::compose<chaining>(res, transforms(parameter));
-            }(), ...);
+            auto res = rigid_transform_type(std::get<0>(m_transforms)(parameter));
+            ([&](){ res = la::compose<chaining>(res, std::get<I + 1>(m_transforms)(parameter)); }(),...);
             return res;
-        }, m_transforms);
+        }(std::make_index_sequence<sizeof...(Types) - 1>());
     }
 
 private:
@@ -434,7 +433,7 @@ public:
     /**
         @brief A void returning call operator that does nothing.
     */
-    constexpr void operator()([[maybe_unused]] double days_since_j2000) const noexcept {}
+    constexpr la::Identity operator()([[maybe_unused]] double days_since_j2000) const noexcept { return {}; }
 };
 
 /**

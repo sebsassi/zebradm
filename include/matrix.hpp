@@ -33,7 +33,24 @@ namespace zdm::la
 {
 
 /**
-    @brief Enum for specifying matrix layout.
+    @brief Enum for specifying the memory layout of a matrix.
+
+    This enum denotes the linear layout of a matrix in memory. Given a matrix
+    \f[
+        \begin{pmatrix}
+            A_{11} & A_{12} & A_{13}\\
+            A_{21} & A_{22} & A_{23}\\
+            A_{31} & A_{32} & A_{33}
+        \end{pmatrix},
+    \f]
+    in row-major order it is stored in memory as
+    \f[
+        A_{11}, A_{12}, A_{13}, A_{21}, A_{22}, A_{23}, A_{31}, A_{32}, A_{33},
+    \f]
+    and in column-major order as
+    \f[
+        A_{11}, A_{21}, A_{31}, A_{12}, A_{22}, A_{32}, A_{13}. A_{23}, A_{33}.
+    \f]
 */
 enum class MatrixLayout
 {
@@ -47,7 +64,7 @@ enum class MatrixLayout
     Transformations can either transform the target object (e.g. a vector), or
     they can transform the coordinate system in which the target object is
     defined. In the former case, the transformation is called active, while
-    in the latter case it is called active.
+    in the latter case it is called passive.
 */
 enum class Action
 {
@@ -102,6 +119,35 @@ enum class TaitBryanConvention
 };
 
 /**
+    @brief A type representing an identity operator.
+*/
+struct Identity
+{
+    template <typename T>
+    [[nodiscard]] static constexpr T operator()(T v) { return v; }
+
+    [[nodiscard]] static constexpr Identity inverse() { return Identity{}; }
+};
+
+template <Chaining chaining>
+[[nodiscard]] constexpr Identity compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2)
+{
+    return {};
+}
+
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose([[maybe_unused]] Identity id, T op)
+{
+    return op;
+}
+
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose(T op, [[maybe_unused]] Identity id)
+{
+    return op;
+}
+
+/**
     @brief A general matrix type.
 
     @tparam T Type of matrix elements.
@@ -135,6 +181,8 @@ struct Matrix
 
     /**
         @brief Create an identity matrix.
+
+        @return \f$N\times N\f$ identity matrix.
 
         @note This function is only defined for square matrices.
     */
@@ -309,7 +357,28 @@ public:
     /**
         @brief Create a \f$2\times2\f$ rotation matrix from a rotaton angle.
 
-        @param angle Rotation angle.
+        @param angle Rotation angle \f$\theta\f$.
+
+        @return \f$2\times 2\f$ rotation matrix \f$R(\theta)\f$.
+
+        The resulting rotation matrix \f$R(\theta)\f$ depends on the chosen
+        action convention of the matrix. For active rotations we have
+        \f[
+            R(\theta) =
+            \begin{matrix}
+                \cos\theta & -\sin\theta \\
+                \sin\theta & \cos\theta
+            \end{pmatrix}
+        \f]
+        For passive rotations
+        \f[
+            R(\theta) =
+            \begin{matrix}
+                \cos\theta & \sin\theta \\
+                -\sin\theta & \cos\theta
+            \end{pmatrix}
+        \f]
+
     */
     [[nodiscard]] static constexpr RotationMatrix
     from_angle(T angle) noexcept requires (N == 2)
@@ -337,6 +406,53 @@ public:
         @tparam axis Coordinate axis.
 
         @param angle Rotation angle.
+
+        @return \f$3\times 3\f$ rotation matrix \f$R_i(\theta)\f$, where \f$i =
+        x, y, z\f$.
+
+        The resulting rotation matrix depends on the chosen action convention.
+        For active rotations we have
+        \f[
+            R_x(\theta) =
+            \begin{pmatrix}
+                1 & 0          & 0           \\
+                0 & \cos\theta & -\sin\theta \\
+                0 & \sin\theta & \cos\theta
+            \end{pmatrix},\quad
+            R_y(\theta) =
+            \begin{pmatrix}
+                \cos\theta  & 0 & \sin\theta \\
+                0           & 1 & 0          \\
+                -\sin\theta & 0 & \cos\theta
+            \end{pmatrix},\quad
+            R_z(\theta) =
+            \begin{pmatrix}
+                \cos\theta & -\sin\theta & 0 \\
+                \sin\theta & \cos\theta  & 0 \\
+                0          & 0           & 1
+            \end{pmatrix}.
+        \f]
+        For poassive rotations
+        \f[
+            R_x(\theta) =
+            \begin{pmatrix}
+                1 & 0           & 0           \\
+                0 & \cos\theta  & \sin\theta  \\
+                0 & -\sin\theta & \cos\theta
+            \end{pmatrix},\quad
+            R_y(\theta) =
+            \begin{pmatrix}
+                \cos\theta & 0 & -\sin\theta \\
+                0          & 1 & 0           \\
+                \sin\theta & 0 & \cos\theta
+            \end{pmatrix},\quad
+            R_z(\theta) =
+            \begin{pmatrix}
+                \cos\theta  & \sin\theta & 0 \\
+                -\sin\theta & \cos\theta & 0 \\
+                0           & 0          & 1
+            \end{pmatrix}.
+        \f]
     */
     template <Axis axis>
     [[nodiscard]] static constexpr RotationMatrix
@@ -354,8 +470,23 @@ public:
         @brief Create a \f$3\times3\f$ rotation matrix from a rotaton axis and
         a rotation angle around that axis.
 
-        @param axis Rotation axis.
-        @param angle Rotation angle.
+        @param axis Rotation axis \f$\hat{n}\f$.
+        @param angle Rotation angle \f$\theta\f$.
+
+        @return \f$3\times 3\f$ rotation matrix \f$R_{\hat{n}}(\theta)\f$.
+
+        This method gives a rotation matrix presented in the axis-angle
+        convention. If we denote by $K(\hat{n})$ the cross product matrix of
+        the axis \f$\hat{n}\f$, that is, $K(\hat{n})\vec{v} =
+        \hat{n}\times\vec{v}$, then the matrix representing an active rotation
+        is given by
+        \f[
+            R_{\hat{n}} = I - K\sin\theta + K^2(1 - \cos\theta),
+        \f]
+        and the matrix representing a passive rotation is given by
+        \f[
+            R_{\hat{n}} = I + K\sin\theta + K^2(1 - \cos\theta).
+        \f]
     */
     [[nodiscard]] static constexpr RotationMatrix
     axis(std::array<T, 3> axis, T angle) noexcept requires (N == 3)
@@ -439,7 +570,15 @@ public:
         \f[
             R_i(\alpha)\circ R_j(\beta),
         \f]
-        where \f$i,j = X,Y,Z\f$ denotes coordinate axis.
+        where \f$i,j = X,Y,Z\f$ denotes coordinate axis. Note that the order
+        of matrix multiplication this composition corresponds to depends on
+        the chosen composition convention (intrinsic vs. extrinsic), as well as
+        on the action convention (active vs. passive) of the matrix. Namely,
+        the multiplication orders are given by the following table
+
+                | intrinsic                   | extrinsic
+        active  | \f$R_i(\alpha)R_j(\beta)\f$ | \f$R_j(\beta)R_i(\alpha)\f$
+        passive | \f$R_j(\beta)R_i(\alpha)\f$ | \f$R_i(\alpha)R_j(\beta)\f$
     */
     template <Axis axis_alpha, Axis axis_beta, Chaining chaining>
     [[nodiscard]] static constexpr RotationMatrix
@@ -451,8 +590,8 @@ public:
         // follows
         //      extrinsic, active: `R_j(beta)R_i(alpha)`
         //      extrinsic, passive: `R_i(alpha)R_j(beta)`
-        //      intrinsic, active: `R_j(beta)R_i(alpha)`
-        //      intrinsic, passive: `R_i(alpha)R_j(beta)`
+        //      intrinsic, active: `R_i(alpha)R_j(beta)`
+        //      intrinsic, passive: `R_j(beta)R_i(alpha)`
         // where `R` is the respective active/passive rotation matrix.
         constexpr bool commute
             = ((chaining == Chaining::extrinsic && action == Action::active)
@@ -695,6 +834,8 @@ public:
 
     /**
         @brief Inverse of the transform.
+
+        @return The transposed rotation matrix \f$R^\mathsf{T}\f$.
     */
     [[nodiscard]] constexpr RotationMatrix
     inverse() const noexcept
@@ -1236,6 +1377,33 @@ private:
     Matrix<T, N, N, action, layout> m_matrix;
 };
 
+/*
+    @brief Composition of two rotations.
+
+    @tparam chaining Transformation chaining conventioin (intrinsic vs.
+    extrinsic).
+    @tparam T Value type of the rotation matrix.
+    @tparam N Dimension of the rotation matrix.
+    @tparam action Matrix action convention.
+    @tparam matrix_layout Matrix layout convention.
+
+    @param a First rotation matrix \f$R_a\f$.
+    @param b Second rotation matrix \f$R_b\f$.
+
+    @return Composite rotation matrix \f$(R_a \circ R_b)\f$.
+
+    This function gives the matrix corresponding to the composition
+    \f$(R_a \circ R_b)\f$ of the two rotation matrices \f$R_a\f$ and \f$R_b\f$.
+    The order of matrix multiplication this composition corresponds to depends
+    on the chosen composition convention (intrinsic vs. extrinsic), as well as
+    on the action convention (active vs. passive) of the matrices. Namely,
+    the multiplication orders are given by the following table
+
+            | intrinsic                   | extrinsic
+    active  | \f$R_i(\alpha)R_j(\beta)\f$ | \f$R_j(\beta)R_i(\alpha)\f$
+    passive | \f$R_j(\beta)R_i(\alpha)\f$ | \f$R_i(\alpha)R_j(\beta)\f$
+
+*/
 template <
     Chaining chaining,
     std::floating_point T, std::size_t N,
@@ -1250,9 +1418,9 @@ compose(
     if constexpr (
             (action == Action::passive && chaining == Chaining::intrinsic)
             || (action == Action::active && chaining == Chaining::extrinsic))
-        return b.rotation()*a.rotation();
+        return b*a;
     else
-        return a.rotation()*b.rotation();
+        return a*b;
 }
 
 /**
@@ -1286,8 +1454,19 @@ public:
 
     constexpr RigidTransform() = default;
 
+    constexpr RigidTransform([[maybe_unused]] Identity id):
+        RigidTransform(rotation_matrix_type::identity(), vector_type{}) {}
+
+    constexpr RigidTransform(rotation_matrix_type matrix):
+        RigidTransform(matrix, vector_type{}) {}
+
+    constexpr RigidTransform(vector_type vector):
+        RigidTransform(rotation_matrix_type{}, vector) {}
+
     /**
         @brief Create an identity rigid transform.
+
+        @return The identity rigid transform \f$(R, \vec{u}) = (I, 0)\f$.
     */
     [[nodiscard]] static constexpr RigidTransform
     identity() noexcept
@@ -1296,30 +1475,85 @@ public:
     }
 
     /**
-        @brief Construct a rigid transform from a rotation and a translation.
+        @brief Construct a rigid transform from a rotation followed by a
+        translation.
 
         @tparam chaining Transformation chaining conventioin (intrinsic vs.
         extrinsic).
 
-        @param rotation
-        @param translation
+        @param rotation Rotation matrix \f$R\f$.
+        @param translation Translation vector \f$\vec{u}\f$.
+
+        @return The composite rigid tranasform \f$(R \circ T_\vec{u})\f$.
+
+        This method gives the rigid transform corresponding to the composition
+        \f$(R \circ T_\vec{u})\f$ of the rotation $R$ and a translation
+        $T_\vec{u}$ (where $T_\vec{u}(\vec{v}) = \vec{v} + \vec{u}$). How this
+        composition operates on the components of a fector depends on the
+        chosen composition convention (intrinsic vs. extrinsic), as well as on
+        the action convention (active vs. passive). Namely, the corresponding
+        transforms operating on a vector \f$\vec{v}\f$ are given by the
+        following table
+
+                | intrinsic                 | extrinsic
+        active  | \f$R\vec{v} + R\vec{u}\f$ | \f$R\vec{v} + \vec{u}\f$
+        passive | \f$R\vec{v} + \vec{u}\f$  | \f$R\vec{v} + R\vec{u}\f$
     */
     template <Chaining chaining>
     [[nodiscard]] static constexpr RigidTransform
     from(rotation_matrix_type rotation, vector_type translation)
     {
         if constexpr (
-                (chaining == Chaining::extrinsic && action == Action::passive)
-                || (chaining == Chaining::intrinsic && action == Action::active))
+                (chaining == Chaining::extrinsic && action == Action::active)
+                || (chaining == Chaining::intrinsic && action == Action::passive))
             return RigidTransform(rotation, translation);
         else
             return RigidTransform(rotation, rotation*translation);
     }
 
     /**
+        @brief Construct a rigid transform from a translation followed by a
+        rotation.
+
+        @tparam chaining Transformation chaining conventioin (intrinsic vs.
+        extrinsic).
+
+        @param translation Translation vector \f$\vec{u}\f$.
+        @param rotation Rotation matrix \f$R\f$.
+
+        @return The composite rigid tranasform \f$(T_\vec{u} \circ R)\f$.
+
+        This method gives the rigid transform corresponding to the composition
+        \f$(T_\vec{u} \circ R)\f$ of the rotation $R$ and a translation
+        $T_\vec{u}$ (where $T_\vec{u}(\vec{v}) = \vec{v} + \vec{u}$). How this
+        composition operates on the components of a fector depends on the
+        chosen composition convention (intrinsic vs. extrinsic), as well as on
+        the action convention (active vs. passive). Namely, the corresponding
+        transforms operating on a vector \f$\vec{v}\f$ are given by the
+        following table
+
+                | intrinsic                 | extrinsic
+        active  | \f$R\vec{v} + \vec{u}\f$  | \f$R\vec{v} + R\vec{u}\f$
+        passive | \f$R\vec{v} + R\vec{u}\f$ | \f$R\vec{v} + \vec{u}\f$
+    */
+    template <Chaining chaining>
+    [[nodiscard]] static constexpr RigidTransform
+    from(vector_type rotation, rotation_matrix_type translation)
+    {
+        if constexpr (
+                (chaining == Chaining::extrinsic && action == Action::active)
+                || (chaining == Chaining::intrinsic && action == Action::passive))
+            return RigidTransform(rotation, rotation*translation);
+        else
+            return RigidTransform(rotation, translation);
+    }
+
+    /**
         @brief Construct a rigid transform from a rotation.
 
         @param rotation
+
+        @return Rigid transformation corresponding to the rotation.
     */
     [[nodiscard]] static constexpr RigidTransform
     from(rotation_matrix_type rotation)
@@ -1331,6 +1565,8 @@ public:
         @brief Construct a rigid transform from a translation.
 
         @param rotation
+
+        @return Rigid transform corresponding to the translation.
     */
     [[nodiscard]] static constexpr RigidTransform
     from(vector_type translation)
@@ -1342,6 +1578,10 @@ public:
 
     /**
         @brief Transform a vector with the rigid transform.
+
+        @param vector Vector to be transformed.
+
+        @return Transformed vector.
     */
     [[nodiscard]] constexpr vector_type operator()(const vector_type& vector) const noexcept
     {
@@ -1350,6 +1590,10 @@ public:
 
     /**
         @brief Rotate a matrix with the rigid transform.
+
+        @param matrix Matrix to be rotated.
+
+        @return Rotated matrix.
     */
     template <static_matrix_like M>
     [[nodiscard]] constexpr auto operator()(const M& matrix) const noexcept
@@ -1359,18 +1603,24 @@ public:
 
     /**
         @brief Rotation part of the transform.
+
+        @return Rotation matrix holding the rotation part of the transform.
     */
     [[nodiscard]] constexpr const rotation_matrix_type&
     rotation() const noexcept { return m_rotation; }
 
     /**
         @brief Translation part of the transform.
+
+        @return Vector holding the translation part of the transform.
     */
     [[nodiscard]] constexpr const vector_type&
     translation() const noexcept { return m_translation; }
 
     /**
         @brief Inverse of the transform.
+
+        @return Rigid transform corresponding to the inverse of the transform.
     */
     [[nodiscard]] constexpr RigidTransform
     inverse() const noexcept
@@ -1396,8 +1646,8 @@ private:
     @tparam action_param action convention.
     @tparam matrix_layout_param Matrix layout convention.
 
-    @param a
-    @param b
+    @param a First rigid transform.
+    @param b Second rigid transform.
 
     @return Composite rigid transform.
 */
@@ -1671,7 +1921,7 @@ compose(
     const Vector<T, N>& translation,
     const RotationMatrix<T, N, action, matrix_layout>& rotation)
 {
-    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(rotation, translation);
+    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(translation, rotation);
 }
 
 /**

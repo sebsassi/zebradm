@@ -50,6 +50,18 @@ bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double,
     return is_close(std::array<double, N>(a), std::array<double, N>(b), error);
 }
 
+template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
+bool is_close(const zdm::la::RotationMatrix<double, N, action, layout>& a, const zdm::la::RotationMatrix<double, N, action, layout>& b, double error)
+{
+    return is_close(std::array<double, N*N>(a), std::array<double, N*N>(b), error);
+}
+
+template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
+bool is_close(const zdm::la::RigidTransform<double, N, action, layout>& a, const zdm::la::RigidTransform<double, N, action, layout>& b, double error)
+{
+    return is_close(a.rotation(), b.rotation(), error) && is_close(a.translation(), b.translation(), error);
+}
+
 template <zdm::la::static_square_matrix_like T>
 bool is_nearly_orthogonal(T matrix, double error)
 {
@@ -1638,6 +1650,33 @@ bool test_active_rotation_matrix_3x3_from_tait_bryan_angles_zyx_extrinsic_equals
     return r1 == r2;
 }
 
+template <zdm::la::Chaining chaining>
+bool test_compose_shift_inverse_shift_gives_zero(double error)
+{
+    const auto v1 = zdm::la::Vector<double, 3>{2.1, 1.5, 3.3};
+    const auto v2 = -v1;
+    return is_close(compose<chaining>(v1, v2), zdm::la::Vector<double, 3>{}, error);
+}
+
+template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
+bool test_compose_rotation_inverse_rotation_gives_identity(double error)
+{
+    const auto r1 = zdm::la::RotationMatrix<double, 3, action, layout>::template from_euler_angles<zdm::la::EulerConvention::xyx, chaining>(2.3, -0.5, 1.3);
+    const auto r2 = r1.inverse();
+    return is_close(compose<chaining>(r1, r2), zdm::la::RotationMatrix<double, 3, action, layout>::identity(), error);
+}
+
+template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
+bool test_compose_rigid_transform_inverse_rigid_transform_gives_identity(double error)
+{
+    const auto r1 = zdm::la::RigidTransform<double, 3, action, layout>::template from<chaining>(
+        zdm::la::RotationMatrix<double, 3, action, layout>::template from_euler_angles<zdm::la::EulerConvention::xyx, chaining>(2.3, -0.5, 1.3),
+        zdm::la::Vector<double, 3>{2.1, 1.5, 3.3}
+    );
+    const auto r2 = r1.inverse();
+    return is_close(compose<chaining>(r1, r2), zdm::la::RigidTransform<double, 3, action, layout>::identity(), error);
+}
+
 void basic_linalg_tests()
 {
     assert(test_matrix_row_major_layout_is_correct());
@@ -1780,7 +1819,7 @@ void layout_only_linalg_tests()
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout>
-void action_linalg_tests()
+void action_layout_linalg_tests()
 {
     assert((test_rotation_matrix_2x2_from_angle_0_is_identity<action, layout>()));
 
@@ -1897,6 +1936,19 @@ void action_linalg_tests()
     assert((test_rotation_matrix_3x3_product_axes_zyx_nearly_equals_axis_z_axis_y_and_axis_x<action, layout>(1.0e-15)));
 }
 
+template <zdm::la::Chaining chaining>
+void chaining_linalg_tests()
+{
+    assert((test_compose_shift_inverse_shift_gives_zero<chaining>(1.0e-15)));
+}
+
+template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
+void action_layout_chaining_linalg_tests()
+{
+    assert((test_compose_rotation_inverse_rotation_gives_identity<action, layout, chaining>(1.0e-15)));
+    assert((test_compose_rigid_transform_inverse_rigid_transform_gives_identity<action, layout, chaining>(1.0e-15)));
+}
+
 } // namespace
 
 int main()
@@ -1906,8 +1958,20 @@ int main()
     layout_only_linalg_tests<zdm::la::MatrixLayout::column_major>();
     layout_only_linalg_tests<zdm::la::MatrixLayout::row_major>();
 
-    action_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major>();
-    action_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::column_major>();
-    action_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::row_major>();
-    action_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::row_major>();
+    action_layout_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major>();
+    action_layout_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::row_major>();
+    action_layout_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::column_major>();
+    action_layout_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::row_major>();
+
+    chaining_linalg_tests<zdm::la::Chaining::extrinsic>();
+    chaining_linalg_tests<zdm::la::Chaining::intrinsic>();
+
+    action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::extrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::intrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::row_major, zdm::la::Chaining::extrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::row_major, zdm::la::Chaining::intrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::extrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::intrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::row_major, zdm::la::Chaining::extrinsic>();
+    action_layout_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::row_major, zdm::la::Chaining::intrinsic>();
 }
