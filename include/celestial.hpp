@@ -38,9 +38,6 @@ concept parametric_transform_on = requires (T x, ValueType t)
 namespace detail
 {
 
-template <typename T, typename ValueType>
-    concept noop_transform = parametric_transform_on<T, ValueType, la::Identity>;
-
 template <typename T, typename ValueType, typename... TransformTypes>
 concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, TransformTypes> || ...);
 
@@ -56,9 +53,10 @@ concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, 
     A parametric transform type `T` compatible with `RigidTransformType` is a
     type which defines a call operator that takes a parameter of type
     `RigidTransformType::value_type` and returns a value whose type is one of
-    `RigidTransformType`,
-    `RigidTransformType::rotation_matrix_type`, or
-    `RigidTransformType::vector_type`.
+        - `RigidTransformType`,
+        - `RigidTransformType::rotation_matrix_type`,
+        - `RigidTransformType::vector_type`, or
+        - `la::Identity`.
 */
 template <typename T, typename RigidTransformType>
 concept parametric_rigid_transform
@@ -69,11 +67,11 @@ concept parametric_rigid_transform
             RigidTransformType::action, RigidTransformType::matrix_layout
         >
     >
-    || detail::noop_transform<T, typename RigidTransformType::value_type>
     || detail::parametric_transform_on_one_of<T, typename RigidTransformType::value_type,
         RigidTransformType,
         typename RigidTransformType::rotation_matrix_type,
-        typename RigidTransformType::vector_type>;
+        typename RigidTransformType::vector_type,
+        la::Identity>;
 
 /**
     @brief Checks if type represents a celestial coordinate transform.
@@ -83,8 +81,10 @@ concept parametric_rigid_transform
     A celestial coordinate transform is a parametric rigid transform
     parameterized by a `double` representing time, such that calling the
     transform with a time parameter returns one of
-    `la::RigidTransform<double, 3>`, `la::RotationMatrix<double, 3>`, or
-    `la::Vector<double, 3>`.
+        - `la::RigidTransform<double, 3>`,
+        - `la::RotationMatrix<double, 3>`,
+        - `la::Vector<double, 3>`, or
+        - `la::Identity`.
 */
 template <typename T>
 concept celestial_coordinate_transform

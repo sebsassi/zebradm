@@ -23,9 +23,9 @@ SOFTWARE.
 #include <cassert>
 #include <numbers>
 
-#include <zebradm/linalg.hpp>
-#include <zebradm/matrix.hpp>
-#include <zebradm/vector.hpp>
+#include "linalg.hpp"
+#include "matrix.hpp"
+#include "vector.hpp"
 
 namespace
 {

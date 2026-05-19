@@ -24,7 +24,7 @@ SOFTWARE.
 #include <cassert>
 #include <cstdint>
 
-#include <zebradm/polynomial.hpp>
+#include "polynomial.hpp"
 
 namespace
 {

@@ -21,4 +21,4 @@ SOFTWARE.
 */
 #pragma once
 
-#include <zebradm/celestial.hpp>
+#include "celestial.hpp"

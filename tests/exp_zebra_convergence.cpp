@@ -24,11 +24,11 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 
-#include <zebradm/transform_utilities.hpp>
-#include <zebradm/types.hpp>
-#include <zebradm/zebra_angle_integrator.hpp>
-#include <zebradm/matrix.hpp>
-#include <zebradm/zebra_util.hpp>
+#include "transform_utilities.hpp"
+#include "types.hpp"
+#include "zebra_angle_integrator.hpp"
+#include "matrix.hpp"
+#include "zebra_util.hpp"
 
 namespace
 {

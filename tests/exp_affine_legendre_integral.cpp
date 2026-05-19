@@ -24,7 +24,7 @@ SOFTWARE.
 #include <fstream>
 #include <random>
 
-#include <zebradm/affine_legendre_integral.hpp>
+#include "affine_legendre_integral.hpp"
 
 namespace
 {

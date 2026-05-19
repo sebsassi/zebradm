@@ -24,7 +24,7 @@ SOFTWARE.
 #include <cmath>
 #include <print>
 
-#include <zebradm/legendre.hpp>
+#include "legendre.hpp"
 
 namespace
 {

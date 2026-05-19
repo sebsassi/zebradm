@@ -22,7 +22,7 @@ SOFTWARE.
 
 #include <print>
 
-#include <zebradm/zonal_glq_transformer.hpp>
+#include "zonal_glq_transformer.hpp"
 
 namespace
 {

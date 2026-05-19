@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 
-#include <zebradm/radon_integrator.hpp>
+#include "radon_integrator.hpp"
 
 namespace
 {

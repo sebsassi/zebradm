@@ -25,9 +25,9 @@ SOFTWARE.
 #include <random>
 #include <vector>
 
-#include <zebradm/coordinate_transforms.hpp>
-#include <zebradm/transform_utilities.hpp>
-#include <zebradm/types.hpp>
+#include "coordinate_transforms.hpp"
+#include "transform_utilities.hpp"
+#include "types.hpp"
 
 namespace
 {

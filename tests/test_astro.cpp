@@ -22,7 +22,7 @@ SOFTWARE.
 
 #include <cmath>
 
-#include <zebradm/astro.hpp>
+#include "astro.hpp"
 
 namespace
 {

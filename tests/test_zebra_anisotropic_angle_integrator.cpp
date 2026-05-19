@@ -25,8 +25,8 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 
-#include <zebradm/types.hpp>
-#include <zebradm/zebra_angle_integrator.hpp>
+#include "types.hpp"
+#include "zebra_angle_integrator.hpp"
 
 namespace
 {

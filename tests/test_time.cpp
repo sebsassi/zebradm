@@ -22,7 +22,7 @@ SOFTWARE.
 
 #include <cassert>
 
-#include <zebradm/time.hpp>
+#include "time.hpp"
 
 using namespace std::literals;
 

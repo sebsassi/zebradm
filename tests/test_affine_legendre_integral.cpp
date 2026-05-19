@@ -27,7 +27,7 @@ SOFTWARE.
 #include <zest/gauss_legendre.hpp>
 #include <zest/md_array.hpp>
 
-#include <zebradm/affine_legendre_integral.hpp>
+#include "affine_legendre_integral.hpp"
 
 namespace
 {

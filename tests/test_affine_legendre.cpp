@@ -28,7 +28,7 @@ SOFTWARE.
 
 #include <zest/sequence.hpp>
 
-#include <zebradm/affine_legendre.hpp>
+#include "affine_legendre.hpp"
 
 namespace
 {

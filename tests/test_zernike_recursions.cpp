@@ -28,9 +28,9 @@ SOFTWARE.
 
 #include <zest/zernike_glq_transformer.hpp>
 
-#include <zebradm/types.hpp>
-#include <zebradm/zebra_radon.hpp>
-#include <zebradm/zernike_recursions.hpp>
+#include "types.hpp"
+#include "zebra_radon.hpp"
+#include "zernike_recursions.hpp"
 
 namespace
 {
