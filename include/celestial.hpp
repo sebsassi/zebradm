@@ -96,6 +96,39 @@ concept celestial_coordinate_transform
     && (std::tuple_size_v<typename T::rigid_transform_type::value_type> == 3);
 
 /**
+    @brief Enum representing different celestial coordinate systems.
+*/
+enum class CSTag
+{
+    BCRS,
+    CIRS,
+    ECS,
+    GCRS,
+    GCS,
+    HCS,
+    ICRS,
+    ITRS,
+    TIRS,
+};
+
+[[nodiscard]] constexpr std::string_view cs_label(CSTag tag)
+{
+    static constexpr std::array labels = {
+        "BCRS",
+        "CIRS",
+        "ECS",
+        "GCRS",
+        "GCS",
+        "HCS",
+        "ICRS",
+        "ITRS",
+        "TIRS"
+    };
+
+    return labels[std::size_t(std::to_underlying(tag))];
+}
+
+/**
     @brief A helper for writing efficient compositions of parametric rigid
     transforms.
 
@@ -207,8 +240,8 @@ public:
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
         m_transform(la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
-            orientation.gcs_to_reference_cs(),
-            orientation.gcs_to_reference_cs()*(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0}))) {};
+            peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0},
+            orientation.gcs_to_reference_cs())) {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
 
@@ -494,7 +527,7 @@ private:
 
         const la::Vector<double, 3> translation = {0.0, -astro::earth.body.surface_speed(latitude), 0.0};
 
-        return la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(rotation, translation);
+        return la::RigidTransform<double, 3>::from<chaining>(rotation, translation);
     }
 
     la::RigidTransform<double, 3> m_transform;

@@ -1538,7 +1538,7 @@ public:
     */
     template <Chaining chaining>
     [[nodiscard]] static constexpr RigidTransform
-    from(vector_type rotation, rotation_matrix_type translation)
+    from(vector_type translation, rotation_matrix_type rotation)
     {
         if constexpr (
                 (chaining == Chaining::extrinsic && action == Action::active)
