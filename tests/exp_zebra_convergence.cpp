@@ -25,10 +25,9 @@ SOFTWARE.
 #include <zest/md_array.hpp>
 
 #include "transform_utilities.hpp"
+#include "matrix.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator.hpp"
-#include "matrix.hpp"
-#include "zebra_util.hpp"
 
 namespace
 {

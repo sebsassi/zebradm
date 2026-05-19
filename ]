@@ -239,29 +239,6 @@ private:
     la::RigidTransform<double, 3> m_transform;
 };
 
-namespace detail
-{
-
-// This function can be consteval because the value of the J2000 obliquity
-// for the purposes of this program is fixed from the IAU 2009 System of
-// Astronomical Constants at 84381.406 arc seconds. This code can be
-// updated if a better estimate is ever adopted by the IAU. Not that it
-// matters, because this code really doesn't require mas level accuracy.
-[[nodiscard]] consteval la::RotationMatrix<double, 3>
-ecs_to_icrs_transform() noexcept
-{
-    // Cosine and sine of the J2000 obliquity of the ecliptic.
-    constexpr double cos_obliquity_j2000 = 0.9174821430652418;
-    constexpr double sin_obliquity_j2000 = 0.4090926006005829;
-    return la::RotationMatrix<double, 3>({
-            1.0,  0.0,                 0.0,
-            0.0,  cos_obliquity_j2000, sin_obliquity_j2000,
-            0.0, -sin_obliquity_j2000, cos_obliquity_j2000,
-        });
-}
-
-} // namespace detail
-
 /**
     @brief Transformation from the Ecliptic Coordinate System (ECS) to the
     International Celestial Reference System (ICRS).
@@ -291,7 +268,7 @@ public:
         that takes no parameters.
     */
     [[nodiscard]] constexpr la::RotationMatrix<double, 3>
-    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return s_transform; }
+    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return transform(); }
 
     /**
         @brief Call operator of the constant transform.
@@ -299,10 +276,29 @@ public:
         @return ECS to ICRS transform.
     */
     [[nodiscard]] constexpr la::RotationMatrix<double, 3>
-    operator()() const noexcept { return s_transform; }
+    operator()() const noexcept { return transform(); }
 
 private:
-    static constexpr la::RotationMatrix<double, 3> s_transform = detail::ecs_to_icrs_transform();
+    // This function can be consteval because the value of the J2000 obliquity
+    // for the purposes of this program is fixed from the IAU 2009 System of
+    // Astronomical Constants at 84381.406 arc seconds. This code can be
+    // updated if a better estimate is ever adopted by the IAU. Not that it
+    // matters, because this code really doesn't require mas level accuracy.
+    [[nodiscard]] static consteval la::RotationMatrix<double, 3>
+    transform() noexcept
+    {
+        // Cosine and sine of the J2000 obliquity of the ecliptic.
+        constexpr double cos_obliquity_j2000 = 0.9174821430652418;
+        constexpr double sin_obliquity_j2000 = 0.4090926006005829;
+        constexpr auto res = la::RotationMatrix<double, 3>({
+                1.0,  0.0,                 0.0,
+                0.0,  cos_obliquity_j2000, sin_obliquity_j2000,
+                0.0, -sin_obliquity_j2000, cos_obliquity_j2000,
+            });
+        return res;
+    }
+
+    static constexpr s_transform = transform();
 };
 
 /**

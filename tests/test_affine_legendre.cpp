@@ -23,7 +23,6 @@ SOFTWARE.
 #include <array>
 #include <cassert>
 #include <cmath>
-#include <cstdio>
 #include <print>
 
 #include <zest/sequence.hpp>
