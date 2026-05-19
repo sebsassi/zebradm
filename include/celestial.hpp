@@ -335,7 +335,8 @@ public:
     operator()() const noexcept { return s_transform; }
 
 private:
-    static constexpr la::RotationMatrix<double, 3> s_transform = detail::ecs_to_icrs_transform();
+    static constexpr la::RotationMatrix<double, 3> s_transform
+        = detail::ecs_to_icrs_transform();
 };
 
 /**
@@ -412,13 +413,15 @@ public:
     [[nodiscard]] la::RotationMatrix<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
-        const double cip_x = astro::cip[0]((1.0/36525.0)*days_since_j2000);
-        const double cip_y = astro::cip[1]((1.0/36525.0)*days_since_j2000);
+        const double centuries_since_j2000 = (1.0/36525.0)*days_since_j2000;
+        const double cip_x = astro::cip[0](centuries_since_j2000);
+        const double cip_y = astro::cip[1](centuries_since_j2000);
         const double cip_r = std::hypot(cip_x, cip_y);
         const double cip_z = std::sqrt((1.0 + cip_r)*(1.0 - cip_r));
         const la::Vector<double, 3> cip = {cip_x, cip_y, cip_z};
         const double cio_locator = -0.5*cip_x*cip_y;
-        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(-cio_locator)*la::RotationMatrix<double, 3>::align_z(cip);
+        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(-cio_locator)
+            *la::RotationMatrix<double, 3>::align_z(cip);
     }
 };
 

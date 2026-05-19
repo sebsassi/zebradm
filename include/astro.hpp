@@ -639,15 +639,14 @@ static constexpr Planet earth = {
     @brief X and Y coordinates of the celestial intermediate pole.
 
     The units of the polynomials have been translated to radians, and they
-    expect time in Julian centuries since the J200 epoch.
+    expect time in Julian centuries since the J2000 epoch.
 
     This pair of polynomials describes the polynomial part of the development
     of the celestial intermediate pole based on the P03 precession model. The
     periodic variations are neglected on the basis that their contributions
     always remain on the order of arcseconds, far beyond the angular resolution
     needs of this library. They give little benefit for much more computation.
-    For the same reason, the polynomials have been truncated to four terms for
-    optimal memory alignment.
+    For the same reason, the polynomials have been truncated to four terms.
 
     References:
     -   Capitaine, N. and Wallace, P. T., 2006, “High precision methods for
