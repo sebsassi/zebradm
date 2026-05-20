@@ -64,7 +64,7 @@ concept zdm_rigid_transform
     `RigidTransformType::value_type` and returns a value whose type is one of
         - `RigidTransformType`,
         - `RigidTransformType::rotation_matrix_type`,
-        - `RigidTransformType::vector_type`, or
+        - `RigidTransformType::translation_type`, or
         - `la::Identity`.
 */
 template <typename T>
@@ -73,7 +73,7 @@ concept parametric_rigid_transform
     || detail::parametric_transform_on_one_of<T, typename T::rigid_transform_type::value_type,
         typename T::rigid_transform_type,
         typename T::rigid_transform_type::rotation_matrix_type,
-        typename T::rigid_transform_type::vector_type,
+        typename T::rigid_transform_type::translation_type,
         la::Identity>;
 
 /**
@@ -86,7 +86,7 @@ concept parametric_rigid_transform
     transform with a time parameter returns one of
         - `la::RigidTransform<double, 3>`,
         - `la::RotationMatrix<double, 3>`,
-        - `la::Vector<double, 3>`, or
+        - `la::Translation<double, 3>`, or
         - `la::Identity`.
 */
 template <typename T>
@@ -374,12 +374,12 @@ public:
 
         @return ICRS to GCRS transform at the given time.
     */
-    [[nodiscard]] la::Vector<double, 3>
+    [[nodiscard]] la::Translation<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
-        const la::Vector<double, 3> earth_velocity
+        const la::Translation<double, 3> earth_velocity
             = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
-        return s_ecs_to_icrs*(-earth_velocity);
+        return la::Translation<double, 3>{s_ecs_to_icrs*(-earth_velocity)};
     }
 
 private:

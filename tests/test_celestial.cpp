@@ -50,6 +50,12 @@ bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double,
     return is_close(std::array<double, N>(a), std::array<double, N>(b), error);
 }
 
+template <std::size_t N, zdm::la::Action action>
+bool is_close(const zdm::la::Translation<double, N, action>& a, const zdm::la::Translation<double, N, action>& b, double error)
+{
+    return is_close(zdm::la::Vector<double, N>(a), zdm::la::Vector<double, N>(b), error);
+}
+
 template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool is_close(const zdm::la::RotationMatrix<double, N, action, layout>& a, const zdm::la::RotationMatrix<double, N, action, layout>& b, double error)
 {

@@ -56,6 +56,12 @@ bool is_close(const zdm::la::RotationMatrix<double, N, action, layout>& a, const
     return is_close(std::array<double, N*N>(a), std::array<double, N*N>(b), error);
 }
 
+template <std::size_t N, zdm::la::Action action>
+bool is_close(const zdm::la::Translation<double, N, action>& a, const zdm::la::Translation<double, N, action>& b, double error)
+{
+    return is_close(zdm::la::Vector<double, N>(a), zdm::la::Vector<double, N>(b), error);
+}
+
 template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
 bool is_close(const zdm::la::RigidTransform<double, N, action, layout>& a, const zdm::la::RigidTransform<double, N, action, layout>& b, double error)
 {
@@ -1650,12 +1656,12 @@ bool test_active_rotation_matrix_3x3_from_tait_bryan_angles_zyx_extrinsic_equals
     return r1 == r2;
 }
 
-template <zdm::la::Chaining chaining>
+template <zdm::la::Action action, zdm::la::Chaining chaining>
 bool test_compose_shift_inverse_shift_gives_zero(double error)
 {
-    const auto v1 = zdm::la::Vector<double, 3>{2.1, 1.5, 3.3};
-    const auto v2 = -v1;
-    return is_close(zdm::la::compose<chaining>(v1, v2), zdm::la::Vector<double, 3>{}, error);
+    const auto v1 = zdm::la::Translation<double, 3, action>{zdm::la::Vector<double, 3>{2.1, 1.5, 3.3}};
+    const auto v2 = v1.inverse();
+    return is_close(zdm::la::compose<chaining>(v1, v2), zdm::la::Translation<double, 3, action>{}, error);
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
@@ -1936,10 +1942,10 @@ void action_layout_linalg_tests()
     assert((test_rotation_matrix_3x3_product_axes_zyx_nearly_equals_axis_z_axis_y_and_axis_x<action, layout>(1.0e-15)));
 }
 
-template <zdm::la::Chaining chaining>
-void chaining_linalg_tests()
+template <zdm::la::Action action, zdm::la::Chaining chaining>
+void action_chaining_linalg_tests()
 {
-    assert((test_compose_shift_inverse_shift_gives_zero<chaining>(1.0e-15)));
+    assert((test_compose_shift_inverse_shift_gives_zero<action, chaining>(1.0e-15)));
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
@@ -1963,8 +1969,10 @@ int main()
     action_layout_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::column_major>();
     action_layout_linalg_tests<zdm::la::Action::passive, zdm::la::MatrixLayout::row_major>();
 
-    chaining_linalg_tests<zdm::la::Chaining::extrinsic>();
-    chaining_linalg_tests<zdm::la::Chaining::intrinsic>();
+    action_chaining_linalg_tests<zdm::la::Action::active, zdm::la::Chaining::extrinsic>();
+    action_chaining_linalg_tests<zdm::la::Action::active, zdm::la::Chaining::intrinsic>();
+    action_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::Chaining::extrinsic>();
+    action_chaining_linalg_tests<zdm::la::Action::passive, zdm::la::Chaining::intrinsic>();
 
     action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::extrinsic>();
     action_layout_chaining_linalg_tests<zdm::la::Action::active, zdm::la::MatrixLayout::column_major, zdm::la::Chaining::intrinsic>();
