@@ -240,7 +240,7 @@ public:
         const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
         m_transform(la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
-            peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0},
+            -(peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0}),
             orientation.gcs_to_reference_cs())) {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
@@ -379,11 +379,11 @@ public:
     {
         const la::Vector<double, 3> earth_velocity
             = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
-        return ecs_to_icrs()*(-earth_velocity);
+        return s_ecs_to_icrs*(-earth_velocity);
     }
 
 private:
-    static constexpr auto ecs_to_icrs = ECStoICRS{};
+    static constexpr auto s_ecs_to_icrs = detail::ecs_to_icrs_transform();
 };
 
 /**
@@ -465,9 +465,10 @@ public:
     it only includes polar motion, which is negligible for the purposes of
     this library. It is only meant be used in composition chains to be explicit
     (see `CompositeRigidTransform`), and thus has a call operator which returns
-    `void`. In standalone use of these transformations, one can assume that
-    TIRS = ITRS, and use the relevant transforms directly, e.g. `CIRStoTIRS`
-    followed by `ITRStoHCS` would correspond to a CIRS to HCS transform.
+    an object of type `Identity`. In standalone use of these transformations,
+    one can assume that TIRS = ITRS, and use the relevant transforms directly,
+    e.g. `CIRStoTIRS` followed by `ITRStoHCS` would correspond to a CIRS to HCS
+    transform.
 */
 class TIRStoITRS
 {

@@ -193,6 +193,15 @@ template <arithmetic T, typename... Ts>
     requires (std::same_as<T, Ts> && ...)
 Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 
+
+template <std::size_t... Inds, static_vector_like T>
+    requires ((Inds < std::tuple_size_v<T>) && ...)
+[[nodiscard]] constexpr Vector<typename T::value_type, sizeof...(Inds)>
+swizzle(const T& v) noexcept
+{
+    return {v[Inds]...};
+}
+
 template <std::size_t I, zdm::arithmetic T, std::size_t N>
 constexpr T& get(Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
 
