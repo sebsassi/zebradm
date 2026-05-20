@@ -285,7 +285,7 @@ ecs_to_icrs_transform() noexcept
 {
     // Cosine and sine of the J2000 obliquity of the ecliptic.
     constexpr double cos_obliquity_j2000 = 0.9174821430652418;
-    constexpr double sin_obliquity_j2000 = 0.4090926006005829;
+    constexpr double sin_obliquity_j2000 = 0.3977769691126060;
     return la::RotationMatrix<double, 3>({
             1.0,  0.0,                 0.0,
             0.0,  cos_obliquity_j2000, sin_obliquity_j2000,
