@@ -1,7 +1,9 @@
-- Time functions
-- Celestial coordinate transforms
-- Lab velocity functions
+- Create a Translation class
+    - Basically a vector tagged with la::Action (supports vector operations, etc.)
+- Figure out rigid transform composition order for different active/passive intrinsic/extrinsic
+  combos
+    - Rigid transforms are stored normalized to an (active + extrinsic) or (passive + intrinsic)
+      convention
 - Electron scattering
 - Nuclear scattering with effective theory
 - Migdal effect
-- Optimized zebra implementation for isotropic velocity distributions

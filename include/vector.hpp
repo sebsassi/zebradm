@@ -126,6 +126,9 @@ struct Vector
     swap(Vector& other) noexcept { array.swap(other.array); }
 
     [[nodiscard]] friend constexpr Vector
+    operator+(const Vector& a) noexcept { return a; }
+
+    [[nodiscard]] friend constexpr Vector
     operator+(const Vector& a, const Vector& b) noexcept { return add(a, b); }
 
     [[nodiscard]] friend constexpr Vector

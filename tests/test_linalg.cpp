@@ -1655,7 +1655,7 @@ bool test_compose_shift_inverse_shift_gives_zero(double error)
 {
     const auto v1 = zdm::la::Vector<double, 3>{2.1, 1.5, 3.3};
     const auto v2 = -v1;
-    return is_close(compose<chaining>(v1, v2), zdm::la::Vector<double, 3>{}, error);
+    return is_close(zdm::la::compose<chaining>(v1, v2), zdm::la::Vector<double, 3>{}, error);
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
@@ -1663,7 +1663,7 @@ bool test_compose_rotation_inverse_rotation_gives_identity(double error)
 {
     const auto r1 = zdm::la::RotationMatrix<double, 3, action, layout>::template from_euler_angles<zdm::la::EulerConvention::xyx, chaining>(2.3, -0.5, 1.3);
     const auto r2 = r1.inverse();
-    return is_close(compose<chaining>(r1, r2), zdm::la::RotationMatrix<double, 3, action, layout>::identity(), error);
+    return is_close(zdm::la::compose<chaining>(r1, r2), zdm::la::RotationMatrix<double, 3, action, layout>::identity(), error);
 }
 
 template <zdm::la::Action action, zdm::la::MatrixLayout layout, zdm::la::Chaining chaining>
@@ -1674,7 +1674,7 @@ bool test_compose_rigid_transform_inverse_rigid_transform_gives_identity(double 
         zdm::la::Vector<double, 3>{2.1, 1.5, 3.3}
     );
     const auto r2 = r1.inverse();
-    return is_close(compose<chaining>(r1, r2), zdm::la::RigidTransform<double, 3, action, layout>::identity(), error);
+    return is_close(zdm::la::compose<chaining>(r1, r2), zdm::la::RigidTransform<double, 3, action, layout>::identity(), error);
 }
 
 void basic_linalg_tests()

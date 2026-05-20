@@ -86,7 +86,7 @@ template <static_vector_like T, std::size_t... idx>
 [[nodiscard]] constexpr T minus_(
     const T& a, std::index_sequence<idx...> /*unused*/) noexcept
 {
-    return {{(a[idx])...}};
+    return {{(-a[idx])...}};
 }
 
 template <static_vector_like T, std::size_t... idx>
@@ -284,6 +284,22 @@ template <static_vector_like T>
     // NOTE: This function should be constexpr when clang decides to support
     // constexpr math.
     return std::sqrt(dot(a, a));
+}
+
+/**
+    @brief Negation of a vector.
+
+    @tparam T Vector type.
+
+    @param a
+
+    @return `+a`.
+*/
+template <static_vector_like T>
+[[nodiscard]] constexpr T
+plus(const T& a) noexcept
+{
+    return a;
 }
 
 /**

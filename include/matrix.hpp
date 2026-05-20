@@ -1497,18 +1497,20 @@ public:
 
                 | intrinsic                 | extrinsic
         active  | \f$R\vec{v} + R\vec{u}\f$ | \f$R\vec{v} + \vec{u}\f$
-        passive | \f$R\vec{v} + \vec{u}\f$  | \f$R\vec{v} + R\vec{u}\f$
+        passive | \f$R\vec{v} - \vec{u}\f$  | \f$R\vec{v} - R\vec{u}\f$
     */
     template <Chaining chaining>
     [[nodiscard]] static constexpr RigidTransform
     from(rotation_matrix_type rotation, vector_type translation)
     {
+        const auto base_translation = (action == Action::active) ?
+            translation : -translation;
         if constexpr (
                 (chaining == Chaining::extrinsic && action == Action::active)
                 || (chaining == Chaining::intrinsic && action == Action::passive))
-            return RigidTransform(rotation, translation);
+            return RigidTransform(rotation, base_translation);
         else
-            return RigidTransform(rotation, rotation*translation);
+            return RigidTransform(rotation, rotation*base_translation);
     }
 
     /**
@@ -1534,7 +1536,7 @@ public:
 
                 | intrinsic                 | extrinsic
         active  | \f$R\vec{v} + \vec{u}\f$  | \f$R\vec{v} + R\vec{u}\f$
-        passive | \f$R\vec{v} + R\vec{u}\f$ | \f$R\vec{v} + \vec{u}\f$
+        passive | \f$R\vec{v} - R\vec{u}\f$ | \f$R\vec{v} - \vec{u}\f$
     */
     template <Chaining chaining>
     [[nodiscard]] static constexpr RigidTransform
@@ -1664,20 +1666,20 @@ compose(
 {
     if constexpr (action == Action::passive)
         if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
                 b.rotation()*a.rotation(),
                 b.rotation()*a.translation() + b.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
                 a.rotation()*b.rotation(),
                 (a.rotation()*b.rotation())*(a.translation() + b.translation()));
     else
         if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
                 b.rotation()*a.rotation(),
-                a.translation() + b.translation());
+                b.rotation()*a.translation() + b.translation());
         else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
                 a.rotation()*b.rotation(),
                 a.translation() + a.rotation().inverse()*b.translation());
 }
