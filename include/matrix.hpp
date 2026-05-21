@@ -1806,24 +1806,16 @@ compose(
     const RigidTransform<T, N, action, matrix_layout>& a,
     const RigidTransform<T, N, action, matrix_layout>& b) noexcept
 {
-    if constexpr (action == Action::passive)
-        if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
-                b.rotation()*a.rotation(),
-                b.rotation()*a.translation() + b.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
-                a.rotation()*b.rotation(),
-                (a.rotation()*b.rotation())*(a.translation() + b.translation()));
+    if constexpr (
+            (chaining == Chaining::extrinsic && action == Action::active)
+            || (chaining == Chaining::intrinsic && action == Action::passive))
+        return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
+            b.rotation()*a.rotation(),
+            b.rotation()*a.translation() + b.translation());
     else
-        if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
-                b.rotation()*a.rotation(),
-                b.rotation()*a.translation() + b.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
-                a.rotation()*b.rotation(),
-                a.translation() + a.rotation().inverse()*b.translation());
+        return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
+            a.rotation()*b.rotation(),
+            a.rotation()*b.translation() + a.translation());
 }
 
 /**
@@ -1852,24 +1844,16 @@ compose(
     const RotationMatrix<T, N, action, matrix_layout>& rotation,
     const RigidTransform<T, N, action, matrix_layout>& rigid_transform) noexcept
 {
-    if constexpr (action == Action::passive)
-        if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation()*rotation,
-                rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rotation*rigid_transform.rotation(),
-                (rotation*rigid_transform.rotation())*rigid_transform.translation());
+    if constexpr (
+            (chaining == Chaining::extrinsic && action == Action::active)
+            || (chaining == Chaining::intrinsic && action == Action::passive))
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rigid_transform.rotation()*rotation,
+            rigid_transform.translation());
     else
-        if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation()*rotation,
-                rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rotation*rigid_transform.rotation(),
-                rotation.inverse()*rigid_transform.translation());
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rotation*rigid_transform.rotation(),
+            rotation*rigid_transform.translation());
 }
 
 /**
@@ -1898,24 +1882,16 @@ compose(
     const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
     const RotationMatrix<T, N, action, matrix_layout>& rotation) noexcept
 {
-    if constexpr (action == Action::passive)
-        if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rotation*rigid_transform.rotation(),
-                rotation*rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation()*rotation,
-                (rigid_transform.rotation()*rotation)*rigid_transform.translation());
+    if constexpr (
+            (chaining == Chaining::extrinsic && action == Action::active)
+            || (chaining == Chaining::intrinsic && action == Action::passive))
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rotation*rigid_transform.rotation(),
+            rotation*rigid_transform.translation());
     else
-        if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rotation()*rigid_transform.rotation(),
-                rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation()*rotation,
-                rigid_transform.translation());
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rigid_transform.rotation()*rotation,
+            rigid_transform.translation());
 }
 
 /**
@@ -1944,24 +1920,16 @@ compose(
     const Translation<T, N, action>& translation,
     const RigidTransform<T, N, action, matrix_layout>& rigid_transform)
 {
-    if constexpr (action == Action::passive)
-        if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.rotation()*translation + rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.rotation()*(translation + rigid_transform.translation()));
+    if constexpr (
+            (chaining == Chaining::extrinsic && action == Action::active)
+            || (chaining == Chaining::intrinsic && action == Action::passive))
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rigid_transform.rotation(),
+            rigid_transform.rotation()*translation + rigid_transform.translation());
     else
-        if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation(),
-                translation + rigid_transform.translation());
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation(),
-                translation + rigid_transform.translation());
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+            rigid_transform.rotation(),
+            rigid_transform.translation() + translation);
 }
 
 /**
@@ -1990,24 +1958,16 @@ compose(
     const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
     const Translation<T, N, action>& translation)
 {
-    if constexpr (action == Action::passive)
-        if constexpr (chaining == Chaining::intrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.translation() + translation);
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.rotation()*(rigid_transform.translation() + translation));
+    if constexpr (
+            (chaining == Chaining::extrinsic && action == Action::active)
+            || (chaining == Chaining::intrinsic && action == Action::passive))
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+            rigid_transform.rotation(),
+            rigid_transform.translation() + translation);
     else
-        if constexpr (chaining == Chaining::extrinsic)
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.translation() + translation);
-        else
-            return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
-                rigid_transform.rotation(),
-                rigid_transform.translation() + rigid_transform.rotation().inverse()*translation);
+        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+            rigid_transform.rotation(),
+            rigid_transform.rotation()*translation + rigid_transform.translation());
 }
 
 /**
