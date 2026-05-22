@@ -37,7 +37,7 @@ namespace zdm::time
 {
 
 /**
-    @brief Possible error values produced by `parse_time`.
+    @brief Status codes for datetime parsing.
 */
 enum class DateParseStatus
 {

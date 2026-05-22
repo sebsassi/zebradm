@@ -32,6 +32,10 @@ namespace zdm::la
 /**
     @brief A mathematical vector.
 
+    This structure represents a mathematical vector with all the expected
+    operations (addition, subtraction, multiplication/division by constant)
+    plus others (element-wise multiplication/division).
+
     @tparam T Type of elements of the vector.
     @tparam Dimension of the vector.
 */

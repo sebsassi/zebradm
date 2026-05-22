@@ -37,18 +37,27 @@ struct Identity
     [[nodiscard]] static constexpr Identity inverse() { return Identity{}; }
 };
 
+/**
+    @brief Composition of two identity operators.
+*/
 template <Chaining chaining>
 [[nodiscard]] constexpr Identity compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2)
 {
     return {};
 }
 
+/**
+    @brief Composition of an identity operator with any other operator.
+*/
 template <Chaining chaining, typename T>
 [[nodiscard]] constexpr T compose([[maybe_unused]] Identity id, T op)
 {
     return op;
 }
 
+/**
+    @brief Composition of any other operator with an identity operator.
+*/
 template <Chaining chaining, typename T>
 [[nodiscard]] constexpr T compose(T op, [[maybe_unused]] Identity id)
 {
