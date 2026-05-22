@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <numbers>
 
-#include "matrix.hpp"
+#include "rotation.hpp"
 #include "polynomial.hpp"
 #include "time.hpp"
 

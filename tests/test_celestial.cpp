@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "celestial.hpp"
 #include "coordinate_transforms.hpp"
-#include "matrix.hpp"
+#include "rigid_transform.hpp"
 
 namespace
 {

@@ -24,7 +24,9 @@ SOFTWARE.
 #include <numbers>
 
 #include "linalg.hpp"
-#include "matrix.hpp"
+#include "rigid_transform.hpp"
+#include "rotation.hpp"
+#include "translation.hpp"
 #include "vector.hpp"
 
 namespace

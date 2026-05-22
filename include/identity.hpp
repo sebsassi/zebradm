@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2025 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -21,34 +21,38 @@ SOFTWARE.
 */
 #pragma once
 
-#include <zest/zernike_glq_transformer.hpp>
+#include "transform_conventions.hpp"
 
-#include "rotation.hpp"
-#include "vector.hpp"
-
-namespace zdm
+namespace zdm::la
 {
 
-template <typename FieldType>
-concept bounded_distribution = requires (const FieldType& dist, const la::Vector<double, 3>& velocity)
+/**
+    @brief A type representing an identity operator.
+*/
+struct Identity
 {
-    { dist(velocity) } -> std::same_as<double>;
-    { dist.normalization() } -> std::same_as<double>;
-    { dist.max_velocity() } -> std::same_as<double>;
+    template <typename T>
+    [[nodiscard]] static constexpr T operator()(T v) { return v; }
+
+    [[nodiscard]] static constexpr Identity inverse() { return Identity{}; }
 };
 
-template <bounded_distribution Func>
-zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std::size_t lmax, const la::RotationMatrix<double, 3>& rotation)
+template <Chaining chaining>
+[[nodiscard]] constexpr Identity compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2)
 {
-    const double scale = dist.max_velocity();
-    auto dist_wrap = [&](const std::array<double, 3>& x)
-    {
-        return dist(rotation*(scale*la::Vector(x)));
-    };
-
-    zest::zt::BallGLQGridPoints points(lmax);
-    return zest::zt::GLQTransformerNormalGeo(lmax).forward_transform(
-            points.generate_values(dist_wrap, lmax), lmax);
+    return {};
 }
 
-} // namespace zdm
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose([[maybe_unused]] Identity id, T op)
+{
+    return op;
+}
+
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose(T op, [[maybe_unused]] Identity id)
+{
+    return op;
+}
+
+} // namespace zdm::la

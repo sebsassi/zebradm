@@ -23,7 +23,10 @@ SOFTWARE.
 
 #include <tuple>
 
-#include "matrix.hpp"
+#include "identity.hpp"
+#include "rotation.hpp"
+#include "translation.hpp"
+#include "rigid_transform.hpp"
 #include "astro.hpp"
 
 namespace zdm::celestial
