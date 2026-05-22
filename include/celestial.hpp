@@ -377,7 +377,7 @@ public:
     [[nodiscard]] la::Translation<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
-        const la::Translation<double, 3> earth_velocity
+        const la::Vector<double, 3> earth_velocity
             = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
         return la::Translation<double, 3>{s_ecs_to_icrs*earth_velocity};
     }

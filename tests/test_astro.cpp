@@ -211,7 +211,7 @@ bool test_planet_surface_speed_at_north_pole_is_zero(double angular_speed, doubl
     return is_close(0.0, body.surface_speed(0.5*std::numbers::pi), error);
 }
 
-bool test_earth_orbital_speed_is_correct(double days_since_j2000)
+bool test_earth_orbital_speed_is_approximately_correct(double days_since_j2000)
 {
     constexpr double safety_margin = 1.001;
     constexpr double e = zdm::astro::earth.orbit.orbit.eccentricity(0.0);
@@ -284,11 +284,11 @@ int main()
 
     assert(test_planet_surface_speed_at_north_pole_is_zero(2.2, 1.0e-15));
 
-    assert(test_earth_orbital_speed_is_correct(0.0));
-    assert(test_earth_orbital_speed_is_correct(30.0));
-    assert(test_earth_orbital_speed_is_correct(60.0));
-    assert(test_earth_orbital_speed_is_correct(180.0));
-    assert(test_earth_orbital_speed_is_correct(240.0));
-    assert(test_earth_orbital_speed_is_correct(300.0));
-    assert(test_earth_orbital_speed_is_correct(360.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(0.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(30.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(60.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(180.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(240.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(300.0));
+    assert(test_earth_orbital_speed_is_approximately_correct(360.0));
 }

@@ -106,8 +106,11 @@ bool test_composite_with_inverse_gives_identity_transform([[maybe_unused]] doubl
         InverseTestTransform
     >;
 
+    const auto transform = TestTransform{0UL};
+    const auto inverse_transform = InverseTestTransform{0UL};
+    const auto composite_transform = Transform{transform, inverse_transform};
     return is_close(
-        Transform{TestTransform{0UL}, InverseTestTransform{0UL}}(0.0),
+        composite_transform(0.0),
         zdm::la::RigidTransform<double, 3>::identity(),
         error);
 }

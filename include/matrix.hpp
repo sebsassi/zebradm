@@ -1439,7 +1439,7 @@ public:
 
     constexpr Translation() = default;
 
-    constexpr Translation(const vector_type& vector):
+    explicit constexpr Translation(const vector_type& vector):
         m_translation{vector} {}
 
     [[nodiscard]] static constexpr Translation
@@ -1451,25 +1451,28 @@ public:
     [[nodiscard]] static constexpr vector_type
     from(const vector_type& vector) noexcept
     {
-        if constexpr (action == Action::active)
-            return Translation{vector};
-        else
-            return Translation{-vector};
+        return Translation{vector};
     }
 
     [[nodiscard]] explicit constexpr
-    operator vector_type() const noexcept { return m_translation; }
+    operator vector_type() const noexcept
+    { 
+        return (action == Action::active) ? m_translation : -m_translation;
+    }
 
     [[nodiscard]] constexpr vector_type
     operator()(const vector_type& vector) const noexcept
     {
-        return m_translation + vector;
+        if constexpr (action == Action::active)
+            return vector + m_translation;
+        else
+            return vector - m_translation;
     }
 
     [[nodiscard]] friend constexpr Translation
     operator+(const Translation& a) noexcept
     {
-        return Translation{a.m_translation};
+        return a;
     }
 
     [[nodiscard]] friend constexpr Translation
@@ -1575,17 +1578,23 @@ public:
 
     constexpr RigidTransform() = default;
 
-    constexpr RigidTransform([[maybe_unused]] Identity id):
+    explicit constexpr RigidTransform([[maybe_unused]] Identity id):
         RigidTransform(rotation_matrix_type::identity(), translation_type::identity()) {}
 
-    constexpr RigidTransform(const rotation_matrix_type& matrix):
+    explicit constexpr RigidTransform(const rotation_matrix_type& matrix):
         RigidTransform(matrix, translation_type::identity()) {}
 
-    constexpr RigidTransform(const vector_type& vector):
+    explicit constexpr RigidTransform(const translation_type& translation):
+        RigidTransform(rotation_matrix_type::identity(), translation) {}
+
+    explicit constexpr RigidTransform(const vector_type& vector):
         RigidTransform(rotation_matrix_type::identity(), translation_type{vector}) {}
 
-    constexpr RigidTransform(const translation_type& translation):
-        RigidTransform(rotation_matrix_type::identity(), translation) {}
+    constexpr RigidTransform(const rotation_matrix_type& rotation, const translation_type& translation):
+        m_rotation{rotation}, m_translation{translation} {}
+
+    constexpr RigidTransform(const rotation_matrix_type& rotation, const vector_type& translation):
+        m_rotation{rotation}, m_translation{translation_type{translation}} {}
 
     /**
         @brief Create an identity rigid transform.
@@ -1773,8 +1782,6 @@ public:
     }
 
 private:
-    explicit constexpr RigidTransform(rotation_matrix_type rotation, translation_type translation):
-        m_rotation{rotation}, m_translation{translation} {}
 
     rotation_matrix_type m_rotation;
     translation_type m_translation;

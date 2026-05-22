@@ -291,7 +291,7 @@ struct OrbitalState
         const double cos_ea = std::cos(ea);
         const double sin_ea = std::sin(ea);
         const auto& [cos_ta, sin_ta] = true_anomaly_cossin(cos_ea, sin_ea);
-        const double speed = 86400.0*position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
+        const double speed = (1.0/86400.0)*position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
         return {-speed*sin_ta, speed*(position.eccentricity + cos_ta), 0.0};
     }
 
