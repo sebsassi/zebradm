@@ -211,6 +211,18 @@ bool test_planet_surface_speed_at_north_pole_is_zero(double angular_speed, doubl
     return is_close(0.0, body.surface_speed(0.5*std::numbers::pi), error);
 }
 
+bool test_earth_orbital_speed_is_correct(double days_since_j2000)
+{
+    constexpr double safety_margin = 1.001;
+    constexpr double e = zdm::astro::earth.orbit.orbit.eccentricity(0.0);
+    const double mean_speed = 29.7827;
+    const double min_speed = mean_speed*std::sqrt((1 - e)/(1 + e))/safety_margin;
+    const double max_speed = mean_speed*std::sqrt((1 + e)/(1 - e))*safety_margin;
+    const zdm::la::Vector<double, 3> velocity = zdm::astro::earth.orbit(days_since_j2000).orbital_plane_velocity();
+    const double speed = zdm::la::length(velocity);
+    return min_speed < speed && speed < max_speed;
+}
+
 } // namespace
 
 int main()
@@ -271,4 +283,12 @@ int main()
     assert(test_keplers_equation_holds_for_eccentric_anomaly(2.3, 0.3, 2.1, 1.0e-15));
 
     assert(test_planet_surface_speed_at_north_pole_is_zero(2.2, 1.0e-15));
+
+    assert(test_earth_orbital_speed_is_correct(0.0));
+    assert(test_earth_orbital_speed_is_correct(30.0));
+    assert(test_earth_orbital_speed_is_correct(60.0));
+    assert(test_earth_orbital_speed_is_correct(180.0));
+    assert(test_earth_orbital_speed_is_correct(240.0));
+    assert(test_earth_orbital_speed_is_correct(300.0));
+    assert(test_earth_orbital_speed_is_correct(360.0));
 }
