@@ -26,8 +26,8 @@ SOFTWARE.
 
 #include "concepts.hpp"
 #include "linalg.hpp"
-#include "vector.hpp"
 #include "transform_conventions.hpp"
+#include "vector.hpp"
 
 namespace zdm::la
 {

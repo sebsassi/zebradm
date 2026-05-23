@@ -201,6 +201,21 @@ template <arithmetic T, typename... Ts>
 Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 
 
+/**
+    @brief A swizzle operation on vectors.
+
+    @tparam Inds Indices of the input vector that generate the swizzled vector.
+
+    @param v Input vector.
+
+    @return Vector containing components of input vector as given by `Inds`.
+
+    Swizzles are a set of operations which take in a vector and create a new
+    vector as an arbitrary combination of the input vector's components. Thus,
+    e.g., `swizzle<2, 1, 0, 3, Vector<int, 4>>` would permute the elements of
+    the input vector, while `swizzle<1, 3, Vector<int, 4>>` would project it
+    onto the two-dimensional subspace given by its second and last dimensions.
+*/
 template <std::size_t... Inds, static_vector_like T>
     requires ((Inds < std::tuple_size_v<T>) && ...)
 [[nodiscard]] constexpr Vector<typename T::value_type, sizeof...(Inds)>

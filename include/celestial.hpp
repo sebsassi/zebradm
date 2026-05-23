@@ -24,10 +24,10 @@ SOFTWARE.
 #include <tuple>
 
 #include "identity.hpp"
+#include "astro.hpp"
+#include "rigid_transform.hpp"
 #include "rotation.hpp"
 #include "translation.hpp"
-#include "rigid_transform.hpp"
-#include "astro.hpp"
 
 namespace zdm::celestial
 {
