@@ -21,6 +21,7 @@ SOFTWARE.
 */
 #pragma once
 
+#include "polynomial.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 
@@ -35,6 +36,13 @@ class ElectronRateCalculator<DistType::iso, RespType::iso>
 {
 public:
     void rate(
+        IsotropicZernikeVectorSpan<const double> target_response, std::span<la::Vector<double, 3>> lab_velocities,
+        std::span<double> energies, double max_momentum_transfer, double max_speed, double dm_mass,
+        zest::DynamicMDSpan<double, 2> out)
+    {
+    }
+
+    void partial_double_differential_rate(
         IsotropicZernikeVectorSpan<const double> target_response, std::span<la::Vector<double, 3>> lab_velocities,
         std::span<double> energies, double max_momentum_transfer, double max_speed, double dm_mass,
         zest::DynamicMDSpan<double, 2> out)
@@ -58,22 +66,35 @@ public:
                     /* TODO three segments */;
 
                 for (std::size_t k = 0; k < m_shells.size(); ++k)
-                    m_airts[i] = m_angle_integrator.integrate(m_dist_radon, offset_len, m_shells[k]);
+                    m_partial_dd_rate[i, j, k] = m_target_response_shells[k]*m_angle_integrator.integrate(m_dist_radon, offset_len, m_shells[k]);
+            }
+        }
+    }
 
-                double total = 0.0;
-                for (std::size_t k = 0; k < m_shells.size(); ++k)
-                    total += m_shell_weights[i]*m_form_factor[i]*m_response[i]*m_airts[i]*m_momentum_transfers[i];
+    template <std::size_t N>
+    void differential_rate(const Polynomial<double, N>& form_factor, zest::DynamicMDSpan<double, 2> out)
+    {
+        for (std::size_t i = 0; i < m_partial_dd_rate.extent(0); ++i)
+        {
+            for (std::size_t j = 0; j < m_partial_dd_rate.extent(1); ++j)
+            {
+                for (std::size_t k = 0; k < m_partial_dd_rate.extent(2); ++k)
+                {
+                    const double momentum_transfer_sq = m_momentum_transfers[i, j, k]*m_momentum_transfers[i, j, k];
+                    out[i, j] += m_shell_weights[k]*form_factor(momentum_transfer_sq)*m_momentum_transfers[i, j, k]*m_partial_dd_rate[i, j, k];
+                }
             }
         }
     }
 
 private:
-    SHExpansionVector<double> m_target_response_shells;
+    std::vector<double> m_target_response_shells;
     ZernikeExpansion<double> m_dist_radon;
     std::vector<double> m_shell_glq_nodes;
     std::vector<double> m_shell_glq_weights;
     std::vector<double> m_shells;
-    std::vector<double> m_airts;
+    zest::DynamicMDSpan<double, 3> m_momentum_transfers;
+    zest::DynamicMDArray<double, 3> m_partial_dd_rate;
     zebra::detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_angle_integrator;
 };
 
