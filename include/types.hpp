@@ -95,7 +95,6 @@ template <std::floating_point ElementType, std::size_t... inner_extents>
 template <std::floating_point ElementType, std::size_t... inner_extents>
 using IsotropicZernikeExpansion = zest::zt::IsotropicZernikeExpansionNormalGeo<ElementType, inner_extents...>;
 
-
 /**
     @brief Alias for a non-owning view to a Zernike expansion with conventions
     used by zebradm.
@@ -129,5 +128,17 @@ using SHExpansionVector = zest::st::SHExpansionVectorGeo<double, zest::IndexingM
 */
 template <std::floating_point ElementType>
 using SHVectorSpan = zest::st::SHVectorSpanGeo<ElementType, zest::IndexingMode::zero_based>;
+
+/**
+    @brief Alias for a non-owning view to an array of Zernike expansions with conventions
+    used by zebradm.
+
+    @tparam ElementType
+
+    @tparam ElementType Type of expansion coefficients.
+    @tparam inner_extents Extents of an inner multi-dimensional array structure.
+*/
+template <std::floating_point ElementType, std::size_t... inner_extents>
+using IsotropicZernikeVectorSpan = zest::zt::IsotropicZernikeVectorSpanNormalGeo<ElementType>;
 
 } // namespace zdm
