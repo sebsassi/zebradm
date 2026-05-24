@@ -53,17 +53,66 @@ public:
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
             const double lab_speed = la::length(lab_velocities[i]);
+            const double speed_lo = max_speed - lab_speed;
+            const double speed_hi = max_speed + lab_speed;
+            const double speed_lo_sq = speed_lo*speed_lo;
+            const double speed_hi_sq = speed_hi*speed_hi;
+            const double momentum_lo = dm_mass*speed_lo;
+            const double momentum_hi = dm_mass*speed_hi;
+            const double emax_lo = 0.5*dm_mass*speed_lo_sq;
+            const double emax_hi = 0.5*dm_mass*speed_hi_sq;
             const double offset_len = lab_speed/max_speed;
+
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
                 // Kinematically forbidden; bail out
-                if (energies[j] > 0.5*dm_mass*(max_speed + lab_speed)*(max_speed + lab_speed))
+                if (energies[j] > emax_hi)
                     continue;
 
-                if (energies[j] > 0.5*dm_mass*(max_speed - lab_speed)*(max_speed - lab_speed))
+                if (energies[j] > emax_lo)
+                {
+                    const double momentum_hi_min = momentum_hi - std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+                    const double momentum_hi_max = momentum_hi + std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+                    const std::array<double, 2> interval = {momentum_hi_min, momentum_hi_max};
+
+                    for (std::size_t k = 0; k < m_shell_glq_nodes.size(); ++k)
+                    {
+                            const double momentum = 0.5*(interval[1] - interval[0])*m_shell_glq_nodes[k] + 0.5*(interval[1] - interval[0]);
+                            m_momentum_transfers[i, j, k] = momentum;
+                            m_shells[k] = (momentum/(2.0*dm_mass) + energies[j]/momentum)/max_speed;
+                    }
                     /* TODO single segment */;
+                }
+                else if (energies[j] == 0.0) [[unlikely]]
+                    /* TODO two segments */;
                 else
+                {
+
+                    const double momentum_lo_min = momentum_lo - std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[j]);
+                    const double momentum_lo_max = momentum_lo + std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[j]);
+                    const double momentum_hi_min = momentum_hi - std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+                    const double momentum_hi_max = momentum_hi + std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+
+                    const std::array<std::array<double, 2>, 3> intervals = {
+                        std::array<double, 2>{momentum_hi_min, momentum_lo_min},
+                        std::array<double, 2>{momentum_lo_min, momentum_lo_max},
+                        std::array<double, 2>{momentum_lo_max, momentum_hi_max}
+                    };
+
+                    zest::DynamicMDSpan<double, 2> shells{m_shells.data(), 3, m_shell_glq_nodes.size()};
+                    zest::DynamicMDSpan<double, 2> momentums{m_momentum_transfers[i, j].data(), 3, m_shell_glq_nodes.size()};
+                    for (std::size_t k = 0; k < intervals.size(); ++k)
+                    {
+                        for (std::size_t l = 0; l < m_shell_glq_nodes.size(); ++l)
+                        {
+                                const double momentum = 0.5*(intervals[k][1] - intervals[k][0])*m_shell_glq_nodes[l] + 0.5*(intervals[k][1] - intervals[k][0]);
+                                momentums[k, l] = momentum;
+                                shells[k, l] = (momentum/(2.0*dm_mass) + energies[j]/momentum)/max_speed;
+                        }
+
+                    }
                     /* TODO three segments */;
+                }
 
                 for (std::size_t k = 0; k < m_shells.size(); ++k)
                     m_partial_dd_rate[i, j, k] = m_target_response_shells[k]*m_angle_integrator.integrate(m_dist_radon, offset_len, m_shells[k]);
