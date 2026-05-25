@@ -6,7 +6,7 @@ ZebraDM is a modern C++ library that provides tools for performing dark matter d
 event rate computations using the fast Zernike based Radon transform introduced in
 [arXiv:2504.19714](https://arxiv.org/abs/2504.19714).
 
-**This library is very much a work in progress.**
+**This library is a work in progress.**
 
 ## Theoretical background
 
@@ -19,11 +19,26 @@ fewer function evaluations, array operations consisting of easy-to-vectorize bra
 addition and multiplication, and so on. The theoretical background is further described in
 [arXiv:2504.19714](https://arxiv.org/abs/2504.19714).
 
-## About this library
+## Status and roadmap
 
-Currently, this library provides functionality for performing the fast Zernike based Radon
-transform described in [arXiv:2504.19714](https://arxiv.org/abs/2504.19714), and a miscellaneous assortment of
-other basic utilities. This library acts as a reference implementation for these methods.
+This library is in active development. Below is a list of features the library will have sorted
+by their status.
+
+Completed features
+- Functionality for performing the fast Zernike-based Radon transform described in 
+[arXiv:2504.19714](https://arxiv.org/abs/2504.19714), and for evaluating the angle-integrated
+response-weighted Radon transform for different combinations of isotropic/anisotropic responses
+and distributions.
+- Tools for computing the laboratory velocity with respect to the dark matter Halo in various
+Earth-based frames.
+
+Features currently being implemented
+- DM-electron scattering rate computations.
+- DM-nucleon scattering rate in the non-relativistic effective theory.
+
+Future features
+- Migdal rate in DM-nucleon scattering.
+- DM-electron scattering in non-relativistic effective theory.
 
 ## Build and installation
 
@@ -37,7 +52,7 @@ implementation of the Radon transforms, which are implemented for comparison.
 These dependencies are automatically installed by CMake when needed. The library `cubage` is
 installed only if either benchmaks or tests are built.
 
-This library uses CMake for its build/install process. The following three commands configure,
+This library uses CMake for its build/install process. The following commands configure,
 build, and install the project to your preferred install directory
 ```bash
 cmake --preset=default
@@ -55,9 +70,8 @@ you're on your own.*
 
 ## Usage
 
-For a general dark matter nuclear scattering problem one often needs both the regular and the
-transverse Radon transform of the distribution, integrated over the recoil directions. For a basic
-case with isotropic detector response this is provided by `zebra::IsotropicTransverseAngleIntegrator`:
+Below is a short program that calculates the angle-integrated Radon transform (and transverse Radon
+transform) for an anisotropic velocity distribution, assuming an isotropic target response.
 ```cpp
 //transverse_radon_example.cpp
 #include "zest/zernike_glq_transformer.hpp"
@@ -65,50 +79,43 @@ case with isotropic detector response this is provided by `zebra::IsotropicTrans
 
 int main()
 {
-    auto shm_dist = [](const Vector<double, 3>& v){
-        constexpr double disp_sq = 0.4*0.4;
-        const double speed_sq = dot(v,v);
-        return std::exp(-speed_sq/disp_sq);
+    auto shm_dist = [](const zdm::la::Vector<double, 3>& v){
+        const zdm::la::Vector<double, 3> disp_sq = {0.2*0.2, 0.3*0.3, 0.1*0.1};
+        const double speed_sq = dot(v,v/disp_sq);
+        return std::exp(-speed_sq);
     }
 
     constexpr std::size_t order = 20;
     constexpr double vmax = 1.0;
     zest::zt::RealZernikeExpansion dist_expansion
         = zest::zt::ZernikeTransformerNormalGeo{}.transform(shm_dist, vmax, order);
-    
-    std::vector<std::array<double, 3>> vlab = {
+
+    std::vector<zdm::la::Vector<double, 3>> vlab = {
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
     };
 
     std::vector<double> vmin = {0.2, 0.3, 0.4};
 
-    std::vector<std::array<double, 2>> out_buffer(vlab.size()*vmin.size());
-    zest::MDSpan<std::array<double, 2>, 2> out(
-            out_buffer.data(), {vlab.size(), vmin.size()});
+    zest::MDArray<std::array<double, 2>, 2> out{vlab.size(), vmin.size()};
 
-    zebra::IsotropicTransverseAngleIntegrator(order)
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(dist_expansion, vlab, vmin, out);
-    
+
     for (std::size_t i = 0; i < 0; ++i)
     {
-        const double nontransverse = out[i][j][0];
-        const double transverse = out[i][j][1];
+        const double nontransverse = out[i, j][0];
+        const double transverse = out[i, j][1];
         for (std::size_t j = 0; j < 0; ++j)
             std::printf("{%f, %f} ", nontransverse, transverse);
         std::printf("\n");
     }
 }
 ```
-After installation of the library, the above code can be compiled with, e.g.,
+After installation of the library, the above code can be compiled with, e.g. GCC,
 ```
-g++ -O3 -std=c++20 -o transverse_radon_example.cpp transverse_radon_example.cpp -lzebra -lzest
+g++ -O3 -std=c++23 -o transverse_radon_example.cpp transverse_radon_example.cpp -lzebra -lzest
 ```
-Note the `-std=c++20` needed to enable the C++20 features required by the library, unless your
-compiler defaults to C++20.
-
-If the transverse Radon transform is not needed, the class `zebra::IsotropicAngleIntegrator` is
-provided. If an anisotropic response to recoils is needed, corresponding anisotropic classes are
-also provided.
+Note the `-std=c++23` needed to enable the C++23 features required by the library.
 
 ## Documentation
 
