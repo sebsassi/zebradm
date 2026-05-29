@@ -52,23 +52,24 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 .. code:: cpp
 
     #include <print>
+    #include <vector>
 
     #include <zest/zernike_glq_transformer.hpp>
-    #include <zebradm/vector.hpp>
-    #include <zebradm/zebra_angle_integrator.hpp>
+
+    #include <zebra_angle_integrator.hpp>
 
     int main()
     {
-        auto shm_dist = [](const Vector<double, 3>& v){
+        auto shm_dist = [](const std::array<double, 3>& v){
             constexpr double disp_sq = 0.4*0.4;
-            const double speed_sq = dot(v,v);
+            const double speed_sq = zdm::la::dot(v,v);
             return std::exp(-speed_sq/disp_sq);
-        }
+        };
 
         constexpr std::size_t order = 20;
         constexpr double vmax = 1.0;
         zest::zt::ZernikeExpansion dist_expansion
-            = zest::zt::ZernikeTransformerOrthoGeo{}.transform(shm_dist, vmax, order);
+            = zest::zt::ZernikeTransformerNormalGeo{}.forward_transform(shm_dist, vmax, order);
 
         std::vector<zdm::la::Vector<double, 3>> vlab = {
             {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
@@ -76,22 +77,20 @@ for a distribution. To do this,  crate a file ``radon.cpp`` with the contents
 
         std::vector<double> vmin = {0.2, 0.3, 0.4};
 
-        std::vector<std::array<double, 2>> out_buffer(vlab.size()*vmin.size());
-        zest::MDSpan<std::array<double, 2>, 2> out(
-                out_buffer.data(), {vlab.size(), vmin.size()});
+        zest::DynamicMDArray<std::array<double, 2>, 2> out{vlab.size(), vmin.size()};
 
-        zebra::IsotropicTransverseAngleIntegrator(order)
+        zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
             .integrate(dist_expansion, vlab, vmin, out);
 
-        for (std::size_t i = 0; i < 0; ++i)
+        for (std::size_t i = 0; i < vlab.size(); ++i)
         {
-            for (std::size_t j = 0; j < 0; ++j)
+            for (std::size_t j = 0; j < vmin.size(); ++j)
             {
-                const double nontransverse = out[i,j][0];
-                const double transverse = out[i,j][1];
-                std::print("({}, {})", nontransverse, transverse);
+                const double nontransverse = out[i, j][0];
+                const double transverse = out[i, j][1];
+                std::print("{} {} ", nontransverse, transverse);
             }
-            std::print("\n");
+            std::println("");
         }
     }
 
@@ -99,11 +98,11 @@ Now, to compile the code, we use GCC in this example and link our code with Zebr
 
 .. code:: console
 
-    g++ -std=c++20 -O3 -march=native -o radon radon.cpp -lzebradm -lzest
+    g++ -std=c++23 -O3 -march=native -o radon radon.cpp -lzebradm -lzest
 
-There are a few things of note here. First, zest is built on the C++20 standard, and therefore
-requires a sufficiently modern compiler, which implements the necessary C++20 features. To tell GCC
-we are using C++20, we give the flag ``std=c++20``.
+There are a few things of note here. First, zest is built on the C++23 standard, and therefore
+requires a sufficiently modern compiler, which implements the necessary C++23 features. To tell GCC
+we are using C++23, we give the flag ``std=c++23``.
 
 Secondly, apart from linking with this library, don't forget to link with the dependencies. In this
 case, zest.
