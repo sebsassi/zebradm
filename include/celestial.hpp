@@ -96,7 +96,7 @@ template <typename T>
 concept celestial_coordinate_transform
     = parametric_rigid_transform<T>
     && std::same_as<typename T::rigid_transform_type::value_type, double>
-    && (std::tuple_size_v<typename T::rigid_transform_type::value_type> == 3);
+    && (std::tuple_size_v<typename T::rigid_transform_type::vector_type> == 3);
 
 /**
     @brief Enum representing different celestial coordinate systems.
@@ -728,7 +728,7 @@ template <celestial_coordinate_transform T>
 la::Vector<double, 3> transform_velocity(
     T transform, double days_since_j2000, la::Vector<double, 3> velocity)
 {
-    return transform(days_since_j2000)(velocity);
+    return la::Vector<double, 3>(transform(days_since_j2000)(velocity));
 }
 
 /**
@@ -750,7 +750,7 @@ template <celestial_coordinate_transform T>
 la::Vector<double, 3> transform_velocity(
     T transform, double days_since_j2000)
 {
-    return transform(days_since_j2000).translation();
+    return la::Vector<double, 3>(transform(days_since_j2000).translation());
 }
 
 } // namespace zdm::celestial

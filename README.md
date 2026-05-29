@@ -74,21 +74,24 @@ Below is a short program that calculates the angle-integrated Radon transform (a
 transform) for an anisotropic velocity distribution, assuming an isotropic target response.
 ```cpp
 //transverse_radon_example.cpp
+#include <vector>
+#include <print>
+
 #include "zest/zernike_glq_transformer.hpp"
 #include "zebradm/zebra_angle_integrator.hpp"
 
 int main()
 {
-    auto shm_dist = [](const zdm::la::Vector<double, 3>& v){
-        const zdm::la::Vector<double, 3> disp_sq = {0.2*0.2, 0.3*0.3, 0.1*0.1};
-        const double speed_sq = dot(v,v/disp_sq);
-        return std::exp(-speed_sq);
-    }
+    auto shm_dist = [](const std::array<double, 3>& v){
+        constexpr double disp_sq = 0.4*0.4;
+        const double speed_sq = zdm::la::dot(v,v);
+        return std::exp(-speed_sq/disp_sq);
+    };
 
     constexpr std::size_t order = 20;
     constexpr double vmax = 1.0;
-    zest::zt::RealZernikeExpansion dist_expansion
-        = zest::zt::ZernikeTransformerNormalGeo{}.transform(shm_dist, vmax, order);
+    zest::zt::ZernikeExpansion dist_expansion
+        = zest::zt::ZernikeTransformerNormalGeo{}.forward_transform(shm_dist, vmax, order);
 
     std::vector<zdm::la::Vector<double, 3>> vlab = {
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}
@@ -96,18 +99,20 @@ int main()
 
     std::vector<double> vmin = {0.2, 0.3, 0.4};
 
-    zest::MDArray<std::array<double, 2>, 2> out{vlab.size(), vmin.size()};
+    zest::DynamicMDArray<std::array<double, 2>, 2> out{vlab.size(), vmin.size()};
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(dist_expansion, vlab, vmin, out);
 
-    for (std::size_t i = 0; i < 0; ++i)
+    for (std::size_t i = 0; i < vlab.size(); ++i)
     {
-        const double nontransverse = out[i, j][0];
-        const double transverse = out[i, j][1];
-        for (std::size_t j = 0; j < 0; ++j)
-            std::printf("{%f, %f} ", nontransverse, transverse);
-        std::printf("\n");
+        for (std::size_t j = 0; j < vmin.size(); ++j)
+        {
+            const double nontransverse = out[i, j][0];
+            const double transverse = out[i, j][1];
+            std::print("{} {} ", nontransverse, transverse);
+        }
+        std::println("");
     }
 }
 ```
@@ -117,6 +122,8 @@ g++ -O3 -std=c++23 -o transverse_radon_example.cpp transverse_radon_example.cpp 
 ```
 Note the `-std=c++23` needed to enable the C++23 features required by the library.
 
-## Documentation
+More examples of usage are found in the `examples` directory.
 
-HTML and PDF documentation are available in the `docs` directory.
+<!-- ## Documentation -->
+<!---->
+<!-- HTML and PDF documentation are available in the `docs` directory. -->

@@ -1160,6 +1160,7 @@ ut1_interval(
     const DateTime end_time = (*end_res).first;
 
     ut1_interval<epoch>(interval, start_time, end_time);
+    return DateParseStatus::success;
 }
 
 
@@ -1190,8 +1191,11 @@ ut1_interval(
     assert(end_date.size() > 0);
     assert(format.size() > 0);
     std::vector<double> res(count);
-    ut1_interval<epoch>(std::span<double>(res), start_date, end_date, format);
-    return res;
+    const auto status = ut1_interval<epoch>(std::span<double>(res), start_date, end_date, format);
+    if (status == DateParseStatus::success)
+        return res;
+    else
+        return std::unexpected(status);
 }
 
 /**
