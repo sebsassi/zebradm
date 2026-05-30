@@ -14,11 +14,9 @@ There are two:
   implementation of the Radon transforms, which are implemented for comparison. If you are not
   planning on building the included benchmarks, you likely have no need for this.
 
-For all practical purposes, zest is the only dependency you need to care about. Its installation
-process is straightforward and similar to this library.
+These dependencies are automatically fetched by CMake.
 
-After you have installed zest, installation of this library proceeds similarly. To obtain the
-source, clone the repository
+To obtain the source, clone the repository
 
 .. code:: console
 
