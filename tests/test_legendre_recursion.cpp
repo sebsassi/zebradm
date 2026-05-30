@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,11 +19,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include "legendre.hpp"
 
 #include <cassert>
-#include <cstdio>
 #include <cmath>
+#include <print>
+
+#include "legendre.hpp"
+
+namespace
+{
 
 constexpr bool is_close(double a, double b, double tol)
 {
@@ -56,11 +60,11 @@ bool test_legendre_array_recursion_next_is_correct_to_order_6(double x)
     bool success = true;
     for (std::size_t i = 0; i < p_ref.size(); ++i)
         success = success && (is_close(p[i], p_ref[i], tol));
-    
+
     if (!success)
     {
         for (std::size_t i = 0; i < p_ref.size(); ++i)
-            std::printf("P%lu: %f %f\n", i, p[i], p_ref[i]);
+            std::println("P{}: {} {}", i, p[i], p_ref[i]);
     }
 
     return success;
@@ -85,12 +89,12 @@ bool test_legendre_array_recursion_iterate_is_correct_to_order_6(double x)
     bool success =  (is_close(recursion.current()[0], p_ref[order - 1], tol))
         && (is_close(recursion.prev()[0], p_ref[order - 2], tol))
         && (is_close(recursion.second_prev()[0], p_ref[order - 3], tol));
-    
+
     if (!success)
     {
-        std::printf("P%lu: %f %f\n", order - 1, recursion.current()[0], p_ref[order - 1]);
-        std::printf("P%lu: %f %f\n", order - 2, recursion.prev()[0], p_ref[order - 2]);
-        std::printf("P%lu: %f %f\n", order - 3, recursion.second_prev()[0], p_ref[order - 3]);
+        std::println("P{}: {} {}", order - 1, recursion.current()[0], p_ref[order - 1]);
+        std::println("P{}: {} {}", order - 2, recursion.prev()[0], p_ref[order - 2]);
+        std::println("P{}: {} {}", order - 3, recursion.second_prev()[0], p_ref[order - 3]);
     }
 
     return success;
@@ -110,21 +114,25 @@ bool test_legendre_integral_recursion_is_correct_to_order_6(double x)
 
     zdm::zebra::LegendreIntegralRecursion recursion(order);
 
-    std::array<double, order> integrals;
-    recursion.legendre_integral(integrals, x);
+    std::array<double, order> integrals{};
+    recursion.generate(std::span<double>(integrals), x);
+
+    constexpr double tol = 1.0e-13;
 
     bool success = true;
     for (std::size_t i = 0; i < integral_ref.size(); ++i)
-        success = success && (integrals[i] == integral_ref[i]);
-    
+        success = success && is_close(integrals[i], integral_ref[i], tol);
+
     if (!success)
     {
         for (std::size_t i = 0; i < integral_ref.size(); ++i)
-            std::printf("P%lu: %f %f\n", i, integrals[i], integral_ref[i]);
+            std::println("P{}: {} {}", i, integrals[i], integral_ref[i]);
     }
 
     return success;
 }
+
+} // namespace
 
 int main()
 {

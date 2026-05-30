@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -22,35 +22,140 @@ SOFTWARE.
 #pragma once
 
 #include <array>
-#include <vector>
-#include <span>
 #include <limits>
+#include <span>
+#include <vector>
 
 #include <zest/md_span.hpp>
+#include <zest/rotor.hpp>
+#include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_expansion.hpp>
 #include <zest/zernike_glq_transformer.hpp>
-#include <zest/sh_glq_transformer.hpp>
-#include <zest/rotor.hpp>
 
-#include "linalg.hpp"
+#include "vector.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
-#include "zebra_util.hpp"
 
-namespace zdm
+namespace zdm::zebra
 {
-namespace zebra
+
+namespace detail
 {
+
+class ZernikeExpansionWorkspace
+{
+public:
+    ZernikeExpansionWorkspace() = default;
+
+    template <RadonType radon_type>
+    ZernikeExpansionWorkspace(std::size_t order):
+        m_data{(radon_type == RadonType::regular) ? 2 : 7, order + 4} {}
+
+    template <RadonType radon_type>
+    void expand(std::size_t order)
+    {
+        if constexpr (radon_type == RadonType::transverse)
+            m_data.reshape(7, order + 4);
+        else
+            m_data.reshape(std::get<0>(m_data.extents())[0], order + 4);
+    }
+
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion() noexcept { return m_data[0]; };
+    [[nodiscard]] ZernikeSpan<double> rotated_geg_zernike_expansion() noexcept { return m_data[1]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_x() noexcept { return m_data[2]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_y() noexcept { return m_data[3]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_z() noexcept { return m_data[4]; };
+    [[nodiscard]] ZernikeSpan<double> geg_zernike_expansion_r2() noexcept { return m_data[5]; };
+    [[nodiscard]] ZernikeSpan<double> rotated_transverse_zernike_expansion() noexcept { return m_data[6]; };
+
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion() const noexcept { return m_data[0]; };
+    [[nodiscard]] ZernikeSpan<const double> rotated_geg_zernike_expansion() const noexcept { return m_data[1]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_x() const noexcept { return m_data[2]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_y() const noexcept { return m_data[3]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_z() const noexcept { return m_data[4]; };
+    [[nodiscard]] ZernikeSpan<const double> geg_zernike_expansion_r2() const noexcept { return m_data[5]; };
+    [[nodiscard]] ZernikeSpan<const double> rotated_transverse_zernike_expansion() const noexcept { return m_data[6]; };
+
+private:
+    zest::zt::ZernikeExpansionVectorNormalGeo<double, zest::IndexingMode::zero_based> m_data;
+};
+
+} // namespace detail
+
+template <DistType dist_type, RespType resp_type>
+class AngleIntegrator {};
+
+template <>
+class AngleIntegrator<DistType::iso, RespType::iso>
+{
+public:
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t dist_order);
+
+    [[nodiscard]] std::size_t
+    distribution_order() const noexcept { return m_dist_order; }
+
+    void resize(std::size_t dist_order);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution,
+        std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
+        zest::DynamicMDSpan<double, 2> out);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
+        std::span<const double> shells, std::span<double> out);
+
+private:
+    IsotropicZernikeExpansion<double> m_geg_zernike_exp;
+    detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
+    std::size_t m_dist_order{};
+};
+
+template<>
+class AngleIntegrator<DistType::iso, RespType::aniso>
+{
+public:
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t dist_order, std::size_t resp_order);
+
+    [[nodiscard]] std::size_t
+    distribution_order() const noexcept { return m_dist_order; }
+
+    [[nodiscard]] std::size_t
+    response_order() const noexcept { return m_resp_order; }
+
+    void resize(std::size_t dist_order, std::size_t resp_order);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        std::span<const la::Vector<double, 3>> offsets,
+        std::span<const double> rotation_angles, std::span<const double> shells,
+        zest::DynamicMDSpan<double, 2> out);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
+        std::span<const double> shells, std::span<double> out);
+
+private:
+    zest::WignerdPiHalfCollection m_wigner_d_pi2;
+    IsotropicZernikeExpansion<double> m_geg_zernike_exp;
+    detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
+    std::size_t m_dist_order{};
+    std::size_t m_resp_order{};
+};
 
 /**
     @brief Angle integrated Radon transforms using the Zernike based Radon transform.
 */
-class IsotropicAngleIntegrator
+template <>
+class AngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicAngleIntegrator() = default;
-    explicit IsotropicAngleIntegrator(std::size_t dist_order);
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -80,10 +185,9 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        std::span<const std::array<double, 3>> offsets,
-        std::span<const double> shells, zest::MDSpan<double, 2> out);
-    
+        ZernikeSpan<const double> distribution, std::span<const la::Vector<double, 3>> offsets,
+        std::span<const double> shells, zest::DynamicMDSpan<double, 2> out);
+
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
 
@@ -107,35 +211,36 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        const std::array<double, 3>& offset, std::span<const double> shells,
-        std::span<double> out);
-    
+        ZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
+        std::span<const double> shells, std::span<double> out);
+
 private:
     void integrate(
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    zest::zt::RealZernikeExpansionNormalGeo m_rotated_geg_zernike_exp;
-    detail::IsotropicAngleIntegratorCore m_integrator_core;
-    std::size_t m_dist_order;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
+    detail::ZernikeExpansionWorkspace m_zernike_expansions;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
+    std::size_t m_dist_order{};
 };
 
 /**
     @brief Angle integrated Radon transforms with anisotropic response function using the
     Zernike based Radon transform.
 */
-class AnisotropicAngleIntegrator
+template <>
+class AngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicAngleIntegrator() = default;
-    AnisotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    AngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
-    
+
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
 
@@ -196,11 +301,10 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        std::span<const std::array<double, 3>> offsets,
+        ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
-        zest::MDSpan<double, 2> out,
+        zest::DynamicMDSpan<double, 2> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
     /**
@@ -247,40 +351,105 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
-        std::span<const double> shells, zest::MDSpan<double, 2> out,
+        ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
+        std::span<const double> shells, std::span<double> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     void integrate(
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::size_t geg_order,
         std::size_t top_order, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator_core;
-    std::size_t m_dist_order;
-    std::size_t m_resp_order;
-    std::size_t m_trunc_order;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
+    std::size_t m_dist_order{};
+    std::size_t m_resp_order{};
+    std::size_t m_trunc_order{};
+};
+
+template <DistType dist_type, RespType resp_type>
+class TransverseAngleIntegrator {};
+
+template<>
+class TransverseAngleIntegrator<DistType::iso, RespType::iso>
+{
+public:
+    TransverseAngleIntegrator() = default;
+    explicit TransverseAngleIntegrator(std::size_t dist_order);
+
+    [[nodiscard]] std::size_t
+    distribution_order() const noexcept { return m_dist_order; }
+
+    void resize(std::size_t dist_order);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, std::span<const la::Vector<double, 3>> offsets,
+        std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
+        std::span<const double> shells, std::span<std::array<double, 2>> out);
+
+private:
+    IsotropicZernikeExpansion<double, 3> m_transverse_geg_zernike_exp_components;
+    detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
+    detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
+    std::size_t m_dist_order{};
+};
+
+template<>
+class TransverseAngleIntegrator<DistType::iso, RespType::aniso>
+{
+public:
+    TransverseAngleIntegrator() = default;
+    TransverseAngleIntegrator(std::size_t dist_order, std::size_t resp_order);
+
+    [[nodiscard]] std::size_t
+    distribution_order() const noexcept { return m_dist_order; }
+
+    [[nodiscard]] std::size_t
+    response_order() const noexcept { return m_resp_order; }
+
+    void resize(std::size_t dist_order, std::size_t resp_order);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        std::span<const la::Vector<double, 3>> offsets,
+        std::span<const double> rotation_angles, std::span<const double> shells,
+        zest::DynamicMDSpan<std::array<double, 2>, 2> out);
+
+    void integrate(
+        IsotropicZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
+        std::span<const double> shells, std::span<std::array<double, 2>> out);
+
+private:
+    zest::WignerdPiHalfCollection m_wigner_d_pi2;
+    IsotropicZernikeExpansion<double, 3> m_transverse_geg_zernike_exp_components;
+    detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
+    detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
+    std::size_t m_dist_order{};
+    std::size_t m_resp_order{};
 };
 
 /**
     @brief Angle integrated regular and transverse Radon transforms and using the Zernike
     based Radon transform.
 */
-class IsotropicTransverseAngleIntegrator
+template <>
+class TransverseAngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicTransverseAngleIntegrator() = default;
-    explicit IsotropicTransverseAngleIntegrator(std::size_t dist_order);
+    TransverseAngleIntegrator() = default;
+    explicit TransverseAngleIntegrator(std::size_t dist_order);
 
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
@@ -311,10 +480,9 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        std::span<const std::array<double, 3>> offsets,
-        std::span<const double> shells, zest::MDSpan<std::array<double, 2>, 2> out);
-    
+        ZernikeSpan<const double> distribution, std::span<const la::Vector<double, 3>> offsets,
+        std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out);
+
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
         velocity disitribution on an offset unit ball.
@@ -339,41 +507,41 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        const std::array<double, 3>& offset, std::span<const double> shells,
-        std::span<std::array<double, 2>> out);
-    
+        ZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
+        std::span<const double> shells, std::span<std::array<double, 2>> out);
+
 private:
     void integrate(
-        const std::array<double, 3>& offset, std::span<const double> shells,
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_x;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_y;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_z;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_r2;
-    zest::zt::RealZernikeExpansionNormalGeo m_rotated_geg_zernike_exp;
-    zest::zt::RealZernikeExpansionNormalGeo m_rotated_trans_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp_x;
+    ZernikeExpansion<double> m_geg_zernike_exp_y;
+    ZernikeExpansion<double> m_geg_zernike_exp_z;
+    ZernikeExpansion<double> m_geg_zernike_exp_r2;
+    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
-    detail::IsotropicAngleIntegratorCore m_integrator_core;
-    std::size_t m_dist_order;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
+    std::size_t m_dist_order{};
 };
 
 /**
     @brief Angle integrated regular and transverse Radon transforms with anisotropic
     response function using the Zernike based Radon transform.
 */
-class AnisotropicTransverseAngleIntegrator
+template <>
+class TransverseAngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicTransverseAngleIntegrator() = default;
-    AnisotropicTransverseAngleIntegrator(
+    TransverseAngleIntegrator() = default;
+    TransverseAngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
-    
+
     [[nodiscard]] std::size_t
     distribution_order() const noexcept { return m_dist_order; }
 
@@ -434,11 +602,10 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        std::span<const std::array<double, 3>> offsets,
+        ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
-        zest::MDSpan<std::array<double, 2>, 2> out,
+        zest::DynamicMDSpan<std::array<double, 2>, 2> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
     /**
@@ -485,36 +652,36 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution,
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        ZernikeSpan<const double> distribution, SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     void integrate(
-        SHExpansionVectorSpan<const std::array<double, 2>> response,
-        const std::array<double, 3>& offset, double rotation_angle,
+        SHVectorSpan<const double> response,
+        const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_x;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_y;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_z;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp_r2;
-    std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
-    zest::zt::RealZernikeExpansionNormalGeo m_rotated_trans_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp_x;
+    ZernikeExpansion<double> m_geg_zernike_exp_y;
+    ZernikeExpansion<double> m_geg_zernike_exp_z;
+    ZernikeExpansion<double> m_geg_zernike_exp_r2;
+    std::vector<double> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
     std::vector<double> m_rotated_trans_geg_zernike_grids;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
-    detail::AnisotropicAngleIntegratorCore m_integrator_core;
-    std::size_t m_dist_order;
-    std::size_t m_resp_order;
-    std::size_t m_trunc_order;
+    detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
+    std::size_t m_dist_order{};
+    std::size_t m_resp_order{};
+    std::size_t m_trunc_order{};
 };
 
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra
+
+

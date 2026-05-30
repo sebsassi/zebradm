@@ -1,0 +1,253 @@
+/*
+Copyright (c) 2025 Sebastian Sassi
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to 
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+of the Software, and to permit persons to whom the Software is furnished to do 
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+SOFTWARE.
+*/
+#pragma once
+
+#include <array>
+
+#include "concepts.hpp"
+#include "linalg.hpp"
+
+namespace zdm::la
+{
+
+/**
+    @brief A mathematical vector.
+
+    This structure represents a mathematical vector with all the expected
+    operations (addition, subtraction, multiplication/division by constant)
+    plus others (element-wise multiplication/division).
+
+    @tparam T Type of elements of the vector.
+    @tparam Dimension of the vector.
+*/
+template <arithmetic T, std::size_t N>
+struct Vector
+{
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+
+    using iterator = std::array<T, N>::iterator;
+    using const_iterator = std::array<T, N>::const_iterator;
+
+    std::array<T, N> array;
+
+    constexpr Vector() = default;
+    constexpr Vector(const std::array<T, N>& arr): array{arr} {}
+
+    template <arithmetic... Types>
+    constexpr Vector(Types... values): array{T(values)...} {};
+
+    [[nodiscard]] constexpr
+    operator std::array<T, N>() const noexcept { return array; }
+
+    [[nodiscard]] constexpr auto operator<=>(const Vector& other) const noexcept = default;
+
+    [[nodiscard]] constexpr reference
+    operator[](size_type i) noexcept { return array[i]; }
+
+    [[nodiscard]] constexpr const_reference
+    operator[](size_type i) const noexcept { return array[i]; }
+
+    [[nodiscard]] constexpr reference
+    at(size_type i) noexcept { return array.at(i); }
+
+    [[nodiscard]] constexpr const_reference
+    at(size_type i) const noexcept { return array.at(i); }
+
+    [[nodiscard]] constexpr reference
+    front() noexcept { return array.front(); }
+
+    [[nodiscard]] constexpr const_reference
+    front() const noexcept { return array.front(); }
+
+    [[nodiscard]] constexpr reference
+    back() noexcept { return array.back(); }
+
+    [[nodiscard]] constexpr const_reference
+    back() const noexcept { return array.back(); }
+
+    [[nodiscard]] constexpr pointer
+    data() noexcept { return array.data(); }
+
+    [[nodiscard]] constexpr const_pointer
+    data() const noexcept { return array.data(); }
+
+    [[nodiscard]] constexpr iterator
+    begin() noexcept { return array.begin(); }
+
+    [[nodiscard]] constexpr const_iterator
+    begin() const noexcept { return array.begin(); }
+
+    [[nodiscard]] constexpr const_iterator
+    cbegin() const noexcept { return array.cbegin(); }
+
+    [[nodiscard]] constexpr iterator
+    end() noexcept { return array.end(); }
+
+    [[nodiscard]] constexpr const_iterator
+    end() const noexcept { return array.end(); }
+
+    [[nodiscard]] constexpr const_iterator
+    cend() const noexcept { return array.cend(); }
+
+    [[nodiscard]] constexpr bool
+    empty() const noexcept { return array.empty(); }
+
+    [[nodiscard]] constexpr size_type
+    size() const noexcept { return array.size(); }
+
+    [[nodiscard]] constexpr size_type
+    max_size() const noexcept { return array.max_size(); }
+
+    constexpr void
+    fill(const value_type& value) noexcept { array.fill(value); }
+
+    constexpr void
+    swap(Vector& other) noexcept { array.swap(other.array); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator+(const Vector& a) noexcept { return a; }
+
+    [[nodiscard]] friend constexpr Vector
+    operator+(const Vector& a, const Vector& b) noexcept { return add(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator+(const Vector& a, const value_type& b) noexcept { return add(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator+(const value_type& a, const Vector& b) noexcept { return add(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator-(const Vector& a) noexcept { return minus(a); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator-(const Vector& a, const Vector& b) noexcept { return sub(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator-(const Vector& a, const value_type& b) noexcept { return sub(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator-(const value_type& a, const Vector& b) noexcept { return sub(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator*(const value_type& a, const Vector& b) noexcept { return mul(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator*(const Vector& a, const value_type& b) noexcept { return mul(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator*(const Vector& a, const Vector& b) noexcept { return mul(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator/(const Vector& a, const value_type& b) noexcept { return div(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator/(const value_type& a, const Vector& b) noexcept { return div(a, b); }
+
+    [[nodiscard]] friend constexpr Vector
+    operator/(const Vector& a, const Vector& b) noexcept { return div(a, b); }
+
+    friend constexpr Vector&
+    operator+=(Vector& a, const Vector& b) noexcept { return add_assign(a, b); }
+
+    friend constexpr Vector&
+    operator+=(Vector& a, const value_type& b) noexcept { return add_assign(a, b); }
+
+    friend constexpr Vector&
+    operator-=(Vector& a, const Vector& b) noexcept { return sub_assign(a, b); }
+
+    friend constexpr Vector&
+    operator-=(Vector& a, const value_type& b) noexcept { return sub_assign(a, b); }
+
+    friend constexpr Vector&
+    operator*=(Vector& a, const value_type& b) noexcept { return mul_assign(a, b); }
+
+    friend constexpr Vector&
+    operator*=(Vector& a, const Vector& b) noexcept { return mul_assign(a, b); }
+
+    friend constexpr Vector&
+    operator/=(Vector& a, const value_type& b) noexcept { return div_assign(a, b); }
+
+    friend constexpr Vector&
+    operator/=(Vector& a, const Vector& b) noexcept { return div_assign(a, b); }
+};
+
+template <arithmetic T, typename... Ts>
+    requires (std::same_as<T, Ts> && ...)
+Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
+
+
+/**
+    @brief A swizzle operation on vectors.
+
+    @tparam Inds Indices of the input vector that generate the swizzled vector.
+
+    @param v Input vector.
+
+    @return Vector containing components of input vector as given by `Inds`.
+
+    Swizzles are a set of operations which take in a vector and create a new
+    vector as an arbitrary combination of the input vector's components. Thus,
+    e.g., `swizzle<2, 1, 0, 3, Vector<int, 4>>` would permute the elements of
+    the input vector, while `swizzle<1, 3, Vector<int, 4>>` would project it
+    onto the two-dimensional subspace given by its second and last dimensions.
+*/
+template <std::size_t... Inds, static_vector_like T>
+    requires ((Inds < std::tuple_size_v<T>) && ...)
+[[nodiscard]] constexpr Vector<typename T::value_type, sizeof...(Inds)>
+swizzle(const T& v) noexcept
+{
+    return {v[Inds]...};
+}
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr T& get(Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr T&& get(Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr const T& get(const Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+constexpr const T&& get(const Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
+
+} // namespace zdm::la
+
+namespace std
+{
+
+template <zdm::arithmetic T, std::size_t N>
+struct tuple_size<zdm::la::Vector<T, N>>: std::integral_constant<std::size_t, N> {};
+
+template <std::size_t I, zdm::arithmetic T, std::size_t N>
+struct tuple_element<I, zdm::la::Vector<T, N>>
+{
+    using type = T;
+};
+
+} // namespace std

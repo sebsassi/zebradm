@@ -1,7 +1,9 @@
 # Copyright (c) 2024 Sebastian Sassi
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy 
-# of this software and associated documentation files (the "Software"), to deal # in the Software without restriction, including without limitation the rights # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
@@ -17,14 +19,14 @@
 # SOFTWARE.
 cmake_minimum_required(VERSION 3.19)
 project(zebradm 
-    VERSION 0.1.0 
+    VERSION 0.2.0 
     LANGUAGES CXX
 )
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT CMAKE_EXPORT_COMPILE_COMMANDS)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 endif()
 
 add_library(zebradm
@@ -40,7 +42,7 @@ target_include_directories(zebradm
         ${PROJECT_SOURCE_DIR}/src
 )
 
-target_compile_features(zebradm PUBLIC cxx_std_20)
+target_compile_features(zebradm PUBLIC cxx_std_23)
 
 include(GNUInstallDirs)
 install(DIRECTORY include/ DESTINATION include/zebradm)
@@ -83,19 +85,38 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(zebradm PUBLIC OpenMP::OpenMP_CXX)
 endif()
 
-find_package(cubage CONFIG)
-if((NOT cubage_FOUND) AND (BUILD_BENCHMARKS OR BUILD_TESTING))
-    message(FATAL_ERROR "cubage not found: benchmarks or tests cannot be built without cubage")
+if(NOT USE_ZEST_DEV_BRANCH)
+    set(ZEST_GIT_TAG origin/master)
 else()
+    set(ZEST_GIT_TAG origin/dev)
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    zest
+    GIT_REPOSITORY https://github.com/sebsassi/zest.git
+    GIT_TAG ${ZEST_TAG}
+    FIND_PACKAGE_ARGS NAMES zest
+)
+FetchContent_MakeAvailable(zest)
+target_link_libraries(zebradm PUBLIC zest::zest)
+
+if(BUILD_BENCHMARKS OR BUILD_TESTING)
+    FetchContent_Declare(
+        cubage
+        GIT_REPOSITORY https://github.com/sebsassi/cubage.git
+        GIT_TAG origin/master
+        FIND_PACKAGE_ARGS NAMES cubage
+    )
+    FetchContent_MakeAvailable(cubage)
     target_link_libraries(zebradm PUBLIC cubage::cubage)
 endif()
 
-find_package(zest CONFIG REQUIRED)
-target_link_libraries(zebradm PUBLIC zest::zest)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     enable_testing()
     add_subdirectory(tests)
+    add_subdirectory(examples)
 endif()
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_BENCHMARKS)

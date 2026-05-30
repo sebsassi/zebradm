@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,12 +19,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+
+#include <cassert>
+#include <cmath>
+#include <print>
+
+#include <zest/gauss_legendre.hpp>
+#include <zest/md_array.hpp>
+
 #include "affine_legendre_integral.hpp"
 
-#include "zest/gauss_legendre.hpp"
-
-#include <cmath>
-#include <cassert>
+namespace
+{
 
 constexpr bool is_close(double a, double b, double tol)
 {
@@ -67,7 +73,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     const double a214 = 3.0*scale*scale/8.0;
     const double A21
         = b*b*(a212 + b*(a213 + b*a214)) - a*a*(a212 + a*(a213 + a*a214));
-    
+
     const double a312 = (1.25*shift*shift - 0.75)*shift;
     const double a313 = (2.5*shift*shift - 0.5)*scale;
     const double a314 = 15.0*shift*scale*scale/8.0;
@@ -75,7 +81,7 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
     const double A31
         = b*b*(a312 + b*(a313 + b*(a314 + b*a315)))
         - a*a*(a312 + a*(a313 + a*(a314 + a*a315)));
-    
+
     const double a221 = 0.25 - 0.75*shift*shift;
     const double a222 = -0.75*shift*scale;
     const double a223 = 0.75*shift*shift - 0.25*scale*scale - 0.25;
@@ -87,36 +93,32 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
 
     zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
-    std::vector<double> trapezoid_buffer(
-        zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    
-    zdm::zebra::TrapezoidSpan<double> test_trapezoid(
-        trapezoid_buffer.data(), order, extra_extent);
+    zdm::zebra::TrapezoidArray<double> test_trapezoid{order, extra_extent};
     recursion.integrals(test_trapezoid, shift, scale);
 
     constexpr double tol = 1.0e-13;
-    bool success = is_close(test_trapezoid(0, 0), A00, tol)
-            && is_close(test_trapezoid(1, 0), A10, tol)
-            && is_close(test_trapezoid(2, 0), A20, tol)
-            && is_close(test_trapezoid(3, 0), A30, tol)
-            && is_close(test_trapezoid(4, 0), A40, tol)
-            && is_close(test_trapezoid(1, 1), A11, tol)
-            && is_close(test_trapezoid(2, 1), A21, tol)
-            && is_close(test_trapezoid(3, 1), A31, tol)
-            && is_close(test_trapezoid(2, 2), A22, tol);
-    
+    bool success = is_close(test_trapezoid[0, 0], A00, tol)
+            && is_close(test_trapezoid[1, 0], A10, tol)
+            && is_close(test_trapezoid[2, 0], A20, tol)
+            && is_close(test_trapezoid[3, 0], A30, tol)
+            && is_close(test_trapezoid[4, 0], A40, tol)
+            && is_close(test_trapezoid[1, 1], A11, tol)
+            && is_close(test_trapezoid[2, 1], A21, tol)
+            && is_close(test_trapezoid[3, 1], A31, tol)
+            && is_close(test_trapezoid[2, 2], A22, tol);
+
     if (!success)
     {
-        std::printf("%f %f\n", shift, scale);
-        std::printf("A00: %.16e %.16e\n", test_trapezoid(0, 0), A00);
-        std::printf("A10: %.16e %.16e\n", test_trapezoid(1, 0), A10);
-        std::printf("A20: %.16e %.16e\n", test_trapezoid(2, 0), A20);
-        std::printf("A30: %.16e %.16e\n", test_trapezoid(3, 0), A30);
-        std::printf("A40: %.16e %.16e\n", test_trapezoid(4, 0), A40);
-        std::printf("A11: %.16e %.16e\n", test_trapezoid(1, 1), A11);
-        std::printf("A21: %.16e %.16e\n", test_trapezoid(2, 1), A21);
-        std::printf("A31: %.16e %.16e\n", test_trapezoid(3, 1), A31);
-        std::printf("A22: %.16e %.16e\n", test_trapezoid(2, 2), A22);
+        std::println("{} {}", shift, scale);
+        std::println("A00: {:.16e} {:.16e}", test_trapezoid[0, 0], A00);
+        std::println("A10: {:.16e} {:.16e}", test_trapezoid[1, 0], A10);
+        std::println("A20: {:.16e} {:.16e}", test_trapezoid[2, 0], A20);
+        std::println("A30: {:.16e} {:.16e}", test_trapezoid[3, 0], A30);
+        std::println("A40: {:.16e} {:.16e}", test_trapezoid[4, 0], A40);
+        std::println("A11: {:.16e} {:.16e}", test_trapezoid[1, 1], A11);
+        std::println("A21: {:.16e} {:.16e}", test_trapezoid[2, 1], A21);
+        std::println("A31: {:.16e} {:.16e}", test_trapezoid[3, 1], A31);
+        std::println("A22: {:.16e} {:.16e}", test_trapezoid[2, 2], A22);
     }
 
     return success;
@@ -144,34 +146,30 @@ bool test_affine_legendre_integral_recursion_is_correct_for_order_5_extra_extent
 
     zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
-    std::vector<double> trapezoid_buffer(
-        zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    
-    zdm::zebra::TrapezoidSpan<double> test_trapezoid(
-        trapezoid_buffer.data(), order, extra_extent);
+    zdm::zebra::TrapezoidArray<double> test_trapezoid{order, extra_extent};
     recursion.integrals(test_trapezoid, shift, scale);
 
     constexpr double tol = 1.0e-13;
-    bool success = is_close(test_trapezoid(0, 0), A00, tol)
-            && is_close(test_trapezoid(0, 1), A01, tol)
-            && is_close(test_trapezoid(0, 2), A02, tol)
-            && is_close(test_trapezoid(0, 3), A03, tol)
-            && is_close(test_trapezoid(1, 0), A10, tol)
-            && is_close(test_trapezoid(2, 0), A20, tol)
-            && is_close(test_trapezoid(3, 0), A30, tol)
-            && is_close(test_trapezoid(4, 0), A40, tol);
-    
+    bool success = is_close(test_trapezoid[0, 0], A00, tol)
+            && is_close(test_trapezoid[0, 1], A01, tol)
+            && is_close(test_trapezoid[0, 2], A02, tol)
+            && is_close(test_trapezoid[0, 3], A03, tol)
+            && is_close(test_trapezoid[1, 0], A10, tol)
+            && is_close(test_trapezoid[2, 0], A20, tol)
+            && is_close(test_trapezoid[3, 0], A30, tol)
+            && is_close(test_trapezoid[4, 0], A40, tol);
+
     if (!success)
     {
-        std::printf("%f %f\n", shift, scale);
-        std::printf("A00: %.16e %.16e\n", test_trapezoid(0, 0), A00);
-        std::printf("A01: %.16e %.16e\n", test_trapezoid(0, 1), A01);
-        std::printf("A02: %.16e %.16e\n", test_trapezoid(0, 2), A02);
-        std::printf("A03: %.16e %.16e\n", test_trapezoid(0, 3), A03);
-        std::printf("A10: %.16e %.16e\n", test_trapezoid(1, 0), A10);
-        std::printf("A20: %.16e %.16e\n", test_trapezoid(2, 0), A20);
-        std::printf("A30: %.16e %.16e\n", test_trapezoid(3, 0), A30);
-        std::printf("A40: %.16e %.16e\n", test_trapezoid(4, 0), A40);
+        std::println("{} {}", shift, scale);
+        std::println("A00: {:.16e} {:.16e}", test_trapezoid[0, 0], A00);
+        std::println("A01: {:.16e} {:.16e}", test_trapezoid[0, 1], A01);
+        std::println("A02: {:.16e} {:.16e}", test_trapezoid[0, 2], A02);
+        std::println("A03: {:.16e} {:.16e}", test_trapezoid[0, 3], A03);
+        std::println("A10: {:.16e} {:.16e}", test_trapezoid[1, 0], A10);
+        std::println("A20: {:.16e} {:.16e}", test_trapezoid[2, 0], A20);
+        std::println("A30: {:.16e} {:.16e}", test_trapezoid[3, 0], A30);
+        std::println("A40: {:.16e} {:.16e}", test_trapezoid[4, 0], A40);
     }
 
     return success;
@@ -194,44 +192,33 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     const double half_width = 0.5*(b - a);
     const double mid_point = 0.5*(b + a);
 
-    for (std::size_t i = 0; i < glq_nodes.size(); ++i)
-        glq_nodes[i] = half_width*glq_nodes[i] + mid_point;
-    
-    std::vector<double> legendre_buffer(last_extent*num_glq_nodes);
-    zest::MDSpan<double, 2> legendre(
-            legendre_buffer.data(), {last_extent, glq_weights.size()});
+    for (double & glq_node : glq_nodes)
+        glq_node = half_width*glq_node + mid_point;
+
+    zest::DynamicMDArray<double, 2> legendre{last_extent, glq_weights.size()};
     if (scale > shift - 1.0)
         zdm::zebra::legendre_recursion_vec(legendre, glq_nodes);
 
-    for (std::size_t i = 0; i < glq_nodes.size(); ++i)
-        glq_nodes[i] = shift + scale*glq_nodes[i];
+    for (double & glq_node : glq_nodes)
+        glq_node = shift + scale*glq_node;
 
-    std::vector<double> affine_legendre_buffer(order*num_glq_nodes);
-    zest::MDSpan<double, 2> affine_legendre(
-            affine_legendre_buffer.data(), {order, glq_weights.size()});
+    zest::DynamicMDArray<double, 2> affine_legendre{order, glq_weights.size()};
     if (scale > shift - 1.0)
         zdm::zebra::legendre_recursion_vec(affine_legendre, glq_nodes);
 
-    std::vector<double> reference_integral_buffer(
-            zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    zdm::zebra::TrapezoidSpan<double> reference_integrals(
-            reference_integral_buffer.data(), order, extra_extent);
-    
+    zdm::zebra::TrapezoidArray<double> reference_integrals{order, extra_extent};
     for (std::size_t n = 0; n < order; ++n)
     {
         for (std::size_t l = 0; l < n + extra_extent + 1; ++l)
         {
             double res = 0.0;
             for (std::size_t i = 0; i < glq_nodes.size(); ++i)
-                res += glq_weights[i]*affine_legendre(n, i)*legendre(l, i);
-            reference_integrals(n, l) = half_width*res;
+                res += glq_weights[i]*affine_legendre[n, i]*legendre[l, i];
+            reference_integrals[n, l] = half_width*res;
         }
     }
 
-    std::vector<double> test_integral_buffer(
-            zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    zdm::zebra::TrapezoidSpan<double> test_integrals(
-            test_integral_buffer.data(), order, extra_extent);
+    zdm::zebra::TrapezoidArray<double> test_integrals{order, extra_extent};
     
     zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
     recursion.integrals(test_integrals, shift, scale);
@@ -248,22 +235,24 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
 
     if (!success)
     {
-        std::printf("%f %f\n", shift, scale);
+        std::println("{} {}", shift, scale);
         for (std::size_t n = 0; n < order; ++n)
         {
             for (std::size_t l = 0; l < n + extra_extent + 1; ++l)
             {
-                std::printf("(%lu,%lu): %.16e %.16e ", n, l, test_integrals(n, l), reference_integrals(n, l));
-                if (std::fabs(reference_integrals(n, l) - test_integrals(n, l)) > tol)
-                    std::printf("%.16e\n", reference_integrals(n, l) - test_integrals(n, l));
+                std::print("({}, {}): {:.16e} {:.16e} ", n, l, test_integrals[n, l], reference_integrals[n, l]);
+                if (std::fabs(reference_integrals[n, l] - test_integrals[n, l]) > tol)
+                    std::println("{:.16e}", reference_integrals[n, l] - test_integrals[n, l]);
                 else
-                    std::printf("\n");
+                    std::println("");
             }
         }
     }
 
     return success;
 }
+
+} // namespace
 
 int main()
 {

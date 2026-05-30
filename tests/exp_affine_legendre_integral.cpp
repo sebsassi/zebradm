@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,11 +19,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+
+#include <cmath>
+#include <fstream>
+#include <random>
+
 #include "affine_legendre_integral.hpp"
 
-#include <fstream>
-#include <cmath>
-#include <random>
+namespace
+{
 
 [[maybe_unused]] void print(const char* fname, zdm::zebra::TrapezoidSpan<double> data)
 {
@@ -31,17 +35,13 @@ SOFTWARE.
     output.open(fname);
     for (std::size_t n = 0; n < data.order(); ++n)
     {
-        for (std::size_t l = 0; l <= n + data.extra_extent(); ++l)
+        for (std::size_t l = 0; l <= n + data.shape().extra_extent(); ++l)
         {
-            char line[128] = {};
-            std::sprintf(line, "%.16e ", std::fabs(data(n, l)));
-            output << line;
+            output << std::format("{:.16e} ", std::fabs(data(n, l)));
         }
-        for (std::size_t l = n + 1 + data.extra_extent(); l < data.order() + data.extra_extent(); ++l)
+        for (std::size_t l = n + 1 + data.shape().extra_extent(); l < data.order() + data.shape().extra_extent(); ++l)
         {
-            char line[128] = {};
-            std::sprintf(line, "%.16e ", 0.0);
-            output << line;
+            output << std::format("{:0.16e} ", 0.0);
         }
         output << '\n';
     }
@@ -56,19 +56,16 @@ void exp_affine_legendre_integral_recursion_stability(
 
     zdm::zebra::AffineLegendreIntegrals recursion(order, extra_extent);
 
-    std::vector<double> trapezoid_buffer(
-        zdm::zebra::TrapezoidSpan<double>::Layout::size(order, extra_extent));
-    
-    zdm::zebra::TrapezoidSpan<double> test_trapezoid(
-        trapezoid_buffer.data(), order, extra_extent);
-    
-    recursion.integrals(
-            test_trapezoid, shift, scale);
+    zdm::zebra::TrapezoidArray<double> test_trapezoid{order, extra_extent};
+
+    recursion.integrals(test_trapezoid, shift, scale);
 
     char fname[128] = {};
     std::sprintf(fname, "aff_leg_coeff_%.2f_%.2f.dat", shift, scale);
     print(fname, test_trapezoid);
 }
+
+} // namespace
 
 int main()
 {

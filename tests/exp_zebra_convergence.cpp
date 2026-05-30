@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,131 +19,116 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+#include <print>
 #include <random>
 
+#include <zest/md_array.hpp>
+
+#include "transform_utilities.hpp"
+#include "matrix.hpp"
+#include "types.hpp"
+#include "vector.hpp"
 #include "zebra_angle_integrator.hpp"
 
-#include "coordinate_transforms.hpp"
-
-double quadratic_form(
-    const std::array<std::array<double, 3>, 3>& arr,
-    const std::array<double, 3>& vec)
+namespace
 {
-    double res = 0.0;
-    for (std::size_t i = 0; i < 3; ++i)
-    {
-        for (std::size_t j = 0; j < 3; ++j)
-            res += vec[i]*arr[i][j]*vec[j];
-    }
-
-    return res;
-}
 
 void relative_error(
-    zest::MDSpan<double, 2> err, zest::MDSpan<const double, 2> a, zest::MDSpan<const double, 2> b)
+    zest::DynamicMDSpan<double, 2> err, zest::DynamicMDSpan<const double, 2> a, zest::DynamicMDSpan<const double, 2> b)
 {
     for (std::size_t i = 0; i < err.extents()[0]; ++i)
     {
         for (std::size_t j = 0; j < err.extents()[1]; ++j)
-        {
-            err(i, j) = std::fabs(1.0 - a(i, j)/b(i, j));
-        }
+            err[i, j] = std::fabs(1.0 - a[i, j]/b[i, j]);
     }
 }
 
 template <typename DistType, typename RespType>
 void zebra_evaluate(
     DistType&& dist, RespType&& resp, std::size_t dist_order,
-    std::size_t resp_order, std::span<const std::array<double, 3>> offsets,
-    std::span<const double> shells, std::span<const double> rotation_angles, zest::MDSpan<double, 2> out)
+    std::size_t resp_order, std::span<const zdm::la::Vector<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles, zest::DynamicMDSpan<double, 2> out)
 {
-    zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).transform(
-                dist, 1.0, dist_order);
+    zdm::ZernikeExpansion<double> distribution
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+                std::forward<DistType>(dist), 1.0, dist_order);
 
-    std::vector<std::array<double, 2>> response_buffer(
-        shells.size()*zdm::SHExpansionSpan<std::array<double, 2>>::size(resp_order));
-    zdm::SHExpansionVectorSpan<std::array<double, 2>>
-    response(response_buffer.data(), {shells.size()}, resp_order);
-    zdm::zebra::ResponseTransformer(resp_order).transform(resp, shells, response);
+    zdm::SHExpansionVector<double> response{shells.size(), resp_order};
+    zdm::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::AnisotropicAngleIntegrator(dist_order, resp_order).integrate(
-            distribution, response, offsets, rotation_angles, shells, out);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
+        .integrate(distribution, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename DistType, typename RespType>
 void zebra_convergence(
-    DistType&& dist, RespType&& resp, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, std::span<const double> rotation_angles)
+    DistType&& dist, RespType&& resp, std::span<const zdm::la::Vector<double, 3>> offsets,
+    std::span<const double> shells, std::span<const double> rotation_angles)
 {
     constexpr std::size_t dist_order = 200;
     constexpr std::size_t resp_order = 800;
     const std::vector<std::size_t> dist_orders = {20, 50, 100, 150};
     const std::vector<std::size_t> resp_orders = {30, 40, 50, 60, 70, 80, 100, 120, 140, 160, 180, 200, 240, 280, 320, 400, 480, 640};
 
-    std::vector<double> reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<double, 2> reference(
-            reference_buffer.data(), {offsets.size(), shells.size()});
-    
-    std::printf("Computing reference orders: (%lu, %lu)\n", dist_order, resp_order);
-    zebra_evaluate(
-            dist, resp, dist_order, resp_order, offsets, shells, rotation_angles, reference);
+    zest::DynamicMDArray<double, 2> reference{offsets.size(), shells.size()};
 
-    std::vector<double> test_buffer(
-            dist_orders.size()*resp_orders.size()*offsets.size()*shells.size());
-    zest::MDSpan<double, 4> test(
-            test_buffer.data(), {dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()});
-    
+    std::println("Computing reference orders: ({}, {})", dist_order, resp_order);
+    zebra_evaluate(
+            std::forward<DistType>(dist), std::forward<RespType>(resp),
+            dist_order, resp_order, offsets, shells, rotation_angles, reference);
+
+    zest::DynamicMDArray<double, 4> test{dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()};
+
     for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
         for (std::size_t j = 0; j < resp_orders.size(); ++j)
         {
-            std::printf("Computing orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
+            std::println("Computing orders: {}, {}", dist_orders[i], resp_orders[j]);
             zebra_evaluate(
-                    dist, resp, dist_orders[i], resp_orders[j], offsets, shells, rotation_angles, test(i, j));
+                    std::forward<DistType>(dist), std::forward<RespType>(resp),
+                    dist_orders[i], resp_orders[j], offsets, shells, rotation_angles, test[i, j]);
         }
     }
 
-    std::vector<double> relative_error_buffer(
-            dist_orders.size()*resp_orders.size()*offsets.size()*shells.size());
-    zest::MDSpan<double, 4> relative_errors(
-            relative_error_buffer.data(), {dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()});
+    zest::DynamicMDArray<double, 4> relative_errors{dist_orders.size(), resp_orders.size(), offsets.size(), shells.size()};
     for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
         for (std::size_t j = 0; j < resp_orders.size(); ++j)
-            relative_error(relative_errors(i, j), test(i, j), reference);
+            relative_error(relative_errors[i, j], test[i, j], reference);
     }
-    
+
     for (std::size_t i = 0; i < dist_orders.size(); ++i)
     {
         for (std::size_t j = 0; j < resp_orders.size(); ++j)
         {
-            std::printf("\n orders: %lu, %lu\n", dist_orders[i], resp_orders[j]);
+            std::println("\n orders: {}, {}", dist_orders[i], resp_orders[j]);
             for (std::size_t k = 0; k < offsets.size(); ++k)
             {
                 for (std::size_t l = 0; l < shells.size(); ++l)
-                    std::printf("%.16e ", relative_errors(i, j, k, l));
-                std::printf("\n");
+                    std::print("{:.16e} ", relative_errors[i, j, k, l]);
+                std::println("");
             }
         }
     }
 }
-
 
 inline double smooth_step(double x, double slope)
 {
     return 0.5*(1.0 + std::tanh(slope*x));
 }
 
+} // namespace
+
 int main()
 {
-    [[maybe_unused]] auto aniso_gaussian = [](const std::array<double, 3>& v)
+    [[maybe_unused]] auto aniso_gaussian = [](const zdm::la::Vector<double, 3>& v)
     {
-        constexpr std::array<std::array<double, 3>, 3> sigma = {
-            std::array<double, 3>{3.0, 1.4, 0.5},
-            std::array<double, 3>{1.4, 0.3, 2.1},
-            std::array<double, 3>{0.5, 2.1, 1.7}
+        constexpr zdm::la::Matrix<double, 3, 3> sigma = {
+            3.0, 1.4, 0.5,
+            1.4, 0.3, 2.1,
+            0.5, 2.1, 1.7
         };
-        return std::exp(-0.5*quadratic_form(sigma, v));
+        return std::exp(-0.5*zdm::la::quadratic_form(sigma, v));
     };
 
     [[maybe_unused]] auto smooth_dots = [](double shell, double longitude, double colatitude)
@@ -172,7 +157,7 @@ int main()
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     std::vector<double> rotation_angles(num_offsets);
     for (std::size_t i = 0; i < num_offsets; ++i)
     {
@@ -188,6 +173,6 @@ int main()
     std::vector<double> shells(num_shells);
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*max_shell/double(num_shells - 1);
-    
+
     zebra_convergence(aniso_gaussian, smooth_dots, offsets, shells, rotation_angles);
 }

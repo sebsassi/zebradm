@@ -24,12 +24,9 @@ SOFTWARE.
 #include <array>
 #include <cmath>
 
-#include "linalg.hpp"
+#include "vector.hpp"
 
-namespace zdm
-{
-
-namespace coordinates
+namespace zdm::coordinates
 {
 
 /**
@@ -39,8 +36,8 @@ namespace coordinates
 
     @return spherical harmonic coordinates in order [longitude, latitude, length]
 */
-[[nodiscard]] constexpr std::array<double, 3> cartesian_to_spherical_geo(
-    const std::array<double, 3>& cartesian) noexcept
+[[nodiscard]] inline std::array<double, 3>
+cartesian_to_spherical_geo(const la::Vector<double, 3>& cartesian) noexcept
 {
     const double length = std::sqrt(
             cartesian[0]*cartesian[0]
@@ -61,8 +58,8 @@ namespace coordinates
 
     @return vector of Cartesian coordinates
 */
-[[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_geo(
-    double longitude, double latitude, double length) noexcept
+[[nodiscard]] inline la::Vector<double, 3>
+spherical_to_cartesian_geo(double longitude, double latitude, double length) noexcept
 {
     const std::array<double, 2> vert_rot = {std::cos(latitude), std::sin(latitude)};
     return {
@@ -78,8 +75,8 @@ namespace coordinates
 
     @return vector of Cartesian coordinates
 */
-[[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_geo(
-    double longitude, double latitude) noexcept
+[[nodiscard]] inline la::Vector<double, 3>
+spherical_to_cartesian_geo(double longitude, double latitude) noexcept
 {
     const std::array<double, 2> vert_rot = {std::cos(latitude), std::sin(latitude)};
     return {vert_rot[0]*std::cos(longitude), vert_rot[0]*std::sin(longitude), vert_rot[1]};
@@ -92,8 +89,8 @@ namespace coordinates
 
     @return spherical harmonic coordinates in order [azimuth, colatitude, length]
 */
-[[nodiscard]] constexpr std::array<double, 3> cartesian_to_spherical_phys(
-    const std::array<double, 3>& cartesian) noexcept
+[[nodiscard]] inline la::Vector<double, 3>
+cartesian_to_spherical_phys(const std::array<double, 3>& cartesian) noexcept
 {
     const double length = std::sqrt(
             cartesian[0]*cartesian[0]
@@ -114,8 +111,8 @@ namespace coordinates
 
     @return vector of Cartesian coordinates
 */
-[[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_phys(
-    double azimuth, double colatitude, double length) noexcept
+[[nodiscard]] inline la::Vector<double, 3>
+spherical_to_cartesian_phys(double azimuth, double colatitude, double length) noexcept
 {
     const std::array<double, 2> vert_rot = {std::sin(colatitude), std::cos(colatitude)};
     return {
@@ -131,12 +128,11 @@ namespace coordinates
 
     @return vector of Cartesian coordinates
 */
-[[nodiscard]] constexpr std::array<double, 3> spherical_to_cartesian_phys(
-    double azimuth, double colatitude) noexcept
+[[nodiscard]] inline la::Vector<double, 3>
+spherical_to_cartesian_phys(double azimuth, double colatitude) noexcept
 {
     const std::array<double, 2> vert_rot = {std::sin(colatitude), std::cos(colatitude)};
     return {vert_rot[0]*std::cos(azimuth), vert_rot[0]*std::sin(azimuth), vert_rot[1]};
 }
 
-} // namespace coordinates
-} // namespace zdm
+} // namespace zdm::coordinates

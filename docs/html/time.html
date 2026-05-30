@@ -1,0 +1,846 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Astronomical Parameters" href="astro.html"><link rel="prev" title="Time and Coordinate Utilities" href="coordinates.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Time Utilities - zebradm 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">zebradm 0.1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">zebradm 0.1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="zebra.html">Zernike-based Radon transforms</a><input aria-label="Toggle navigation of Zernike-based Radon transforms" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="zebra_introduction.html">Theory – Zernike-based Radon transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_usage.html">Usage – Integrating a Radon transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zernike_theory.html">Spherical harmonics and 3D Zernike functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_theory.html">Radon transfomr</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math.html">Mathematical Utilities</a><input aria-label="Toggle navigation of Mathematical Utilities" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polynomial.html">Polynomials</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="coordinates.html">Time and Coordinate Utilities</a><input aria-label="Toggle navigation of Time and Coordinate Utilities" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Time Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astro.html">Astronomical Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="celestial.html">Celestial Coordinate Transforms</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/time.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="time-utilities">
+<h1>Time Utilities<a class="headerlink" href="#time-utilities" title="Link to this heading">¶</a></h1>
+<p><a href="#id1"><span class="problematic" id="id2">:cpp:`#include &lt;zebradm/time.hpp&gt;`</span></a></p>
+<p>This header provides a some basic utilities for specifying times to be used in dark matter event
+rate calculations.</p>
+<section id="time-standards">
+<h2>Time Standards<a class="headerlink" href="#time-standards" title="Link to this heading">¶</a></h2>
+<p>Although the precision requirements of the library do not require a thorough consideration of the
+defition of time, this section begins with a brief overview of different time keeping standards to
+give the necessary context for time keeping in this library.</p>
+<p>This library mainly operates in Universal Time, specifically, UT1. This is a time standard based on
+Earth’s rotation. It is therefore not strictly linear, as its progression fluctuates due to changes
+in Earth’s rotation. UT1 is closely related to Coordinated Universal Time (UTC), the main standard
+for civilian time keeping. Namely, UTC has been defined to be within 0.9 seconds of UT1, and this
+relationship has been maintained with occasional introduction of leap seconds. The difference of
+UT1 and UTC is denoted DUT1.</p>
+<p>This library does not seek sub-second precision for time keeping. Therefore, because there is no
+long term numerical model of DUT1,[1]_ this library regards UTC and UT1 as interchangeable.</p>
+<p>The conventional standard for astronomical time keeping is Terrestrial Time (TT), which is related
+to International Atomic Time (TAI). Namely, it is defined to be exactly 32.184 seconds ahead of
+TAI. These time standards are related to UTC in that at the start of 1972 UTC was set to be 10
+seconds behind TAI. Therefore</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{TT} = \text{UT1} + 42.184\text{s} + \text{leap seconds} \pm 1\text{s}.\]</div>
+</div>
+<p>Time is always measured relative to some reference point, an <em>epoch</em>, which is the moment in time
+at which our time variable is zero. This becomes pertinent when we need to calculate values for
+time-dependent quantities, and when we have clocks running at different rates. In astronomy, the
+modern, conventional reference epoch is at noon on January 1st, 2000, Terrestrial Time, know as
+J2000. In UTC, due to the above mentined offset, this translates to 11:58:55.816 on the same date,
+given that there are 22 leap seconds before the year 2000.</p>
+<p>Setting the zero point of both TT and UT1 at J2000 makes the constant offset go away, and thus</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{TT}_\text{J2000} = \text{UT1}_\text{J2000} + \text{leap seconds} \pm 1\text{s}.\]</div>
+</div>
+<p>There have been exactly 5 leap seconds since J2000 at the writing of this documentation. Since leap
+seconds are unpredictable and cannot be predicted from a numerical model, and they only lead to a
+small offset, this library does not account for them, and effectively assumes</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{TT}_\text{J2000} \approx \text{UT1}.\]</div>
+</div>
+</section>
+<section id="dates-and-times">
+<h2>Dates And Times<a class="headerlink" href="#dates-and-times" title="Link to this heading">¶</a></h2>
+<p>This class enables straightforward expression of dates and times in a human readable format down to
+millisecond precision. For example, the exact UTC time of the J2000 epoch is expressed by the
+constant <code class="xref cpp cpp-var docutils literal notranslate"><span class="pre">zdm::time::j2000_utc</span></code>, defined as</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">constexpr</span><span class="w"> </span><span class="n">Time</span><span class="w"> </span><span class="n">j2000_utc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2000</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">mon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">mday</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">hour</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">min</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">58</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">sec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">55</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">msec</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">816</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The number of UT1 days that have elapsed since J2000 can be obtained with the function</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epoch</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ut1_from_utc</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><br /></dt>
+<dd></dd></dl>
+
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">random_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">51</span><span class="p">,</span><span class="w"> </span><span class="mi">342</span><span class="p">};</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">ut1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ut1_from_utc</span><span class="o">&lt;</span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">j2000_utc</span><span class="o">&gt;</span><span class="p">(</span><span class="n">random_time</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Although more often we probably want to generate a number of time points between some start time
+and end time. For this purpose there is the <a href="#id3"><span class="problematic" id="id4">:cpp:function:`ut1_interval`</span></a> function. This function
+provides two variants</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::ut1_interval” with arguments (std::span&lt;double&gt;, Time, Time) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">DateParseStatus</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">expected</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DateParseStatus</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::ut1_interval” with arguments (Time, Time, std::size_t) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">DateParseStatus</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">expected</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DateParseStatus</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>One can be used to produce the UT1 values in place</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">};</span>
+<span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ut1</span><span class="p">(</span><span class="mi">24</span><span class="p">);</span>
+<span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">ut1_interval</span><span class="o">&lt;</span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">j2000_utc</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ut1</span><span class="p">,</span><span class="w"> </span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This is useful in performance critical applications where we wish to avoid additional heap
+allocations. The other one outputs a <code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">std::vector</span></code> outright</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">};</span>
+<span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">};</span>
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ut1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ut1_interval</span><span class="o">&lt;</span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">j2000_utc</span><span class="o">&gt;</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This library also provides some facilities for dealing with C-style date strings. Namely, the
+function <a href="#id5"><span class="problematic" id="id6">:cpp:function:`parse_time`</span></a> allows parsing date strings into <code class="xref cpp cpp-struct docutils literal notranslate"><span class="pre">zdm::time::Time</span></code></p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Cannot find function “zdm::time::parse_time” in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml</p>
+</div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">parse_time</span><span class="p">(</span><span class="s">&quot;November 5, 2025&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%b %d, %Y&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The format supports a subset of conventional format specifiers, which are listed in the
+documentation of <a href="#id7"><span class="problematic" id="id8">:cpp:function:`parse_time`</span></a> below. There are variants of the function
+<a href="#id9"><span class="problematic" id="id10">:cpp:function:`ut1_interval`</span></a>, which take date strings and a format string instead of a
+<code class="xref cpp cpp-struct docutils literal notranslate"><span class="pre">zdm::time::Time</span></code>.</p>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">¶</a></h2>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">¶</a></h3>
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="time_8hpp_1a2bc801c8d6d55871570f5db941165f49"></span><span class="sig-name descname"><span class="pre">DateTime</span> <span class="pre">zdm::time::j2000_utc</span>&#160; <span class="pre">=</span> <span class="pre">{.year</span> <span class="pre">=</span> <span class="pre">2000,.mon</span> <span class="pre">=</span> <span class="pre">1,.mday</span> <span class="pre">=</span> <span class="pre">1,.hour</span> <span class="pre">=</span> <span class="pre">11,.min</span> <span class="pre">=</span> <span class="pre">58,.sec</span> <span class="pre">=</span> <span class="pre">55,.msec</span> <span class="pre">=</span> <span class="pre">816}</span></span></dt>
+<dd><p>J2000 epoch as UTC time. </p>
+<p>The J2000 epoch is the standard reference epoch for astronomical observations. It is defined as 12:00 on January 1st, 2000 Terrestrial Time (TT). TT is ahead of International Atomic Time (TAI) by exactly 32.184 seconds by convention. TAI in turn is ahead of UTC by 10 seconds plus the number of leap seconds. There were 22 leap seconds by the J2000 epoch, therefore the UTC of the epoch is behind the TT by 64.184 seconds, which translates to a UTC time of 11:58:55.816 on January 1st, 2000 for the J2000 epoch. </p>
+</dd></dl>
+
+</section>
+<section id="enums">
+<h3>Enums<a class="headerlink" href="#enums" title="Link to this heading">¶</a></h3>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatusE">
+<span id="_CPPv3N3zdm4time15DateParseStatusE"></span><span id="_CPPv2N3zdm4time15DateParseStatusE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">DateParseStatus</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatusE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Status codes for datetime parsing. </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus7successE">
+<span id="_CPPv3N3zdm4time15DateParseStatus7successE"></span><span id="_CPPv2N3zdm4time15DateParseStatus7successE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a260ca9dd8a4577fc00b7bd5810298076"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">success</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus7successE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus24incomplete_format_stringE">
+<span id="_CPPv3N3zdm4time15DateParseStatus24incomplete_format_stringE"></span><span id="_CPPv2N3zdm4time15DateParseStatus24incomplete_format_stringE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a48cd006dc9401ea9ceaaaefb05d62591"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">incomplete_format_string</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus24incomplete_format_stringE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Parsing completed successfully. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus22incomplete_time_stringE">
+<span id="_CPPv3N3zdm4time15DateParseStatus22incomplete_time_stringE"></span><span id="_CPPv2N3zdm4time15DateParseStatus22incomplete_time_stringE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087aabf962a61e46047f8ec034cd0d6e8f2c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">incomplete_time_string</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus22incomplete_time_stringE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Format string ended with single ‘’. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus23unexpected_empty_stringE">
+<span id="_CPPv3N3zdm4time15DateParseStatus23unexpected_empty_stringE"></span><span id="_CPPv2N3zdm4time15DateParseStatus23unexpected_empty_stringE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a25a8a521a5b10213c8379de36482cbba"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unexpected_empty_string</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus23unexpected_empty_stringE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Time string did not contain all parts specified in format string. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus18character_mismatchE">
+<span id="_CPPv3N3zdm4time15DateParseStatus18character_mismatchE"></span><span id="_CPPv2N3zdm4time15DateParseStatus18character_mismatchE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087ac9a76f8055e0af08954998ddd8129754"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">character_mismatch</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus18character_mismatchE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>String was unexpectedly empty. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus28unsupported_format_specifierE">
+<span id="_CPPv3N3zdm4time15DateParseStatus28unsupported_format_specifierE"></span><span id="_CPPv2N3zdm4time15DateParseStatus28unsupported_format_specifierE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087ac3a7ca46e1856282420123b9513d79ca"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">unsupported_format_specifier</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus28unsupported_format_specifierE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mismatch in non-format parts of time and format strings. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus27duplicate_format_specifiersE">
+<span id="_CPPv3N3zdm4time15DateParseStatus27duplicate_format_specifiersE"></span><span id="_CPPv2N3zdm4time15DateParseStatus27duplicate_format_specifiersE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087ac42e3e1efb4baf5e4bd0be60917d652a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">duplicate_format_specifiers</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus27duplicate_format_specifiersE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Use of an unsupported format specifier. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus15expected_digitsE">
+<span id="_CPPv3N3zdm4time15DateParseStatus15expected_digitsE"></span><span id="_CPPv2N3zdm4time15DateParseStatus15expected_digitsE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a27928bbb16e14adaf053bbef391c9232"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">expected_digits</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus15expected_digitsE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Use of multiple format specifiers that match same date part. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus12invalid_yearE">
+<span id="_CPPv3N3zdm4time15DateParseStatus12invalid_yearE"></span><span id="_CPPv2N3zdm4time15DateParseStatus12invalid_yearE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a0fa0369fc34d2225f7f4ba7977adc4d6"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_year</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus12invalid_yearE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number in time string contains unexpected non-digits. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus20invalid_day_of_monthE">
+<span id="_CPPv3N3zdm4time15DateParseStatus20invalid_day_of_monthE"></span><span id="_CPPv2N3zdm4time15DateParseStatus20invalid_day_of_monthE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087ad4f03310cb2aedba21745076ff6bce0a"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_day_of_month</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus20invalid_day_of_monthE" title="Link to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus21invalid_month_of_yearE">
+<span id="_CPPv3N3zdm4time15DateParseStatus21invalid_month_of_yearE"></span><span id="_CPPv2N3zdm4time15DateParseStatus21invalid_month_of_yearE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a3fb83ced6f48c9ac2a1151846ef2de4e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_month_of_year</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus21invalid_month_of_yearE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Day of month is not a number or falls outside of 1-31. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus12invalid_hourE">
+<span id="_CPPv3N3zdm4time15DateParseStatus12invalid_hourE"></span><span id="_CPPv2N3zdm4time15DateParseStatus12invalid_hourE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a63f23b6cb3f7d3246aa4bdf7828329a0"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_hour</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus12invalid_hourE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Invalid name of month, or month number falls outside of 1-12. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus14invalid_minuteE">
+<span id="_CPPv3N3zdm4time15DateParseStatus14invalid_minuteE"></span><span id="_CPPv2N3zdm4time15DateParseStatus14invalid_minuteE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a3a3f67c6fa00a2d2e4051cf7b3142677"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_minute</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus14invalid_minuteE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Hour is not a number or falls outside of 0-23, or 1-12 in 12 hour clock. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus14invalid_secondE">
+<span id="_CPPv3N3zdm4time15DateParseStatus14invalid_secondE"></span><span id="_CPPv2N3zdm4time15DateParseStatus14invalid_secondE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a3a677462cd5f97c521b9e023fc4d82ce"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_second</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus14invalid_secondE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Minute is not a number or falls outside of 0-59. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus13invalid_am_pmE">
+<span id="_CPPv3N3zdm4time15DateParseStatus13invalid_am_pmE"></span><span id="_CPPv2N3zdm4time15DateParseStatus13invalid_am_pmE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a51a0693bf28d1b7d1c7e46ad77ffe95c"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_am_pm</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus13invalid_am_pmE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Second is not a number or falls outside of 0-59. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time15DateParseStatus24invalid_time_zone_offsetE">
+<span id="_CPPv3N3zdm4time15DateParseStatus24invalid_time_zone_offsetE"></span><span id="_CPPv2N3zdm4time15DateParseStatus24invalid_time_zone_offsetE"></span><span class="target" id="time_8hpp_1a70c499f1c38b65efeacac9e7fcaa7087a258088fde111d4947068a732d647b28d"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">invalid_time_zone_offset</span></span></span><a class="headerlink" href="#_CPPv4N3zdm4time15DateParseStatus24invalid_time_zone_offsetE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>AM/PM specifier other than ‘AM’ or ‘PM’. </p>
+<p>Time zone offset does not conform to ISO 8601. </p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="types">
+<h3>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: Cannot find class “zdm::time::TimeZoneOffset” in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenclass: Cannot find class “zdm::time::Time” in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml</p>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::ut1_interval” with arguments (std::span&lt;double&gt;, Time, Time) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">DateParseStatus</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">expected</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DateParseStatus</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::ut1_interval” with arguments (Time, Time, std::size_t) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">DateParseStatus</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">expected</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DateParseStatus</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_8DateTimeEN3zdm4time12ut1_intervalE15DateParseStatusNSt4spanIdEENSt11string_viewENSt11string_viewENSt11string_viewE">
+<span id="_CPPv3I_8DateTimeEN3zdm4time12ut1_intervalENSt4spanIdEENSt11string_viewENSt11string_viewENSt11string_viewE"></span><span id="_CPPv2I_8DateTimeEN3zdm4time12ut1_intervalENSt4spanIdEENSt11string_viewENSt11string_viewENSt11string_viewE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epoch</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="time_8hpp_1a70ff69e7530f835881718c3e5a503f33"></span><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatusE" title="zdm::time::DateParseStatus"><span class="n"><span class="pre">DateParseStatus</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ut1_interval</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">span</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">interval</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">start_date</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">end_date</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_8DateTimeEN3zdm4time12ut1_intervalE15DateParseStatusNSt4spanIdEENSt11string_viewENSt11string_viewENSt11string_viewE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Generate an interval of UT1 times (in days) since epoch from date strings. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The format string supports only a subset of common time format specifiers. See documentation of the function <code class="docutils literal notranslate"><span class="pre">parse_time</span></code> for list of supported format specifiers. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> – Epoch defining the zero point for the UT1 time.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>interval</strong> – Destination UT1 interval. </p></li>
+<li><p><strong>start_date</strong> – First date of the interval. </p></li>
+<li><p><strong>end_date</strong> – Last date of the interval. </p></li>
+<li><p><strong>format</strong> – String specifying the format of the date strings.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Status code indicating any errors in date parsing.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::ut1_interval” with arguments (std::string_view, std::string_view, std::string_view, std::size_t) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">DateParseStatus</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">expected</span><span class="o">&lt;</span><span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">DateParseStatus</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">start_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="n">end_date</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">string_view</span> <span class="nb">format</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">std</span><span class="p">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">size_t</span> <span class="n">count</span><span class="p">)</span>
+<span class="o">-</span> <span class="n">template</span><span class="o">&lt;</span><span class="n">DateTime</span> <span class="n">epoch</span><span class="o">&gt;</span> <span class="n">void</span> <span class="n">ut1_interval</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">span</span><span class="o">&lt;</span><span class="n">double</span><span class="o">&gt;</span> <span class="n">interval</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">start_time</span><span class="p">,</span> <span class="n">const</span> <span class="n">DateTime</span> <span class="o">&amp;</span><span class="n">end_time</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_8DateTimeEN3zdm4time12ut1_from_utcEdRK8DateTime">
+<span id="_CPPv3I_8DateTimeEN3zdm4time12ut1_from_utcERK8DateTime"></span><span id="_CPPv2I_8DateTimeEN3zdm4time12ut1_from_utcERK8DateTime"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epoch</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="time_8hpp_1a87a377657391cd99cb3da552c99d3b91"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ut1_from_utc</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><br /></dt>
+<dd><p>Convert a UTC <code class="docutils literal notranslate"><span class="pre">Time</span></code> into a UT1 time (in days) since epoch. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> – Epoch defining the zero point for the UT1 time.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>time</strong> – UTC time.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>UT1 time since the epoch in days. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_8DateTimeEN3zdm4time13ut1_from_dateENSt8expectedId15DateParseStatusEENSt11string_viewENSt11string_viewE">
+<span id="_CPPv3I_8DateTimeEN3zdm4time13ut1_from_dateENSt11string_viewENSt11string_viewE"></span><span id="_CPPv2I_8DateTimeEN3zdm4time13ut1_from_dateENSt11string_viewENSt11string_viewE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epoch</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="time_8hpp_1a2b71f2a543861030a87ef53af97c5141"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">expected</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatusE" title="zdm::time::DateParseStatus"><span class="n"><span class="pre">DateParseStatus</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ut1_from_date</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">date</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string_view</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">format</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_8DateTimeEN3zdm4time13ut1_from_dateENSt8expectedId15DateParseStatusEENSt11string_viewENSt11string_viewE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Convert a date string to a UT1 time (in days) since epoch. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The format string supports only a subset of common time format specifiers. See documentation of the function <code class="docutils literal notranslate"><span class="pre">parse_time</span></code> for list of supported format specifiers. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> – Epoch defining the zero point for the UT1 time.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>date</strong> – String specifying date. </p></li>
+<li><p><strong>format</strong> – string specifying the format of the date string.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>UT1 time since the epoch in days, or a <code class="docutils literal notranslate"><span class="pre">DateParseError</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Cannot find function “zdm::time::parse_time” in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml</p>
+</div>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_8DateTimeEN3zdm4time24milliseconds_since_epochENSt7int64_tE8DateTime">
+<span id="_CPPv3I_8DateTimeEN3zdm4time24milliseconds_since_epochE8DateTime"></span><span id="_CPPv2I_8DateTimeEN3zdm4time24milliseconds_since_epochE8DateTime"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">epoch</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="time_8hpp_1ae814898425b1b7adb3661b10e9b74d65"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int64_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">milliseconds_since_epoch</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">DateTime</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">time</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I_8DateTimeEN3zdm4time24milliseconds_since_epochENSt7int64_tE8DateTime" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Compute the number of seconds that have passed since a given epoch. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>epoch</strong> – Reference epoch.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>time</strong> – </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>number of seconds since the epoch. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt8integralEEN3zdm4time12is_leap_yearEb1T">
+<span id="_CPPv3I_NSt8integralEEN3zdm4time12is_leap_yearE1T"></span><span id="_CPPv2I_NSt8integralEEN3zdm4time12is_leap_yearE1T"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">integral</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="time_8hpp_1a217565f77a8458d4c1cf89bb6f3dab24"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">is_leap_year</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_NSt8integralEEN3zdm4time12is_leap_yearEb1T" title="zdm::time::is_leap_year::T"><span class="n"><span class="pre">T</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">year</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4I_NSt8integralEEN3zdm4time12is_leap_yearEb1T" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Check if year is a leap year. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>year</strong> – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if the year is a leap year. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time12days_in_yearENSt7int32_tE">
+<span id="_CPPv3N3zdm4time12days_in_yearENSt7int32_tE"></span><span id="_CPPv2N3zdm4time12days_in_yearENSt7int32_tE"></span><span id="zdm::time::days_in_year__std::int32_t"></span><span class="target" id="time_8hpp_1a3f5ddbc071a0573968a36bb762e842d9"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">days_in_year</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">year</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N3zdm4time12days_in_yearENSt7int32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Number of days in a given year. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>year</strong> – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of days in the year. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>doxygenfunction: Unable to resolve function “zdm::time::day_of_year” with arguments (std::int32_t, std::uint32_t) in doxygen xml output for project “zebradm” from directory: /home/seb/Projects/cpp/zebradm/release/docs/doxygen/xml.
+Potential matches:
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">std</span><span class="p">::</span><span class="n">uint32_t</span> <span class="n">day_of_year</span><span class="p">(</span><span class="n">std</span><span class="p">::</span><span class="n">int32_t</span> <span class="n">year</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">uint32_t</span> <span class="n">month</span><span class="p">,</span> <span class="n">std</span><span class="p">::</span><span class="n">uint32_t</span> <span class="n">day_of_month</span><span class="p">)</span> <span class="n">noexcept</span>
+</pre></div>
+</div>
+</div>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time11day_of_yearENSt7int32_tENSt8uint32_tENSt8uint32_tE">
+<span id="_CPPv3N3zdm4time11day_of_yearENSt7int32_tENSt8uint32_tENSt8uint32_tE"></span><span id="_CPPv2N3zdm4time11day_of_yearENSt7int32_tENSt8uint32_tENSt8uint32_tE"></span><span id="zdm::time::day_of_year__std::int32_t.std::uint32_t.std::uint32_t"></span><span class="target" id="time_8hpp_1a11fc286da9a260b2983a17efa6194301"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">day_of_year</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">year</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">month</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">day_of_month</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N3zdm4time11day_of_yearENSt7int32_tENSt8uint32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computes the day of year corresponding to a given month and day of month. Inverse of <code class="docutils literal notranslate"><span class="pre">month_of_year</span></code>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year</strong> – </p></li>
+<li><p><strong>month</strong> – </p></li>
+<li><p><strong>day_of_month</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>day of year (1-366). </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time13month_of_yearENSt7int32_tENSt8uint32_tE">
+<span id="_CPPv3N3zdm4time13month_of_yearENSt7int32_tENSt8uint32_tE"></span><span id="_CPPv2N3zdm4time13month_of_yearENSt7int32_tENSt8uint32_tE"></span><span id="zdm::time::month_of_year__std::int32_t.std::uint32_t"></span><span class="target" id="time_8hpp_1a0a8be30a366bc6344d6e270c8b8307f3"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">month_of_year</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">year</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">day_of_year</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N3zdm4time13month_of_yearENSt7int32_tENSt8uint32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Computes the month and day of month of the given year, given a day of year. Inverse of <code class="docutils literal notranslate"><span class="pre">day_of_year</span></code>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>year</strong> – </p></li>
+<li><p><strong>day_of_year</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>month number (1-12) and day of month (1-31). </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm4time10days_untilENSt7int32_tE">
+<span id="_CPPv3N3zdm4time10days_untilENSt7int32_tE"></span><span id="_CPPv2N3zdm4time10days_untilENSt7int32_tE"></span><span id="zdm::time::days_until__std::int32_t"></span><span class="target" id="time_8hpp_1ad9459dc0b018481814f890d12ff0f93e"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int64_t</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">days_until</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">int32_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">year</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N3zdm4time10days_untilENSt7int32_tE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Counts the number of days from the start of year 0 until start of the given year, using the Gregorian calendar. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>year</strong> – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of days between the years. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id11" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></span>
+<p>Forecast values of DUT1 are published by IERS Bulletin A for a year at a time.</p>
+</aside>
+</aside>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="astro.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Astronomical Parameters</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="coordinates.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Time and Coordinate Utilities</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Sebastian Sassi
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Time Utilities</a><ul>
+<li><a class="reference internal" href="#time-standards">Time Standards</a></li>
+<li><a class="reference internal" href="#dates-and-times">Dates And Times</a></li>
+<li><a class="reference internal" href="#reference">Reference</a><ul>
+<li><a class="reference internal" href="#constants">Constants</a></li>
+<li><a class="reference internal" href="#enums">Enums</a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatusE"><code class="docutils literal notranslate"><span class="pre">DateParseStatus</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus7successE"><code class="docutils literal notranslate"><span class="pre">success</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus24incomplete_format_stringE"><code class="docutils literal notranslate"><span class="pre">incomplete_format_string</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus22incomplete_time_stringE"><code class="docutils literal notranslate"><span class="pre">incomplete_time_string</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus23unexpected_empty_stringE"><code class="docutils literal notranslate"><span class="pre">unexpected_empty_string</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus18character_mismatchE"><code class="docutils literal notranslate"><span class="pre">character_mismatch</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus28unsupported_format_specifierE"><code class="docutils literal notranslate"><span class="pre">unsupported_format_specifier</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus27duplicate_format_specifiersE"><code class="docutils literal notranslate"><span class="pre">duplicate_format_specifiers</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus15expected_digitsE"><code class="docutils literal notranslate"><span class="pre">expected_digits</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus12invalid_yearE"><code class="docutils literal notranslate"><span class="pre">invalid_year</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus20invalid_day_of_monthE"><code class="docutils literal notranslate"><span class="pre">invalid_day_of_month</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus21invalid_month_of_yearE"><code class="docutils literal notranslate"><span class="pre">invalid_month_of_year</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus12invalid_hourE"><code class="docutils literal notranslate"><span class="pre">invalid_hour</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus14invalid_minuteE"><code class="docutils literal notranslate"><span class="pre">invalid_minute</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus14invalid_secondE"><code class="docutils literal notranslate"><span class="pre">invalid_second</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus13invalid_am_pmE"><code class="docutils literal notranslate"><span class="pre">invalid_am_pm</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time15DateParseStatus24invalid_time_zone_offsetE"><code class="docutils literal notranslate"><span class="pre">invalid_time_zone_offset</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#types">Types</a></li>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#_CPPv4I_8DateTimeEN3zdm4time12ut1_intervalE15DateParseStatusNSt4spanIdEENSt11string_viewENSt11string_viewENSt11string_viewE"><code class="docutils literal notranslate"><span class="pre">ut1_interval()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I_8DateTimeEN3zdm4time12ut1_from_utcEdRK8DateTime"><code class="docutils literal notranslate"><span class="pre">ut1_from_utc()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I_8DateTimeEN3zdm4time13ut1_from_dateENSt8expectedId15DateParseStatusEENSt11string_viewENSt11string_viewE"><code class="docutils literal notranslate"><span class="pre">ut1_from_date()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I_8DateTimeEN3zdm4time24milliseconds_since_epochENSt7int64_tE8DateTime"><code class="docutils literal notranslate"><span class="pre">milliseconds_since_epoch()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I_NSt8integralEEN3zdm4time12is_leap_yearEb1T"><code class="docutils literal notranslate"><span class="pre">is_leap_year()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time12days_in_yearENSt7int32_tE"><code class="docutils literal notranslate"><span class="pre">days_in_year()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time11day_of_yearENSt7int32_tENSt8uint32_tENSt8uint32_tE"><code class="docutils literal notranslate"><span class="pre">day_of_year()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time13month_of_yearENSt7int32_tENSt8uint32_tE"><code class="docutils literal notranslate"><span class="pre">month_of_year()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm4time10days_untilENSt7int32_tE"><code class="docutils literal notranslate"><span class="pre">days_until()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -22,28 +22,29 @@ SOFTWARE.
 #pragma once
 
 #include <zest/md_span.hpp>
+#include <zest/rotor.hpp>
+#include <zest/sh_glq_transformer.hpp>
 #include <zest/zernike_expansion.hpp>
 #include <zest/zernike_glq_transformer.hpp>
-#include <zest/sh_glq_transformer.hpp>
-#include <zest/rotor.hpp>
 
-#include "linalg.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 
-namespace zdm
-{
-namespace zebra
-{
-namespace parallel
+
+
+namespace zdm::zebra::parallel
 {
 
-class IsotropicAngleIntegrator
+template <DistType dist_type, RespType resp_type>
+class AngleIntegrator {};
+
+template<>
+class AngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
-    IsotropicAngleIntegrator() = default;
-    explicit IsotropicAngleIntegrator(std::size_t num_threads);
-    IsotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    explicit AngleIntegrator(std::size_t num_threads);
+    AngleIntegrator(
         std::size_t dist_order, std::size_t num_threads);
 
     [[nodiscard]] std::size_t
@@ -63,22 +64,23 @@ public:
         @param out output values.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, zest::MDSpan<double, 2> out);
-    
+        ZernikeSpan<const double> distribution, std::span<const std::array<double, 3>> offsets,
+        std::span<const double> shells, zest::DynamicMDSpan<double, 2> out);
+
 private:
     struct ThreadContext
     {
         zest::Rotor rotor;
-        detail::IsotropicAngleIntegratorCore integrator;
+        detail::AngleIntegratorCore<DistType::aniso, RespType::iso> integrator;
     };
 
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(
         std::size_t order) noexcept
     {
-        return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(order);
+        return ZernikeSpan<double>::size(order);
     }
 
-    [[nodiscard]] zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>
+    [[nodiscard]] ZernikeSpan<double>
     accesss_rotated_geg_zernike_exp(
         std::size_t thread_id) noexcept;
 
@@ -87,20 +89,21 @@ private:
         std::span<const double> shells, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<ThreadContext> m_contexts;
-    std::size_t m_dist_order;
-    std::size_t m_num_threads;
+    std::size_t m_dist_order{};
+    std::size_t m_num_threads{};
 };
 
-class AnisotropicAngleIntegrator
+template<>
+class AngleIntegrator<DistType::aniso, RespType::aniso>
 {
 public:
-    AnisotropicAngleIntegrator() = default;
-    AnisotropicAngleIntegrator(
+    AngleIntegrator() = default;
+    AngleIntegrator(
         std::size_t num_teams, std::size_t threads_per_team);
-    AnisotropicAngleIntegrator(
+    AngleIntegrator(
         std::size_t dist_order, std::size_t resp_order,
         std::size_t trunc_order, std::size_t num_teams,
         std::size_t threads_per_team);
@@ -140,13 +143,16 @@ public:
         @note Given two spherical harmonic expansions of orders `L` and `K`, the product expansion is of order `K + L`. Therefore, to avoid aliasing, computation of the Radon transform internally involves expansions of orders higher than that of `distribution`. However, if the expansion converges rapidly, the aliasing might be insignificant. The parameter `trunc_order` caps the order of any expansion used during the computation. This can significantly speed up the computation with some loss of accuracy.
     */
     void integrate(
-        ZernikeExpansionSpan<const std::array<double, 2>> distribution, std::span<const std::array<double, 3>> offsets, std::span<const double> shells, SHExpansionVectorSpan<const std::array<double, 2>> response, std::span<const double> rotation_angles, zest::MDSpan<double, 2> out, std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
+        ZernikeSpan<const double> distribution, std::span<const std::array<double, 3>> offsets,
+        std::span<const double> shells, SHVectorSpan<const double> response,
+        std::span<const double> rotation_angles, zest::DynamicMDSpan<double, 2> out,
+        std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
     [[nodiscard]] static constexpr std::size_t zernike_exp_size(
         std::size_t order) noexcept
     {
-        return zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::size(order);
+        return ZernikeSpan<double>::size(order);
     }
 
     [[nodiscard]] static constexpr std::size_t sh_grid_size(
@@ -155,19 +161,19 @@ private:
         return zest::st::SphereGLQGridSpan<double>::size(order);
     }
 
-    [[nodiscard]] zest::zt::RealZernikeSpanNormalGeo<std::array<double, 2>>::SubSpan
+    [[nodiscard]] ZernikeSpan<double>::subspan_type<1>
     accesss_rotated_geg_zernike_exp(
         std::size_t team_id, std::size_t order) noexcept;
 
-    [[nodiscard]] SuperSpan<zest::st::SphereGLQGridSpan<double>> 
+    [[nodiscard]] zest::st::SphereGLQGridVectorSpan<double> 
     accesss_rotated_geg_zernike_exp_grids(std::size_t team_id);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     std::vector<zest::Rotor> m_rotors;
-    zest::zt::RealZernikeExpansionNormalGeo m_geg_zernike_exp;
-    std::vector<std::array<double, 2>> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_geg_zernike_exp;
+    std::vector<double> m_rotated_geg_zernike_exp;
     std::vector<double> m_rotated_geg_zernike_grids;
-    std::vector<detail::AnisotropicAngleIntegratorCore> m_integrators;
+    std::vector<detail::AngleIntegratorCore<DistType::aniso, RespType::aniso>> m_integrators;
     std::size_t m_dist_order;
     std::size_t m_resp_order;
     std::size_t m_trunc_order;
@@ -175,6 +181,4 @@ private:
     std::size_t m_threads_per_team;
 };
 
-} // namespace parallel
-} // namespace zebra
-} // namespace zdm
+} // namespace zdm::zebra::parallel

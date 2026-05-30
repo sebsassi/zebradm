@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,15 +19,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <random>
+
 #include <fstream>
 #include <iomanip>
+#include <print>
+#include <random>
 
 #include "zest/zernike_glq_transformer.hpp"
 
 #include "zebra_angle_integrator.hpp"
 
 #include "distributions.hpp"
+
+namespace
+{
 
 constexpr std::array<double, 2> relative_error(
     std::array<double, 2> test, std::array<double, 2> ref)
@@ -48,16 +53,19 @@ constexpr std::array<double, 2> absolute_error(
 }
 
 void angle_integrator_error(
-    std::span<const std::array<double, 3>> offsets, std::span<const double > shells, zest::MDSpan<std::array<double, 2>, 2> reference, DistributionSpherical dist, const char* name, std::size_t order, bool use_relative_error)
+    std::span<const zdm::la::Vector<double, 3>> offsets, std::span<const double> shells,
+    zest::DynamicMDSpan<std::array<double, 2>, 2> reference, DistributionSpherical dist,
+    const char* name, std::size_t order, bool use_relative_error)
 {
-    zest::zt::RealZernikeExpansion distribution
-        = zest::zt::ZernikeTransformerNormalGeo(order).transform(
+    zdm::ZernikeExpansion<double> distribution
+        = zest::zt::ZernikeTransformerNormalGeo(order).forward_transform(
             dist, 1.0, order);
 
-    std::vector<std::array<double, 2>> out_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> out(out_buffer.data(), {offsets.size(), shells.size()});
+    zest::DynamicMDArray<std::array<double, 2>, 2> out(offsets.size(), shells.size());
 
-    zdm::zebra::IsotropicTransverseAngleIntegrator integrator(order);
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
+
+    integrator(order);
     integrator.integrate(distribution, offsets, shells, out);
 
     char fname_nt[512] = {};
@@ -83,11 +91,11 @@ void angle_integrator_error(
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
             std::array<double, 2> error = {};
-            if (reference(i, j)[0] != 0.0 && reference(i, j)[1] != 0.0)
+            if (reference[i, j][0] != 0.0 && reference[i, j][1] != 0.0)
             {
                 error = (use_relative_error) ?
-                    relative_error(out(i, j), reference(i, j))
-                    : absolute_error(out(i, j), reference(i, j));
+                    relative_error(out[i, j], reference[i, j])
+                    : absolute_error(out[i, j], reference[i, j]);
             }
             output_nt << error[0] << ' ';
             output_t << error[1] << ' ';
@@ -110,7 +118,7 @@ void angle_integrator_errors(
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(num_offsets);
+    std::vector<zdm::la::Vector<double, 3>> offsets(num_offsets);
     for (std::size_t i = 0; i < num_offsets; ++i)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -125,15 +133,15 @@ void angle_integrator_errors(
     for (std::size_t i = 0; i < num_shells; ++i)
         shells[i] = double(i)*max_shell/double(num_shells - 1);
 
-    zest::zt::RealZernikeExpansion reference_distribution
-        = zest::zt::ZernikeTransformerNormalGeo(reference_order).transform(
+    zdm::ZernikeExpansion<double> reference_distribution
+        = zest::zt::ZernikeTransformerNormalGeo(reference_order).forward_transform(
             dist, 1.0, reference_order);
-    
-    std::vector<std::array<double, 2>> reference_buffer(offsets.size()*shells.size());
-    zest::MDSpan<std::array<double, 2>, 2> reference(
-            reference_buffer.data(), {offsets.size(), shells.size()});
-    
-    zdm::zebra::IsotropicTransverseAngleIntegrator integrator(reference_order);
+
+    zest::DynamicMDArray<std::array<double, 2>, 2> reference(offsets.size(), shells.size());
+
+    zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
+    integrator(reference_order);
+
     integrator.integrate(reference_distribution, offsets, shells, reference);
 
     std::vector<std::size_t> orders = {2,3,4,5,6,7,8,9,10,12,14,16,18,20,25,30,35,40,50,60,70,80,90,100,120,140,160,180};
@@ -151,6 +159,8 @@ struct Labeled
     const char* label;
 };
 
+} // namespace
+
 int main([[maybe_unused]] int argc, char** argv)
 {
     const bool relative_error = true;
@@ -163,17 +173,20 @@ int main([[maybe_unused]] int argc, char** argv)
     };
 
     if (argc < 5)
-        throw std::runtime_error(
-            "Requires arguments:\n"
-            "   dist_ind:       index of distribution {0,1,2,3,4}\n"
-            "   offset_len:      length of offset vector (float)\n"
-            "   num_offsets:     number of offset vectors (positive integer)\n"
+    {
+        std::println(
+            "Requires arguments:\n{}{}{}{}",
+            "   dist_ind:       index of distribution {0,1,2,3,4}\n",
+            "   offset_len:      length of offset vector (float)\n",
+            "   num_offsets:     number of offset vectors (positive integer)\n",
             "   num_shells: number of shell values (positive integer)");
+        std::exit(1);
+    }
 
-    const std::size_t dist_ind = atoi(argv[1]);
+    const std::size_t dist_ind = std::size_t(atoi(argv[1]));
     const double offset_len = atof(argv[2]);
-    const std::size_t num_offsets = atoi(argv[3]);
-    const std::size_t num_shells = atoi(argv[4]);
+    const std::size_t num_offsets = std::size_t(atoi(argv[3]));
+    const std::size_t num_shells = std::size_t(atoi(argv[4]));
 
     const Labeled<DistributionSpherical> dist = distributions[dist_ind];
     angle_integrator_errors(
