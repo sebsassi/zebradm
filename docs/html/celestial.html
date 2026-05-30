@@ -1,0 +1,961 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="prev" title="Astronomical Parameters" href="astro.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Celestial Coordinate Transforms - zebradm 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">zebradm 0.1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">zebradm 0.1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="zebra.html">Zernike-based Radon transforms</a><input aria-label="Toggle navigation of Zernike-based Radon transforms" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="zebra_introduction.html">Theory – Zernike-based Radon transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_usage.html">Usage – Integrating a Radon transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zernike_theory.html">Spherical harmonics and 3D Zernike functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_theory.html">Radon transfomr</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math.html">Mathematical Utilities</a><input aria-label="Toggle navigation of Mathematical Utilities" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polynomial.html">Polynomials</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="coordinates.html">Time and Coordinate Utilities</a><input aria-label="Toggle navigation of Time and Coordinate Utilities" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="time.html">Time Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astro.html">Astronomical Parameters</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Celestial Coordinate Transforms</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/celestial.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="celestial-coordinate-transforms">
+<h1>Celestial Coordinate Transforms<a class="headerlink" href="#celestial-coordinate-transforms" title="Link to this heading">¶</a></h1>
+<p><a href="#id1"><span class="problematic" id="id2">:cpp:`#include &lt;zebradm/celestial.hpp&gt;`</span></a></p>
+<p>The motion of the dark matter detector with respect to the dark matter Halo is of fundamental
+importance in direct detection experiments. This motion gives rise to both annual and daily
+variation in the detection rate of dark matter experiments, and of course also determines the
+directionality of the dark matter signal in experiments with directional capabilities. Therefore,
+we need a set of well-defined coordinate transforms to connect not only the velocity, but also
+the orientation of our detector with that of the dark matter halo.</p>
+<p>This library implements a set of coordinate transforms between standard reference coordinate
+systems, and the laboratory frame. These follow the IERS Conventions <a class="reference internal" href="#iers2010" id="id3"><span>[IERS2010]</span></a> where
+applicable.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All coordinate systems used by this library are right-handed by convention.</p>
+</div>
+<p>As a brief sample of the use of this header, here is a brief example demonstrating one of the most
+common use cases in the context of dak matter direct detection: calculating the mean velocity of
+dark matter in some laboratory frame</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">longitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">numbers</span><span class="o">::</span><span class="n">pi</span><span class="o">/</span><span class="mf">2.0</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">latitude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">numbers</span><span class="o">::</span><span class="n">pi</span><span class="o">/</span><span class="mf">4.0</span><span class="p">;</span>
+<span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">circular_speed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">233.0</span><span class="p">;</span>
+
+<span class="c1">// Transformation from galactic to horizontal coordinate system</span>
+<span class="k">auto</span><span class="w"> </span><span class="n">gcs_to_hcs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">celestial</span><span class="o">::</span><span class="n">GCStoHCS</span><span class="p">(</span><span class="n">longitude</span><span class="p">,</span><span class="w"> </span><span class="n">latitude</span><span class="p">,</span><span class="w"> </span><span class="n">circular_velocity</span><span class="p">);</span>
+
+<span class="c1">// Interval of UT1 times</span>
+<span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">utc_start_date</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">mon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">mday</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">19</span><span class="w"> </span><span class="p">};</span>
+<span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">utc_end_date</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">Time</span><span class="p">{</span><span class="w"> </span><span class="p">.</span><span class="n">year</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2025</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">mon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="p">.</span><span class="n">mday</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">20</span><span class="w"> </span><span class="p">};</span>
+<span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">days_since_j2000</span>
+<span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">ut1_interval</span><span class="o">&lt;</span><span class="n">zdm</span><span class="o">::</span><span class="n">time</span><span class="o">::</span><span class="n">j2000_utc</span><span class="o">&gt;</span><span class="p">(</span><span class="n">utc_start_date</span><span class="p">,</span><span class="w"> </span><span class="n">utc_end_date</span><span class="p">,</span><span class="w"> </span><span class="mi">24</span><span class="p">);</span>
+
+<span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dm_velocities</span><span class="p">(</span><span class="n">days_since_j2000</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">size_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">days_since_j2000</span><span class="p">.</span><span class="n">size</span><span class="p">())</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="c1">// Transform a zero-velocity from the galactic coordinates to lab</span>
+<span class="w">    </span><span class="c1">// coordinates</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">RigidTransform</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gcs_to_hcs_of_date</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gcs_to_hcs</span><span class="p">(</span><span class="n">days_since_j2000</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dm_velocities</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gcs_to_hcs_of_date</span><span class="p">(</span><span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="p">{});</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="parametric-rigid-transforms">
+<h2>Parametric Rigid Transforms<a class="headerlink" href="#parametric-rigid-transforms" title="Link to this heading">¶</a></h2>
+<p>Celestial coordinate system are not generally fixed in time. For example, a laboratory coordinate
+system on Earth rotates along with the Earth. On the other hand, relationships between velocities
+between different celestial coordinates can be expressed as combinations of rotations and Galilean
+boosts, which together constitute a rigid transformation. This means that a general celestial
+coordinate transform on a velocity is given by</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[G_t(\vec{v}) = R(t)\vec{v} + \vec{u}(t),\]</div>
+</div>
+<p>where <span class="math notranslate nohighlight">\(G(t)\)</span> represents a Galilean transformation on the velocity, <span class="math notranslate nohighlight">\(R(t)\)</span> is a
+time-dependent rotation matrix, and <span class="math notranslate nohighlight">\(\vec{u}(t)\)</span> is a time-dependent boost. Motivated by
+this, this library regards as valid celestial coordinate transforms those, which satisfy the
+requirements following concept.</p>
+<dl class="cpp concept">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">T</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">parametric_rigid_transform</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<p>This concept is satisfied by any type <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">T</span></code>, which implements a call operator
+<a href="#id4"><span class="problematic" id="id5">:cpp:function:`operator()`</span></a>, which takes a single floating point parameter, and returns an object
+whose type is one of</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">zdm::la::RigidTransform</span></code> (rigid transform)</p></li>
+<li><p><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">zdm::la::RotationMatrix</span></code> (pure rotation)</p></li>
+<li><p><a class="reference internal" href="linalg.html#_CPPv4I_10arithmetic_NSt6size_tEEN3zdm2la6VectorE" title="zdm::la::Vector"><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">zdm::la::Vector</span></code></a> (pure translation)</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="transformations-between-celestial-coordinats">
+<h2>Transformations Between Celestial Coordinats<a class="headerlink" href="#transformations-between-celestial-coordinats" title="Link to this heading">¶</a></h2>
+<p>This section briefly introduces the various conventional coordinate system these transformations
+rely on, the core classes that implement these transformations. Note that these transformations
+are the building blocks of more complex transformations, and may not be too useful by themselves.
+The reference at the bottom of the page lists a number of useful composite transforms.</p>
+<p>The main reference system which connects many of the coordinate systems used in this library is the
+International Celestial Reference System (ICRS). This is a coordinate system with its origin at the
+solar system barycenter, and which is defined to be nonrotating with respect to extragalactic
+radio sources. It is defined in such a way that on the J2000 epoch its orientation approximately
+matches that of the Equatorial Coordinate System (ECS) <a class="footnote-reference brackets" href="#id11" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>. That is, its equator roughly matches
+the J2000 equator, and its x-axis the March equinox of J2000. The direction of the z-axis of the
+ICRS is called the North Celestial Pole (NCP).</p>
+<p>In the framework of this library, the local velocity distribution of dark matter is typically
+assumed to be defined in the Galactic Coordinate System (GCS). It is a coordinate system, which for
+a point in the galactic disk (e.g. the solar system) is at any instance centered on that point, but
+has no overall motion with respect to the Galactic Core (GC). This is a coordinate system where the
+mean velocity of dark matter is zero (under the standard assumptions that the dark matter halo
+doesn’t have significant angular momentum, and that there are no local streams).</p>
+<p>The orientation of the GCS is determined such that its z-axis points in the direction of the North
+Galactic Pole (NGP), defined as the direction perpendicular to the galactic equatorial plane. Its
+x-axis is in the direction, where the great circle going through the NGP and GC crosses the
+equatorial plane.</p>
+<p>The velocity of the ICRS in the GCS is given by the sum of the local circular velocity and peculiar
+velocity of the solar system</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\vec{v}_{\text{GCS}\rightarrow\text{ICRS}} = \vec{v}_\text{circ} + \vec{v}_\text{pec}.\]</div>
+</div>
+<p>For the peculiar velocity this library supplies the constant <cite>peculiar_velocity_sbd_2010</cite> per the
+values of <a class="reference internal" href="#sbd2010" id="id7"><span>[SBD2010]</span></a>.</p>
+<p>The orientation of the GCS in the ICRS can be expressed in terms of the ICRS right ascension and
+declination of the NGP, and the GCS longitude of the NCP as <a class="footnote-reference brackets" href="#id12" id="id8" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[R_{\text{GCS}\rightarrow\text{ICRS}}
+= R_Z(\pi - \alpha_\text{NGP})R_Y(\pi/2 - \delta_\text{NGP})R_Z(l_\text{NCP}).\]</div>
+</div>
+<p>The transformation from the GCS to ICRS is implemented by the following class</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCStoICRS</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<p>Although there is typically no need to deal with it directly because one more often wants to use
+composite transforms like <a class="reference internal" href="#_CPPv4N3zdm9celestial8GCStoHCSE" title="zdm::celestial::GCStoHCS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">zdm::celestial::GCStoHCS</span></code></a> to transform to a more common
+laboratory frame.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">gcs_to_icrs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">celestial</span><span class="o">::</span><span class="n">GCStoICRS</span><span class="p">{};</span>
+<span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">RigidTransform</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">gcs_to_icrs_j2000</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gcs_to_icrs</span><span class="p">(</span><span class="mf">0.0</span><span class="p">);</span>
+<span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dm_velocity_icrs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gcs_to_icrs_j2000</span><span class="p">(</span><span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="p">{});</span>
+</pre></div>
+</div>
+<p>Although the GCS to ICRS transformation is indpendent of time, all coordinate transforms in the
+library are parametrized by time, expressed in days since the J2000 epoch. Calling the coordinate
+transform with a time parameter gives the value of the transform at that instance.</p>
+<p>The orbital motion of the Earth is implemented in the transformation from the ICRS to the
+Geocentric Celestial Reference System (GCRS). The GCRS has the same orientation as the ICRS, but
+where the ICRS is centered at the barycenter of the solar system, the GCRS is geocentric. Their
+velocity difference is therefore given by the orbital velocity of Earth (or viewed from Earth, the
+velocity of the solar system barycenter).</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ICRStoGCRS</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<p>This class represents tthe transformatioin from ICRS to GCRS. In practice, it returns the velocity
+difference of the two coordinate systems</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">icrs_to_gcrs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">celestial</span><span class="o">::</span><span class="n">ICRStoGCRS</span><span class="p">{};</span>
+<span class="n">zdm</span><span class="o">::</span><span class="n">la</span><span class="o">::</span><span class="n">Vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">ssbr_velocity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">icrs_to_gcrs</span><span class="p">(</span><span class="mf">0.0</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>For completeness we may note that the ICRS to GCRS transformation relies on another transformation
+<a class="reference internal" href="#_CPPv4N3zdm9celestial9ECStoICRSE" title="zdm::celestial::ECStoICRS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">zdm::celestial::ECStoICRS</span></code></a> to express the orbital velocity origincally expressed in the
+Ecliptic Coordinate System (ECS) of J2000 in the ICRS.</p>
+<p>The primary terrestrial reference system is the International Terrestrial Reference System (ITRS).
+This is a geocentric coordinate system whose z-axis matches Earth’s rotational axis, and whose
+x-axis is on the prime meridian. For technical reasons, it is connected to the GCRS via a
+three-stage transform consinsting of three rotations. Earth’s axis of rotation moves with respect
+to the ICRS pole, and this rotation is separated into precession and nutation due to gravitational
+perturbations, and polar motion due to terrestrial effects. For this purpose, the Celestial
+Intermediate Pole (CIP) has been defined, whose motion includes the precession and nutation, but
+not the polar motion. This leads to the definition of the Celestial Intermediate Reference System
+(CIRS), which has the CIP as its pole, but does not rotate with Earth, as well as the Terrestrial
+Intermediate reference System (TIRS), which has the CIP as its pole and does rotate with Earth.
+This leads to the transformation sequence</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{GCRS} \rightarrow \text{CIRS} \rightarrow \text{TIRS} \rightarrow \text{ITRS}.\]</div>
+</div>
+<p>The transformation from GCRS to CIRS adds the precession and nutation of the CIP, the
+transformation from CIRS to TIRS rotates the coordinates with the Earth Rotation Angle (ERA)</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[R_{\text{CIRS}\rightarrow\text{TIRS}} = R_Z(\text{ERA})\]</div>
+</div>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{ERA} = 2\pi(0.7790572732640 + 1.00273781191135448\text{UT1}_\text{J2000}).\]</div>
+</div>
+<p>Here <span class="math notranslate nohighlight">\(\text{UT1}_\text{J2000}\)</span> denotes the UT1 time (in days) since the J2000 epoch.</p>
+<p>The GCRS to CIRS and CIRS to TIRS transformations are implemented by the respective classes</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCRStoCIRS</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CIRStoTIRS</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<p>A class corresponding to the transformation from TIRS to ITRS exists, but its call operator returns
+<a href="#id9"><span class="problematic" id="id10">:cpp:`void`</span></a>. This is because polar motion is neglected in the implementation of this library due to
+its small magnitude and lack of suitable numerical model. Therefore TIRS and ITRS can be regarded
+as equivalent.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp">
+<span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIRStoITRS</span></span></span><br /></dt>
+<dd></dd></dl>
+
+<p>The library also defines a number of other useful celestial coordinate system transformations,
+which are compositions of these basic transformations. These can be found in the reference below.</p>
+</section>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">¶</a></h2>
+<section id="types">
+<h3>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h3>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I_N2la8ChainingE0_Dp26parametric_rigid_transformEN3zdm9celestial9CompositeE">
+<span id="_CPPv3I_N2la8ChainingE0_Dp26parametric_rigid_transformEN3zdm9celestial9CompositeE"></span><span id="_CPPv2I_N2la8ChainingE0_Dp26parametric_rigid_transformEN3zdm9celestial9CompositeE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Chaining</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">chaining</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RigidTransformType</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN3zdm9celestial26parametric_rigid_transformE" title="zdm::celestial::parametric_rigid_transform"><span class="n"><span class="pre">parametric_rigid_transform</span></span></a><span class="p"><span class="pre">...</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Types</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classzdm_1_1celestial_1_1Composite"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Composite</span></span></span><a class="headerlink" href="#_CPPv4I_N2la8ChainingE0_Dp26parametric_rigid_transformEN3zdm9celestial9CompositeE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A helper for writing efficient compositions of parametric rigid transforms. </p>
+<p>
+This helper class may be used to compose together any combination of objects which qualify as a parametric rigid transform. Specifically, given the value type <code class="docutils literal notranslate"><span class="pre">T</span></code> and a dimension <code class="docutils literal notranslate"><span class="pre">N</span></code>, if a type <code class="docutils literal notranslate"><span class="pre">U</span></code> defines a call operator <code class="docutils literal notranslate"><span class="pre">operator()(T</span> <span class="pre">t)</span></code>, which takes an argument of type <code class="docutils literal notranslate"><span class="pre">T</span></code>, and returns either a <code class="docutils literal notranslate"><span class="pre">RigidTransform&lt;T,</span> <span class="pre">N&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">RotationMatrix&lt;T,</span> <span class="pre">N&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Vector&lt;T,</span> <span class="pre">N&gt;</span></code>, or <code class="docutils literal notranslate"><span class="pre">void</span></code>, then it qualifies as a parametric rigid transform.</p>
+<p>The special types with return type <code class="docutils literal notranslate"><span class="pre">void</span></code> represent identity transforms. This exists for explictly describing transforms in composition chains, which are in principle present, but in practice reduce to an identity operation.</p>
+<p>The compositon here is to be understood in a left to right order. That is, if we have a chain of transformations <code class="docutils literal notranslate"><span class="pre">T1</span> <span class="pre">-&gt;</span> <span class="pre">T2</span> <span class="pre">-&gt;</span> <span class="pre">...</span> <span class="pre">-&gt;</span> <span class="pre">TN</span></code>, then the transformations are given in the order <code class="docutils literal notranslate"><span class="pre">T1,</span> <span class="pre">T2,</span> <span class="pre">...,</span> <span class="pre">TN</span></code>. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>T</strong> – value type of the rigid transform. </p></li>
+<li><p><strong>N</strong> – dimension of the rigid transform. </p></li>
+<li><p><strong>Types</strong> – types of the composed rigid transforms.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9CompositeclERKN20rigid_transform_type10value_typeE">
+<span id="_CPPv3NK3zdm9celestial9CompositeclERKN20rigid_transform_type10value_typeE"></span><span id="_CPPv2NK3zdm9celestial9CompositeclERKN20rigid_transform_type10value_typeE"></span><span id="zdm::celestial::Composite::call-operator__rigid_transform_type::value_typeCRC"></span><span class="target" id="classzdm_1_1celestial_1_1Composite_1ab2bd545b147f3725dc6d8260093d75b5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">rigid_transform_type</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">rigid_transform_type</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">value_type</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">parameter</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9CompositeclERKN20rigid_transform_type10value_typeE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric rigid transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>parameter</strong> – Parameter of the transform.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Rigid transform at the given parameter value. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I_26parametric_rigid_transformEN3zdm9celestial7InverseE">
+<span id="_CPPv3I_26parametric_rigid_transformEN3zdm9celestial7InverseE"></span><span id="_CPPv2I_26parametric_rigid_transformEN3zdm9celestial7InverseE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN3zdm9celestial26parametric_rigid_transformE" title="zdm::celestial::parametric_rigid_transform"><span class="n"><span class="pre">parametric_rigid_transform</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">U</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classzdm_1_1celestial_1_1Inverse"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Inverse</span></span></span><a class="headerlink" href="#_CPPv4I_26parametric_rigid_transformEN3zdm9celestial7InverseE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A helper for writing ineverses of parametric rigid transforms. </p>
+<p>
+This helper class may be used to define classes which are inverses of existing parametric rigid transforms. The call operator of this class is simply a wrapper around the call operator of <code class="docutils literal notranslate"><span class="pre">T</span></code>, which calls the <code class="docutils literal notranslate"><span class="pre">inverse</span></code> member function on the result of the call operator, as defined for the <code class="docutils literal notranslate"><span class="pre">RigidTransform</span></code> class. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>T</strong> – Rigid transform type to be inverted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9GCStoICRSE">
+<span id="_CPPv3N3zdm9celestial9GCStoICRSE"></span><span id="_CPPv2N3zdm9celestial9GCStoICRSE"></span><span id="zdm::celestial::GCStoICRS"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoICRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCStoICRS</span></span></span><br /></dt>
+<dd><p>Transformation from the Galactic Coordinate System (GCS) to the International Celestial Reference System (ICRS). </p>
+<p>This class implements the transformation from the Galactic Coordinate System (GCS) to the International Celestial Reference System (ICRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9GCStoICRSclEd">
+<span id="_CPPv3NK3zdm9celestial9GCStoICRSclEd"></span><span id="_CPPv2NK3zdm9celestial9GCStoICRSclEd"></span><span id="zdm::celestial::GCStoICRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoICRS_1a189045687068bc05052ff27abb162491"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9GCStoICRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since the GCS and ICRS are both defined to be inertial coordinate systems, the transformation between them has no actual time dependence. This call operator just returns the same <code class="docutils literal notranslate"><span class="pre">RigidTransform</span></code> as the one that takes no parameters. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>GCS to ICRS transform at the given time.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9GCStoICRSclEv">
+<span id="_CPPv3NK3zdm9celestial9GCStoICRSclEv"></span><span id="_CPPv2NK3zdm9celestial9GCStoICRSclEv"></span><span id="zdm::celestial::GCStoICRS::call-operatorC"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoICRS_1a382c1ac04b6d1065046d04b7f717cbc8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9GCStoICRSclEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the constant transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>GCS to ICRS transform. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9ECStoICRSE">
+<span id="_CPPv3N3zdm9celestial9ECStoICRSE"></span><span id="_CPPv2N3zdm9celestial9ECStoICRSE"></span><span id="zdm::celestial::ECStoICRS"></span><span class="target" id="classzdm_1_1celestial_1_1ECStoICRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ECStoICRS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial9ECStoICRSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformation from the Ecliptic Coordinate System (ECS) to the International Celestial Reference System (ICRS). </p>
+<p>This class implements a transformation from the Ecliptic Coordinate System (ECS) to the International Celestial Reference System (ICRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9ECStoICRSclEd">
+<span id="_CPPv3NK3zdm9celestial9ECStoICRSclEd"></span><span id="_CPPv2NK3zdm9celestial9ECStoICRSclEd"></span><span id="zdm::celestial::ECStoICRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1ECStoICRS_1a4efaada497ca66befc4b6e593fcb988d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9ECStoICRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since the ECS and ICRS are both defined to be inertial coordinate systems, the transformation between them has no actual time dependence. This call operator just returns the same <code class="docutils literal notranslate"><span class="pre">RigidTransform</span></code> as the one that takes no parameters. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ECS to ICRS transform at the given time.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9ECStoICRSclEv">
+<span id="_CPPv3NK3zdm9celestial9ECStoICRSclEv"></span><span id="_CPPv2NK3zdm9celestial9ECStoICRSclEv"></span><span id="zdm::celestial::ECStoICRS::call-operatorC"></span><span class="target" id="classzdm_1_1celestial_1_1ECStoICRS_1a6b173b2dcda27acd7d6916ef3da6894e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9ECStoICRSclEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the constant transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ECS to ICRS transform. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial10ICRStoGCRSE">
+<span id="_CPPv3N3zdm9celestial10ICRStoGCRSE"></span><span id="_CPPv2N3zdm9celestial10ICRStoGCRSE"></span><span id="zdm::celestial::ICRStoGCRS"></span><span class="target" id="classzdm_1_1celestial_1_1ICRStoGCRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ICRStoGCRS</span></span></span><br /></dt>
+<dd><p>Transformation from the International Celestial Reference System (ICRS) to the Geocentric Celestial Reference System (GCRS). </p>
+<p>This class implements the transformation from the International Celestial Reference System (ICRS) to the Geocentric Celestial Reference System (GCRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial10ICRStoGCRSclEd">
+<span id="_CPPv3NK3zdm9celestial10ICRStoGCRSclEd"></span><span id="_CPPv2NK3zdm9celestial10ICRStoGCRSclEd"></span><span id="zdm::celestial::ICRStoGCRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1ICRStoGCRS_1ab356d50da89e0fb03f79c265516e432a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Translation</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial10ICRStoGCRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ICRS to GCRS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial10GCRStoCIRSE">
+<span id="_CPPv3N3zdm9celestial10GCRStoCIRSE"></span><span id="_CPPv2N3zdm9celestial10GCRStoCIRSE"></span><span id="zdm::celestial::GCRStoCIRS"></span><span class="target" id="classzdm_1_1celestial_1_1GCRStoCIRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCRStoCIRS</span></span></span><br /></dt>
+<dd><p>Transformation from the Geocentric Celestial Reference System (GCRS) to the Celestial Intermediate Reference System (CIRS). </p>
+<p>This class implements the transformation from the Geocentric Celestial Reference System (GCRS) to the Celestial Intermediate Reference System (CIRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial10GCRStoCIRSclEd">
+<span id="_CPPv3NK3zdm9celestial10GCRStoCIRSclEd"></span><span id="_CPPv2NK3zdm9celestial10GCRStoCIRSclEd"></span><span id="zdm::celestial::GCRStoCIRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1GCRStoCIRS_1ae4c16a3681dfe03520eabf4cfcea1e47"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial10GCRStoCIRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>GCRS to CIRS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial10CIRStoTIRSE">
+<span id="_CPPv3N3zdm9celestial10CIRStoTIRSE"></span><span id="_CPPv2N3zdm9celestial10CIRStoTIRSE"></span><span id="zdm::celestial::CIRStoTIRS"></span><span class="target" id="classzdm_1_1celestial_1_1CIRStoTIRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CIRStoTIRS</span></span></span><br /></dt>
+<dd><p>Transformation from the Celestial Intermediate Reference System (CIRS) to the Terrestrial Intermediate Reference System (TIRS). </p>
+<p>This class implements the transformation from the Celestial Intermediate Reference System (CIRS) to the Terrestrial Intermediate Reference System (TIRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial10CIRStoTIRSclEd">
+<span id="_CPPv3NK3zdm9celestial10CIRStoTIRSclEd"></span><span id="_CPPv2NK3zdm9celestial10CIRStoTIRSclEd"></span><span id="zdm::celestial::CIRStoTIRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1CIRStoTIRS_1abd5729fb9c6de386f42bdc88b3bb0159"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial10CIRStoTIRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CIRS to TIRS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial10TIRStoITRSE">
+<span id="_CPPv3N3zdm9celestial10TIRStoITRSE"></span><span id="_CPPv2N3zdm9celestial10TIRStoITRSE"></span><span id="zdm::celestial::TIRStoITRS"></span><span class="target" id="classzdm_1_1celestial_1_1TIRStoITRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIRStoITRS</span></span></span><br /></dt>
+<dd><p>Transformation from the Terrestrial Intermediate Reference System (TIRS) to the International Terrestrial Reference System (TIRS). </p>
+<p>This transformation is designated as an identity transformation, because it only includes polar motion, which is negligible for the purposes of this library. It is only meant be used in composition chains to be explicit (see <code class="docutils literal notranslate"><span class="pre">CompositeRigidTransform</span></code>), and thus has a call operator which returns an object of type <code class="docutils literal notranslate"><span class="pre">Identity</span></code>. In standalone use of these transformations, one can assume that TIRS = ITRS, and use the relevant transforms directly, e.g. <code class="docutils literal notranslate"><a class="reference internal" href="#classzdm_1_1celestial_1_1CIRStoTIRS"><span class="std std-ref"><span class="pre">CIRStoTIRS</span></span></a></code> followed by <code class="docutils literal notranslate"><a class="reference internal" href="#classzdm_1_1celestial_1_1ITRStoHCS"><span class="std std-ref"><span class="pre">ITRStoHCS</span></span></a></code> would correspond to a CIRS to HCS transform. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial10TIRStoITRSclEd">
+<span id="_CPPv3NK3zdm9celestial10TIRStoITRSclEd"></span><span id="_CPPv2NK3zdm9celestial10TIRStoITRSclEd"></span><span id="zdm::celestial::TIRStoITRS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1TIRStoITRS_1a026725ccdbcd84aec5c5a3fc54089072"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">Identity</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial10TIRStoITRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A void returning call operator that does nothing. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9ITRStoHCSE">
+<span id="_CPPv3N3zdm9celestial9ITRStoHCSE"></span><span id="_CPPv2N3zdm9celestial9ITRStoHCSE"></span><span id="zdm::celestial::ITRStoHCS"></span><span class="target" id="classzdm_1_1celestial_1_1ITRStoHCS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ITRStoHCS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial9ITRStoHCSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformaton from the International Terrestrial Reference System (ITRS) to a Horizontal Coordinate System (HCS) at a point on Earth’s surface. </p>
+<p>This class implements the transformation from the International Terrestrial Reference System (ITRS) to a Horizontal Coordinate System (HCS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9ITRStoHCSclEd">
+<span id="_CPPv3NK3zdm9celestial9ITRStoHCSclEd"></span><span id="_CPPv2NK3zdm9celestial9ITRStoHCSclEd"></span><span id="zdm::celestial::ITRStoHCS::call-operator__doubleC"></span><span class="target" id="classzdm_1_1celestial_1_1ITRStoHCS_1a60a47779825209b668ae4b1b1efdf506"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9ITRStoHCSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ITRS to HCS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm9celestial9ITRStoHCSclEv">
+<span id="_CPPv3NK3zdm9celestial9ITRStoHCSclEv"></span><span id="_CPPv2NK3zdm9celestial9ITRStoHCSclEv"></span><span id="zdm::celestial::ITRStoHCS::call-operatorC"></span><span class="target" id="classzdm_1_1celestial_1_1ITRStoHCS_1aadc743d32cb52ce096a46e03cba5e61f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm9celestial9ITRStoHCSclEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the constant transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>ITRS to HCS transform. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial8GCStoHCSE">
+<span id="_CPPv3N3zdm9celestial8GCStoHCSE"></span><span id="_CPPv2N3zdm9celestial8GCStoHCSE"></span><span id="zdm::celestial::GCStoHCS"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoHCS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCStoHCS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial8GCStoHCSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformation from the Galactic Coordinate System (GCS) to a Horizontal Coordinate System (HCS) at a point on Earth’s surface. </p>
+<p>This transformation implementes the transformation from the Galactic Coordinate System (GCS) to a Horizontal Coordinate System (HCS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial8GCStoHCSclEd">
+<span id="_CPPv3N3zdm9celestial8GCStoHCSclEd"></span><span id="_CPPv2N3zdm9celestial8GCStoHCSclEd"></span><span id="zdm::celestial::GCStoHCS::call-operator__double"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoHCS_1aed9a7fb0b4569ab193142ddc62ac1a6b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3zdm9celestial8GCStoHCSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>GCS to HCS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9GCStoCIRSE">
+<span id="_CPPv3N3zdm9celestial9GCStoCIRSE"></span><span id="_CPPv2N3zdm9celestial9GCStoCIRSE"></span><span id="zdm::celestial::GCStoCIRS"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoCIRS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GCStoCIRS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial9GCStoCIRSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformation from the Galactic Coordinate System (GCS) to the Celestial Intermediate Reference System (CIRS). </p>
+<p>This transformation implementes the transformation from the Galactic Coordinate System (GCS) to the Celestial Intermediate Reference System (CIRS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9GCStoCIRSclEd">
+<span id="_CPPv3N3zdm9celestial9GCStoCIRSclEd"></span><span id="_CPPv2N3zdm9celestial9GCStoCIRSclEd"></span><span id="zdm::celestial::GCStoCIRS::call-operator__double"></span><span class="target" id="classzdm_1_1celestial_1_1GCStoCIRS_1ae50e40ea2b788b621b4da7af7763301c"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3zdm9celestial9GCStoCIRSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>GCS to CIRS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9CIRStoHCSE">
+<span id="_CPPv3N3zdm9celestial9CIRStoHCSE"></span><span id="_CPPv2N3zdm9celestial9CIRStoHCSE"></span><span id="zdm::celestial::CIRStoHCS"></span><span class="target" id="classzdm_1_1celestial_1_1CIRStoHCS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CIRStoHCS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial9CIRStoHCSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformation from the Celestial Intermediate Reference System (CIRS) to a Horizontal Coordinate System (HCS) at a point on Earth’s surface. </p>
+<p>This transformation implementes the transformation from the Celestial Intermediate Reference System (CIRS) to a Horizontal Coordinate System (HCS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9CIRStoHCSclEd">
+<span id="_CPPv3N3zdm9celestial9CIRStoHCSclEd"></span><span id="_CPPv2N3zdm9celestial9CIRStoHCSclEd"></span><span id="zdm::celestial::CIRStoHCS::call-operator__double"></span><span class="target" id="classzdm_1_1celestial_1_1CIRStoHCS_1a5bef006f141dcd3ab4198a9d32e6f86f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3zdm9celestial9CIRStoHCSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CIRS to HCS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9TIRStoHCSE">
+<span id="_CPPv3N3zdm9celestial9TIRStoHCSE"></span><span id="_CPPv2N3zdm9celestial9TIRStoHCSE"></span><span id="zdm::celestial::TIRStoHCS"></span><span class="target" id="classzdm_1_1celestial_1_1TIRStoHCS"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIRStoHCS</span></span></span><a class="headerlink" href="#_CPPv4N3zdm9celestial9TIRStoHCSE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Transformation from the Terrestrial Intermediate Reference System (TIRS) to a Horizontal Coordinate System (HCS) at a point on Earth’s surface. </p>
+<p>This transformation implementes the transformation from the Terrestrial Intermediate Reference System (TIRS) to a Horizontal Coordinate System (HCS). </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm9celestial9TIRStoHCSclEd">
+<span id="_CPPv3N3zdm9celestial9TIRStoHCSclEd"></span><span id="_CPPv2N3zdm9celestial9TIRStoHCSclEd"></span><span id="zdm::celestial::TIRStoHCS::call-operator__double"></span><span class="target" id="classzdm_1_1celestial_1_1TIRStoHCS_1a3d808f50b253f862a6d14ec14020ca07"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RigidTransform</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_j2000</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N3zdm9celestial9TIRStoHCSclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Call operator of the parametric transform. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_j2000</strong> – Number of 24-hour days since the J2000 epoch.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TIRS to HCS transform at the given time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="footnotes">
+<h2>Footnotes<a class="headerlink" href="#footnotes" title="Link to this heading">¶</a></h2>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id11" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id6">1</a><span class="fn-bracket">]</span></span>
+<p>The J2000 epoch is defined as noon January 1st, 2000 Terrestrial Time, which corresponds to
+11:58:55.816 January 1st, 2000 UTC.</p>
+</aside>
+<aside class="footnote brackets" id="id12" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id8">2</a><span class="fn-bracket">]</span></span>
+<p>Rotation matrices in this documentation use express passive transformations with positive
+angles corresponding tcorresponding to counterclockwise rotations.</p>
+</aside>
+</aside>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="iers2010" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">IERS2010</a><span class="fn-bracket">]</span></span>
+<p>IERS Conventions (2010). Gérard Petit and Brian Luzum (eds.). (IERS Technical Note ;
+36) Frankfurt am Main: Verlag des Bundesamts für Kartographie und Geodäsie, 2010. 179 pp., ISBN
+3-89888-989-6</p>
+</div>
+<div class="citation" id="sbd2010" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id7">SBD2010</a><span class="fn-bracket">]</span></span>
+<p>Schönrich, R., Binney, J., and Dehnen, W., “Local kinematics and the local standard of
+rest”, Monthly Notices of the Royal Astronomical Society, vol. 403, no. 4, OUP, pp. 1829–1833,
+2010. doi:10.1111/j.1365-2966.2010.16253.x.</p>
+</div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          <a class="prev-page" href="astro.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Astronomical Parameters</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Sebastian Sassi
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Celestial Coordinate Transforms</a><ul>
+<li><a class="reference internal" href="#parametric-rigid-transforms">Parametric Rigid Transforms</a></li>
+<li><a class="reference internal" href="#transformations-between-celestial-coordinats">Transformations Between Celestial Coordinats</a></li>
+<li><a class="reference internal" href="#reference">Reference</a><ul>
+<li><a class="reference internal" href="#types">Types</a><ul>
+<li><a class="reference internal" href="#_CPPv4I_N2la8ChainingE0_Dp26parametric_rigid_transformEN3zdm9celestial9CompositeE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::Composite</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9CompositeclERKN20rigid_transform_type10value_typeE"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4I_26parametric_rigid_transformEN3zdm9celestial7InverseE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::Inverse</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9GCStoICRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::GCStoICRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9GCStoICRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9GCStoICRSclEv"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9ECStoICRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::ECStoICRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9ECStoICRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9ECStoICRSclEv"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial10ICRStoGCRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::ICRStoGCRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial10ICRStoGCRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial10GCRStoCIRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::GCRStoCIRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial10GCRStoCIRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial10CIRStoTIRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::CIRStoTIRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial10CIRStoTIRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial10TIRStoITRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::TIRStoITRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial10TIRStoITRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9ITRStoHCSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::ITRStoHCS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9ITRStoHCSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm9celestial9ITRStoHCSclEv"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial8GCStoHCSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::GCStoHCS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial8GCStoHCSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9GCStoCIRSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::GCStoCIRS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9GCStoCIRSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9CIRStoHCSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::CIRStoHCS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9CIRStoHCSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9TIRStoHCSE"><code class="docutils literal notranslate"><span class="pre">zdm::celestial::TIRStoHCS</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm9celestial9TIRStoHCSclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#footnotes">Footnotes</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

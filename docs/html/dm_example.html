@@ -1,23 +1,23 @@
 <!doctype html>
 <html class="no-js" lang="en" data-content_root="./">
-  <head><meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Library reference" href="reference.html" /><link rel="prev" title="Usage – Integrating a Radon transform" href="usage.html" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Example: DM–nucleon scattering - zebradm 0.1.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
 
 
 <style>
   body {
-    --color-code-background: #f8f8f8;
-  --color-code-foreground: black;
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
   
   }
   @media not print {
@@ -144,14 +144,10 @@
   </symbol>
 </svg>
 
-<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
-<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
-<label class="overlay sidebar-overlay" for="__navigation">
-  <div class="visually-hidden">Hide navigation sidebar</div>
-</label>
-<label class="overlay toc-overlay" for="__toc">
-  <div class="visually-hidden">Hide table of contents sidebar</div>
-</label>
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
 
 <a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
 
@@ -161,8 +157,7 @@
   <header class="mobile-header">
     <div class="header-left">
       <label class="nav-overlay-icon" for="__navigation">
-        <div class="visually-hidden">Toggle site navigation sidebar</div>
-        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
       </label>
     </div>
     <div class="header-center">
@@ -170,8 +165,7 @@
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
-        <button class="theme-toggle">
-          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
           <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
           <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
           <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -179,8 +173,7 @@
         </button>
       </div>
       <label class="toc-overlay-icon toc-header-icon" for="__toc">
-        <div class="visually-hidden">Toggle table of contents sidebar</div>
-        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
       </label>
     </div>
   </header>
@@ -188,7 +181,6 @@
     <div class="sidebar-container">
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
-  
   
   <span class="sidebar-brand-text">zebradm 0.1.0 documentation</span>
   
@@ -198,13 +190,27 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="introduction.html">Theory – Zernike-based Radon transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage – Integrating a Radon transform</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Example: DM–nucleon scattering</a></li>
-<li class="toctree-l1"><a class="reference internal" href="reference.html">Library reference</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="zebra.html">Zernike-based Radon transforms</a><input aria-label="Toggle navigation of Zernike-based Radon transforms" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="zebra_introduction.html">Theory – Zernike-based Radon transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_usage.html">Usage – Integrating a Radon transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zernike_theory.html">Spherical harmonics and 3D Zernike functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_theory.html">Radon transfomr</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math.html">Mathematical Utilities</a><input aria-label="Toggle navigation of Mathematical Utilities" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polynomial.html">Polynomials</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="coordinates.html">Time and Coordinate Utilities</a><input aria-label="Toggle navigation of Time and Coordinate Utilities" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="time.html">Time Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="astro.html">Astronomical Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="celestial.html">Celestial Coordinate Transforms</a></li>
+</ul>
+</li>
 </ul>
 
 </div>
@@ -231,8 +237,7 @@
   </a>
 </div>
 <div class="theme-toggle-container theme-toggle-content">
-            <button class="theme-toggle">
-              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
               <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
               <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
               <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
@@ -240,8 +245,7 @@
             </button>
           </div>
           <label class="toc-overlay-icon toc-content-icon" for="__toc">
-            <div class="visually-hidden">Toggle table of contents sidebar</div>
-            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
           </label>
         </div>
         <article role="main" id="furo-main-content">
@@ -303,7 +307,7 @@ functions are implemented in practice. These magic functions are as follows</p>
 <span class="n">compute_lab_velocities_equatorial</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">span</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">times</span><span class="p">);</span>
 
 <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">compute_earth_rotation_angles</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">span</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">times</span><span class="p">);</span>
-<span class="n">zdm</span><span class="o">::</span><span class="n">Matrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rotation_matrix_from_equatorial_to_galactic</span><span class="p">();</span>
+<span class="n">zdm</span><span class="o">::</span><span class="n">RotationMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rotation_matrix_from_equatorial_to_galactic</span><span class="p">();</span>
 <span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">euler_angles_from_lab_to_polar</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">lon</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">lat</span><span class="p">);</span>
 
 <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="o">&gt;&gt;</span>
@@ -351,7 +355,7 @@ care about</p>
 </pre></div>
 </div>
 <p>Then we have the static coordinate transforms</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">zdm</span><span class="o">::</span><span class="n">Matrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">equ_to_gal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rotation_matrix_from_equatorial_to_galactic</span><span class="p">();</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">zdm</span><span class="o">::</span><span class="n">RotationMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">equ_to_gal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rotation_matrix_from_equatorial_to_galactic</span><span class="p">();</span>
 
 <span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">lon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5</span><span class="o">*</span><span class="n">std</span><span class="o">::</span><span class="n">numbers</span><span class="o">::</span><span class="n">pi</span><span class="p">;</span>
 <span class="k">constexpr</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">lat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.25</span><span class="o">*</span><span class="n">std</span><span class="o">::</span><span class="n">numbers</span><span class="o">::</span><span class="n">pi</span><span class="p">;</span>
@@ -463,7 +467,7 @@ spherical harmonic expansions</p>
 <p>When it comes to the velocity distribution, we need it to have a specific function signature, which
 only takes as arguments the spherical coordinates of the velocity itself. The easiest way to do this
 is to wrap it in a lambda</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">Matrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rot_equ_to_gal</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="k">const</span><span class="w"> </span><span class="n">zdm</span><span class="o">::</span><span class="n">RotationMatrix</span><span class="o">&lt;</span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">&gt;</span><span class="w"> </span><span class="n">rot_equ_to_gal</span>
 <span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">rotation_matrix_from_equatorial_to_galactic</span><span class="p">();</span>
 <span class="k">const</span><span class="w"> </span><span class="n">DistributionParams</span><span class="w"> </span><span class="n">params</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_distribution_params</span><span class="p">();</span>
 <span class="k">auto</span><span class="w"> </span><span class="n">wrapped_distribution</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="o">&amp;</span><span class="p">](</span><span class="kt">double</span><span class="w"> </span><span class="n">lat</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">colat</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">r</span><span class="p">)</span>
@@ -488,7 +492,7 @@ scale the coordinates to the unit sphere.</p>
 <section id="angle-integrated-radon-transform">
 <h2>Angle-integrated Radon transform<a class="headerlink" href="#angle-integrated-radon-transform" title="Link to this heading">¶</a></h2>
 <p>We for the most general dark matter event rate, we need both the nontransverse and transverse Radon
-transforms, so we choose <a class="reference internal" href="reference.html#_CPPv4N3zdm5zebra36AnisotropicTransverseAngleIntegratorE" title="zdm::zebra::AnisotropicTransverseAngleIntegrator"><code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">zdm::zebra::AnisotropicTransverseAngleIntegrator</span></code></a></p>
+transforms, so we choose <code class="xref cpp cpp-type docutils literal notranslate"><span class="pre">zdm::zebra::AnisotropicTransverseAngleIntegrator</span></code></p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">zdm</span><span class="o">::</span><span class="n">zebra</span><span class="o">::</span><span class="n">AnisotropicAngleIntegrator</span><span class="w"> </span><span class="nf">integrator</span><span class="p">(</span><span class="n">dist_order</span><span class="p">,</span><span class="w"> </span><span class="n">resp_order</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -555,26 +559,8 @@ prefactor.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="reference.html">
-              <div class="page-info">
-                <div class="context">
-                  <span>Next</span>
-                </div>
-                <div class="title">Library reference</div>
-              </div>
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-            </a>
-          <a class="prev-page" href="usage.html">
-              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
-              <div class="page-info">
-                <div class="context">
-                  <span>Previous</span>
-                </div>
-                
-                <div class="title">Usage – Integrating a Radon transform</div>
-                
-              </div>
-            </a>
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -623,9 +609,9 @@ prefactor.</p>
     </aside>
   </div>
 </div><script src="_static/documentation_options.js?v=01f34227"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     </body>
 </html>

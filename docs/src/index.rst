@@ -6,8 +6,5 @@ ZebraDM
 
    getting_started
    zebra
-   introduction
-   usage
    math
    coordinates
-   theory

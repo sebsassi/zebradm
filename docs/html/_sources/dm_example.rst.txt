@@ -70,7 +70,7 @@ functions are implemented in practice. These magic functions are as follows
     compute_lab_velocities_equatorial(std::span<double> times);
     
     std::vector<double> compute_earth_rotation_angles(std::span<double> times);
-    zdm::Matrix<double, 3, 3> rotation_matrix_from_equatorial_to_galactic();
+    zdm::RotationMatrix<double, 3, 3> rotation_matrix_from_equatorial_to_galactic();
     std::array<double, 3> euler_angles_from_lab_to_polar(double lon, double lat);
 
     std::vector<std::array<double, 2>>
@@ -127,7 +127,7 @@ Then we have the static coordinate transforms
 
 .. code:: cpp
 
-    zdm::Matrix<double, 3, 3> equ_to_gal = rotation_matrix_from_equatorial_to_galactic();
+    zdm::RotationMatrix<double, 3, 3> equ_to_gal = rotation_matrix_from_equatorial_to_galactic();
 
     constexpr double lon = 0.5*std::numbers::pi;
     constexpr double lat = 0.25*std::numbers::pi;
@@ -255,7 +255,7 @@ is to wrap it in a lambda
 
 .. code:: cpp
 
-    const zdm::Matrix<double, 3, 3> rot_equ_to_gal
+    const zdm::RotationMatrix<double, 3, 3> rot_equ_to_gal
         = rotation_matrix_from_equatorial_to_galactic();
     const DistributionParams params = get_distribution_params();
     auto wrapped_distribution = [&](double lat, double colat, double r)
