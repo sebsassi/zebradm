@@ -66,7 +66,6 @@ minimum requirements for the compiler will evolve with the needs of the library 
 availability of newer compiler versions.*
 
 *This library is developed on and for Linux platforms. If you're on Windows and need to use MSVC,
->>>>>>> dev
 you're on your own.*
 
 ## Usage
