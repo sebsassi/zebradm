@@ -1,0 +1,747 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Celestial Coordinate Transforms" href="celestial.html"><link rel="prev" title="Time Utilities" href="time.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Astronomical Parameters - zebradm 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">zebradm 0.1.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text">zebradm 0.1.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="zebra.html">Zernike-based Radon transforms</a><input aria-label="Toggle navigation of Zernike-based Radon transforms" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="zebra_introduction.html">Theory – Zernike-based Radon transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_usage.html">Usage – Integrating a Radon transform</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zernike_theory.html">Spherical harmonics and 3D Zernike functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="zebra_theory.html">Radon transfomr</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="math.html">Mathematical Utilities</a><input aria-label="Toggle navigation of Mathematical Utilities" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="vector.html">Vectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix.html">Matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="polynomial.html">Polynomials</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="coordinates.html">Time and Coordinate Utilities</a><input aria-label="Toggle navigation of Time and Coordinate Utilities" checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="time.html">Time Utilities</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Astronomical Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="celestial.html">Celestial Coordinate Transforms</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/astro.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="astronomical-parameters">
+<h1>Astronomical Parameters<a class="headerlink" href="#astronomical-parameters" title="Link to this heading">¶</a></h1>
+<p><a href="#id1"><span class="problematic" id="id2">:cpp:`#include &lt;zebradm/astro.hpp&gt;`</span></a></p>
+<p>This header contains an assortment of classes for orientations of orbits of astronomical objects,
+as well as some constants related to the motions of Earth and the solar system in Milky Way, and
+to the orientation of the Milky Way.</p>
+<section id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Link to this heading">¶</a></h2>
+<section id="constants">
+<h3>Constants<a class="headerlink" href="#constants" title="Link to this heading">¶</a></h3>
+<dl class="cpp var">
+<dt class="sig sig-object cpp">
+<span class="target" id="astro_8hpp_1a04ba41d13b695dfdb8925b2b6a2e7644"></span><span class="sig-name descname"><span class="pre">static</span> <span class="pre">GalacticOrientation</span> <span class="pre">zdm::astro::orientation_km_2017</span>&#160; <span class="pre">=</span> <span class="pre">{.ngp_dec</span> <span class="pre">=</span> <span class="pre">27.084*std::numbers::pi/180.0,.ngp_ra</span> <span class="pre">=</span> <span class="pre">192.729*std::numbers::pi/180.0,.ncp_lon</span> <span class="pre">=</span> <span class="pre">122.928*std::numbers::pi/180.0}</span></span></dt>
+<dd><p>Orientation parameters of the galactic coordinate system according to Karim and Mamajek (2017). </p>
+<p>References:<ul class="simple">
+<li><p>Karim, T. and Mamajek, E. E., “Revised geometric estimates of the North Galactic Pole and the Sun’s height above the Galactic mid-plane”, Monthly Notices of the Royal Astronomical Society, vol. 465, no. 1, OUP, pp. 472–481, 2017. doi:10.1093/mnras/stw2772. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro26peculiar_velocity_sbd_2010E">
+<span id="_CPPv3N3zdm5astro26peculiar_velocity_sbd_2010E"></span><span id="_CPPv2N3zdm5astro26peculiar_velocity_sbd_2010E"></span><span id="zdm::astro::peculiar_velocity_sbd_2010__la::Vector"></span><span class="target" id="astro_8hpp_1aa69d9c4c67e3c313bcefbd2c80e4ee0b"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><a class="reference internal" href="linalg.html#_CPPv4I_10arithmetic_NSt6size_tEEN3zdm2la6VectorE" title="zdm::la::Vector"><span class="n"><span class="pre">Vector</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">astro</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">peculiar_velocity_sbd_2010</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="m"><span class="pre">11.1</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">12.24</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">7.25</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N3zdm5astro26peculiar_velocity_sbd_2010E" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Peculiar velocity of the solar system accordinh to Schönrich, Binney and Dehnen (2010). </p>
+<p>References:<ul class="simple">
+<li><p>Schönrich, R., Binney, J., and Dehnen, W., “Local kinematics and the local standard of rest”, Monthly Notices of the Royal Astronomical Society, vol. 403, no. 4, OUP, pp. 1829–1833, 2010. doi:10.1111/j.1365-2966.2010.16253.x. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro5earthE">
+<span id="_CPPv3N3zdm5astro5earthE"></span><span id="_CPPv2N3zdm5astro5earthE"></span><span id="zdm::astro::earth__Planet"></span><span class="target" id="astro_8hpp_1a667ca093932ee4fabe2acbd5494c21d8"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE" title="zdm::astro::Planet"><span class="n"><span class="pre">Planet</span></span></a><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">astro</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">earth</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro5earthE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Constant parameters defining Earth. </p>
+<p>The unit conventions of the parameters are defined as follows.</p>
+<p>For the orbital parameters, the semi-major axis is expressed in kilometers. The mean motion has units of radians per day. All the polynomials expect time in Julian millenia since the J2000 epoch. The polynomials for the angle elements (inclination, longitude of the ascending node, longitude of periapsis, mean longitude) give the angles in radians.</p>
+<p>The rotation angle is defined in radians, and expects time in UT1 days since the J2000 epoch.</p>
+<p>The polynomials for the orbital parameters are truncated after the fourth term, because the added precision from further terms is unnecessary for the purposes of this library.</p>
+<p>Refenrences:<ul class="simple">
+<li><p>J. L. Simon, et al., “Numerical expressions for precession formulae and mean elements for the Moon and the planets.”, Astronomy and Astrophysics, vol. 282, EDP, p. 663, 1994.</p></li>
+<li><p>Capitaine, N., Guinot, B., and McCarthy, D. D., 2000, “Definition of the Celestial Ephemeris origin and of UT1 in the International Celestial Reference Frame,” Astron. Astrophys., 355(1), pp. 398–405. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro3cipE">
+<span id="_CPPv3N3zdm5astro3cipE"></span><span id="_CPPv2N3zdm5astro3cipE"></span><span id="zdm::astro::cip__std::array:Polynomial:double.3:.2:"></span><span class="target" id="astro_8hpp_1a9bc2c940ee0dc76d44256289b42dbc86"></span><span class="k"><span class="pre">static</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Polynomial</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">zdm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">astro</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">cip</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="p"><span class="pre">{</span></span><span class="n"><span class="pre">Polynomial</span></span><span class="p"><span class="pre">{</span></span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">8.0561489389971590e-08</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">9.7165965171928760e-03</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">2.0836462982693160e-06</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">9.6292888551265400e-07</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">Polynomial</span></span><span class="p"><span class="pre">{</span></span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">3.3699398973923850e-08</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1.2554735086012543e-07</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1.0863353330939572e-04</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">9.2143203417997300e-09</span></span><span class="p"><span class="pre">}</span></span><span class="p"><span class="pre">}</span></span><a class="headerlink" href="#_CPPv4N3zdm5astro3cipE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>X and Y coordinates of the celestial intermediate pole. </p>
+<p>The units of the polynomials have been translated to radians, and they expect time in Julian centuries since the J2000 epoch.</p>
+<p>This pair of polynomials describes the polynomial part of the development of the celestial intermediate pole based on the P03 precession model. The periodic variations are neglected on the basis that their contributions always remain on the order of arcseconds, far beyond the angular resolution needs of this library. They give little benefit for much more computation. For the same reason, the polynomials have been truncated to four terms.</p>
+<p>References:<ul class="simple">
+<li><p>Capitaine, N. and Wallace, P. T., 2006, “High precision methods for locating the celestial intermediate pole and origin,” Astron. Astrophys., 450, pp. 855–872, doi:10.1051/0004-6361:20054550.8-989-6 </p></li>
+</ul>
+</p>
+</dd></dl>
+
+</section>
+<section id="types">
+<h3>Types<a class="headerlink" href="#types" title="Link to this heading">¶</a></h3>
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro19GalacticOrientationE">
+<span id="_CPPv3N3zdm5astro19GalacticOrientationE"></span><span id="_CPPv2N3zdm5astro19GalacticOrientationE"></span><span id="zdm::astro::GalacticOrientation"></span><span class="target" id="structzdm_1_1astro_1_1GalacticOrientation"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GalacticOrientation</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro19GalacticOrientationE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Orientation of a galactic cooordinate system relative to a reference coordinate system. </p>
+<p>The orientation of a galactic coordinate system relative to a reference inertial coordinate system (typically ICRS) is completely specified by three angles:<ul class="simple">
+<li><p>declination of the north galactic pole ( <span class="math notranslate nohighlight">\(\delta_\text{NGP}\)</span>),</p></li>
+<li><p>right asecnsion of the north galactic pole ( <span class="math notranslate nohighlight">\(\alpha_\text{NGP}\)</span>),</p></li>
+<li><p>longitude of the z-axis (north celestial pole) of the reference coordinate system in the galactic coordinate system ( <span class="math notranslate nohighlight">\(\ell_\text{NCP}\)</span>). </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro19GalacticOrientationeqERK19GalacticOrientation">
+<span id="_CPPv3NK3zdm5astro19GalacticOrientationeqERK19GalacticOrientation"></span><span id="_CPPv2NK3zdm5astro19GalacticOrientationeqERK19GalacticOrientation"></span><span id="zdm::astro::GalacticOrientation::eq-operator__GalacticOrientationCRC"></span><span class="target" id="structzdm_1_1astro_1_1GalacticOrientation_1a96e8d77369517247bc8e15c5a4a4245d"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro19GalacticOrientationE" title="zdm::astro::GalacticOrientation"><span class="n"><span class="pre">GalacticOrientation</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro19GalacticOrientationeqERK19GalacticOrientation" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Galactic longitude of the north celestial pole. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro19GalacticOrientation19gcs_to_reference_csEv">
+<span id="_CPPv3NK3zdm5astro19GalacticOrientation19gcs_to_reference_csEv"></span><span id="_CPPv2NK3zdm5astro19GalacticOrientation19gcs_to_reference_csEv"></span><span id="zdm::astro::GalacticOrientation::gcs_to_reference_csC"></span><span class="target" id="structzdm_1_1astro_1_1GalacticOrientation_1a3ddd3680d11dd6588770bc6cc57e4455"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">gcs_to_reference_cs</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro19GalacticOrientation19gcs_to_reference_csEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rotation from the galactic coordinate system to the reference coordinate system. </p>
+<p>
+The rotation matrix from the galactic coordinate system to the reference coordinate system in terms of the orientation parameters <span class="math notranslate nohighlight">\(\delta_\text{NGP}\)</span>, <span class="math notranslate nohighlight">\(\alpha_\text{NGP}\)</span>, and <span class="math notranslate nohighlight">\(\ell_\text{NCP}\)</span> is given by   <div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[    R_Z(\pi - \alpha_\text{NGP})R_Y(\pi/2 - \delta_\text{NGP})R_Z(\ell_\text{NCP}).
+\]</div>
+</div>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This transformation rotates a vector from the galactic coordinate system to an intermediate coordinate system whose coordinate axes are aligned with those of the reference coordinate system, but which may still have some velocity relative to the reference coordinate system. </p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Rotation matrix from the galactic to the reference coordinate system.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro19GalacticOrientation6ngp_raE">
+<span id="_CPPv3N3zdm5astro19GalacticOrientation6ngp_raE"></span><span id="_CPPv2N3zdm5astro19GalacticOrientation6ngp_raE"></span><span id="zdm::astro::GalacticOrientation::ngp_ra__double"></span><span class="target" id="structzdm_1_1astro_1_1GalacticOrientation_1ae6e754a5d2b7224f1f738c036304d2bd"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ngp_ra</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro19GalacticOrientation6ngp_raE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Declination of the north galactic pole. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro19GalacticOrientation7ncp_lonE">
+<span id="_CPPv3N3zdm5astro19GalacticOrientation7ncp_lonE"></span><span id="_CPPv2N3zdm5astro19GalacticOrientation7ncp_lonE"></span><span id="zdm::astro::GalacticOrientation::ncp_lon__double"></span><span class="target" id="structzdm_1_1astro_1_1GalacticOrientation_1a8d2d88bb69355b8cfe78c4e0361687e4"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ncp_lon</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro19GalacticOrientation7ncp_lonE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Right ascension of the north galactic pole. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro16OrbitOrientationE">
+<span id="_CPPv3N3zdm5astro16OrbitOrientationE"></span><span id="_CPPv2N3zdm5astro16OrbitOrientationE"></span><span id="zdm::astro::OrbitOrientation"></span><span class="target" id="structzdm_1_1astro_1_1OrbitOrientation"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OrbitOrientation</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro16OrbitOrientationE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Instantaneous orientation of a Kepler orbit in a reference coordinate system. </p>
+<p>The orientation of a Kepler orbit is completely determined by three angle parameters:<ul class="simple">
+<li><p>inclination of the orbit ( <span class="math notranslate nohighlight">\(i\)</span>), defined as the angle of the orbital plane with the xy-plane of the reference coordinate system,</p></li>
+<li><p>longitude of the ascending node ( <span class="math notranslate nohighlight">\(\Omega\)</span>), defined as the angle from the reference x-axis of the point where the orbiting body crosses the reference plane in the positive reference z-direction,</p></li>
+<li><p>longitude of the periapsis ( <span class="math notranslate nohighlight">\(\varpi\)</span>), defined as the angle of the projection of the orbit’s periapsis onto the reference xy-plane from the reference x-axis. </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro16OrbitOrientationeqERK16OrbitOrientation">
+<span id="_CPPv3NK3zdm5astro16OrbitOrientationeqERK16OrbitOrientation"></span><span id="_CPPv2NK3zdm5astro16OrbitOrientationeqERK16OrbitOrientation"></span><span id="zdm::astro::OrbitOrientation::eq-operator__OrbitOrientationCRC"></span><span class="target" id="structzdm_1_1astro_1_1OrbitOrientation_1a694806228ba710162d3e757f80469a97"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro16OrbitOrientationE" title="zdm::astro::OrbitOrientation"><span class="n"><span class="pre">OrbitOrientation</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro16OrbitOrientationeqERK16OrbitOrientation" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Longitude of periapsis of the orbit. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro16OrbitOrientation29orbital_plane_to_reference_csEv">
+<span id="_CPPv3NK3zdm5astro16OrbitOrientation29orbital_plane_to_reference_csEv"></span><span id="_CPPv2NK3zdm5astro16OrbitOrientation29orbital_plane_to_reference_csEv"></span><span id="zdm::astro::OrbitOrientation::orbital_plane_to_reference_csC"></span><span class="target" id="structzdm_1_1astro_1_1OrbitOrientation_1a225e1bd8ce5b4b16ff7d3471d3c15672"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">la</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">RotationMatrix</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">orbital_plane_to_reference_cs</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro16OrbitOrientation29orbital_plane_to_reference_csEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Rotation from the orbital plane coordinate system to the reference coordinate system. </p>
+<p>
+The orbital plane coordinate system is defined as a coordinate system whose z-axis is perpendicular to the orbital plane, and has a component parallel to the z-axis of the reference coordinate system, and whose x-axis is in the direction of the periapsis of the orbit.</p>
+<p>The rotation matrix from the orbital plane to the reference coordinate system in terms of the orientation parameters <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(\Omega\)</span>, and <span class="math notranslate nohighlight">\(\varpi\)</span> is given by   <div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[    R_Z(-\Omega)R_X(-i)R_Z(-\varpi).
+\]</div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Rotation matrix from the orbital coordinate system to the reference coordinate system.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro16OrbitOrientation31longitude_of_the_ascending_nodeE">
+<span id="_CPPv3N3zdm5astro16OrbitOrientation31longitude_of_the_ascending_nodeE"></span><span id="_CPPv2N3zdm5astro16OrbitOrientation31longitude_of_the_ascending_nodeE"></span><span id="zdm::astro::OrbitOrientation::longitude_of_the_ascending_node__double"></span><span class="target" id="structzdm_1_1astro_1_1OrbitOrientation_1a64cd4f80c473bca5eb4ea2c9fb5b1cc6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">longitude_of_the_ascending_node</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro16OrbitOrientation31longitude_of_the_ascending_nodeE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Inclination of the orbit. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro16OrbitOrientation22longitude_of_periapsisE">
+<span id="_CPPv3N3zdm5astro16OrbitOrientation22longitude_of_periapsisE"></span><span id="_CPPv2N3zdm5astro16OrbitOrientation22longitude_of_periapsisE"></span><span id="zdm::astro::OrbitOrientation::longitude_of_periapsis__double"></span><span class="target" id="structzdm_1_1astro_1_1OrbitOrientation_1ac609a87628a65232e464676a41483555"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">longitude_of_periapsis</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro16OrbitOrientation22longitude_of_periapsisE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Longitude of the ascending node of the orbit. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro13OrbitPositionE">
+<span id="_CPPv3N3zdm5astro13OrbitPositionE"></span><span id="_CPPv2N3zdm5astro13OrbitPositionE"></span><span id="zdm::astro::OrbitPosition"></span><span class="target" id="structzdm_1_1astro_1_1OrbitPosition"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OrbitPosition</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro13OrbitPositionE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Instantaneous position of a body along a Kepler orbit. </p>
+<p>The position and velocity of a body along a Kepler orbit are completely determined by four parameters:<ul class="simple">
+<li><p>eccentricity of the orbit ( <span class="math notranslate nohighlight">\(e\)</span>),</p></li>
+<li><p>semi-major axis of the orbit ( <span class="math notranslate nohighlight">\(a\)</span>),</p></li>
+<li><p>mean longitude of the body along the orbit ( <span class="math notranslate nohighlight">\(L\)</span>),</p></li>
+<li><p>mean motion of the body ( <span class="math notranslate nohighlight">\(n\)</span>) </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro13OrbitPositioneqERK13OrbitPosition">
+<span id="_CPPv3NK3zdm5astro13OrbitPositioneqERK13OrbitPosition"></span><span id="_CPPv2NK3zdm5astro13OrbitPositioneqERK13OrbitPosition"></span><span id="zdm::astro::OrbitPosition::eq-operator__OrbitPositionCRC"></span><span class="target" id="structzdm_1_1astro_1_1OrbitPosition_1a66a785b80f056b13d6ae4450e1ece203"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPositionE" title="zdm::astro::OrbitPosition"><span class="n"><span class="pre">OrbitPosition</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro13OrbitPositioneqERK13OrbitPosition" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mean motion of the body in radians per day. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro13OrbitPosition15semi_major_axisE">
+<span id="_CPPv3N3zdm5astro13OrbitPosition15semi_major_axisE"></span><span id="_CPPv2N3zdm5astro13OrbitPosition15semi_major_axisE"></span><span id="zdm::astro::OrbitPosition::semi_major_axis__double"></span><span class="target" id="structzdm_1_1astro_1_1OrbitPosition_1a7751cb3fc172c225a29c0765c9652472"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">semi_major_axis</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro13OrbitPosition15semi_major_axisE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Eccentricity of the orbit. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro13OrbitPosition14mean_longitudeE">
+<span id="_CPPv3N3zdm5astro13OrbitPosition14mean_longitudeE"></span><span id="_CPPv2N3zdm5astro13OrbitPosition14mean_longitudeE"></span><span id="zdm::astro::OrbitPosition::mean_longitude__double"></span><span class="target" id="structzdm_1_1astro_1_1OrbitPosition_1a3aafc8b82ec806db33238b2dbc060522"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mean_longitude</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro13OrbitPosition14mean_longitudeE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Semi-major axis of the orbit in kilometers. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro13OrbitPosition11mean_motionE">
+<span id="_CPPv3N3zdm5astro13OrbitPosition11mean_motionE"></span><span id="_CPPv2N3zdm5astro13OrbitPosition11mean_motionE"></span><span id="zdm::astro::OrbitPosition::mean_motion__double"></span><span class="target" id="structzdm_1_1astro_1_1OrbitPosition_1a9d5922584dabc20dc66a90fd204fa610"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mean_motion</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro13OrbitPosition11mean_motionE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mean longitude of the body. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro12OrbitalStateE">
+<span id="_CPPv3N3zdm5astro12OrbitalStateE"></span><span id="_CPPv2N3zdm5astro12OrbitalStateE"></span><span id="zdm::astro::OrbitalState"></span><span class="target" id="structzdm_1_1astro_1_1OrbitalState"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OrbitalState</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro12OrbitalStateE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Instantaneous state of an orbiting body along Kepler orbit. </p>
+<p>Given any instance of time, the position of an orbiting body in space is completely determined by seven parameters. These parameters can be divided into two groups:<ul class="simple">
+<li><p>orbital orientation parameters, specifying the orientation of a Kepler orbit in space,</p></li>
+<li><p>orbital position parameters, specifying the shape of the Kepler orbit and the position of the body along it. </p></li>
+</ul>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro12OrbitalStateeqERK12OrbitalState">
+<span id="_CPPv3NK3zdm5astro12OrbitalStateeqERK12OrbitalState"></span><span id="_CPPv2NK3zdm5astro12OrbitalStateeqERK12OrbitalState"></span><span id="zdm::astro::OrbitalState::eq-operator__OrbitalStateCRC"></span><span class="target" id="structzdm_1_1astro_1_1OrbitalState_1a9f3a1582fb8f843f80b8c3461bb7c87a"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">==</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro12OrbitalStateE" title="zdm::astro::OrbitalState"><span class="n"><span class="pre">OrbitalState</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">other</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro12OrbitalStateeqERK12OrbitalState" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Position of the body along the orbit. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro12OrbitalState12mean_anomalyEv">
+<span id="_CPPv3NK3zdm5astro12OrbitalState12mean_anomalyEv"></span><span id="_CPPv2NK3zdm5astro12OrbitalState12mean_anomalyEv"></span><span id="zdm::astro::OrbitalState::mean_anomalyC"></span><span class="target" id="structzdm_1_1astro_1_1OrbitalState_1a3f32fbf6293ca1d3dc023e50a2ad333b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">mean_anomaly</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro12OrbitalState12mean_anomalyEv" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Mean anomaly of the body in radians. </p>
+<p>The mean anomaly <span class="math notranslate nohighlight">\(M\)</span> of an elliptical orbit is an angle parameter which evolves at a constant rate. It can be computed as the difference of the mean longitude <span class="math notranslate nohighlight">\(L\)</span> and the longitude of the periapsis <span class="math notranslate nohighlight">\(\varpi\)</span> of the orbit: <span class="math notranslate nohighlight">\(M = L - \varpi\)</span>. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro12OrbitalState8positionE">
+<span id="_CPPv3N3zdm5astro12OrbitalState8positionE"></span><span id="_CPPv2N3zdm5astro12OrbitalState8positionE"></span><span id="zdm::astro::OrbitalState::position__OrbitPosition"></span><span class="target" id="structzdm_1_1astro_1_1OrbitalState_1a3c6843772012732f65410eb0792db6df"></span><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPositionE" title="zdm::astro::OrbitPosition"><span class="n"><span class="pre">OrbitPosition</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">position</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro12OrbitalState8positionE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Orientation of the orbit. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro25DynamicalOrbitOrientationE">
+<span id="_CPPv3I_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro25DynamicalOrbitOrientationE"></span><span id="_CPPv2I_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro25DynamicalOrbitOrientationE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">M</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">P</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structzdm_1_1astro_1_1DynamicalOrbitOrientation"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">DynamicalOrbitOrientation</span></span></span><a class="headerlink" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro25DynamicalOrbitOrientationE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Time evolution of the mean orientation parameters of an orbit. </p>
+<p>
+This structure determines the evolution of the orbital orientation parameter from a polynomial expansion for each of the parameters.</p>
+<p>The time evolution of classical orbital elements is typically given by short and long period variations, which lead to an evolution described on short time scales by a compbination of a polynomial expansion and trigonomertic terms describing shorter period variations. The trigonometric terms for Earth’s orbit are on the order of arcseconds, and therefore the evolution here is described by only the mean, polynomial evolution. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> – Order of polynomial expansion for inclination. </p></li>
+<li><p><strong>M</strong> – Order of polynomial expansion for longitude of the ascending node. </p></li>
+<li><p><strong>P</strong> – Order of polynomial expansion for longitude of periapsis.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro25DynamicalOrbitOrientationclEd">
+<span id="_CPPv3NK3zdm5astro25DynamicalOrbitOrientationclEd"></span><span id="_CPPv2NK3zdm5astro25DynamicalOrbitOrientationclEd"></span><span id="zdm::astro::DynamicalOrbitOrientation::call-operator__doubleC"></span><span class="target" id="structzdm_1_1astro_1_1DynamicalOrbitOrientation_1a248cdb998e92516cec34aa973d22d2db"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro16OrbitOrientationE" title="zdm::astro::OrbitOrientation"><span class="n"><span class="pre">OrbitOrientation</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_epoch</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro25DynamicalOrbitOrientationclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Orientation of the orbit at a point in time. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_epoch</strong> – Days since the epoch for which the evolution is defined.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Orientation of the orbit at the specified time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt6size_tE_NSt6size_tEEN3zdm5astro11KeplerOrbitE">
+<span id="_CPPv3I_NSt6size_tE_NSt6size_tEEN3zdm5astro11KeplerOrbitE"></span><span id="_CPPv2I_NSt6size_tE_NSt6size_tEEN3zdm5astro11KeplerOrbitE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">M</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structzdm_1_1astro_1_1KeplerOrbit"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">KeplerOrbit</span></span></span><a class="headerlink" href="#_CPPv4I_NSt6size_tE_NSt6size_tEEN3zdm5astro11KeplerOrbitE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>Time evolution of the shape and motion parameters of an orbit. </p>
+<p>
+This structure determines the evolution of the shape (eccentricity and semi-major axis) and motion (mean longitude and mean motion) parameters of a Kepler orbit. The eccentricity and mean longitude are given by polynomials.</p>
+<p>The time evolution of classical orbital elements is typically given by short and long period variations, which lead to an evolution described on short time scales by a compbination of a polynomial expansion and trigonomertic terms describing shorter period variations. The trigonometric terms for Earth’s orbit are on the order of arcseconds, and therefore the evolution here is described by only the mean, polynomial evolution. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> – Order of polynomial expansion for eccentricity. </p></li>
+<li><p><strong>M</strong> – Order of polynomial expansion for mean longitude.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK3zdm5astro11KeplerOrbitclEd">
+<span id="_CPPv3NK3zdm5astro11KeplerOrbitclEd"></span><span id="_CPPv2NK3zdm5astro11KeplerOrbitclEd"></span><span id="zdm::astro::KeplerOrbit::call-operator__doubleC"></span><span class="target" id="structzdm_1_1astro_1_1KeplerOrbit_1a7156be2ac365ad1d6eb6550beb3726e6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPositionE" title="zdm::astro::OrbitPosition"><span class="n"><span class="pre">OrbitPosition</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">days_since_epoch</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK3zdm5astro11KeplerOrbitclEd" title="Link to this definition">¶</a><br /></dt>
+<dd><p>State of the body on the the orbit at a point in time. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>days_since_epoch</strong> – Days since the epoch for which the evolution is defined.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>State of the body at the specified time. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro5OrbitE">
+<span id="_CPPv3I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro5OrbitE"></span><span id="_CPPv2I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro5OrbitE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">M</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">P</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">K</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">L</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structzdm_1_1astro_1_1Orbit"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Orbit</span></span></span><a class="headerlink" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro5OrbitE" title="Link to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#structzdm_1_1astro_1_1Orbit"><span class="std std-ref">Orbit</span></a> of a celestial body. </p>
+<p>
+The state of an body on an elliptical orbit is specified by the orientation and shape of the orbit, in conjunction with the position and motion of the body along the orbit. For a perturbed orbit, both the orientation and shape of the orbit vary over time.</p>
+<p>This structure describes the evolution of a perturbed orbit over time using a parametrization of the orbit in terms of the orientaton parameters (inclination, longitude of the ascending node, and longitude of perihelion), shape parameters (eccentricity and semi-major axis), the position (mean longitude) of the body along the orbit, and the speed (mean motion) of the body.</p>
+<p>The evolution of the orbital elements due to perturbations is descbribed here purely by polyunomial expressions, leaving out short period variations, which for relevant orbits (namely, the Earth’s) are on the order of arc seconds, which is less than the accuracy required for the purposes of this library. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> – Order of polynomial expansion for inclination. </p></li>
+<li><p><strong>M</strong> – Order of polynomial expansion for longitude of the ascending node. </p></li>
+<li><p><strong>P</strong> – Order of polynomial expansion for longitude of periapsis. </p></li>
+<li><p><strong>K</strong> – Order of polynomial expansion for eccentricity. </p></li>
+<li><p><strong>L</strong> – Order of polynomial expansion for mean longitude.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4N3zdm5astro14OblateSpheroidE">
+<span id="_CPPv3N3zdm5astro14OblateSpheroidE"></span><span id="_CPPv2N3zdm5astro14OblateSpheroidE"></span><span id="zdm::astro::OblateSpheroid"></span><span class="target" id="structzdm_1_1astro_1_1OblateSpheroid"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">OblateSpheroid</span></span></span><a class="headerlink" href="#_CPPv4N3zdm5astro14OblateSpheroidE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>An oblate spheroid. </p>
+<p>An oblate spheroid is the surface of revolution formed by rotating an ellipse about its semi-minor axis. An oblate spheroid is fully specified by its flattening and equatorial radius, the latter corresponding to the semi-major axis of the ellipse that generates the spheriod. </p>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE">
+<span id="_CPPv3I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE"></span><span id="_CPPv2I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">M</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">P</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">K</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">L</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structzdm_1_1astro_1_1Planet"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Planet</span></span></span><a class="headerlink" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE" title="Link to this definition">¶</a><br /></dt>
+<dd><p>A planet specified by its orbit, shape and rate of rotation. </p>
+<p>
+This structure describes a planet as a rotating oblate spheroid on a perturbed elliptical orbit. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N</strong> – Order of polynomial expansion for inclination. </p></li>
+<li><p><strong>M</strong> – Order of polynomial expansion for longitude of the ascending node. </p></li>
+<li><p><strong>P</strong> – Order of polynomial expansion for longitude of periapsis. </p></li>
+<li><p><strong>K</strong> – Order of polynomial expansion for eccentricity. </p></li>
+<li><p><strong>L</strong> – Order of polynomial expansion for mean longitude.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="celestial.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Celestial Coordinate Transforms</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="time.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Time Utilities</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Sebastian Sassi
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Astronomical Parameters</a><ul>
+<li><a class="reference internal" href="#reference">Reference</a><ul>
+<li><a class="reference internal" href="#constants">Constants</a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro26peculiar_velocity_sbd_2010E"><code class="docutils literal notranslate"><span class="pre">peculiar_velocity_sbd_2010</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro5earthE"><code class="docutils literal notranslate"><span class="pre">earth</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro3cipE"><code class="docutils literal notranslate"><span class="pre">cip</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#types">Types</a><ul>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro19GalacticOrientationE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::GalacticOrientation</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro19GalacticOrientationeqERK19GalacticOrientation"><code class="docutils literal notranslate"><span class="pre">operator==()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro19GalacticOrientation19gcs_to_reference_csEv"><code class="docutils literal notranslate"><span class="pre">gcs_to_reference_cs()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro19GalacticOrientation6ngp_raE"><code class="docutils literal notranslate"><span class="pre">ngp_ra</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro19GalacticOrientation7ncp_lonE"><code class="docutils literal notranslate"><span class="pre">ncp_lon</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro16OrbitOrientationE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::OrbitOrientation</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro16OrbitOrientationeqERK16OrbitOrientation"><code class="docutils literal notranslate"><span class="pre">operator==()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro16OrbitOrientation29orbital_plane_to_reference_csEv"><code class="docutils literal notranslate"><span class="pre">orbital_plane_to_reference_cs()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro16OrbitOrientation31longitude_of_the_ascending_nodeE"><code class="docutils literal notranslate"><span class="pre">longitude_of_the_ascending_node</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro16OrbitOrientation22longitude_of_periapsisE"><code class="docutils literal notranslate"><span class="pre">longitude_of_periapsis</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPositionE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::OrbitPosition</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro13OrbitPositioneqERK13OrbitPosition"><code class="docutils literal notranslate"><span class="pre">operator==()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPosition15semi_major_axisE"><code class="docutils literal notranslate"><span class="pre">semi_major_axis</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPosition14mean_longitudeE"><code class="docutils literal notranslate"><span class="pre">mean_longitude</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro13OrbitPosition11mean_motionE"><code class="docutils literal notranslate"><span class="pre">mean_motion</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro12OrbitalStateE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::OrbitalState</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro12OrbitalStateeqERK12OrbitalState"><code class="docutils literal notranslate"><span class="pre">operator==()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro12OrbitalState12mean_anomalyEv"><code class="docutils literal notranslate"><span class="pre">mean_anomaly()</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro12OrbitalState8positionE"><code class="docutils literal notranslate"><span class="pre">position</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro25DynamicalOrbitOrientationE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::DynamicalOrbitOrientation</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro25DynamicalOrbitOrientationclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4I_NSt6size_tE_NSt6size_tEEN3zdm5astro11KeplerOrbitE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::KeplerOrbit</span></code></a><ul>
+<li><a class="reference internal" href="#_CPPv4NK3zdm5astro11KeplerOrbitclEd"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro5OrbitE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::Orbit</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4N3zdm5astro14OblateSpheroidE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::OblateSpheroid</span></code></a></li>
+<li><a class="reference internal" href="#_CPPv4I_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tE_NSt6size_tEEN3zdm5astro6PlanetE"><code class="docutils literal notranslate"><span class="pre">zdm::astro::Planet</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=01f34227"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

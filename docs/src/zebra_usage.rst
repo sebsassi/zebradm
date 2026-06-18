@@ -4,23 +4,20 @@ Usage -- Integrating a Radon transform
 This section goes through the core parts of the library and its usage via an example of evaluating
 the angle-integrated Radon transform of a distribution with a response function.
 
-The angle integration is implemented in four core classes:
-
-* :cpp:type:`zdm::zebra::IsotropicAngleIntegrator`
-* :cpp:type:`zdm::zebra::AnisotropicAngleIntegrator`
-* :cpp:type:`zdm::zebra::IsotropicTransverseAngleIntegrator`
-* :cpp:type:`zdm::zebra::AnisotropicTransverseAngleIntegrator`
-
+The angle integration of the weighted Radon transform is implemented by the classes
+:cpp:type:`zdm::zebra::AngleIntegrator` and :cpp:type:`zdm::zebra::TransverseAngleIntegrator`.
 The classes with ``Transverse`` compute the angle-integrated transverse Radon transform in addition
-to the nontransverse case, whereas the others only compute the nontransverse case. The classes
-marked with ``Anisotropic`` are used when we have an anisotropic response function, whereas the
-``Isotropic`` classes are for the special case where the response function is istropic (or,
-alternatively, when we have no response function).
+to the nontransverse case, whereas the others only compute the nontransverse case. These classes
+take two template arguments of types :cpp:type:`zdm::DistType` and :cpp:type:`zdm::RespType`, which
+describe whether the distribution/response is anisotropic.
 
 We will mainly consider :cpp:type:`zdm::zebra::AnisotropicAngleIntegrator` here. The isotropic
 integrators are simpler, because they don't need to deal with the presence of a response function,
 and the transverse integrators in turn essentially only differ by the fact that they return two
 numbers where the nontransverse integrators return one.
+
+In this demonstration, we will consider the most general case, where both the distribution and the
+response are anisotropi.
 
 The first order of business is to initialize our integrator
 
@@ -35,7 +32,8 @@ The first order of business is to initialize our integrator
 
         // ...
 
-        zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
+        zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>
+        integrator{dist_order, resp_order};
 
         // ...
     }
@@ -47,7 +45,8 @@ initialize the integrator
 
 .. code:: cpp
 
-    zdm::zebra::AnisotropicAngleIntegrator integrator{};
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>
+    integrator{};
 
 Initializing with the order parameter preallocates some buffers. However, when the integrator is
 used, it will also read these paramters off the expansions it is given, and adjust its buffers
@@ -94,10 +93,10 @@ We can use this to easily get the Zernike expansion of our distribution
 .. code:: cpp
 
     #include <zest/zernike_glq_transformer.hpp>
-    
+
     constexpr double radius = 2.0;
-    zest::zt::RealZernikeExpansionNormalGeo zernike_transformer{};
-    zest::zt::RealZernikeExpansionNormalGeo distribution
+    zest::zt::ZernikeExpansionNormalGeo zernike_transformer{};
+    zest::zt::ZernikeExpansionNormalGeo distribution
         = zernike_transformer{}.transform(dist_func, radius, dist_order);
 
 The Zernike functions are defined on the unit ball, but we can obviously scale any ball to a unit
@@ -141,12 +140,12 @@ list of vectors of some length
     #include <random>
     #include <vector>
 
-    std::vector<std::array<double, 3>> generate_offsets(std::size_t count, double offset_len)
+    std::vector<zdm::la::Vector<double, 3>> generate_offsets(std::size_t count, double offset_len)
     {
         std::mt19937 gen;
         std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-        std::vector<std::array<double, 3>> offsets(count);
+        std::vector<zdm::la::Vector<double, 3>> offsets(count);
         for (std::size_t i = 0; i < count; ++i)
         {
             const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -154,7 +153,7 @@ list of vectors of some length
             const double az = 2.0*std::numbers::pi*rng_dist(gen);
             offsets[i] = {offset_len*st*std::cos(az), offset_len*st*std::sin(az), ct};
         }
-        
+
         return offsets;
     }
 
@@ -181,17 +180,20 @@ Then we can generate the offsets and shells
     constexpr double offset_count = 10;
     constexpr double shell_count = 50;
 
-    std::vector<std::array<double, 3>> offsets
+    std::vector<zdm::la::Vector<double, 3>> offsets
         = generate_offsets(offset_count, offset_len);
     std::vector<double> shells = generate_shells(shell_count, offset_len);
 
 Now that we actually have the shells, we can compute the spherical harmonic transforms of the
-shells on the response functions. For this purpose, the header ``zebradm/zebra_util.hpp`` provides
+shells on the response functions. For this purpose, the header ``zebradm/types.hpp`` provides
 the container :cpp:type:`zdm::SHExpansionVector` for storing a collection of spherical harmonic
-expansions in a single buffer, as well as the class :cpp:type:`zdm::zebra::ResponseTransformer`
-for computing the spherical harmonic expansions.
+expansions in a single buffer. The class :cpp:type:`zdm::zebra::ResponseTransformer` allows us
+to compute the spherical harmonic expansions.
 
 .. code:: cpp
+
+   #include <zebradm/types.hpp>
+   #include <zebradm/transform_utilities.hpp>
 
     zdm::zebra::ResponseTransformer response_transformer{};
     zdm::SHExpansionVector response 
@@ -254,7 +256,7 @@ Now, the last remaining thing we need is a buffer to put the results in
 
     #include <zest/md_array.hpp>
 
-    zest::MDArray<double, 2> out({offset_count, shell_count});
+    zest::DynamicMDArray<double, 2> out{offset_count, shell_count};
 
 If we were dealing with one of the ``Transverse`` integrators, then then we would have to use
 :cpp:type:`std::array\<double, 2>` as the element type of ``out`` instead to store the
@@ -276,7 +278,8 @@ is our radius, then
 .. math::
 
     \mathcal{R}[f](w,\hat{n})
-        = \int\delta(\vec{r}\cdot\hat{n} - w)f(\vec{r})\,d^3r = R^2\int\delta(\vec{x}\cdot\hat{n} - w/R)f(R\vec{x})\,d^3x.
+        = \int\delta(\vec{r}\cdot\hat{n} - w)f(\vec{r})\,d^3r
+        = R^2\int\delta(\vec{x}\cdot\hat{n} - w/R)f(R\vec{x})\,d^3x.
 
 That is, in practice, not only do we need to divide our original shell parameters by the radius
 (which we didn't do here because we just generated the scaled parameters directly), but we also
@@ -297,26 +300,32 @@ pairs. In summary, here is the full source code of our program
 .. code:: cpp
 
     #include <array>
-    #include <vector>
     #include <cmath>
-    #include <numbers>
-    #include <random>
     #include <cstdio>
+    #include <numbers>
+    #include <print>
+    #include <random>
+    #include <vector>
 
-    #include <zest/zernike_glq_transformer.hpp>
     #include <zest/md_array.hpp>
     #include <zest/rotor.hpp>
+    #include <zest/zernike_glq_transformer.hpp>
 
-    #include <zebradm/zebra_angle_integrator.hpp>
-    #include <zebradm/linalg.hpp>
+    #include "types.hpp"
+    #include "linalg.hpp"
+    #include "transform_utilities.hpp"
+    #include "zebra_angle_integrator.hpp"
 
-    std::vector<std::array<double, 3>>
+    namespace
+    {
+
+    std::vector<zdm::la::Vector<double, 3>>
     generate_offsets(std::size_t count, double offset_len)
     {
         std::mt19937 gen;
         std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-        std::vector<std::array<double, 3>> offsets(count);
+        std::vector<zdm::la::Vector<double, 3>> offsets(count);
         for (std::size_t i = 0; i < count; ++i)
         {
             const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -349,6 +358,8 @@ pairs. In summary, here is the full source code of our program
         return shells;
     }
 
+    } // namespace
+
     int main()
     {
         constexpr std::array<double, 3> var = {0.5, 0.6, 0.7};
@@ -372,14 +383,14 @@ pairs. In summary, here is the full source code of our program
                 std::cos(colat)
             };
 
-            return std::exp(-shell*(zdm::dot(dir, a)));
+            return std::exp(-shell*(zdm::la::dot(dir, a)));
         };
 
         constexpr double offset_len = 0.5;
         constexpr std::size_t offset_count = 10;
         constexpr std::size_t shell_count = 50;
 
-        std::vector<std::array<double, 3>> offsets
+        std::vector<zdm::la::Vector<double, 3>> offsets
             = generate_offsets(offset_count, offset_len);
         std::vector<double> rotation_angles = generate_rotation_angles(offset_count);
         std::vector<double> shells = generate_shells(shell_count, offset_len);
@@ -387,13 +398,13 @@ pairs. In summary, here is the full source code of our program
         constexpr double radius = 2.0;
         constexpr std::size_t dist_order = 30;
         zest::zt::ZernikeTransformerNormalGeo zernike_transformer{};
-        zest::zt::RealZernikeExpansionNormalGeo distribution
-            = zernike_transformer.transform(dist_func, radius, dist_order);
+        zest::zt::ZernikeExpansionNormalGeo distribution
+            = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
         constexpr std::size_t resp_order = 60;
-        zdm::zebra::ResponseTransformer response_transformer{};
-        zdm::SHExpansionVector response 
-            = response_transformer.transform(resp_func, shells, resp_order);
+        zdm::ResponseTransformer response_transformer{};
+        zdm::SHExpansionVector<double> response 
+            = response_transformer.forward_transform(resp_func, shells, resp_order);
 
         constexpr std::array<double, 3> euler_angles = {
             std::numbers::pi/2, std::numbers::pi/3, std::numbers::pi/4
@@ -401,12 +412,12 @@ pairs. In summary, here is the full source code of our program
 
         zest::WignerdPiHalfCollection wigner(resp_order);
         zest::Rotor rotor(resp_order);
-        for (std::size_t i = 0; i < response.extent(); ++i)
+        for (std::size_t i = 0; i < response.extent(0); ++i)
             rotor.rotate(response[i], wigner, euler_angles, zest::RotationType::coordinate);
 
-        zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
+        zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso> integrator(dist_order, resp_order);
 
-        zest::MDArray<double, 2> out({offset_count, shell_count});
+        zest::DynamicMDArray<double, 2> out{offset_count, shell_count};
         integrator.integrate(
                 distribution, response, offsets, rotation_angles, shells, out);
 
@@ -416,8 +427,8 @@ pairs. In summary, here is the full source code of our program
         for (std::size_t i = 0; i < out.extent(0); ++i)
         {
             for (std::size_t j = 0; j < out.extent(0); ++j)
-                std::printf("%.7e", out(i,j));
-            std::printf("\n");
+                std::print("{:.7e} ", out[i, j]);
+            std::println("");
         }
     }
 

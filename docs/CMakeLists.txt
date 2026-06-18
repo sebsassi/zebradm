@@ -51,34 +51,54 @@ add_custom_command(
     DEPENDS
         ${SPHINX_SOURCE_DIR}/index.rst
         ${SPHINX_SOURCE_DIR}/getting_started.rst
-        ${SPHINX_SOURCE_DIR}/introduction.rst
-        ${SPHINX_SOURCE_DIR}/usage.rst
-        ${SPHINX_SOURCE_DIR}/dm_example.rst
-        ${SPHINX_SOURCE_DIR}/reference.rst
+        ${SPHINX_SOURCE_DIR}/zebra.rst
+            ${SPHINX_SOURCE_DIR}/zebra_introduction.rst
+            ${SPHINX_SOURCE_DIR}/zebra_usage.rst
+            ${SPHINX_SOURCE_DIR}/zernike_theory.rst
+            ${SPHINX_SOURCE_DIR}/zebra_theory.rst
+        ${SPHINX_SOURCE_DIR}/math.rst
+            ${SPHINX_SOURCE_DIR}/vector.rst
+            ${SPHINX_SOURCE_DIR}/matrix.rst
+            ${SPHINX_SOURCE_DIR}/polynomial.rst
+            ${SPHINX_SOURCE_DIR}/misc.rst
+        ${SPHINX_SOURCE_DIR}/coordinates.rst
+            ${SPHINX_SOURCE_DIR}/time.rst
+            ${SPHINX_SOURCE_DIR}/astro.rst
+            ${SPHINX_SOURCE_DIR}/celestial.rst
         ${DOXYGEN_INDEX_FILE}
     MAIN_DEPENDENCY ${SPHINX_CONFIG_DIR}/conf.py
     COMMENT "Generating HTML documentation with Sphinx: ${SPHINX_EXECUTABLE}"
 )
 
-add_custom_command(
-    OUTPUT ${SPHINX_LATEX_FILE}
-    COMMAND
-        ${SPHINX_EXECUTABLE}
-        -M latexpdf
-        ${SPHINX_SOURCE_DIR} ${SPHINX_LATEX_BUILD_DIR}
-        -c ${SPHINX_CONFIG_DIR}
-        -Dbreathe_projects.zebradm=${DOXYGEN_OUTPUT_DIR}/xml
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS
-        ${SPHINX_SOURCE_DIR}/index.rst
-        ${SPHINX_SOURCE_DIR}/getting_started.rst
-        ${SPHINX_SOURCE_DIR}/introduction.rst
-        ${SPHINX_SOURCE_DIR}/usage.rst
-        ${SPHINX_SOURCE_DIR}/dm_example.rst
-        ${SPHINX_SOURCE_DIR}/reference.rst
-        ${DOXYGEN_INDEX_FILE}
-    MAIN_DEPENDENCY ${SPHINX_CONFIG_DIR}/conf.py
-    COMMENT "Generating LaTeX documentation with Sphinx: ${SPHINX_EXECUTABLE}"
-)
+# add_custom_command(
+#     OUTPUT ${SPHINX_LATEX_FILE}
+#     COMMAND
+#         ${SPHINX_EXECUTABLE}
+#         -M latexpdf
+#         ${SPHINX_SOURCE_DIR} ${SPHINX_LATEX_BUILD_DIR}
+#         -c ${SPHINX_CONFIG_DIR}
+#         -Dbreathe_projects.zebradm=${DOXYGEN_OUTPUT_DIR}/xml
+#     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#     DEPENDS
+#         ${SPHINX_SOURCE_DIR}/index.rst
+#         ${SPHINX_SOURCE_DIR}/getting_started.rst
+#         ${SPHINX_SOURCE_DIR}/zebra.rst
+#             ${SPHINX_SOURCE_DIR}/zebra_introduction.rst
+#             ${SPHINX_SOURCE_DIR}/zebra_usage.rst
+#             ${SPHINX_SOURCE_DIR}/zernike_theory.rst
+#             ${SPHINX_SOURCE_DIR}/zebra_theory.rst
+#         ${SPHINX_SOURCE_DIR}/math.rst
+#             ${SPHINX_SOURCE_DIR}/vector.rst
+#             ${SPHINX_SOURCE_DIR}/matrix.rst
+#             ${SPHINX_SOURCE_DIR}/polynomial.rst
+#             ${SPHINX_SOURCE_DIR}/misc.rst
+#         ${SPHINX_SOURCE_DIR}/coordinates.rst
+#             ${SPHINX_SOURCE_DIR}/time.rst
+#             ${SPHINX_SOURCE_DIR}/astro.rst
+#             ${SPHINX_SOURCE_DIR}/celestial.rst
+#         ${DOXYGEN_INDEX_FILE}
+#     MAIN_DEPENDENCY ${SPHINX_CONFIG_DIR}/conf.py
+#     COMMENT "Generating LaTeX documentation with Sphinx: ${SPHINX_EXECUTABLE}"
+# )
 
 add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE} ${SPHINX_LATEX_FILE})

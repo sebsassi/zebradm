@@ -23,8 +23,11 @@ SOFTWARE.
 
 #include <tuple>
 
-#include "matrix.hpp"
+#include "identity.hpp"
 #include "astro.hpp"
+#include "rigid_transform.hpp"
+#include "rotation.hpp"
+#include "translation.hpp"
 
 namespace zdm::celestial
 {
@@ -93,7 +96,7 @@ template <typename T>
 concept celestial_coordinate_transform
     = parametric_rigid_transform<T>
     && std::same_as<typename T::rigid_transform_type::value_type, double>
-    && (std::tuple_size_v<typename T::rigid_transform_type::value_type> == 3);
+    && (std::tuple_size_v<typename T::rigid_transform_type::vector_type> == 3);
 
 /**
     @brief Enum representing different celestial coordinate systems.
@@ -284,8 +287,8 @@ namespace detail
 ecs_to_icrs_transform() noexcept
 {
     // Cosine and sine of the J2000 obliquity of the ecliptic.
-    constexpr double cos_obliquity_j2000 = 0.917482140652418;
-    constexpr double sin_obliquity_j2000 = 0.397776969112606;
+    constexpr double cos_obliquity_j2000 = 9.1748214306524178e-01;
+    constexpr double sin_obliquity_j2000 = 3.9777696911260602e-01;
     return la::RotationMatrix<double, 3>({
             1.0,  0.0,                 0.0,
             0.0,  cos_obliquity_j2000, sin_obliquity_j2000,
@@ -377,9 +380,9 @@ public:
     [[nodiscard]] la::Translation<double, 3>
     operator()(double days_since_j2000) const noexcept
     {
-        const la::Translation<double, 3> earth_velocity
+        const la::Vector<double, 3> earth_velocity
             = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
-        return la::Translation<double, 3>{s_ecs_to_icrs*(-earth_velocity)};
+        return la::Translation<double, 3>{s_ecs_to_icrs*earth_velocity};
     }
 
 private:
@@ -527,7 +530,9 @@ private:
     transform(double longitude, double latitude) noexcept
     {
         constexpr auto chaining = la::Chaining::intrinsic;
-        const auto rotation = la::RotationMatrix<double, 3>::composite_axes<Axis::z, Axis::y, chaining>(std::numbers::pi + longitude, -latitude);
+        const double z_angle = std::numbers::pi + longitude;
+        const double y_angle = latitude - 0.5*std::numbers::pi;
+        const auto rotation = la::RotationMatrix<double, 3>::composite_axes<Axis::z, Axis::y, chaining>(z_angle, y_angle);
 
         const la::Vector<double, 3> translation = {0.0, astro::earth.body.surface_speed(latitude), 0.0};
 
@@ -723,7 +728,7 @@ template <celestial_coordinate_transform T>
 la::Vector<double, 3> transform_velocity(
     T transform, double days_since_j2000, la::Vector<double, 3> velocity)
 {
-    return transform(days_since_j2000)(velocity);
+    return la::Vector<double, 3>(transform(days_since_j2000)(velocity));
 }
 
 /**
@@ -745,7 +750,7 @@ template <celestial_coordinate_transform T>
 la::Vector<double, 3> transform_velocity(
     T transform, double days_since_j2000)
 {
-    return transform(days_since_j2000).translation();
+    return la::Vector<double, 3>(transform(days_since_j2000).translation());
 }
 
 } // namespace zdm::celestial

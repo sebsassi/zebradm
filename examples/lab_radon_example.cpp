@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -19,77 +19,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
-#include <vector>
-#include <fstream>
 #include <format>
-#include <iostream>
+#include <fstream>
+#include <print>
+#include <vector>
 
 #include "zest/zernike_glq_transformer.hpp"
-#include "zebradm/zebra_angle_integrator.hpp"
-#include "zebradm/linalg.hpp"
 
-constexpr double quadratic_form(
-    const std::array<std::array<double, 3>, 3>& arr,
-    const std::array<double, 3>& vec)
+#include "celestial.hpp"
+#include "linalg.hpp"
+#include "matrix.hpp"
+#include "time.hpp"
+#include "zebra_angle_integrator.hpp"
+
+namespace
 {
-    double res = 0.0;
-    for (std::size_t i = 0; i < 3; ++i)
-    {
-        for (std::size_t j = 0; j < 3; ++j)
-            res += vec[i]*arr[i][j]*vec[j];
-    }
-
-    return res;
-}
 
 constexpr double reduced_mass(double m1, double m2)
 {
     return m1*m2/(m1 + m2);
 }
 
-zdm::Matrix<double, 3, 3> galactic_to_equatorial_rotation()
-{
-    constexpr double NGP_dec = 27.084*std::numbers::pi/180.0;
-    constexpr double NGP_ra = 192.729*std::numbers::pi/180.0;
-    constexpr double NCP_lon = 122.928*std::numbers::pi/180.0;
-
-    const double cal = std::cos(NGP_ra - std::numbers::pi);
-    const double cdel = std::cos(NGP_dec - std::numbers::pi/2.0);
-    const double cel = std::cos(NCP_lon);
-
-    const double sal = std::sin(NGP_ra - std::numbers::pi);
-    const double sdel = std::sin(NGP_dec - std::numbers::pi/2.0);
-    const double sel = std::sin(NCP_lon);
-
-    return {
-        std::array<double, 3>{
-            cal*cdel*cel + sal*sel, cal*cdel*sel - sal*cel, cal*sdel},
-        std::array<double, 3>{
-            sal*cdel*cel - cal*sel, sal*cdel*sel + cal*cel, sal*sdel},
-        std::array<double, 3>{
-            -sdel*cel, -sdel*sel, cdel}};
-}
-
-// Mock vlab; not accurate
-std::vector<std::array<double, 3>> calculate_vlab(double vesc, double vdisp, double tmin, double tmax)
-{
-    constexpr double tilt = (23.0/180.0)*std::numbers::pi;
-    constexpr double speed = 28.0;
-    constexpr std::size_t count = 24;
-    std::array<double, 3> vsol = zdm::matmul(
-        galactic_to_equatorial_rotation(), {11.1, vdisp + 12.24, 7.25});
-    std::vector<std::array<double, 3>> vlab(count);
-    for (std::size_t i = 0; i < count; ++i)
-    {
-        const double time = tmin + (tmax - tmin)*(double(i)/double(count - 1UL));
-        const double anomaly = (2.0*std::numbers::pi/365.25)*time;
-        vlab[i] = zdm::add(vsol, {speed*std::cos(anomaly), speed*std::sin(anomaly)*std::cos(tilt), std::sin(tilt)});
-        vlab[i] = zdm::div(vlab[i], vesc);
-    }
-    return vlab;
-}
-
-std::vector<double> calculate_vmin(double nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
+std::vector<double> calculate_vmin(
+    double nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
 {
     const double emin = 0.0;
     const double red_mass = reduced_mass(dm_mass, nucleus_mass);
@@ -112,70 +64,78 @@ constexpr double distribution_norm([[maybe_unused]] double vdisp, [[maybe_unused
     return 1.0;
 }
 
-void print_to_file(const char* fname, zest::MDSpan<const double, 2> array)
+[[maybe_unused]]
+void print_to_file(const char* fname, zest::DynamicMDSpan<const double, 2> array)
 {
     std::ofstream fs(fname);
     for (std::size_t i = 0; i < array.extents()[0]; ++i)
     {
         for (std::size_t j = 0; j < array.extents()[1]; ++j)
-            fs << std::format("{:.16e} ", array(i, j));
+            fs << std::format("{:.16e} ", array[i, j]);
         fs << '\n';
     }
     fs.close();
 }
 
-void print_to_stdout(zest::MDSpan<const double, 2> array)
+void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
 {
-    for (std::size_t i = 0; i < array.extents()[0]; ++i)
+    for (std::size_t i = 0; i < array.extent(0); ++i)
     {
-        for (std::size_t j = 0; j < array.extents()[1]; ++j)
-            std::cout << std::format("{:.16e} ", array(i, j));
-        std::cout << '\n';
+        for (std::size_t j = 0; j < array.extent(1); ++j)
+            std::print("{:.16e} ", array[i, j]);
+         std::println("");
     }
 }
 
-std::tuple<std::vector<double>, std::array<std::size_t, 2>> radon_transform(
+zest::DynamicMDArray<double, 2> radon_transform(
     std::size_t dist_order, double vesc, double vdisp, double dm_mass,
-    double nucleus_mass, double tmin, double tmax, double emax)
+    double nucleus_mass, std::span<double> times, double emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
-    const double inv_vdisp = 1.0/vdisp;
-    [[maybe_unused]] auto velocity_distribution = [&](
-        const std::array<double, 3>& v)
+    auto velocity_distribution = [&](const std::array<double, 3>& v)
     {
-        const zdm::Matrix<double, 3, 3> equ_to_gal
-            = zdm::transpose(galactic_to_equatorial_rotation());
-        constexpr std::array<std::array<double, 3>, 3> sigma = {
-            std::array<double, 3>{3.0, 1.4, 0.5},
-            std::array<double, 3>{1.4, 0.3, 2.1},
-            std::array<double, 3>{0.5, 2.1, 1.7}
+        const double inv_vdisp = 1.0/vdisp;
+        constexpr zdm::la::Matrix<double, 3, 3> sigma = {
+            3.0, 1.4, 0.5,
+            1.4, 0.3, 2.1,
+            0.5, 2.1, 1.7
         };
-        return dist_norm*std::exp(-0.5*quadratic_form(sigma, zdm::matmul(equ_to_gal, zdm::mul(inv_vdisp, v))));
+        return dist_norm*std::exp(-0.5*zdm::la::quadratic_form(sigma, v)*(inv_vdisp*inv_vdisp));
     };
 
-    const std::vector<std::array<double, 3>> vlab
-        = calculate_vlab(vesc, vdisp, tmin, tmax);
-    
+    const double lon = 0.0;
+    const double lat = 1.5;
+    const double vcirc = vdisp;
+
+    zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, vcirc};
+
+    std::vector<zdm::la::Vector<double, 3>> vlab{times.size()};
+    for (std::size_t i = 0; i < times.size(); ++i)
+        vlab[i] = zdm::celestial::transform_velocity(gcs_to_hcs, times[i]);
+
     const std::vector<double> vmin
         = calculate_vmin(nucleus_mass, dm_mass, vesc, vdisp, emax);
 
     // zebradm
     // zest
-    const zest::zt::RealZernikeExpansion dist_expansion = zest::zt::ZernikeTransformerNormalGeo{}.transform(
+    const zest::zt::ZernikeExpansion dist_expansion
+        = zest::zt::ZernikeTransformerNormalGeo{}.forward_transform(
             velocity_distribution, vesc, dist_order);
-    
-    const std::array<std::size_t, 2> shape = {vlab.size(), vmin.size()};
-    std::vector<double> out_buffer(vlab.size()*vmin.size());
-    zest::MDSpan<double, 2> out(out_buffer.data(), shape);
 
-    zdm::zebra::IsotropicAngleIntegrator radon_integrator(dist_order);
-    radon_integrator.integrate(dist_expansion, vlab, vmin, out);
+    zest::DynamicMDArray<double, 2> out{vlab.size(), vmin.size()};
+
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
+    radon_integrator(dist_order);
+
+    radon_integrator.integrate((typename decltype(dist_expansion)::const_view)(dist_expansion), vlab, vmin, out);
 
     for (auto& element : out.flatten())
         element *= vesc*vesc;
 
-    return {out_buffer, shape};
+    return out;
 }
+
+} // namespace
 
 int main([[maybe_unused]] int argc, char** argv)
 {
@@ -184,16 +144,16 @@ int main([[maybe_unused]] int argc, char** argv)
     const std::size_t dist_order = std::size_t(atoi(argv[3]));
     const double dm_mass = atof(argv[4]);
     const double nucleus_mass = atof(argv[5]);
-    const double tmin = atof(argv[6]);
-    const double tmax = atof(argv[7]);
-    const double emax = atof(argv[8]);
+    const std::string_view start_date{argv[6]};
+    const std::string_view end_date{argv[7]};
+    const std::size_t ntime = std::size_t(atoi(argv[8]));
+    const double emax = atof(argv[9]);
 
-    const auto& [out_buffer, shape] = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, tmin, tmax, emax);
+    std::vector<double> times = zdm::time::ut1_interval<zdm::time::j2000_utc>(start_date, end_date, ntime, "%Y-%m-%d").value();
 
-    zest::MDSpan<const double, 2> out(out_buffer.data(), shape);
-        
+    const auto out = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, times, emax);
 
     //const char* fname = "lab_radon_example.dat";
     //print_to_file(fname, out);
-    print_to_stdout(out);
+    print_to_stdout((typename decltype(out)::const_view)(out));
 }

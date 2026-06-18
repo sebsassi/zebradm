@@ -1,12 +1,10 @@
-ZebraDM -- Zernike-based Radon transforms
-=========================================
+ZebraDM
+=======
 
 .. toctree::
    :maxdepth: 3
 
    getting_started
-   introduction
-   usage
+   zebra
    math
    coordinates
-   theory

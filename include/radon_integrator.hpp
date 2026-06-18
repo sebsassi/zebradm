@@ -29,8 +29,7 @@ SOFTWARE.
 #include <zest/md_span.hpp>
 
 #include "vector.hpp"
-#include "matrix.hpp"
-// #include "align_z.hpp"
+#include "rotation.hpp"
 
 #include "cubage/hypercube_integrator.hpp"
 

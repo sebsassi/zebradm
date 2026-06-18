@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024-2026 Sebastian Sassi
+Copyright (c) 2025 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -21,11 +21,47 @@ SOFTWARE.
 */
 #pragma once
 
-#include "atomic.hpp"
+#include "transform_conventions.hpp"
 
-namespace zdm::elements
+namespace zdm::la
 {
 
-inline constexpr Element H = { .symbol = "H", .atomic_number = 1 };
+/**
+    @brief A type representing an identity operator.
+*/
+struct Identity
+{
+    template <typename T>
+    [[nodiscard]] static constexpr T operator()(T v) { return v; }
 
-} // namespace zdm::elements
+    [[nodiscard]] static constexpr Identity inverse() { return Identity{}; }
+};
+
+/**
+    @brief Composition of two identity operators.
+*/
+template <Chaining chaining>
+[[nodiscard]] constexpr Identity compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2)
+{
+    return {};
+}
+
+/**
+    @brief Composition of an identity operator with any other operator.
+*/
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose([[maybe_unused]] Identity id, T op)
+{
+    return op;
+}
+
+/**
+    @brief Composition of any other operator with an identity operator.
+*/
+template <Chaining chaining, typename T>
+[[nodiscard]] constexpr T compose(T op, [[maybe_unused]] Identity id)
+{
+    return op;
+}
+
+} // namespace zdm::la

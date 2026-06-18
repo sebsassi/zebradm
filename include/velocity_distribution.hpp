@@ -23,7 +23,7 @@ SOFTWARE.
 
 #include <zest/zernike_glq_transformer.hpp>
 
-#include "matrix.hpp"
+#include "rotation.hpp"
 #include "vector.hpp"
 
 namespace zdm

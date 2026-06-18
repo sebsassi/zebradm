@@ -1,24 +1,51 @@
-#include <array>
-#include <vector>
-#include <cmath>
-#include <numbers>
-#include <random>
-#include <cstdio>
+/*
+Copyright (c) 2024-2026 Sebastian Sassi
 
-#include <zest/zernike_glq_transformer.hpp>
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to 
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+of the Software, and to permit persons to whom the Software is furnished to do 
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+SOFTWARE.
+*/
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <numbers>
+#include <print>
+#include <random>
+#include <vector>
+
 #include <zest/md_array.hpp>
 #include <zest/rotor.hpp>
+#include <zest/zernike_glq_transformer.hpp>
 
-#include <zebradm/zebra_angle_integrator.hpp>
-#include <zebradm/linalg.hpp>
+#include "types.hpp"
+#include "linalg.hpp"
+#include "transform_utilities.hpp"
+#include "zebra_angle_integrator.hpp"
 
-std::vector<std::array<double, 3>>
+namespace
+{
+
+std::vector<zdm::la::Vector<double, 3>>
 generate_offsets(std::size_t count, double offset_len)
 {
     std::mt19937 gen;
     std::uniform_real_distribution rng_dist{0.0, 1.0};
 
-    std::vector<std::array<double, 3>> offsets(count);
+    std::vector<zdm::la::Vector<double, 3>> offsets(count);
     for (std::size_t i = 0; i < count; ++i)
     {
         const double ct = 2.0*rng_dist(gen) - 1.0;
@@ -51,6 +78,8 @@ std::vector<double> generate_shells(std::size_t count, double offset_len)
     return shells;
 }
 
+} // namespace
+
 int main()
 {
     constexpr std::array<double, 3> var = {0.5, 0.6, 0.7};
@@ -74,14 +103,14 @@ int main()
             std::cos(colat)
         };
 
-        return std::exp(-shell*(zdm::dot(dir, a)));
+        return std::exp(-shell*(zdm::la::dot(dir, a)));
     };
 
     constexpr double offset_len = 0.5;
     constexpr std::size_t offset_count = 10;
     constexpr std::size_t shell_count = 50;
 
-    std::vector<std::array<double, 3>> offsets
+    std::vector<zdm::la::Vector<double, 3>> offsets
         = generate_offsets(offset_count, offset_len);
     std::vector<double> rotation_angles = generate_rotation_angles(offset_count);
     std::vector<double> shells = generate_shells(shell_count, offset_len);
@@ -89,13 +118,13 @@ int main()
     constexpr double radius = 2.0;
     constexpr std::size_t dist_order = 30;
     zest::zt::ZernikeTransformerNormalGeo zernike_transformer{};
-    zest::zt::RealZernikeExpansionNormalGeo distribution
-        = zernike_transformer.transform(dist_func, radius, dist_order);
+    zest::zt::ZernikeExpansionNormalGeo distribution
+        = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
     constexpr std::size_t resp_order = 60;
-    zdm::zebra::ResponseTransformer response_transformer{};
-    zdm::SHExpansionVector response 
-        = response_transformer.transform(resp_func, shells, resp_order);
+    zdm::ResponseTransformer response_transformer{};
+    zdm::SHExpansionVector<double> response 
+        = response_transformer.forward_transform(resp_func, shells, resp_order);
 
     constexpr std::array<double, 3> euler_angles = {
         std::numbers::pi/2, std::numbers::pi/3, std::numbers::pi/4
@@ -103,12 +132,12 @@ int main()
 
     zest::WignerdPiHalfCollection wigner(resp_order);
     zest::Rotor rotor(resp_order);
-    for (std::size_t i = 0; i < response.extent(); ++i)
+    for (std::size_t i = 0; i < response.extent(0); ++i)
         rotor.rotate(response[i], wigner, euler_angles, zest::RotationType::coordinate);
 
-    zdm::zebra::AnisotropicAngleIntegrator integrator(dist_order, resp_order);
+    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso> integrator(dist_order, resp_order);
 
-    zest::MDArray<double, 2> out({offset_count, shell_count});
+    zest::DynamicMDArray<double, 2> out{offset_count, shell_count};
     integrator.integrate(
             distribution, response, offsets, rotation_angles, shells, out);
 
@@ -118,7 +147,7 @@ int main()
     for (std::size_t i = 0; i < out.extent(0); ++i)
     {
         for (std::size_t j = 0; j < out.extent(0); ++j)
-            std::printf("%.7e ", out(i,j));
-        std::printf("\n");
+            std::print("{:.7e} ", out[i, j]);
+        std::println("");
     }
 }
