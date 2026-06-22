@@ -21,12 +21,85 @@ SOFTWARE.
 */
 #pragma once
 
+#include <algorithm>
+
 #include "polynomial.hpp"
 #include "types.hpp"
 #include "zebra_angle_integrator_core.hpp"
 
 namespace zdm
 {
+
+template <typename T>
+class RaggedTable
+{
+public:
+    using size_type = std::size_t;
+
+    RaggedTable() = default;
+    explicit RaggedTable(std::span<size_type> sizes):
+        m_data(std::ranges::fold_left(sizes, 0, std::plus{})),
+        m_offsets(sizes.size() + 1)
+    {
+        size_type offset = 0;
+        for (std::size_t i = 0; i < sizes.size(); ++i)
+        {
+            m_offsets[i] = offset;
+            offset += sizes[i];
+        }
+        m_offsets.back() = offset;
+    }
+
+    std::span<T> append(size_type size)
+    {
+        m_data.resize(m_data.size() + size);
+        m_offsets.emplace_back(m_data.size());
+    }
+
+    [[nodiscard]] std::span<T> flatten() noexcept
+    {
+        return m_data;
+    }
+
+    [[nodiscard]] std::span<const T> flatten() const noexcept
+    {
+        return m_data;
+    }
+
+    [[nodiscard]] std::span<T> front() noexcept
+    {
+        return {m_data.data(), m_offsets[1] - m_offsets.front()};
+    }
+
+    [[nodiscard]] std::span<const T> front() const noexcept
+    {
+        return {m_data.data(), m_offsets[1] - m_offsets.front()};
+    }
+
+    [[nodiscard]] std::span<T> back() noexcept
+    {
+        return {m_data.data() + m_offsets[m_data.size() - 1], m_offsets.back() - m_offsets[m_data.size() - 1]};
+    }
+
+    [[nodiscard]] std::span<const T> back() const noexcept
+    {
+        return {m_data.data() + m_offsets[m_data.size() - 1], m_offsets.back() - m_offsets[m_data.size() - 1]};
+    }
+
+    [[nodiscard]] std::span<T> operator[](size_type i) noexcept
+    {
+        return {m_data.data() + m_offsets[i], m_offsets[i + 1] - m_offsets[i]};
+    }
+
+    [[nodiscard]] std::span<const T> operator[](size_type i) const noexcept
+    {
+        return {m_data.data() + m_offsets[i], m_offsets[i + 1] - m_offsets[i]};
+    }
+
+private:
+    std::vector<T> m_data;
+    std::vector<size_type> m_offsets;
+};
 
 template <DistType dist_type, RespType resp_type>
 class ElectronRateCalculator {};
@@ -118,6 +191,34 @@ public:
                     m_partial_dd_rate[i, j, k] = m_target_response_shells[k]*m_angle_integrator.integrate(m_dist_radon, offset_len, m_shells[k]);
             }
         }
+    }
+
+    void generate_optimal_momentum_grid_sizes(
+        const la::Vector<double, 3>& lab_velocity, std::span<double> energies,
+        double max_speed, double max_momentum_transfer, double dm_mass, std::size_t num_nodes)
+    {
+        const double lab_speed = la::length(lab_velocities[i]);
+        const double speed_lo = max_speed - lab_speed;
+        const double speed_hi = max_speed + lab_speed;
+        const double speed_lo_sq = speed_lo*speed_lo;
+        const double speed_hi_sq = speed_hi*speed_hi;
+        const double momentum_lo = dm_mass*speed_lo;
+        const double momentum_hi = dm_mass*speed_hi;
+        const double emax_lo = 0.5*dm_mass*speed_lo_sq;
+        const double emax_hi = 0.5*dm_mass*speed_hi_sq;
+
+        for (std::size_t i = 0; i < energies.size(); ++i)
+        {
+            // Kinematically forbidden; bail out
+            if (energies[i] > emax_hi)
+                grid_sizes[i] = 0;
+            else if (energies[i] > emax_lo)
+                grid_sizes[i] = num_nodes;
+            else
+                grid_sizes[i] = 3*num_nodes;
+
+        }
+
     }
 
     void generate_optimal_momentum_grid(std::span<double> energies, std::span<la::Vector<double, 3>> lab_velocities, double max_speed, double dm_mass)
