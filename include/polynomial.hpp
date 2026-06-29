@@ -147,7 +147,7 @@ struct Monomial
     }
 
     [[nodiscard]] constexpr auto
-    derivative() const noexcept requires zdm::arithmetic<value_type>
+    derivative() const noexcept requires basic_arithmetic<value_type>
     {
         if constexpr (order < 1)
             return Monomial<value_type, 0>{};
@@ -183,7 +183,7 @@ struct Polynomial
     }
 
     [[nodiscard]] constexpr auto
-    derivative() const noexcept requires zdm::arithmetic<value_type>
+    derivative() const noexcept requires basic_arithmetic<value_type>
     {
         if constexpr (order < 1)
             return Polynomial<ValueType, 0>{};

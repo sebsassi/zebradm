@@ -1,0 +1,2 @@
+CompileFlags:
+  Compiler: /usr/lib/llvm21/bin/clang-21

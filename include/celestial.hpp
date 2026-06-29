@@ -238,12 +238,13 @@ class GCStoICRS
 public:
     using rigid_transform_type = la::RigidTransform<double, 3>;
 
+    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoICRS(
-        double circular_velocity,
-        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        Speed circular_speed,
+        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
         m_transform(la::RigidTransform<double, 3>::from<la::Chaining::intrinsic>(
-            peculiar_velocity + la::Vector{0.0, circular_velocity, 0.0},
+            peculiar_velocity + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*Speed::unit,
             orientation.gcs_to_reference_cs())) {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
@@ -260,8 +261,9 @@ public:
         This call operator just returns the same `RigidTransform` as the one
         that takes no parameters.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr la::RigidTransform<double, 3>
-    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return m_transform; }
+    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return m_transform; }
 
     /**
         @brief Call operator of the constant transform.
@@ -326,8 +328,9 @@ public:
         This call operator just returns the same `RigidTransform` as the one
         that takes no parameters.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr la::RotationMatrix<double, 3>
-    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return s_transform; }
+    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return s_transform; }
 
     /**
         @brief Call operator of the constant transform.
@@ -377,11 +380,12 @@ public:
 
         @return ICRS to GCRS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::Translation<double, 3>
-    operator()(double days_since_j2000) const noexcept
+    operator()(Duration time_since_j2000) const noexcept
     {
-        const la::Vector<double, 3> earth_velocity
-            = astro::earth.orbit(days_since_j2000).reference_cs_velocity();
+        const auto earth_velocity
+            = astro::earth.orbit(time_since_j2000).reference_cs_velocity();
         return la::Translation<double, 3>{s_ecs_to_icrs*earth_velocity};
     }
 
@@ -413,10 +417,11 @@ public:
 
         @return GCRS to CIRS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RotationMatrix<double, 3>
-    operator()(double days_since_j2000) const noexcept
+    operator()(Duration time_since_j2000) const noexcept
     {
-        const double centuries_since_j2000 = (1.0/36525.0)*days_since_j2000;
+        const double centuries_since_j2000 = time_since_j2000.numerical_value_in(ast::century);
         const double cip_x = astro::cip[0](centuries_since_j2000);
         const double cip_y = astro::cip[1](centuries_since_j2000);
         const double cip_r = std::hypot(cip_x, cip_y);
@@ -452,10 +457,11 @@ public:
 
         @return CIRS to TIRS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RotationMatrix<double, 3>
-    operator()(double days_since_j2000) const noexcept
+    operator()(Duration time_since_j2000) const noexcept
     {
-        const double day_fraction = days_since_j2000 - std::floor(days_since_j2000);
+        const double day_fraction = time_since_j2000.numerical_value_in(si::day) - std::floor(time_since_j2000.numerical_value_in(si::day));
         return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.body.rotation_angle(day_fraction));
     }
 };
@@ -485,7 +491,8 @@ public:
     /**
         @brief A void returning call operator that does nothing.
     */
-    constexpr la::Identity operator()([[maybe_unused]] double days_since_j2000) const noexcept { return {}; }
+    template <QuantityOf<isq::duration> Duration>
+    constexpr la::Identity operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return {}; }
 };
 
 /**
@@ -514,8 +521,9 @@ public:
 
         @return ITRS to HCS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()([[maybe_unused]] double days_since_j2000) const noexcept { return m_transform; }
+    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return m_transform; }
 
     /**
         @brief Call operator of the constant transform.
@@ -554,9 +562,11 @@ class GCStoHCS
 public:
     using rigid_transform_type = la::RigidTransform<double, 3>;
 
+    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoHCS(
-        double longitude, double latitude, double circular_velocity,
-        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        double longitude, double latitude,
+        Speed circular_speed,
+        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
         m_transform(
             GCStoICRS(circular_velocity, peculiar_velocity, galactic_orientation),
@@ -575,8 +585,9 @@ public:
 
         @return GCS to HCS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
 
 private:
     Composite<la::Chaining::intrinsic, la::RigidTransform<double, 3>,
@@ -602,12 +613,13 @@ class GCStoCIRS
 public:
     using rigid_transform_type = la::RigidTransform<double, 3>;
 
+    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoCIRS(
-        double circular_velocity,
-        const la::Vector<double, 3>& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        Speed circular_speed,
+        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
         m_transform(
-            GCStoICRS(circular_velocity, peculiar_velocity, galactic_orientation),
+            GCStoICRS(circular_speed, peculiar_velocity, galactic_orientation),
             ICRStoGCRS(),
             GCRStoCIRS()) {}
 
@@ -620,8 +632,9 @@ public:
 
         @return GCS to CIRS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
 
 private:
     Composite<la::Chaining::intrinsic, la::RigidTransform<double, 3>,
@@ -660,8 +673,9 @@ public:
 
         @return CIRS to HCS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
 
 private:
     Composite<la::Chaining::intrinsic, la::RigidTransform<double, 3>,
@@ -699,8 +713,9 @@ public:
 
         @return TIRS to HCS transform at the given time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RigidTransform<double, 3>
-    operator()(double days_since_j2000) { return m_transform(days_since_j2000); }
+    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
 
 private:
     Composite<la::Chaining::intrinsic, la::RigidTransform<double, 3>,
@@ -724,11 +739,11 @@ private:
     velocity of the source coordinate system in the destination coordinate
     system.
 */
-template <celestial_coordinate_transform T>
+template <celestial_coordinate_transform T, QuantityOf<isq::duration> Duration, QuantityOf<isq::velocity> Velocity>
 la::Vector<double, 3> transform_velocity(
-    T transform, double days_since_j2000, la::Vector<double, 3> velocity)
+    T transform, Duration time_since_j2000, Velocity velocity)
 {
-    return la::Vector<double, 3>(transform(days_since_j2000)(velocity));
+    return la::Vector<double, 3>(transform(time_since_j2000)(velocity));
 }
 
 /**
@@ -746,11 +761,10 @@ la::Vector<double, 3> transform_velocity(
     velocity of the source coordinate system in the destination coordinate
     system.
 */
-template <celestial_coordinate_transform T>
-la::Vector<double, 3> transform_velocity(
-    T transform, double days_since_j2000)
+template <celestial_coordinate_transform T, QuantityOf<isq::duration> Duration>
+la::Vector<double, 3> transform_velocity(T transform, Duration time_since_j2000)
 {
-    return la::Vector<double, 3>(transform(days_since_j2000).translation());
+    return la::Vector<double, 3>(transform(time_since_j2000).translation());
 }
 
 } // namespace zdm::celestial

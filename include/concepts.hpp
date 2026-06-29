@@ -21,12 +21,70 @@ SOFTWARE.
 */
 #pragma once
 
-#include <type_traits>
+#include <concepts>
 
 namespace zdm
 {
 
 template <typename T>
-concept arithmetic = std::is_arithmetic_v<T>;
+concept unary_arithmetic = requires (T x)
+{
+    { +x } -> std::same_as<T>;
+    { -x } -> std::same_as<T>;
+};
+
+template <typename T>
+concept basic_arithmetic = requires (T x, T y)
+{
+    { x + y } -> std::same_as<T>;
+    { x - y } -> std::same_as<T>;
+    { x*y } -> std::same_as<T>;
+    { x/y } -> std::same_as<T>;
+};
+
+template <typename T>
+concept assignable_basic_arithmetic = requires (T x, T y)
+{
+    { x += y } -> std::same_as<T&>;
+    { x -= y } -> std::same_as<T&>;
+    { x *= y } -> std::same_as<T&>;
+    { x /= y } -> std::same_as<T&>;
+};
+
+template <typename T>
+concept modular_arithmetic = requires (T x, T y)
+{
+    { x % y } -> std::same_as<T>;
+};
+
+template <typename T>
+concept assignable_modular_arithmetic = requires (T x, T y)
+{
+    { x %= y } -> std::same_as<T&>;
+};
+
+template <typename T>
+concept bitwise_arithmetic = requires (T x, T y)
+{
+    { x & y } -> std::same_as<T>;
+    { x | y } -> std::same_as<T>;
+    { x ^ y } -> std::same_as<T>;
+    { x << y } -> std::same_as<T>;
+    { x >> y } -> std::same_as<T>;
+};
+
+template <typename T>
+concept assignable_bitwise_arithmetic = requires (T x, T y)
+{
+    { x &= y } -> std::same_as<T&>;
+    { x |= y } -> std::same_as<T&>;
+    { x ^= y } -> std::same_as<T&>;
+    { x <<= y } -> std::same_as<T&>;
+    { x >>= y } -> std::same_as<T&>;
+};
+
+template <typename T>
+concept real_arithmetic
+    = unary_arithmetic<T> && basic_arithmetic<T> && assignable_basic_arithmetic<T>;
 
 } // namespace zdm

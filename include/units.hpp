@@ -22,7 +22,22 @@ SOFTWARE.
 #pragma once
 
 #include <array>
+#include <mp-units/framework.h>
 #include <utility>
+
+#include "mp-units/systems/isq.h"
+#include "mp-units/systems/si.h"
+#include "mp-units/systems/astronomy.h"
+
+namespace zdm
+{
+    namespace mpu = mp_units;
+    using mp_units::quantity;
+    namespace isq = mp_units::isq;
+    namespace si = mp_units::si;
+    namespace ast = mp_units::astronomy;
+
+} // namespace zdm
 
 namespace zdm::units
 {

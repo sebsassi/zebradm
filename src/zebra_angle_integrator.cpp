@@ -59,7 +59,7 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
     zebra::radon_transform(distribution, m_geg_zernike_exp);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        const double offset_len = la::length(offsets[i]);
+        const double offset_len = la::norm(offsets[i]);
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
                     m_geg_zernike_exp, offset_len, shells[j]);
@@ -71,7 +71,7 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
         std::span<const double> shells, std::span<double> out)
 {
     zebra::radon_transform(distribution, m_geg_zernike_exp);
-    const double offset_len = la::length(offset);
+    const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
                 m_geg_zernike_exp, offset_len, shells[i]);
@@ -368,7 +368,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
-        const double offset_len = la::length(offsets[i]);
+        const double offset_len = la::norm(offsets[i]);
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate_transverse(
                     m_transverse_geg_zernike_exp_components, offset_len, shells[j]);
@@ -382,7 +382,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
 {
     m_transverse_radon_helper
         .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
-    const double offset_len = la::length(offset);
+    const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
                 m_transverse_geg_zernike_exp_components, offset_len, shells[i]);

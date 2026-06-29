@@ -68,7 +68,7 @@ enum class MatrixLayout
     @tparam layout_param Matrix layout convention.
 */
 template <
-    arithmetic T, std::size_t N, std::size_t M,
+    real_arithmetic T, std::size_t N, std::size_t M,
     Action action_param = Action::passive,
     MatrixLayout layout_param = MatrixLayout::column_major
 >

@@ -278,7 +278,7 @@ public:
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = la::length(offset);
+        const double offset_len = la::norm(offset);
         if (shell > 1.0 + offset_len) return 0.0;
         const auto align_z_transp = la::RotationMatrix<double, 3>::align_z(offset).inverse();
         const double offset_len_sq = offset_len*offset_len;
@@ -339,7 +339,7 @@ public:
         double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = la::length(offset);
+        const double offset_len = la::norm(offset);
         if (shell > 1.0 + offset_len) return {};
         const auto align_z_transp = la::RotationMatrix<double, 3>::align_z(offset).inverse();
         const double offset_len_sq = offset_len*offset_len;
@@ -422,7 +422,7 @@ public:
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = la::length(offset);
+        const double offset_len = la::norm(offset);
         if (shell - offset_len > 1.0) return 0.0;
 
         // Rotation from `distribution` coordinates to `response` coordinates.
@@ -518,7 +518,7 @@ public:
         double shell, double abserr, double relerr,
         std::size_t max_subdiv = std::numeric_limits<std::size_t>::max())
     {
-        const double offset_len = la::length(offset);
+        const double offset_len = la::norm(offset);
         if (shell - offset_len > 1.0) return {};
 
         // Rotation from `distribution` coordinates to `response` coordinates.

@@ -25,6 +25,8 @@ SOFTWARE.
 #include <concepts>
 #include <type_traits>
 
+#include "concepts.hpp"
+
 namespace zdm
 {
 
@@ -44,7 +46,7 @@ namespace la
     member `T::shape`, whose members have type `T::size_type`.
 */
 template <typename T>
-concept static_matrix_like = std::is_arithmetic_v<typename T::value_type>
+concept static_matrix_like = real_arithmetic<typename T::value_type>
     && (std::tuple_size_v<decltype(T::shape)> == 2)
     && std::same_as<std::remove_cvref_t<decltype(T::shape[0])>, typename T::size_type>
     && std::same_as<std::remove_cvref_t<decltype(T::shape[1])>, typename T::size_type>
@@ -72,7 +74,7 @@ concept static_square_matrix_like = static_matrix_like<T> && (T::shape[0] == T::
     has a specialization for `std::tuple_size`.
 */
 template <typename T>
-concept static_vector_like = std::is_arithmetic_v<typename T::value_type>
+concept static_vector_like = real_arithmetic<typename T::value_type>
     && std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, typename T::size_type>
     && requires (T vector, typename T::size_type i)
     {
@@ -185,9 +187,10 @@ template <static_vector_like T, std::size_t... idx>
     return {{(a[idx]/b)...}};
 }
 
-template <static_vector_like T, std::size_t... idx>
-[[nodiscard]] constexpr T::value_type dot_(
-    const T& a, const T& b, 
+template <static_vector_like T, static_vector_like U, std::size_t... idx>
+    requires (std::tuple_size_v<T> == std::tuple_size_v<U>)
+[[nodiscard]] constexpr auto dot_(
+    const T& a, const U& b, 
     std::index_sequence<idx...> /*unused*/) noexcept
 {
     return ((a[idx]*b[idx]) + ...);
@@ -206,8 +209,9 @@ template <static_vector_like T, std::size_t... idx>
     This function evaluates the dot product \f$\vec{a}\cdot \vec{b}\f$ of two
     vectors \f$a\f$ and \f$b\f$.
 */
-template <static_vector_like T>
-[[nodiscard]] constexpr T::value_type dot(const T& a, const T& b) noexcept
+template <static_vector_like T, static_vector_like U>
+    requires (std::tuple_size_v<T> == std::tuple_size_v<U>)
+[[nodiscard]] constexpr auto dot(const T& a, const U& b) noexcept
 {
     return detail::dot_(a, b, std::make_index_sequence<std::tuple_size_v<T>>{});
 }
@@ -228,9 +232,9 @@ template <static_vector_like T>
         \vec{a}\times\vec[b] = (a_2b_3 - a_3b2, a_3b_1 - a-1b_3, a_1b_2 - a_2b_1).
     \f]
 */
-template <static_vector_like T>
-    requires (std::tuple_size_v<T> == 2)
-[[nodiscard]] constexpr T cross(const T& a, const T& b) noexcept
+template <static_vector_like T, static_vector_like U>
+    requires (std::tuple_size_v<T> == 2 && std::tuple_size_v<U> == 2)
+[[nodiscard]] constexpr T cross(const T& a, const U& b) noexcept
 {
     return a[0]*b[1] - a[1]*b[0];
 }
@@ -279,7 +283,7 @@ template <static_vector_like T>
 */
 template <static_vector_like T>
     requires std::floating_point<typename T::value_type>
-[[nodiscard]] inline T::value_type length(const T& a) noexcept
+[[nodiscard]] inline T::value_type norm(const T& a) noexcept
 {
     // NOTE: This function should be constexpr when clang decides to support
     // constexpr math.
@@ -767,7 +771,7 @@ template <static_vector_like T>
     requires std::floating_point<typename T::value_type>
 [[nodiscard]] inline T normalize(const T& a) noexcept
 {
-    const typename T::value_type norm = length(a);
+    const typename T::value_type norm = norm(a);
     if (norm == typename T::value_type{}) return T{};
 
     return mul((1.0/norm), a);

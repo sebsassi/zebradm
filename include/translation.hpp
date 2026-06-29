@@ -31,13 +31,13 @@ SOFTWARE.
 namespace zdm::la
 {
 
-template <std::floating_point T, std::size_t N, Action action_param = Action::passive>
+template <static_vector_like VectorType, Action action_param = Action::passive>
 class Translation
 {
 public:
     using value_type = T;
     using size_type = std::size_t;
-    using vector_type = Vector<T, N>;
+    using vector_type = VectorType;
 
     static constexpr Action action = action_param;
 
@@ -98,13 +98,13 @@ public:
     }
 
     [[nodiscard]] friend constexpr Translation
-    operator*(const vector_type::value_type& a, const Translation& b) noexcept
+    operator*(const value_type& a, const Translation& b) noexcept
     {
         return Translation{a*b.m_translation};
     }
 
     [[nodiscard]] friend constexpr Translation
-    operator*(const Translation& a, const vector_type::value_type& b) noexcept
+    operator*(const Translation& a, const value_type& b) noexcept
     {
         return Translation{a.m_translation*b};
     }

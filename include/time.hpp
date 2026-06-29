@@ -32,6 +32,7 @@ SOFTWARE.
 #include <vector>
 
 #include "utility.hpp"
+#include "units.hpp"
 
 namespace zdm::time
 {
@@ -304,13 +305,13 @@ struct Date
             && 1 <= mday && mday <= 31;
     }
 
-    [[nodiscard]] constexpr std::int64_t
+    [[nodiscard]] constexpr mpu::quantity<isq::duration[mpu::si::milli<mpu::si::second>], std::int64_t>
     to_milliseconds() const noexcept
     {
         assert(is_valid());
         std::uint32_t month = mon;
         std::uint32_t day_of_month = mday;
-        return days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL;
+        return mpu::isq::duration((days_until(year)*86400000LL + std::int64_t(day_of_year(year, month, day_of_month) - 1)*86400000LL)*mpu::si::milli<mpu::si::second>);
     }
 };
 
@@ -334,10 +335,10 @@ struct TimeOfDay
             && msec <= 999;
     }
 
-    [[nodiscard]] constexpr std::int64_t
+    [[nodiscard]] constexpr mpu::quantity<isq::duration[mpu::si::milli<mpu::si::second>], std::int64_t>
     to_milliseconds() const noexcept
     {
-        return hour*3600000LL + min*60000LL + sec*1000LL + msec;
+        return mpu::isq::duration((hour*3600000LL + min*60000LL + sec*1000LL + msec)*mpu::si::milli<mpu::si::second>);
     }
 };
 
@@ -437,7 +438,7 @@ struct DateTime
 
         @return Time in milliseconds since `Time{}`.
     */
-    [[nodiscard]] constexpr std::int64_t
+    [[nodiscard]] constexpr quantity<isq::duration[si::milli<si::second>], std::int64_t>
     to_milliseconds() const noexcept
     {
         assert(is_valid());
@@ -458,7 +459,8 @@ struct DateTime
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr std::int64_t milliseconds_since_epoch(DateTime time) noexcept
+[[nodiscard]] constexpr quantity<isq::duration[si::milli<si::second>], std::int64_t>
+milliseconds_since_epoch(DateTime time) noexcept
 {
     assert(time.is_valid());
     return time.to_milliseconds() - epoch.to_milliseconds();
@@ -1034,11 +1036,11 @@ parse_time_of_day(std::string_view input, std::string_view format)
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr double
+[[nodiscard]] constexpr quantity<isq::duration[si::day], double>
 ut1_from_utc(const DateTime& time)
 {
     assert(time.is_valid());
-    return (1.0/86400000)*double(milliseconds_since_epoch<epoch>(time));
+    return milliseconds_since_epoch<epoch>(time).template in<double>(si::day);
 }
 
 /**
@@ -1057,7 +1059,7 @@ ut1_from_utc(const DateTime& time)
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr std::expected<double, DateParseStatus>
+[[nodiscard]] constexpr std::expected<quantity<isq::duration[si::day], double>, DateParseStatus>
 ut1_from_date(std::string_view date, std::string_view format)
 {
     assert(date.size() > 0);
@@ -1082,7 +1084,9 @@ ut1_from_date(std::string_view date, std::string_view format)
 template <DateTime epoch>
     requires (epoch.is_valid())
 constexpr void
-ut1_interval(std::span<double> interval, const DateTime& start_time, const DateTime& end_time)
+ut1_interval(
+    std::span<quantity<isq::duration[si::day], double>> interval,
+    const DateTime& start_time, const DateTime& end_time)
 {
     assert(start_time.is_valid());
     assert(end_time.is_valid());
@@ -1102,13 +1106,14 @@ ut1_interval(std::span<double> interval, const DateTime& start_time, const DateT
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-constexpr std::vector<double>
+[[nodiscard]] constexpr std::vector<quantity<isq::duration[si::day], double>>
 ut1_interval(const DateTime& start_time, const DateTime& end_time, std::size_t count)
 {
+    using Day = quantity<isq::duration[si::day], double>;
     assert(start_time.is_valid());
     assert(end_time.is_valid());
-    std::vector<double> res(count);
-    util::linspace(std::span<double>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
+    std::vector<Day> res(count);
+    util::linspace(std::span<Day>(res), ut1_from_utc<epoch>(start_time), ut1_from_utc<epoch>(end_time));
     return res;
 }
 
@@ -1133,8 +1138,8 @@ template <DateTime epoch>
     requires (epoch.is_valid())
 [[nodiscard]] constexpr DateParseStatus
 ut1_interval(
-    std::span<double> interval, std::string_view start_date, std::string_view end_date,
-    std::string_view format)
+    std::span<quantity<isq::duration[si::day], double>> interval,
+    std::string_view start_date, std::string_view end_date, std::string_view format)
 {
     assert(start_date.size() > 0);
     assert(end_date.size() > 0);
@@ -1182,16 +1187,17 @@ ut1_interval(
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] std::expected<std::vector<double>, DateParseStatus>
+[[nodiscard]] std::expected<std::vector<quantity<isq::duration[si::day], double>>, DateParseStatus>
 ut1_interval(
     std::string_view start_date, std::string_view end_date, std::size_t count,
     std::string_view format)
 {
+    using Day = quantity<isq::duration[si::day], double>;
     assert(start_date.size() > 0);
     assert(end_date.size() > 0);
     assert(format.size() > 0);
-    std::vector<double> res(count);
-    const auto status = ut1_interval<epoch>(std::span<double>(res), start_date, end_date, format);
+    std::vector<Day> res(count);
+    const auto status = ut1_interval<epoch>(std::span<Day>(res), start_date, end_date, format);
     if (status == DateParseStatus::success)
         return res;
     else

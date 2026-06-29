@@ -503,9 +503,9 @@ public:
         = \hat{z}\f$.
     */
     [[nodiscard]] static RotationMatrix
-    align_z(const Vector<double, 3>& vector) noexcept requires (N == 3)
+    align_z(const Vector<T, 3>& vector) noexcept requires (N == 3)
     {
-        const std::array<double, 3> unit_vec = normalize(vector);
+        const Vector<T, 3> unit_vec = normalize(vector);
         const double u_xx = unit_vec[0]*unit_vec[0];
         const double u_yy = unit_vec[1]*unit_vec[1];
         const double u_xy = unit_vec[0]*unit_vec[1];

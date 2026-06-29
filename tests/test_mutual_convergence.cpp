@@ -64,7 +64,7 @@ template <typename DistType>
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
             [&](const std::array<double, 3>& v){
-                return std::forward<DistType>(dist)(zdm::la::length(v));
+                return std::forward<DistType>(dist)(zdm::la::norm(v));
             },
             offsets, shells, 0.0, tol, integrator_test);
 
@@ -206,7 +206,7 @@ template <typename DistType>
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate_transverse(
         [&](const std::array<double, 3>& v){
-            return std::forward<DistType>(dist)(zdm::la::length(v));
+            return std::forward<DistType>(dist)(zdm::la::norm(v));
         },
         offsets, shells, 0.0, tol, integrator_test);
 
@@ -362,7 +362,7 @@ template <typename DistType, typename RespType>
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate(
             [&](const std::array<double, 3>& v){
-                return std::forward<DistType>(dist)(zdm::la::length(v));
+                return std::forward<DistType>(dist)(zdm::la::norm(v));
             },
             std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, tol,
             integrator_test);
@@ -518,7 +518,7 @@ template <typename DistType, typename RespType>
     zdm::integrate::RadonAngleIntegrator integrator{};
     integrator.integrate_transverse(
             [&](const std::array<double, 3>& v){
-                return std::forward<DistType>(dist)(zdm::la::length(v));
+                return std::forward<DistType>(dist)(zdm::la::norm(v));
             },
             std::forward<RespType>(resp), offsets, rotation_angles, shells, 0.0, tol,
             integrator_test);
@@ -686,7 +686,7 @@ int main()
 
     [[maybe_unused]] auto gaussian = [](const std::array<double, 3>& v){
         constexpr double disp = 0.4;
-        const double speed = zdm::la::length(v);
+        const double speed = zdm::la::norm(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);
     };

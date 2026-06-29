@@ -219,7 +219,7 @@ bool test_earth_orbital_speed_is_approximately_correct(double days_since_j2000)
     const double min_speed = mean_speed*std::sqrt((1 - e)/(1 + e))/safety_margin;
     const double max_speed = mean_speed*std::sqrt((1 + e)/(1 - e))*safety_margin;
     const zdm::la::Vector<double, 3> velocity = zdm::astro::earth.orbit(days_since_j2000).orbital_plane_velocity();
-    const double speed = zdm::la::length(velocity);
+    const double speed = zdm::la::norm(velocity);
     return min_speed < speed && speed < max_speed;
 }
 

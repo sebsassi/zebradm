@@ -26,6 +26,7 @@ SOFTWARE.
 #include "rotation.hpp"
 #include "polynomial.hpp"
 #include "time.hpp"
+#include "units.hpp"
 
 namespace zdm::astro
 {
@@ -150,9 +151,9 @@ struct OrbitOrientation
 struct OrbitPosition
 {
     double eccentricity;    /// Eccentricity of the orbit
-    double semi_major_axis; /// Semi-major axis of the orbit in kilometers.
+    quantity<isq::length[si::kilo<si::metre>]> semi_major_axis; /// Semi-major axis of the orbit in kilometers.
     double mean_longitude;  /// Mean longitude of the body.
-    double mean_motion;     /// Mean motion of the body in radians per day.
+    quantity<mpu::one/isq::duration[si::day]> mean_motion;     /// Mean motion of the body in radians per day.
 
     [[nodiscard]] constexpr bool operator==(const OrbitPosition& other) const noexcept = default;
 };
@@ -284,15 +285,15 @@ struct OrbitalState
         function returns a three-dimensional vector whose z-component is set to
         zero.
     */
-    [[nodiscard]] la::Vector<double, 3>
+    [[nodiscard]] quantity<isq::velocity[si::kilo<si::metre>/si::second], la::Vector<double, 3>>
     orbital_plane_velocity() const noexcept
     {
         const double ea = eccentric_anomaly();
         const double cos_ea = std::cos(ea);
         const double sin_ea = std::sin(ea);
         const auto& [cos_ta, sin_ta] = true_anomaly_cossin(cos_ea, sin_ea);
-        const double speed = (1.0/86400.0)*position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
-        return {-speed*sin_ta, speed*(position.eccentricity + cos_ta), 0.0};
+        const auto speed = position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
+        return isq::velocity({-speed*sin_ta, speed*(position.eccentricity + cos_ta), 0.0});
     }
 
     /**
@@ -302,7 +303,7 @@ struct OrbitalState
         from the orbital plane velocity by rotating it with with the Euler
         angles given by the orientation parameters of the orbit.
     */
-    [[nodiscard]] la::Vector<double, 3>
+    [[nodiscard]] quantity<isq::velocity[si::kilo<si::metre>/si::second], la::Vector<double, 3>>
     reference_cs_velocity() const noexcept
     {
         return orientation.orbital_plane_to_reference_cs()*orbital_plane_velocity();
@@ -354,10 +355,11 @@ struct DynamicalOrbitOrientation
 
         @return Orientation of the orbit at the specified time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr OrbitOrientation
-    operator()(double days_since_epoch) const noexcept
+    operator()(Duration time_since_epoch) const noexcept
     {
-        const double millenia_since_epoch = (1.0/365250.0)*days_since_epoch;
+        const double millenia_since_epoch = time_since_epoch.numerical_value_in(ast::millennium);
         return {
             inclination(millenia_since_epoch),
             longitude_of_the_ascending_node(millenia_since_epoch),
@@ -392,8 +394,8 @@ struct KeplerOrbit
 {
     Polynomial<double, N> eccentricity;
     Polynomial<double, M> mean_longitude;
-    double semi_major_axis;
-    double mean_motion;
+    quantity<isq::length[si::kilo<si::metre>]> semi_major_axis;
+    quantity<mpu::one/isq::duration[si::day]> mean_motion;
 
     [[nodiscard]] constexpr bool operator==(const KeplerOrbit& other) const noexcept = default;
 
@@ -405,10 +407,11 @@ struct KeplerOrbit
 
         @return State of the body at the specified time.
     */
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr OrbitPosition
-    operator()(double days_since_epoch) const noexcept
+    operator()(Duration time_since_epoch) const noexcept
     {
-        const double millenia_since_epoch = (1.0/365250.0)*days_since_epoch;
+        const double millenia_since_epoch = time_since_epoch.numerical_value_in(ast::millennium);
         return {
             eccentricity(millenia_since_epoch),
             semi_major_axis,
@@ -457,10 +460,11 @@ struct Orbit
 
     [[nodiscard]] constexpr bool operator==(const Orbit& other) const noexcept = default;
 
+    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr OrbitalState
-    operator()(double days_since_epoch) const noexcept
+    operator()(Duration time_since_epoch) const noexcept
     {
-        return {orientation(days_since_epoch), orbit(days_since_epoch)};
+        return {orientation(time_since_epoch), orbit(time_since_epoch)};
     }
 };
 
@@ -478,7 +482,7 @@ Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::DateTime) -> 
 struct OblateSpheroid
 {
     double flattening;
-    double equatorial_radius;
+    quantity<isq::length[si::kilo<si::metre>]> equatorial_radius;
 
     [[nodiscard]] constexpr bool operator==(const OblateSpheroid& other) const noexcept = default;
 };
@@ -508,13 +512,14 @@ struct PlanetaryBody
         where \f$a\f$ is the equatorial radius (semi-major axis) of the ellipse
         whose rotation about the axis of revolution generates the spheroid.
     */
-    [[nodiscard]] double surface_speed(double latitude) const noexcept
+    [[nodiscard]] quantity<isq::velocity[si::kilo<si::metre>/si::second]>
+    surface_speed(double latitude) const noexcept
     {
         assert(-0.5*std::numbers::pi <= latitude && latitude <= 0.5*std::numbers::pi);
         const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
-        const double pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
-        const double equatorial_speed = (1.0/86400.0)*rotation_angle.derivative()(0.0);
+        const auto pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
+        const auto equatorial_speed = isq::angular_velocity(rotation_angle.derivative()(0.0)*mpu::one/si::day).in(mpu::one/si::second);
         return equatorial_speed*pvroc*std::cos(latitude);
 
     }
@@ -570,7 +575,8 @@ static constexpr GalacticOrientation orientation_km_2017 = {
         Society, vol. 403, no. 4, OUP, pp. 1829–1833, 2010.
         doi:10.1111/j.1365-2966.2010.16253.x.
 */
-static constexpr la::Vector peculiar_velocity_sbd_2010 = {11.1, 12.24, 7.25};
+static constexpr quantity<isq::velocity[si::kilo<si::metre>/si::second], la::Vector<double, 3>>
+peculiar_velocity_sbd_2010 = la::Vector<double, 3>{11.1, 12.24, 7.25}*si::kilo<si::metre>/si::second;
 
 /**
     @brief Constant parameters defining Earth.
@@ -622,15 +628,15 @@ static constexpr Planet earth = {
                 1.7534704594962450e+00,  6.2830758499914170e+03,
                -9.9101249369281360e-06, -2.5355755522028735e-08
             },
-            .semi_major_axis = 1.495980229607128e+08,
-            .mean_motion = 1.720212416151879e-02
+            .semi_major_axis = 1.495980229607128e+08*si::kilo<si::metre>,
+            .mean_motion = 1.720212416151879e-02*mpu::one/si::day
         },
         .epoch = time::j2000_utc
     },
     .body = PlanetaryBody{
         .spheroid = OblateSpheroid{
             .flattening = 3.352819697896193e-03,
-            .equatorial_radius = 6.3781366e+03,
+            .equatorial_radius = 6.3781366e+03*si::kilo<si::metre>,
         },
         .rotation_angle = Polynomial{4.894961212823756, 0.01720217957524373}
     }

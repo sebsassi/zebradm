@@ -29,6 +29,8 @@ SOFTWARE.
 #include <span>
 #include <string_view>
 
+#include "units.hpp"
+
 namespace zdm
 {
 
@@ -187,8 +189,8 @@ public:
     /**
         @brief Mass of the isotope.
     */
-    [[nodiscard]] constexpr double
-    mass() const noexcept { return double(m_mass_number)*amu; }
+    [[nodiscard]] constexpr quantity<isq::mass[si::dalton], double>
+    mass() const noexcept { return isq::mass(double(m_mass_number)*si::dalton); }
 
     /**
         @brief Atomic number of the isotope.
