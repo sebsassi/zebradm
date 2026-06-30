@@ -39,7 +39,7 @@ namespace zdm::la
     @tparam T Type of elements of the vector.
     @tparam Dimension of the vector.
 */
-template <real_arithmetic T, std::size_t N>
+template <conventional_arithmetic T, std::size_t N>
 struct Vector
 {
     using value_type = T;
@@ -58,8 +58,9 @@ struct Vector
     constexpr Vector() = default;
     constexpr Vector(const std::array<T, N>& arr): array{arr} {}
 
-    template <real_arithmetic... Types>
-    constexpr Vector(Types... values): array{T(values)...} {};
+    template <typename... Types>
+        requires (std::constructible_from<value_type, Types> && ...)
+    constexpr Vector(Types... values): array{value_type(values)...} {};
 
     [[nodiscard]] constexpr
     operator std::array<T, N>() const noexcept { return array; }
@@ -129,6 +130,16 @@ struct Vector
     constexpr void
     swap(Vector& other) noexcept { array.swap(other.array); }
 
+    [[nodiscard]] inline value_type norm() const noexcept
+    {
+        return std::sqrt(la::dot(*this, *this));
+    }
+
+    [[nodiscard]] inline value_type magnitude() const noexcept
+    {
+        return norm();
+    }
+
     [[nodiscard]] friend constexpr Vector
     operator+(const Vector& a) noexcept { return a; }
 
@@ -196,7 +207,7 @@ struct Vector
     operator/=(Vector& a, const Vector& b) noexcept { return div_assign(a, b); }
 };
 
-template <real_arithmetic T, typename... Ts>
+template <conventional_arithmetic T, typename... Ts>
     requires (std::same_as<T, Ts> && ...)
 Vector(T, Ts...) -> Vector<T, sizeof...(Ts) + 1>;
 
@@ -224,16 +235,16 @@ swizzle(const T& v) noexcept
     return {v[Inds]...};
 }
 
-template <std::size_t I, real_arithmetic T, std::size_t N>
+template <std::size_t I, conventional_arithmetic T, std::size_t N>
 constexpr T& get(Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
 
-template <std::size_t I, real_arithmetic T, std::size_t N>
+template <std::size_t I, conventional_arithmetic T, std::size_t N>
 constexpr T&& get(Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
 
-template <std::size_t I, real_arithmetic T, std::size_t N>
+template <std::size_t I, conventional_arithmetic T, std::size_t N>
 constexpr const T& get(const Vector<T, N>& v) noexcept { return std::get<I>(v.array); }
 
-template <std::size_t I, real_arithmetic T, std::size_t N>
+template <std::size_t I, conventional_arithmetic T, std::size_t N>
 constexpr const T&& get(const Vector<T, N>&& v) noexcept { return std::get<I>(std::move(v).array); }
 
 } // namespace zdm::la
@@ -241,10 +252,10 @@ constexpr const T&& get(const Vector<T, N>&& v) noexcept { return std::get<I>(st
 namespace std
 {
 
-template <zdm::real_arithmetic T, std::size_t N>
+template <zdm::conventional_arithmetic T, std::size_t N>
 struct tuple_size<zdm::la::Vector<T, N>>: std::integral_constant<std::size_t, N> {};
 
-template <std::size_t I, zdm::real_arithmetic T, std::size_t N>
+template <std::size_t I, zdm::conventional_arithmetic T, std::size_t N>
 struct tuple_element<I, zdm::la::Vector<T, N>>
 {
     using type = T;

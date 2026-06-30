@@ -24,6 +24,7 @@ SOFTWARE.
 #include <cstddef>
 
 #include "identity.hpp"
+#include "linalg.hpp"
 #include "rotation.hpp"
 #include "transform_conventions.hpp"
 #include "translation.hpp"
@@ -45,18 +46,18 @@ namespace zdm::la
     transformed vector is given by \f$\vec{v}' = R\vec{v} + \vec{u}'.
 */
 template <
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action_param = Action::passive,
     MatrixLayout matrix_layout_param = MatrixLayout::column_major
 >
 class RigidTransform
 {
 public:
-    using value_type = T;
+    using value_type = typename remove_unit<VectorType>::value_type;
     using size_type = std::size_t;
-    using translation_type = Translation<T, N, action_param>;
-    using rotation_matrix_type = RotationMatrix<T, N, action_param, matrix_layout_param>;
-    using vector_type = typename translation_type::vector_type;
+    using translation_type = Translation<VectorType, action_param>;
+    using rotation_matrix_type = RotationMatrixFor<VectorType, action_param, matrix_layout_param>;
+    using vector_type = VectorType;
 
     static constexpr Action action = action_param;
     static constexpr MatrixLayout matrix_layout = matrix_layout_param;
@@ -289,23 +290,23 @@ private:
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
-[[nodiscard]] constexpr RigidTransform<T, N, action, matrix_layout>
+[[nodiscard]] constexpr RigidTransform<VectorType, action, matrix_layout>
 compose(
-    const RigidTransform<T, N, action, matrix_layout>& a,
-    const RigidTransform<T, N, action, matrix_layout>& b) noexcept
+    const RigidTransform<VectorType, action, matrix_layout>& a,
+    const RigidTransform<VectorType, action, matrix_layout>& b) noexcept
 {
     if constexpr (
             (chaining == Chaining::extrinsic && action == Action::active)
             || (chaining == Chaining::intrinsic && action == Action::passive))
-        return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<chaining>(
             b.rotation()*a.rotation(),
             b.rotation()*a.translation() + b.translation());
     else
-        return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<chaining>(
             a.rotation()*b.rotation(),
             a.rotation()*b.translation() + a.translation());
 }
@@ -327,23 +328,23 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const RotationMatrix<T, N, action, matrix_layout>& rotation,
-    const RigidTransform<T, N, action, matrix_layout>& rigid_transform) noexcept
+    const RotationMatrixFor<VectorType, action, matrix_layout>& rotation,
+    const RigidTransform<VectorType, action, matrix_layout>& rigid_transform) noexcept
 {
     if constexpr (
             (chaining == Chaining::extrinsic && action == Action::active)
             || (chaining == Chaining::intrinsic && action == Action::passive))
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rigid_transform.rotation()*rotation,
             rigid_transform.translation());
     else
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rotation*rigid_transform.rotation(),
             rotation*rigid_transform.translation());
 }
@@ -365,23 +366,23 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
-    const RotationMatrix<T, N, action, matrix_layout>& rotation) noexcept
+    const RigidTransform<VectorType, action, matrix_layout>& rigid_transform,
+    const RotationMatrixFor<VectorType, action, matrix_layout>& rotation) noexcept
 {
     if constexpr (
             (chaining == Chaining::extrinsic && action == Action::active)
             || (chaining == Chaining::intrinsic && action == Action::passive))
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rotation*rigid_transform.rotation(),
             rotation*rigid_transform.translation());
     else
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rigid_transform.rotation()*rotation,
             rigid_transform.translation());
 }
@@ -403,23 +404,23 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const Translation<T, N, action>& translation,
-    const RigidTransform<T, N, action, matrix_layout>& rigid_transform)
+    const Translation<VectorType, action>& translation,
+    const RigidTransform<VectorType, action, matrix_layout>& rigid_transform)
 {
     if constexpr (
             (chaining == Chaining::extrinsic && action == Action::active)
             || (chaining == Chaining::intrinsic && action == Action::passive))
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rigid_transform.rotation(),
             rigid_transform.rotation()*translation + rigid_transform.translation());
     else
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::extrinsic>(
             rigid_transform.rotation(),
             rigid_transform.translation() + translation);
 }
@@ -441,23 +442,23 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const RigidTransform<T, N, action, matrix_layout>& rigid_transform,
-    const Translation<T, N, action>& translation)
+    const RigidTransform<VectorType, action, matrix_layout>& rigid_transform,
+    const Translation<VectorType, action>& translation)
 {
     if constexpr (
             (chaining == Chaining::extrinsic && action == Action::active)
             || (chaining == Chaining::intrinsic && action == Action::passive))
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::extrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::extrinsic>(
             rigid_transform.rotation(),
             rigid_transform.translation() + translation);
     else
-        return RigidTransform<T, N, action, matrix_layout>::template from<Chaining::intrinsic>(
+        return RigidTransform<VectorType, action, matrix_layout>::template from<Chaining::intrinsic>(
             rigid_transform.rotation(),
             rigid_transform.rotation()*translation + rigid_transform.translation());
 }
@@ -479,16 +480,16 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const RotationMatrix<T, N, action, matrix_layout>& rotation,
-    const Translation<T, N, action>& translation)
+    const RotationMatrixFor<VectorType, action, matrix_layout>& rotation,
+    const Translation<VectorType, action>& translation)
 {
-    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(rotation, translation);
+    return RigidTransform<VectorType, action, matrix_layout>::template from<chaining>(rotation, translation);
 }
 
 /**
@@ -508,16 +509,16 @@ compose(
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
 [[nodiscard]] constexpr auto
 compose(
-    const Translation<T, N, action>& translation,
-    const RotationMatrix<T, N, action, matrix_layout>& rotation)
+    const Translation<VectorType, action>& translation,
+    const RotationMatrixFor<VectorType, action, matrix_layout>& rotation)
 {
-    return RigidTransform<T, N, action, matrix_layout>::template from<chaining>(translation, rotation);
+    return RigidTransform<VectorType, action, matrix_layout>::template from<chaining>(translation, rotation);
 }
 
 } // namspace zdm::la

@@ -22,6 +22,10 @@ SOFTWARE.
 #pragma once
 
 #include <concepts>
+#include <expected>
+#include <ranges>
+
+#include "mp-units/concepts.h"
 
 namespace zdm
 {
@@ -84,7 +88,63 @@ concept assignable_bitwise_arithmetic = requires (T x, T y)
 };
 
 template <typename T>
-concept real_arithmetic
-    = unary_arithmetic<T> && basic_arithmetic<T> && assignable_basic_arithmetic<T>;
+concept conventional_arithmetic = requires (T x, T y)
+{
+    { +x } -> std::same_as<std::remove_cvref_t<T>>;
+    { -x } -> std::same_as<std::remove_cvref_t<T>>;
+
+    { x + y } -> std::same_as<std::remove_cvref_t<T>>;
+    { x - y } -> std::same_as<std::remove_cvref_t<T>>;
+    { x*y } -> std::same_as<std::remove_cvref_t<T>>;
+    { x/y } -> std::same_as<std::remove_cvref_t<T>>;
+
+    { x += y } -> std::same_as<std::remove_cvref_t<T>&>;
+    { x -= y } -> std::same_as<std::remove_cvref_t<T>&>;
+    { x *= y } -> std::same_as<std::remove_cvref_t<T>&>;
+    { x /= y } -> std::same_as<std::remove_cvref_t<T>&>;
+};
+
+namespace detail
+{
+
+template <typename T>
+struct remove_unit_helper
+{
+    using type = T;
+};
+
+template <mp_units::Quantity T>
+struct remove_unit_helper<T>
+{
+    using type = T::rep;
+};
+
+} // namespace detail
+
+template <typename T>
+using remove_unit = detail::remove_unit_helper<T>::type;
+
+template <typename T, typename ErrorType>
+concept ExpectedWith = std::same_as<T, std::expected<typename T::value_type, ErrorType>>;
+
+template <typename T, template <typename> typename ContainerTemplate>
+concept Container
+    = std::ranges::range<ContainerTemplate<typename T::value_type>>
+        && std::same_as<T, ContainerTemplate<typename T::value_type>>;
+
+template <typename T, auto quantity_spec, typename ErrorType>
+concept ExpectedQuantityOf
+    = ExpectedWith<T, ErrorType>
+        && mp_units::QuantityOf<typename T::value_type, quantity_spec>;
+
+template <typename T, auto quantity_spec, template <typename> typename ContainerTemplate>
+concept QuantityContainerOf
+    = mp_units::QuantityOf<typename T::value_type, quantity_spec>
+        && Container<T, ContainerTemplate>;
+
+template <typename T, auto quantity_spec, template <typename> typename ContainerTemplate, typename ErrorType>
+concept ExpectedQuantityContainerOf
+    = ExpectedWith<T, ErrorType>
+        && QuantityContainerOf<typename T::value_type, quantity_spec, ContainerTemplate>;
 
 } // namespace zdm

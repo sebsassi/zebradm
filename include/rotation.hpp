@@ -1177,4 +1177,14 @@ compose(
         return a*b;
 }
 
+template <
+    static_vector_like V,
+    Action action = Action::passive,
+    MatrixLayout matrix_layout = MatrixLayout::column_major>
+using RotationMatrixFor
+    = RotationMatrix<
+        typename remove_unit<V>::value_type, std::tuple_size_v<V>,
+        action, matrix_layout
+    >;
+
 } // namespace zdm::la

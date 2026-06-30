@@ -24,7 +24,7 @@ SOFTWARE.
 #include <concepts>
 #include <cstddef>
 
-#include "vector.hpp"
+#include "concepts.hpp"
 #include "rotation.hpp"
 #include "transform_conventions.hpp"
 
@@ -35,7 +35,7 @@ template <static_vector_like VectorType, Action action_param = Action::passive>
 class Translation
 {
 public:
-    using value_type = T;
+    using value_type = typename remove_unit<VectorType>::value_type;
     using size_type = std::size_t;
     using vector_type = VectorType;
 
@@ -111,7 +111,9 @@ public:
 
     template <MatrixLayout layout>
     [[nodiscard]] friend constexpr Translation
-    operator*(const RotationMatrix<T, N, action, layout>& a, const Translation& b) noexcept
+    operator*(
+        const RotationMatrix<value_type, std::tuple_size_v<vector_type>, action, layout>& a,
+        const Translation& b) noexcept
     {
         return Translation{a*b.m_translation};
     }
@@ -141,11 +143,11 @@ private:
 */
 template <
     Chaining chaining,
-    std::floating_point T, std::size_t N,
+    static_vector_like VectorType,
     Action action
 >
-[[nodiscard]] constexpr Translation<T, N, action>
-compose(const Translation<T, N, action>& a, const Translation<T, N, action>& b)
+[[nodiscard]] constexpr Translation<VectorType, action>
+compose(const Translation<VectorType, action>& a, const Translation<VectorType, action>& b)
 {
     return a + b;
 }

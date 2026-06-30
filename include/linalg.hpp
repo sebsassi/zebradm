@@ -46,7 +46,7 @@ namespace la
     member `T::shape`, whose members have type `T::size_type`.
 */
 template <typename T>
-concept static_matrix_like = real_arithmetic<typename T::value_type>
+concept static_matrix_like = conventional_arithmetic<typename T::value_type>
     && (std::tuple_size_v<decltype(T::shape)> == 2)
     && std::same_as<std::remove_cvref_t<decltype(T::shape[0])>, typename T::size_type>
     && std::same_as<std::remove_cvref_t<decltype(T::shape[1])>, typename T::size_type>
@@ -74,7 +74,7 @@ concept static_square_matrix_like = static_matrix_like<T> && (T::shape[0] == T::
     has a specialization for `std::tuple_size`.
 */
 template <typename T>
-concept static_vector_like = real_arithmetic<typename T::value_type>
+concept static_vector_like = conventional_arithmetic<typename T::value_type>
     && std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, typename T::size_type>
     && requires (T vector, typename T::size_type i)
     {
@@ -771,10 +771,10 @@ template <static_vector_like T>
     requires std::floating_point<typename T::value_type>
 [[nodiscard]] inline T normalize(const T& a) noexcept
 {
-    const typename T::value_type norm = norm(a);
-    if (norm == typename T::value_type{}) return T{};
+    const typename T::value_type a_norm = norm(a);
+    if (a_norm == typename T::value_type{}) return T{};
 
-    return mul((1.0/norm), a);
+    return mul((1.0/a_norm), a);
 }
 
 /**

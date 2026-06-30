@@ -36,6 +36,7 @@ endmacro()
 
 create_test(test_linalg)
 create_test(test_polynomial)
+create_test(test_units)
 create_test(test_time)
 create_test(test_astro)
 create_test(test_celestial)
