@@ -139,15 +139,52 @@ struct Matrix
     /**
         @brief Matrix-matrix multiplication.
     */
-    [[nodiscard]] constexpr Matrix
-    operator*(const Matrix& other) const noexcept requires (N == M) { return matmul(*this, other); }
+    template <std::size_t K>
+    [[nodiscard]] constexpr Matrix<T, N, K, action, layout>
+    operator*(const Matrix<T, M, K, action, layout>& other) const noexcept
+    {
+        Matrix<T, N, K, action, layout> res{};
+        for (std::size_t i = 0; i < N; ++i)
+        {
+            for (std::size_t j = 0; j < K; ++j)
+            {
+                for (std::size_t k = 0; k < M; ++k)
+                    res[i, j] += (*this)[i, k]*other[k, j];
+            }
+        }
+
+        return res;
+
+    }
 
     /**
         @brief Matrix-vector multiplication.
     */
     template <static_vector_like V>
     [[nodiscard]] constexpr Vector<T, N>
-    operator*(const V& vector) const noexcept { return matmul(*this, vector); }
+    operator*(const V& vector) const noexcept
+    {
+        Vector<T, shape[0]> res{};
+        for (std::size_t i = 0; i < shape[0]; ++i)
+        {
+            for (std::size_t j = 0; j < shape[1]; ++j)
+                res[i] += (*this)[i, j]*vector[j];
+        }
+
+        return res;
+    }
+
+    [[nodiscard]] constexpr Matrix
+    transpose() const noexcept
+    {
+        transpose_type res{};
+        for (std::size_t i = 0; i < T::shape[0]; ++i)
+        {
+            for (std::size_t j = 0; j < T::shape[1]; ++j)
+                res[j, i] = (*this)[i, j];
+        }
+        return res;
+    }
 };
 
 /**

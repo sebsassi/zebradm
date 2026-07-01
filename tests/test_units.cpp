@@ -28,93 +28,95 @@ SOFTWARE.
 #include "rotation.hpp"
 #include "translation.hpp"
 
+#include "mp-units/cartesian_vector.h"
+
 bool test_vector_can_have_units()
 {
-    [[maybe_unused]] const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    [[maybe_unused]] const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     return true;
 }
 
 bool test_vector_with_units_can_add()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = v + v;
     return true;
 }
 
 bool test_vector_with_units_can_subtract()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = v - v;
     return true;
 }
 
 bool test_vector_with_units_can_multiply_by_scalar()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = 3.0*v;
     return true;
 }
 
 bool test_vector_with_units_can_divide_by_scalar()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = v/3.0;
     return true;
 }
 
 bool test_vector_with_units_can_add_assign()
 {
-    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     v += v;
     return true;
 }
 
 bool test_vector_with_units_can_sub_assign()
 {
-    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     v -= v;
     return true;
 }
 
 bool test_vector_with_units_can_mult_assign_by_scalar()
 {
-    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     v *= 3.0;
     return true;
 }
 
 bool test_vector_with_units_can_div_assign_by_scalar()
 {
-    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     v /= 3.0;
     return true;
 }
 
 bool test_vector_with_units_has_magnitude()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto vm = zdm::mpu::magnitude(v);
     return true;
 }
 
 bool test_vector_with_units_can_swizzle()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = zdm::la::swizzle<0, 1, 2, 1>(v);
     return true;
 }
 
 bool test_vector_with_units_has_dot_product()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
-    const auto u = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::second;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
+    const auto u = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto vu = zdm::la::dot(v, u);
     return true;
 }
 
 bool test_vector_with_units_can_be_normalized()
 {
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = zdm::la::normalize(v);
     return true;
 }
@@ -122,7 +124,7 @@ bool test_vector_with_units_can_be_normalized()
 bool test_vector_with_units_has_matmul_with_matrix()
 {
     const auto m = zdm::la::Matrix<double, 3, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = zdm::la::matmul(m, v);
     return true;
 }
@@ -130,7 +132,7 @@ bool test_vector_with_units_has_matmul_with_matrix()
 bool test_vector_with_units_has_matmul_with_rotation_matrix()
 {
     const auto r = zdm::la::RotationMatrix<double, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = zdm::la::matmul(r, v);
     return true;
 }
@@ -138,7 +140,7 @@ bool test_vector_with_units_has_matmul_with_rotation_matrix()
 bool test_vector_with_units_can_be_multiplied_with_a_matrix()
 {
     const auto m = zdm::la::Matrix<double, 3, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = m*v;
     return true;
 }
@@ -146,7 +148,7 @@ bool test_vector_with_units_can_be_multiplied_with_a_matrix()
 bool test_vector_with_units_can_be_multiplied_with_a_rotation_matrix()
 {
     const auto r = zdm::la::RotationMatrix<double, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = r*v;
     return true;
 }
@@ -154,7 +156,7 @@ bool test_vector_with_units_can_be_multiplied_with_a_rotation_matrix()
 bool test_vector_with_units_has_quadratic_form_with_matrix()
 {
     const auto m = zdm::la::Matrix<double, 3, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto q = zdm::la::quadratic_form(m, v);
     return true;
 }
@@ -162,27 +164,27 @@ bool test_vector_with_units_has_quadratic_form_with_matrix()
 bool test_vector_with_units_has_quadratic_form_with_rotation_matrix()
 {
     const auto r = zdm::la::RotationMatrix<double, 3>::identity();
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto q = zdm::la::quadratic_form(r, v);
     return true;
 }
 
 bool test_matrix_can_have_units()
 {
-    [[maybe_unused]] const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
+    [[maybe_unused]] const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
     return true;
 }
 
 bool test_matrix_with_units_can_multiply()
 {
-    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
+    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto m2 = m*m;
     return true;
 }
 
 bool test_matrix_with_units_can_multiply_with_vector()
 {
-    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
+    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
     const auto v = zdm::la::Vector<double, 3>{1.0, 2.0, 3.0};
     [[maybe_unused]] const auto u = m*v;
     return true;
@@ -190,15 +192,15 @@ bool test_matrix_with_units_can_multiply_with_vector()
 
 bool test_matrix_with_units_can_multiply_with_vector_with_units()
 {
-    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
-    const auto v = zdm::la::Vector<double, 3>{1.0, 2.0, 3.0}*zdm::si::second;
+    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
+    const auto v = zdm::la::Vector<double, 3>{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto u = m*v;
     return true;
 }
 
 bool test_matrix_with_units_has_quadratic_form_with_vector()
 {
-    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
+    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
     const auto v = zdm::la::Vector{1.0, 2.0, 3.0};
     [[maybe_unused]] const auto q = zdm::la::quadratic_form(m, v);
     return true;
@@ -206,15 +208,15 @@ bool test_matrix_with_units_has_quadratic_form_with_vector()
 
 bool test_matrix_with_units_has_quadratic_form_with_vector_with_units()
 {
-    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::si::metre;
-    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::si::second;
+    const auto m = zdm::la::Matrix<double, 3, 3>::identity()*zdm::isq::displacement[zdm::si::metre];
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto q = zdm::la::quadratic_form(m, v);
     return true;
 }
 
 bool test_translation_can_be_constructed_from_vector_with_units()
 {
-    const auto v = zdm::la::Vector<double, 3>{1.0, 2.0, 3.0}*zdm::si::metre;
+    const auto v = zdm::la::Vector<double, 3>{1.0, 2.0, 3.0}*zdm::isq::displacement[zdm::si::metre];
     [[maybe_unused]] const auto t = zdm::la::Translation{v};
     return true;
 }

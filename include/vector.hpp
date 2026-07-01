@@ -140,6 +140,19 @@ struct Vector
         return norm();
     }
 
+    template <std::size_t... Inds>
+        requires ((Inds < N) && ...)
+    [[nodiscard]] constexpr Vector<value_type, sizeof...(Inds)>
+    swizzle() const noexcept
+    {
+        return {array[Inds]...};
+    }
+
+    [[nodiscard]] inline Vector<value_type, N> normalize() const noexcept
+    {
+        return (1.0/norm())*(*this);
+    }
+
     [[nodiscard]] friend constexpr Vector
     operator+(const Vector& a) noexcept { return a; }
 

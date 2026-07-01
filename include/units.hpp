@@ -31,11 +31,49 @@ SOFTWARE.
 
 namespace zdm
 {
-    namespace mpu = mp_units;
-    using mp_units::quantity;
-    namespace isq = mp_units::isq;
-    namespace si = mp_units::si;
-    namespace ast = mp_units::astronomy;
+
+namespace mpu = mp_units;
+using mp_units::quantity;
+namespace isq = mp_units::isq;
+namespace si = mp_units::si;
+namespace ast = mp_units::astronomy;
+
+// Linear algebra operations on vectors and matrices with units.
+namespace la
+{
+
+template <std::size_t... Inds, mpu::Quantity Q>
+    requires
+        requires (typename Q::rep v) { v.template swizzle<Inds...>(); }
+        || requires (typename Q::rep v) { swizzle<Inds...>(v); }
+[[nodiscard]] constexpr mpu::Quantity auto swizzle(Q q) noexcept
+{
+    if constexpr (requires (typename Q::rep v) { v.template swizzle<Inds...>(); })
+        return (q.numerical_value_in(Q::unit).template swizzle<Inds...>())*Q::reference;
+    else
+        return swizzle<Inds...>(q.numerical_value_in(Q::unit))*Q::reference;
+}
+
+template <mpu::Quantity Q1, mpu::Quantity Q2>
+    requires requires (typename Q1::rep v1, typename Q2::rep v2) { dot(v1, v2); }
+[[nodiscard]] constexpr mpu::Quantity auto dot(Q1 q1, Q2 q2) noexcept
+{
+    return dot(q1.numerical_value_in(Q1::unit), q2.numerical_value_in(Q2::unit))*Q1::unit*Q2::unit;
+}
+
+template <mpu::Quantity Q>
+    requires
+        requires (typename Q::rep v) { v.normalize(); }
+        || requires (typename Q::rep v) { normalize(v); }
+[[nodiscard]] constexpr mpu::Quantity auto normalize(Q q)
+{
+    if constexpr (requires (typename Q::rep v) { v.swizzle(); })
+        return (q.numerical_value_in(Q::unit).normalize())*Q::reference;
+    else
+        return normalize(q.numerical_value_in(Q::unit))*Q::reference;
+}
+
+} // namespace la
 
 } // namespace zdm
 
