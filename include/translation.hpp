@@ -66,6 +66,12 @@ public:
     }
 
     [[nodiscard]] constexpr vector_type
+    operator()() const noexcept
+    {
+        return (action == Action::active) ? m_translation : -m_translation;
+    }
+
+    [[nodiscard]] constexpr vector_type
     operator()(const vector_type& vector) const noexcept
     {
         if constexpr (action == Action::active)

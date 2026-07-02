@@ -51,19 +51,27 @@ bool is_close(const zdm::la::Vector<double, N>& a, const zdm::la::Vector<double,
 }
 
 template <std::size_t N, zdm::la::Action action>
-bool is_close(const zdm::la::Translation<double, N, action>& a, const zdm::la::Translation<double, N, action>& b, double error)
+bool is_close(
+    const zdm::la::Translation<zdm::la::Vector<double, N>, action>& a,
+    const zdm::la::Translation<zdm::la::Vector<double, N>, action>& b,
+    double error)
 {
     return is_close(zdm::la::Vector<double, N>(a), zdm::la::Vector<double, N>(b), error);
 }
 
 template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
-bool is_close(const zdm::la::RotationMatrix<double, N, action, layout>& a, const zdm::la::RotationMatrix<double, N, action, layout>& b, double error)
+bool is_close(
+    const zdm::la::RotationMatrix<double, N, action, layout>& a,
+    const zdm::la::RotationMatrix<double, N, action, layout>& b,
+    double error)
 {
     return is_close(std::array<double, N*N>(a), std::array<double, N*N>(b), error);
 }
 
 template <std::size_t N, zdm::la::Action action, zdm::la::MatrixLayout layout>
-bool is_close(const zdm::la::RigidTransform<double, N, action, layout>& a, const zdm::la::RigidTransform<double, N, action, layout>& b, double error)
+bool is_close(
+    const zdm::la::RigidTransform<zdm::la::Vector<double, N>, action, layout>& a,
+    const zdm::la::RigidTransform<zdm::la::Vector<double, N>, action, layout>& b, double error)
 {
     return is_close(a.rotation(), b.rotation(), error) && is_close(a.translation(), b.translation(), error);
 }
@@ -71,7 +79,7 @@ bool is_close(const zdm::la::RigidTransform<double, N, action, layout>& a, const
 class TestTransform
 {
 public:
-    using rigid_transform_type = zdm::la::RigidTransform<double, 3>;
+    using rigid_transform_type = zdm::la::RigidTransform<zdm::la::Vector<double, 3>>;
 
     TestTransform(std::size_t seed)
     {
@@ -79,29 +87,29 @@ public:
         std::uniform_real_distribution<double> angle_dist{-std::numbers::pi, std::numbers::pi};
         std::uniform_real_distribution<double> vec_dist{-1.0, 1.0};
         m_transform
-            = zdm::la::RigidTransform<double, 3>::from<chaining>(
+            = rigid_transform_type::from<chaining>(
                 zdm::la::RotationMatrix<double, 3>::from_euler_angles<euler, chaining>(
                     angle_dist(rng), angle_dist(rng), angle_dist(rng)),
                 zdm::la::Vector<double, 3>{vec_dist(rng), vec_dist(rng), vec_dist(rng)});
     }
 
-    [[nodiscard]] constexpr zdm::la::RigidTransform<double, 3>
+    [[nodiscard]] constexpr rigid_transform_type
     operator()([[maybe_unused]] double t) const noexcept { return m_transform; }
 
-    [[nodiscard]] constexpr zdm::la::RigidTransform<double, 3>
+    [[nodiscard]] constexpr rigid_transform_type
     operator()() const noexcept { return m_transform; }
 
 private:
     static constexpr auto euler = zdm::la::EulerConvention::xyx;
     static constexpr auto chaining = zdm::la::Chaining::intrinsic;
-    zdm::la::RigidTransform<double, 3> m_transform;
+    rigid_transform_type m_transform;
 };
 
 bool test_composite_with_inverse_gives_identity_transform([[maybe_unused]] double error)
 {
     using InverseTestTransform = zdm::celestial::Inverse<TestTransform>;
     using Transform = zdm::celestial::Composite<
-        zdm::la::Chaining::intrinsic, zdm::la::RigidTransform<double, 3>,
+        zdm::la::Chaining::intrinsic, zdm::la::RigidTransform<zdm::la::Vector<double, 3>>,
         TestTransform,
         InverseTestTransform
     >;
@@ -111,7 +119,7 @@ bool test_composite_with_inverse_gives_identity_transform([[maybe_unused]] doubl
     const auto composite_transform = Transform{transform, inverse_transform};
     return is_close(
         composite_transform(0.0),
-        zdm::la::RigidTransform<double, 3>::identity(),
+        zdm::la::RigidTransform<zdm::la::Vector<double, 3>>::identity(),
         error);
 }
 
@@ -119,7 +127,7 @@ bool test_composite_order_is_correct(double error)
 {
     constexpr auto chaining = zdm::la::Chaining::intrinsic;
     using Transform = zdm::celestial::Composite<
-        chaining, zdm::la::RigidTransform<double, 3>,
+        chaining, zdm::la::RigidTransform<zdm::la::Vector<double, 3>>,
         TestTransform,
         TestTransform,
         TestTransform
@@ -149,17 +157,22 @@ bool test_ecs_to_icrs_gives_correct_obliquity(double error)
 
 bool test_icrs_to_gcrs_makes_earth_stationary(double error)
 {
-    const auto earth_velocity = zdm::astro::earth.orbit(0.0).reference_cs_velocity();
+    const auto earth_velocity
+        = zdm::astro::earth.orbit(zdm::isq::duration(0.0*zdm::si::day)).reference_cs_velocity();
     const auto earth_velocity_icrs = zdm::celestial::ECStoICRS{}()*earth_velocity;
-    const auto earth_velocity_gcrs = zdm::celestial::ICRStoGCRS{}(0.0)(earth_velocity_icrs);
-    return is_close(earth_velocity_gcrs, zdm::la::Vector<double, 3>{}, error);
+    const auto earth_velocity_gcrs
+        = zdm::celestial::ICRStoGCRS{}(zdm::isq::duration(0.0*zdm::si::day))(earth_velocity_icrs);
+    return is_close(
+            earth_velocity_gcrs.numerical_value_in(zdm::si::kilo<zdm::si::metre>/zdm::si::second),
+            zdm::la::Vector<double, 3>{},
+            error);
 }
 
 bool test_cirs_to_tirs_rotates_clockwise()
 {
     const auto cirs_to_tirs = zdm::celestial::CIRStoTIRS{};
-    const auto tirs_x0 = cirs_to_tirs(0.0)*zdm::la::Vector{1.0, 0.0, 0.0};
-    const auto tirs_x = cirs_to_tirs(0.1)*zdm::la::Vector{1.0, 0.0, 0.0};
+    const auto tirs_x0 = cirs_to_tirs(zdm::isq::duration(0.0*zdm::si::day))*zdm::la::Vector{1.0, 0.0, 0.0};
+    const auto tirs_x = cirs_to_tirs(zdm::isq::duration(0.1*zdm::si::day))*zdm::la::Vector{1.0, 0.0, 0.0};
     const auto twist = zdm::la::cross(zdm::la::swizzle<0, 1>(tirs_x0), zdm::la::swizzle<0, 1>(tirs_x));
     return twist < 0.0;
 }
@@ -168,7 +181,7 @@ bool test_icrs_to_hcs_inverse_maps_z_to_lat_lon_direction(double lon, double lat
 {
     const auto hcs_to_itrs = zdm::celestial::Inverse<zdm::celestial::ITRStoHCS>{lon, lat};
     const auto lon_lat_dir = zdm::coordinates::spherical_to_cartesian_geo(lon, lat);
-    const auto hcs_z = hcs_to_itrs(0.0).rotation()*zdm::la::Vector{0.0, 0.0, 1.0};
+    const auto hcs_z = hcs_to_itrs(zdm::isq::duration(0.0*zdm::si::day)).rotation()*zdm::la::Vector{0.0, 0.0, 1.0};
     return is_close(hcs_z, lon_lat_dir, error);
 }
 

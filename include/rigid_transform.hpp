@@ -46,10 +46,11 @@ namespace zdm::la
     transformed vector is given by \f$\vec{v}' = R\vec{v} + \vec{u}'.
 */
 template <
-    static_vector_like VectorType,
+    typename VectorType,
     Action action_param = Action::passive,
     MatrixLayout matrix_layout_param = MatrixLayout::column_major
 >
+    requires static_vector_like<remove_unit<VectorType>>
 class RigidTransform
 {
 public:
