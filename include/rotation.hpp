@@ -26,6 +26,7 @@ SOFTWARE.
 
 #include "transform_conventions.hpp"
 #include "matrix.hpp"
+#include "vector.hpp"
 
 namespace zdm::la
 {
@@ -89,6 +90,10 @@ public:
     static constexpr MatrixLayout layout = layout_param;
     static constexpr std::array<size_type, 2> shape = {N, N};
 
+    template <std::size_t I>
+        requires (I < 2)
+    static constexpr size_type extent = Matrix<T, N, N, action, layout>::template extent<I>;
+
     constexpr explicit RotationMatrix() = default;
     constexpr explicit RotationMatrix(std::array<T, N*N> array): m_matrix{array} {}
 
@@ -138,12 +143,12 @@ public:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 cos_angle, -sin_angle,
                 sin_angle, cos_angle
             });
         else
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 cos_angle, sin_angle,
                 -sin_angle, cos_angle
             });
@@ -239,7 +244,7 @@ public:
         \f]
     */
     [[nodiscard]] static constexpr RotationMatrix
-    axis(std::array<T, 3> axis, T angle) noexcept requires (N == 3)
+    axis(Vector<T, 3> axis, T angle) noexcept requires (N == 3)
     {
         axis = normalize(axis);
         const T x = axis[0];
@@ -256,13 +261,13 @@ public:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) - z*sin_angle, xz*(1.0 - cos_angle) + y*sin_angle,
                 xy*(1.0 - cos_angle) + z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) - x*sin_angle,
                 xz*(1.0 - cos_angle) - y*sin_angle, yz*(1.0 - cos_angle) + x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
             });
         else
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) + z*sin_angle, xz*(1.0 - cos_angle) - y*sin_angle,
                 xy*(1.0 - cos_angle) - z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) + x*sin_angle,
                 xz*(1.0 - cos_angle) + y*sin_angle, yz*(1.0 - cos_angle) - x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
@@ -519,13 +524,13 @@ public:
             const double r_yy = u_xx_norm + unit_vec[2]*u_yy_norm;
             const double r_xy = -(1.0 - unit_vec[2])*(u_xy*scale);
             if constexpr (layout == MatrixLayout::column_major)
-                return RotationMatrix({
+                return RotationMatrix(std::array{
                      r_xx,         r_xy,         unit_vec[0],
                      r_xy,         r_yy,         unit_vec[1],
                     -unit_vec[0], -unit_vec[1],  unit_vec[2]
                 });
             else
-                return RotationMatrix({
+                return RotationMatrix(std::array{
                      r_xx,         r_xy,        -unit_vec[0],
                      r_xy,         r_yy,        -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2]
@@ -533,13 +538,13 @@ public:
         }
         else [[unlikely]]
             if constexpr (layout == MatrixLayout::column_major)
-                return RotationMatrix({
+                return RotationMatrix(std::array{
                      unit_vec[2],  0.0,          unit_vec[0],
                      0.0,          1.0,          unit_vec[1],
                     -unit_vec[0], -unit_vec[1],  unit_vec[2],
                 });
             else
-                return RotationMatrix({
+                return RotationMatrix(std::array{
                      unit_vec[2],  0.0,         -unit_vec[0],
                      0.0,          1.0,         -unit_vec[1],
                      unit_vec[0],  unit_vec[1],  unit_vec[2],
@@ -586,6 +591,12 @@ public:
     [[nodiscard]] constexpr V
     operator*(const V& vector) const noexcept { return matmul(*this, vector); }
 
+    [[nodiscard]] constexpr RotationMatrix
+    transpose() const noexcept
+    {
+        return RotationMatrix(m_matrix.transpose());
+    }
+
     /**
         @brief Inverse of the transform.
 
@@ -594,11 +605,13 @@ public:
     [[nodiscard]] constexpr RotationMatrix
     inverse() const noexcept
     {
-        return transpose(*this);
+        return transpose();
     }
 
 private:
     enum class Order { keep, reverse };
+
+    constexpr explicit RotationMatrix(const Matrix<T, N, N, action, layout>& matrix): m_matrix{matrix} {}
 
     [[nodiscard]] static constexpr RotationMatrix axis_x(T angle) noexcept requires (N == 3)
     {
@@ -607,13 +620,13 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  1.0,  0.0,  0.0,
                  0.0,  ca,  -sa,
                  0.0,  sa,   ca
             });
         else
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  1.0,  0.0,  0.0,
                  0.0,  ca,   sa,
                  0.0, -sa,   ca
@@ -627,13 +640,13 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca,   0.0,  sa,
                  0.0,  1.0,  0.0,
                 -sa,   0.0,  ca
             });
         else
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca,   0.0, -sa,
                  0.0,  1.0,  0.0,
                  sa,   0.0,  ca
@@ -647,13 +660,13 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca,  -sa,   0.0,
                  sa,   ca,   0.0,
                  0.0,  0.0,  1.0
             });
         else
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca,   sa,   0.0,
                 -sa,   ca,   0.0,
                  0.0,  0.0,  1.0
@@ -671,7 +684,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     0.0,   -sb,
                  sa*sb,  ca,     cb*sa,
                  ca*sb, -sa,     ca*cb
@@ -679,7 +692,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     sa*sb,  ca*sb,
                  0.0,    ca,    -sa,
                 -sb,     cb*sa,  ca*cb
@@ -687,7 +700,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     0.0,    sb,
                  sa*sb,  ca,    -cb*sa,
                 -ca*sb,  sa,     ca*cb
@@ -695,7 +708,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     sa*sb, -ca*sb,
                  0.0,    ca,     sa,
                  sb,    -cb*sa,  ca*cb
@@ -713,7 +726,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     sb,     0.0,
                 -ca*sb,  ca*cb,  sa,
                  sa*sb, -cb*sa,  ca
@@ -721,7 +734,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,    -ca*sb,  sa*sb,
                  sb,     ca*cb, -cb*sa,
                  0.0,    sa,     ca
@@ -729,7 +742,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,    -sb,     0.0,
                  ca*sb,  ca*cb, -sa,
                  sa*sb,  cb*sa,  ca
@@ -737,7 +750,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,     ca*sb,  sa*sb,
                 -sb,     ca*cb,  cb*sa,
                  0.0,   -sa,     ca
@@ -755,7 +768,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cb,  ca*sb, -sa,
                 -sb,     cb,     0.0,
                  cb*sa,  sa*sb,  ca
@@ -763,7 +776,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cb, -sb,     cb*sa,
                  ca*sb,  cb,     sa*sb,
                 -sa,     0.0,    ca
@@ -771,7 +784,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cb, -ca*sb,  sa,
                  sb,     cb,     0.0,
                 -cb*sa,  sa*sb,  ca
@@ -779,7 +792,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cb,  sb,    -cb*sa,
                 -ca*sb,  cb,     sa*sb,
                  sa,     0.0,    ca
@@ -796,25 +809,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                sb*sg,            -cg*sb,
                  sa*sb,             ca*cg - cb*sa*sg,  ca*sg + cb*cg*sa,
                  ca*sb,            -cg*sa - ca*cb*sg, -sa*sg + ca*cb*cg 
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                sa*sb,             ca*sb,
                  sb*sg,             ca*cg - cb*sa*sg, -cg*sa - ca*cb*sg,
                 -cg*sb,             ca*sg + cb*cg*sa, -sa*sg + ca*cb*cg
             });
         else if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                sb*sg,             cg*sb,
                  sa*sb,             ca*cg - cb*sa*sg, -ca*sg - cb*cg*sa,
                 -ca*sb,             cg*sa + ca*cb*sg, -sa*sg + ca*cb*cg 
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                sa*sb,            -ca*sb,
                  sb*sg,             ca*cg - cb*sa*sg,  cg*sa + ca*cb*sg,
                  cg*sb,            -ca*sg - cb*cg*sa, -sa*sg + ca*cb*cg
@@ -831,25 +844,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                cg*sb,             sb*sg,
                 -ca*sb,            -sa*sg + ca*cb*cg,  cg*sa + ca*cb*sg,
                  sa*sb,            -ca*sg - cb*cg*sa,  ca*cg - cb*sa*sg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,               -ca*sb,             sa*sb,
                  cg*sb,            -sa*sg + ca*cb*cg, -ca*sg - cb*cg*sa,
                  sb*sg,             cg*sa + ca*cb*sg,  ca*cg - cb*sa*sg
             });
         if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,               -cg*sb,             sb*sg,
                  ca*sb,             ca*cb*cg - sa*sg, -cg*sa - ca*cb*sg,
                  sa*sb,             ca*sg + cb*cg*sa,  ca*cg - cb*sa*sg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb,                ca*sb,             sa*sb,
                 -cg*sb,             ca*cb*cg - sa*sg,  ca*sg + cb*cg*sa,
                  sb*sg,            -cg*sa - ca*cb*sg,  ca*cg - cb*sa*sg
@@ -866,25 +879,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  sa*sb,            -ca*sg - cb*cg*sa,
                  sb*sg,             cb,                cg*sb,
                  cg*sa + ca*cb*sg, -ca*sb,            -sa*sg + ca*cb*cg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  sb*sg,             cg*sa + ca*cb*sg,
                  sa*sb,             cb,               -ca*sb,
                 -ca*sg - cb*cg*sa,  cg*sb,            -sa*sg + ca*cb*cg
             });
         if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  sa*sb,             ca*sg + cb*cg*sa,
                  sb*sg,             cb,               -cg*sb,
                 -cg*sa - ca*cb*sg,  ca*sb,            -sa*sg + ca*cb*cg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  sb*sg,            -cg*sa - ca*cb*sg,
                  sa*sb,             cb,                ca*sb,
                  ca*sg + cb*cg*sa, -cg*sb,            -sa*sg + ca*cb*cg
@@ -901,25 +914,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg,  ca*sb,            -cg*sa - ca*cb*sg,
                 -cg*sb,             cb,                sb*sg,
                  ca*sg + cb*cg*sa,  sa*sb,             ca*cg - cb*sa*sg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg, -cg*sb,             ca*sg + cb*cg*sa,
                  ca*sb,             cb,                sa*sb,
                 -cg*sa - ca*cb*sg,  sb*sg,             ca*cg - cb*sa*sg
             });
         if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg, -ca*sb,             cg*sa + ca*cb*sg,
                  cg*sb,             cb,                sb*sg,
                 -ca*sg - cb*cg*sa,  sa*sb,             ca*cg - cb*sa*sg
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg,  cg*sb,            -ca*sg - cb*cg*sa,
                 -ca*sb,             cb,                sa*sb,
                  cg*sa + ca*cb*sg,  sb*sg,             ca*cg - cb*sa*sg
@@ -936,25 +949,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  ca*sg + cb*cg*sa,  sa*sb,
                 -cg*sa - ca*cb*sg, -sa*sg + ca*cb*cg,  ca*sb,
                  sb*sg,            -cg*sb,             cb
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg, -cg*sa - ca*cb*sg,  sb*sg,
                  ca*sg + cb*cg*sa, -sa*sg + ca*cb*cg, -cg*sb,
                  sa*sb,             ca*sb,             cb
             });
         if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg, -ca*sg - cb*cg*sa,  sa*sb,
                  cg*sa + ca*cb*sg, -sa*sg + ca*cb*cg, -ca*sb,
                  sb*sg,             cg*sb,             cb
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - cb*sa*sg,  cg*sa + ca*cb*sg,  sb*sg,
                 -ca*sg - cb*cg*sa, -sa*sg + ca*cb*cg,  cg*sb,
                  sa*sb,            -ca*sb,             cb
@@ -971,25 +984,25 @@ private:
         const T cg = std::cos(gamma);
         const T sg = std::sin(gamma);
         if constexpr (layout == MatrixLayout::row_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg,  cg*sa + ca*cb*sg, -ca*sb,
                 -ca*sg - cb*cg*sa,  ca*cg - cb*sa*sg,  sa*sb,
                  cg*sb,             sb*sg,             cb
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::passive)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg, -ca*sg - cb*cg*sa,  cg*sb,
                  cg*sa + ca*cb*sg,  ca*cg - cb*sa*sg,  sb*sg,
                 -ca*sb,             sa*sb,             cb
             });
         if constexpr (layout == MatrixLayout::row_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg, -cg*sa - ca*cb*sg,  ca*sb,
                  ca*sg + cb*cg*sa,  ca*cg - cb*sa*sg,  sa*sb,
                 -cg*sb,             sb*sg,             cb
             });
         else if constexpr (layout == MatrixLayout::column_major && action == Action::active)
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                 -sa*sg + ca*cb*cg,  ca*sg + cb*cg*sa, -cg*sb,
                 -cg*sa - ca*cb*sg,  ca*cg - cb*sa*sg,  sb*sg,
                  ca*sb,             sa*sb,             cb
@@ -1009,7 +1022,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,             cb*sg,            -sb,
                 -ca*sg + cg*sa*sb,  ca*cg + sa*sb*sg,  cb*sa,
                  sa*sg + ca*cg*sb, -cg*sa + ca*sb*sg,  ca*cb
@@ -1017,7 +1030,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,            -ca*sg + cg*sa*sb,  sa*sg + ca*cg*sb,
                  cb*sg,             ca*cg + sa*sb*sg, -cg*sa + ca*sb*sg,
                 -sb,                cb*sa,             ca*cb
@@ -1025,7 +1038,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,            -cb*sg,             sb,
                  ca*sg + cg*sa*sb,  ca*cg - sa*sb*sg, -cb*sa,
                  sa*sg - ca*cg*sb,  cg*sa + ca*sb*sg,  ca*cb
@@ -1033,7 +1046,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,             ca*sg + cg*sa*sb,  sa*sg - ca*cg*sb,
                 -cb*sg,             ca*cg - sa*sb*sg,  cg*sa + ca*sb*sg,
                  sb,               -cb*sa,             ca*cb
@@ -1053,7 +1066,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,             sb,               -cb*sg,
                  sa*sg - ca*cg*sb,  ca*cb,             cg*sa + ca*sb*sg,
                  ca*sg + cg*sa*sb, -cb*sa,             ca*cg - sa*sb*sg
@@ -1061,7 +1074,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,             sa*sg - ca*cg*sb,  ca*sg + cg*sa*sb,
                  sb,                ca*cb,            -cb*sa,
                 -cb*sg,             cg*sa + ca*sb*sg,  ca*cg - sa*sb*sg
@@ -1069,7 +1082,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,            -sb,                cb*sg,
                  sa*sg + ca*cg*sb,  ca*cb,            -cg*sa + ca*sb*sg,
                 -ca*sg + cg*sa*sb,  cb*sa,             ca*cg + sa*sb*sg
@@ -1077,7 +1090,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  cb*cg,             sa*sg + ca*cg*sb, -ca*sg + cg*sa*sb,
                 -sb,                ca*cb,             cb*sa,
                  cb*sg,            -cg*sa + ca*sb*sg,  ca*cg + sa*sb*sg
@@ -1097,7 +1110,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - sa*sb*sg,  ca*sg + cg*sa*sb, -cb*sa,
                 -cb*sg,             cb*cg,             sb,
                  cg*sa + ca*sb*sg,  sa*sg - ca*cg*sb,  ca*cb
@@ -1105,7 +1118,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::passive && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::active && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg - sa*sb*sg, -cb*sg,             cg*sa + ca*sb*sg,
                  ca*sg + cg*sa*sb,  cb*cg,             sa*sg - ca*cg*sb,
                 -cb*sa,             sb,                ca*cb
@@ -1113,7 +1126,7 @@ private:
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::column_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg + sa*sb*sg, -ca*sg + cg*sa*sb,  cb*sa,
                  cb*sg,             cb*cg,            -sb,
                 -cg*sa + ca*sb*sg,  sa*sg + ca*cg*sb,  ca*cb
@@ -1121,7 +1134,7 @@ private:
         else if constexpr (
                 (layout == MatrixLayout::column_major && action == Action::active && order == Order::keep)
                 || (layout == MatrixLayout::row_major && action == Action::passive && order == Order::reverse))
-            return RotationMatrix({
+            return RotationMatrix(std::array{
                  ca*cg + sa*sb*sg,  cb*sg,            -cg*sa + ca*sb*sg,
                 -ca*sg + cg*sa*sb,  cb*cg,             sa*sg + ca*cg*sb,
                  cb*sa,            -sb,                ca*cb
@@ -1178,12 +1191,14 @@ compose(
 }
 
 template <
-    static_vector_like V,
+    typename V,
     Action action = Action::passive,
-    MatrixLayout matrix_layout = MatrixLayout::column_major>
+    MatrixLayout matrix_layout = MatrixLayout::column_major
+>
+    requires static_vector_like<remove_unit<V>>
 using RotationMatrixFor
     = RotationMatrix<
-        typename remove_unit<V>::value_type, std::tuple_size_v<V>,
+        typename remove_unit<V>::value_type, std::tuple_size_v<remove_unit<V>>,
         action, matrix_layout
     >;
 

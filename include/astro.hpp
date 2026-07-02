@@ -293,7 +293,8 @@ struct OrbitalState
         const double sin_ea = std::sin(ea);
         const auto& [cos_ta, sin_ta] = true_anomaly_cossin(cos_ea, sin_ea);
         const auto speed = position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
-        return isq::velocity({-speed*sin_ta, speed*(position.eccentricity + cos_ta), 0.0});
+        const la::Vector direction = {-sin_ta, position.eccentricity + cos_ta, 0.0};
+        return isq::velocity(speed)*direction;
     }
 
     /**
@@ -422,7 +423,10 @@ struct KeplerOrbit
 };
 
 template <std::size_t N, std::size_t M>
-KeplerOrbit(Polynomial<double, N>, Polynomial<double, M>, double, double) -> KeplerOrbit<N, N>;
+KeplerOrbit(
+    Polynomial<double, N>, Polynomial<double, M>, quantity<isq::length[si::kilo<si::metre>]>,
+    quantity<mpu::one/isq::duration[si::day]>)
+-> KeplerOrbit<N, N>;
 
 /**
     @brief Orbit of a celestial body.
@@ -482,7 +486,7 @@ Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::DateTime) -> 
 struct OblateSpheroid
 {
     double flattening;
-    quantity<isq::length[si::kilo<si::metre>]> equatorial_radius;
+    quantity<isq::radius[si::kilo<si::metre>]> equatorial_radius;
 
     [[nodiscard]] constexpr bool operator==(const OblateSpheroid& other) const noexcept = default;
 };
@@ -512,15 +516,15 @@ struct PlanetaryBody
         where \f$a\f$ is the equatorial radius (semi-major axis) of the ellipse
         whose rotation about the axis of revolution generates the spheroid.
     */
-    [[nodiscard]] quantity<isq::velocity[si::kilo<si::metre>/si::second]>
+    [[nodiscard]] quantity<isq::speed[si::kilo<si::metre>/si::second]>
     surface_speed(double latitude) const noexcept
     {
         assert(-0.5*std::numbers::pi <= latitude && latitude <= 0.5*std::numbers::pi);
         const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
         const auto pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
-        const auto equatorial_speed = isq::angular_velocity(rotation_angle.derivative()(0.0)*mpu::one/si::day).in(mpu::one/si::second);
-        return equatorial_speed*pvroc*std::cos(latitude);
+        const auto angular_speed = isq::angular_frequency(rotation_angle.derivative()(0.0)*mpu::one/si::day).in(mpu::one/si::second);
+        return quantity_cast<isq::speed>(angular_speed*pvroc*std::cos(latitude));
 
     }
 };
@@ -628,15 +632,15 @@ static constexpr Planet earth = {
                 1.7534704594962450e+00,  6.2830758499914170e+03,
                -9.9101249369281360e-06, -2.5355755522028735e-08
             },
-            .semi_major_axis = 1.495980229607128e+08*si::kilo<si::metre>,
-            .mean_motion = 1.720212416151879e-02*mpu::one/si::day
+            .semi_major_axis = isq::length(1.495980229607128e+08*si::kilo<si::metre>),
+            .mean_motion = 1.720212416151879e-02/isq::duration[si::day]
         },
         .epoch = time::j2000_utc
     },
     .body = PlanetaryBody{
         .spheroid = OblateSpheroid{
             .flattening = 3.352819697896193e-03,
-            .equatorial_radius = 6.3781366e+03*si::kilo<si::metre>,
+            .equatorial_radius = isq::radius(6.3781366e+03*si::kilo<si::metre>),
         },
         .rotation_angle = Polynomial{4.894961212823756, 0.01720217957524373}
     }

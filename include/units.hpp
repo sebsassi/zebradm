@@ -22,18 +22,20 @@ SOFTWARE.
 #pragma once
 
 #include <array>
-#include <mp-units/framework.h>
 #include <utility>
 
 #include "mp-units/systems/isq.h"
 #include "mp-units/systems/si.h"
 #include "mp-units/systems/astronomy.h"
 
+#include "concepts.hpp"
+
 namespace zdm
 {
 
 namespace mpu = mp_units;
 using mp_units::quantity;
+using mp_units::QuantityOf;
 namespace isq = mp_units::isq;
 namespace si = mp_units::si;
 namespace ast = mp_units::astronomy;
@@ -46,7 +48,7 @@ template <std::size_t... Inds, mpu::Quantity Q>
     requires
         requires (typename Q::rep v) { v.template swizzle<Inds...>(); }
         || requires (typename Q::rep v) { swizzle<Inds...>(v); }
-[[nodiscard]] constexpr mpu::Quantity auto swizzle(Q q) noexcept
+[[nodiscard]] constexpr mpu::Quantity auto swizzle(const Q& q) noexcept
 {
     if constexpr (requires (typename Q::rep v) { v.template swizzle<Inds...>(); })
         return (q.numerical_value_in(Q::unit).template swizzle<Inds...>())*Q::reference;
@@ -54,23 +56,50 @@ template <std::size_t... Inds, mpu::Quantity Q>
         return swizzle<Inds...>(q.numerical_value_in(Q::unit))*Q::reference;
 }
 
-template <mpu::Quantity Q1, mpu::Quantity Q2>
-    requires requires (typename Q1::rep v1, typename Q2::rep v2) { dot(v1, v2); }
-[[nodiscard]] constexpr mpu::Quantity auto dot(Q1 q1, Q2 q2) noexcept
+template <typename Q1, typename Q2>
+    requires static_vector_like<remove_unit<Q1>> && static_vector_like<remove_unit<Q2>>
+        && (mpu::Quantity<Q1> || mpu::Quantity<Q2>)
+[[nodiscard]] constexpr mpu::Quantity auto dot(const Q1& q1, const Q2& q2) noexcept
 {
-    return dot(q1.numerical_value_in(Q1::unit), q2.numerical_value_in(Q2::unit))*Q1::unit*Q2::unit;
+    if constexpr (mpu::Quantity<Q1> && mpu::Quantity<Q2>)
+        return dot(q1.numerical_value_in(Q1::unit), q2.numerical_value_in(Q2::unit))*Q1::unit*Q2::unit;
+    else if constexpr (mpu::Quantity<Q1>)
+        return dot(q1, q2.numerical_value_in(Q2::unit))*Q2::unit;
+    else
+        return dot(q1.numerical_value_in(Q1::unit), q2)*Q1::unit;
 }
 
 template <mpu::Quantity Q>
-    requires
-        requires (typename Q::rep v) { v.normalize(); }
-        || requires (typename Q::rep v) { normalize(v); }
-[[nodiscard]] constexpr mpu::Quantity auto normalize(Q q)
+    requires static_vector_like<remove_unit<Q>>
+[[nodiscard]] constexpr mpu::Quantity auto normalize(const Q& q) noexcept
 {
     if constexpr (requires (typename Q::rep v) { v.swizzle(); })
         return (q.numerical_value_in(Q::unit).normalize())*Q::reference;
     else
         return normalize(q.numerical_value_in(Q::unit))*Q::reference;
+}
+
+template <typename Q1, mpu::Quantity Q2>
+    requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
+[[nodiscard]] constexpr mpu::Quantity auto matmul(const Q1& q1, const Q2& q2) noexcept
+{
+    return q1*q2;
+}
+
+// NOTE: disabled until mp-units supports rank-2 tensors
+//
+// template <mpu::Quantity Q>
+//     requires static_matrix_like<remove_unit<Q>>
+// [[nodiscard]] constexpr mpu::Quantity auto transpose(const Q& q) noexcept
+// {
+//     return transpose(q.numerical_value_in(Q::unit))*Q::reference;
+// }
+
+template <typename Q1, mpu::Quantity Q2>
+    requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
+[[nodiscard]] constexpr mpu::Quantity auto quadratic_form(const Q1& q1, const Q2& q2)
+{
+    return dot(q2, matmul(q1, q2));
 }
 
 } // namespace la

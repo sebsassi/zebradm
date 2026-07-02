@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2024-2025 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -34,68 +34,6 @@ enum class Axis { x, y, z };
 
 namespace la
 {
-
-/**
-    @brief Concept defining a static matrix-like type.
-
-    A matrix-like object 'm' of type `T` has an arithemtic value type, and
-    implements a two-dimensional subscript operator `m[i,j]`, where `i` and `j`
-    are indices whose type is `T::size_type`. The subscripting should return
-    `T::reference`. In addition, for the object to be static, its shape must be
-    known at compile time, such that there is an array-like `static constexpr`
-    member `T::shape`, whose members have type `T::size_type`.
-*/
-template <typename T>
-concept static_matrix_like = requires (T& matrix, typename T::size_type i, T::size_type j)
-    {
-        typename T::transpose_type;
-        { matrix[i, j] } -> std::same_as<typename T::reference>;
-    };
-
-template <typename T>
-inline constexpr std::size_t tensor_rank = []{ throw "no specialization for tensor_rank"; return 0; }();
-
-template <typename T, std::size_t I>
-inline constexpr std::size_t tensor_extent = []{ throw "no specialization for tensor_extent"; return 0; }();
-
-template <static_matrix_like T>
-inline constexpr std::size_t tensor_rank<T> = 2;
-
-template <static_matrix_like T, std::size_t I>
-    requires (I < tensor_rank<T>) && std::unsigned_integral<decltype(T::template extent<I>)>
-inline constexpr std::size_t tensor_extent<T, I> = T::template extent<I>;
-
-/**
-    @brief Concept defining a static square-matrix-like object.
-
-    A static square matrix-like object is a static matrix-like object whose
-    shape has the same value in both dimensions.
-*/
-template <typename T>
-concept static_square_matrix_like = static_matrix_like<T> && (tensor_extent<T, 0> == tensor_extent<T, 1>);
-
-/**
-    @brief Concept defining a static vector-like type.
-
-    A vector like object `v` of type `T` has an arithmetic value type and
-    implements a subscript operator `v[i]`, which takes in an index of type
-    `T::size_type` and returns `T::reference`. In addition, it is static if it
-    has a specialization for `std::tuple_size`.
-*/
-template <typename T>
-concept static_vector_like = conventional_arithmetic<typename T::value_type>
-    && std::same_as<std::remove_const_t<decltype(std::tuple_size_v<T>)>, typename T::size_type>
-    && requires (T vector, typename T::size_type i)
-    {
-        { vector[i] } -> std::same_as<typename T::reference>;
-    };
-
-template <static_vector_like T>
-inline constexpr std::size_t tensor_rank<T> = 1;
-
-template <static_vector_like T, std::size_t I>
-    requires (I < tensor_rank<T>)
-inline constexpr std::size_t tensor_extent<T, I> = std::tuple_size_v<T>;
 
 namespace detail
 {
@@ -771,13 +709,11 @@ transpose(const static_matrix_like auto& matrix) noexcept
     Given a vector \f$\vec{a}\f$ this function computes the normalized vector
     \f$\hat{n} = \vec{a}/|\vec{a}|\f$.
 */
-template <static_vector_like T>
-    requires std::floating_point<typename T::value_type>
-[[nodiscard]] inline T normalize(const static_vector_like auto& a) noexcept
+[[nodiscard]] inline auto normalize(const static_vector_like auto& a) noexcept
     requires requires { norm(a); }
 {
-    const typename T::value_type a_norm = norm(a);
-    if (a_norm == typename T::value_type{}) return T{};
+    const auto a_norm = norm(a);
+    if (a_norm == decltype(a_norm){}) return decltype(a){};
 
     return (1.0/a_norm)*a;
 }

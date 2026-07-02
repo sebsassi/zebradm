@@ -162,9 +162,9 @@ bool test_eccentric_anomaly_is_mean_anomaly_for_zero_eccentricity(
         },
         .position = {
             .eccentricity = 0.0,
-            .semi_major_axis = 0.0,
+            .semi_major_axis = zdm::isq::length(0.0*zdm::si::kilo<zdm::si::metre>),
             .mean_longitude = mean_longitude,
-            .mean_motion = 0.0
+            .mean_motion = 0.0/zdm::isq::duration[zdm::si::day]
         }
     };
 
@@ -186,9 +186,9 @@ bool test_keplers_equation_holds_for_eccentric_anomaly(
         },
         .position = {
             .eccentricity = eccentricity,
-            .semi_major_axis = 0.0,
+            .semi_major_axis = zdm::isq::length(0.0*zdm::si::kilo<zdm::si::metre>),
             .mean_longitude = mean_longitude,
-            .mean_motion = 0.0,
+            .mean_motion = 0.0/zdm::isq::duration[zdm::si::day],
         }
     };
     const double ea = state.eccentric_anomaly();
@@ -203,23 +203,23 @@ bool test_planet_surface_speed_at_north_pole_is_zero(double angular_speed, doubl
     const zdm::astro::PlanetaryBody body = {
         .spheroid = {
             .flattening = 1.4,
-            .equatorial_radius = 1.0
+            .equatorial_radius = zdm::isq::radius(1.0*zdm::si::kilo<zdm::si::metre>)
         },
         .rotation_angle = {0.0, angular_speed}
     };
 
-    return is_close(0.0, body.surface_speed(0.5*std::numbers::pi), error);
+    return is_close(0.0, body.surface_speed(0.5*std::numbers::pi).numerical_value_in(zdm::si::kilo<zdm::si::metre>/zdm::si::second), error);
 }
 
 bool test_earth_orbital_speed_is_approximately_correct(double days_since_j2000)
 {
     constexpr double safety_margin = 1.001;
     constexpr double e = zdm::astro::earth.orbit.orbit.eccentricity(0.0);
-    const double mean_speed = 29.7827;
-    const double min_speed = mean_speed*std::sqrt((1 - e)/(1 + e))/safety_margin;
-    const double max_speed = mean_speed*std::sqrt((1 + e)/(1 - e))*safety_margin;
-    const zdm::la::Vector<double, 3> velocity = zdm::astro::earth.orbit(days_since_j2000).orbital_plane_velocity();
-    const double speed = zdm::la::norm(velocity);
+    const zdm::quantity mean_speed = 29.7827*zdm::isq::speed[zdm::si::kilo<zdm::si::metre>/zdm::si::second];
+    const zdm::quantity min_speed = mean_speed*std::sqrt((1 - e)/(1 + e))/safety_margin;
+    const zdm::quantity max_speed = mean_speed*std::sqrt((1 + e)/(1 - e))*safety_margin;
+    const zdm::quantity velocity = zdm::astro::earth.orbit(zdm::isq::duration(days_since_j2000*zdm::si::day)).orbital_plane_velocity();
+    const zdm::quantity speed = zdm::mpu::magnitude(velocity);
     return min_speed < speed && speed < max_speed;
 }
 

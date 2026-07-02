@@ -104,6 +104,53 @@ concept conventional_arithmetic = requires (T x, T y)
     { x /= y } -> std::same_as<std::remove_cvref_t<T>&>;
 };
 
+namespace la
+{
+
+template <typename T>
+inline constexpr std::size_t tensor_rank = []{ throw "no specialization for tensor_rank"; return 0; }();
+
+template <typename T, std::size_t I>
+inline constexpr std::size_t tensor_extent = []{ throw "no specialization for tensor_extent"; return 0; }();
+
+/**
+    @brief Concept defining a static matrix-like type.
+*/
+template <typename T>
+concept static_matrix_like
+    = requires (T& matrix, typename T::size_type i, T::size_type j) { matrix[i, j]; };
+
+/**
+    @brief Concept defining a static square-matrix-like object.
+
+    A static square matrix-like object is a static matrix-like object whose
+    shape has the same value in both dimensions.
+*/
+template <typename T>
+concept static_square_matrix_like = static_matrix_like<T> && (tensor_extent<T, 0> == tensor_extent<T, 1>);
+
+template <static_matrix_like T>
+inline constexpr std::size_t tensor_rank<T> = 2;
+
+template <static_matrix_like T, std::size_t I>
+    requires (I < tensor_rank<T>) && std::unsigned_integral<decltype(T::template extent<I>)>
+inline constexpr std::size_t tensor_extent<T, I> = T::template extent<I>;
+
+/**
+    @brief Concept defining a static vector-like type.
+*/
+template <typename T>
+concept static_vector_like = requires (T vector, typename T::size_type i) { vector[i]; };
+
+template <static_vector_like T>
+inline constexpr std::size_t tensor_rank<T> = 1;
+
+template <static_vector_like T, std::size_t I>
+    requires (I < tensor_rank<T>)
+inline constexpr std::size_t tensor_extent<T, I> = std::tuple_size_v<T>;
+
+} // namespace la
+
 namespace detail
 {
 

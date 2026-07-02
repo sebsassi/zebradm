@@ -31,7 +31,8 @@ SOFTWARE.
 namespace zdm::la
 {
 
-template <static_vector_like VectorType, Action action_param = Action::passive>
+template <typename VectorType, Action action_param = Action::passive>
+    requires static_vector_like<remove_unit<VectorType>>
 class Translation
 {
 public:
@@ -112,7 +113,7 @@ public:
     template <MatrixLayout layout>
     [[nodiscard]] friend constexpr Translation
     operator*(
-        const RotationMatrix<value_type, std::tuple_size_v<vector_type>, action, layout>& a,
+        const RotationMatrixFor<VectorType, action, layout>& a,
         const Translation& b) noexcept
     {
         return Translation{a*b.m_translation};

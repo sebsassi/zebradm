@@ -88,7 +88,11 @@ struct Matrix
     static constexpr MatrixLayout layout = layout_param;
     static constexpr std::array<size_type, 2> shape = {N, M};
 
-    std::array<T, N*M> array;
+    template <std::size_t I>
+        requires (I < 2)
+    static constexpr size_type extent = shape[I];
+
+    std::array<value_type, N*M> array;
 
     /**
         @brief Create an identity matrix.
@@ -112,7 +116,7 @@ struct Matrix
         @return Array with \f$NM\f$ elements.
     */
     [[nodiscard]] explicit constexpr 
-    operator std::array<T, N*M>() const noexcept { return array; }
+    operator std::array<value_type, N*M>() const noexcept { return array; }
 
     [[nodiscard]] constexpr bool operator==(const Matrix& other) const noexcept = default;
 
@@ -140,10 +144,10 @@ struct Matrix
         @brief Matrix-matrix multiplication.
     */
     template <std::size_t K>
-    [[nodiscard]] constexpr Matrix<T, N, K, action, layout>
-    operator*(const Matrix<T, M, K, action, layout>& other) const noexcept
+    [[nodiscard]] constexpr Matrix<value_type, N, K, action, layout>
+    operator*(const Matrix<value_type, M, K, action, layout>& other) const noexcept
     {
-        Matrix<T, N, K, action, layout> res{};
+        Matrix<value_type, N, K, action, layout> res{};
         for (std::size_t i = 0; i < N; ++i)
         {
             for (std::size_t j = 0; j < K; ++j)
@@ -160,9 +164,8 @@ struct Matrix
     /**
         @brief Matrix-vector multiplication.
     */
-    template <static_vector_like V>
-    [[nodiscard]] constexpr Vector<T, N>
-    operator*(const V& vector) const noexcept
+    [[nodiscard]] constexpr Vector<value_type, N>
+    operator*(const static_vector_like auto& vector) const noexcept
     {
         Vector<T, shape[0]> res{};
         for (std::size_t i = 0; i < shape[0]; ++i)
@@ -174,84 +177,29 @@ struct Matrix
         return res;
     }
 
-    [[nodiscard]] constexpr Matrix
+    [[nodiscard]] constexpr transpose_type
     transpose() const noexcept
     {
         transpose_type res{};
-        for (std::size_t i = 0; i < T::shape[0]; ++i)
+        for (std::size_t i = 0; i < shape[0]; ++i)
         {
-            for (std::size_t j = 0; j < T::shape[1]; ++j)
+            for (std::size_t j = 0; j < shape[1]; ++j)
                 res[j, i] = (*this)[i, j];
         }
         return res;
     }
+
+    [[nodiscard]] constexpr value_type
+    norm() const noexcept
+    {
+        return Vector<value_type, N*M>{array}.norm();
+    }
+
+    [[nodiscard]] constexpr value_type
+    magnitude() const noexcept
+    {
+        return norm();
+    }
 };
-
-/**
-    @brief Multiply a vector by a non-square matrix.
-
-    @tparam T Matrix type.
-    @tparam U Vector type.
-
-    @param mat Matrix.
-    @param vec Vector.
-
-    @return Product vector.
-
-    This function returns the product \f$\vec{b} = M\vec{a}\f$.
-
-    @note Given a non-square matrix and an arbitrary vector type, there is no
-    natural corresponding return vector type. Therefore this returns a `Vector`.
-*/
-template <static_matrix_like T, static_vector_like U>
-    requires std::same_as<typename T::value_type, typename U::value_type>
-        && (T::shape[0] != T::shape[1]) && (T::shape[1] == std::tuple_size_v<U>)
-[[nodiscard]] constexpr Vector<typename U::value_type, T::shape[0]>
-matmul(const T& mat, const U& vec) noexcept
-{
-    Vector<typename U::value_type, T::shape[0]> res{};
-    for (std::size_t i = 0; i < T::shape[0]; ++i)
-    {
-        for (std::size_t j = 0; j < T::shape[1]; ++j)
-            res[i] += mat[i, j]*vec[j];
-    }
-
-    return res;
-}
-
-/**
-    @brief Multiply two non-square matrices.
-
-    @tparam T Matrix type.
-    @tparam U Matrix type.
-
-    @param a
-    @param b
-
-    @return Matrix product.
-
-    This function returns the product \f$M = M_1M_2\f$.
-
-    @note Given two non-square matrix types, there is no natural corresponding
-    return matrix type. Therefore this returns a `Matrix`.
-*/
-template <static_matrix_like T, static_matrix_like U>
-    requires std::same_as<typename T::value_type, typename U::value_type>
-        && (T::shape[1] == U::shape[0])
-[[nodiscard]] constexpr Matrix<typename T::value_type, T::shape[0], U::shape[1], T::action, T::layout>
-matmul(const T& a, const U& b) noexcept
-{
-    Matrix<typename T::value_type, T::shape[0], U::shape[1], T::action, T::layout> res{};
-    for (std::size_t i = 0; i < T::shape[0]; ++i)
-    {
-        for (std::size_t j = 0; j < U::shape[1]; ++j)
-        {
-            for (std::size_t k = 0; k < T::shape[1]; ++k)
-                res[i, j] += a[i, k]*b[k, j];
-        }
-    }
-
-    return res;
-}
 
 } // namespace zdm::la

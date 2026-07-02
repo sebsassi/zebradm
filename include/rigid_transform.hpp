@@ -521,4 +521,4 @@ compose(
     return RigidTransform<VectorType, action, matrix_layout>::template from<chaining>(translation, rotation);
 }
 
-} // namspace zdm::la
+} // namespace zdm::la
