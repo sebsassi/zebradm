@@ -32,8 +32,8 @@ SOFTWARE.
 namespace zdm::celestial
 {
 
-template <typename T, typename ValueType, typename TransformType>
-concept parametric_transform_on = requires (T x, ValueType t)
+template <typename T, typename ParameterType, typename TransformType>
+concept parametric_transform = requires (T x, ParameterType t)
     {
         { x(t) } -> std::same_as<TransformType>;
     };
@@ -41,8 +41,8 @@ concept parametric_transform_on = requires (T x, ValueType t)
 namespace detail
 {
 
-template <typename T, typename ValueType, typename... TransformTypes>
-concept parametric_transform_on_one_of = (parametric_transform_on<T, ValueType, TransformTypes> || ...);
+template <typename T, typename ParameterType, typename... TransformTypes>
+concept parametric_transform_on_one_of = (parametric_transform<T, ParameterType, TransformTypes> || ...);
 
 template <typename T>
 concept zdm_rigid_transform
@@ -67,14 +67,17 @@ concept zdm_rigid_transform
         - `RigidTransformType::translation_type`, or
         - `la::Identity`.
 */
-template <typename T>
-concept parametric_rigid_transform
+template <typename T, typename ParameterType>
+concept parametric_rigid_transform_of
     = detail::zdm_rigid_transform<typename T::rigid_transform_type>
-    || detail::parametric_transform_on_one_of<T, typename T::rigid_transform_type::value_type,
+    || detail::parametric_transform_on_one_of<T, typename T::parameter_type,
         typename T::rigid_transform_type,
         typename T::rigid_transform_type::rotation_matrix_type,
         typename T::rigid_transform_type::translation_type,
         la::Identity>;
+
+template <typename T>
+concept parametric_rigid_transform = parametric_rigid_transform_of<T, typename T::parameter_type>;
 
 /**
     @brief Checks if type represents a celestial coordinate transform.
@@ -91,7 +94,8 @@ concept parametric_rigid_transform
 */
 template <typename T>
 concept celestial_coordinate_transform
-    = parametric_rigid_transform<T>
+    = QuantityOf<typename T::parameter_type, duration>
+    && parametric_rigid_transform_of<T, typename T::parameter_type>
     && std::same_as<typename T::rigid_transform_type::value_type, double>
     && (std::tuple_size_v<typename T::rigid_transform_type::vector_type> == 3);
 
@@ -155,8 +159,9 @@ enum class CSTag
 */
 template <
     la::Chaining chaining,
+    typename ParameterType,
     typename RigidTransformType,
-    parametric_rigid_transform... Types
+    parametric_rigid_transform_of<ParameterType>... Types
 >
     requires (sizeof...(Types) > 0)
         && (std::same_as<RigidTransformType, typename Types::rigid_transform_type> && ...)
@@ -164,6 +169,7 @@ class Composite
 {
 public:
     using rigid_transform_type = RigidTransformType;
+    using parameter_type = ParameterType;
 
     Composite(const Types&... transforms): m_transforms(transforms...) {}
 
@@ -177,12 +183,14 @@ public:
         @return Rigid transform at the given parameter value.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(const rigid_transform_type::value_type& parameter) const noexcept
+    operator()(const std::convertible_to<parameter_type> auto& parameter) const noexcept
     {
         return [&]<std::size_t... I>(std::index_sequence<I...>)
         {
             auto res = rigid_transform_type(std::get<0>(m_transforms)(parameter));
-            ([&](){ res = la::compose<chaining>(res, std::get<I + 1>(m_transforms)(parameter)); }(),...);
+            ([&](){
+                res = la::compose<chaining>(res, std::get<I + 1>(m_transforms)(parameter));
+            }(),...);
             return res;
         }(std::make_index_sequence<sizeof...(Types) - 1>());
     }
@@ -207,6 +215,7 @@ class Inverse
 {
 public:
     using rigid_transform_type = typename U::rigid_transform_type;
+    using parameter_type = typename U::parameter_type;
 
     template <typename... Args>
     Inverse(Args&&... args): m_transform(std::forward<Args>(args)...) {}
@@ -214,7 +223,7 @@ public:
     [[nodiscard]] constexpr bool operator==(const Inverse& other) const noexcept = default;
 
     [[nodiscard]] rigid_transform_type
-    operator()(const rigid_transform_type::value_type parameter) const noexcept
+    operator()(const std::convertible_to<parameter_type> auto& parameter) const noexcept
     {
         return m_transform(parameter).inverse();
     }
@@ -235,17 +244,17 @@ class GCStoICRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
-    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoICRS(
-        Speed circular_speed,
-        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
+        QuantityOf<speed> auto circular_speed,
+        const QuantityOf<velocity> auto& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
         m_transform(rigid_transform_type::from<la::Chaining::intrinsic>(
-            peculiar_velocity + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*Speed::unit,
+            peculiar_velocity + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*velocity_type::unit,
             orientation.gcs_to_reference_cs())) {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
@@ -262,9 +271,11 @@ public:
         This call operator just returns the same `RigidTransform` as the one
         that takes no parameters.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr rigid_transform_type
-    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return m_transform; }
+    operator()([[maybe_unused]] QuantityOf<isq::duration> auto time_since_j2000) const noexcept
+    {
+        return m_transform;
+    }
 
     /**
         @brief Call operator of the constant transform.
@@ -313,9 +324,10 @@ class ECStoICRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr ECStoICRS() = default;
 
@@ -333,9 +345,11 @@ public:
         This call operator just returns the same `RigidTransform` as the one
         that takes no parameters.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] constexpr la::RotationMatrix<double, 3>
-    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return s_transform; }
+    operator()([[maybe_unused]] QuantityOf<duration> auto time_since_j2000) const noexcept
+    {
+        return s_transform;
+    }
 
     /**
         @brief Call operator of the constant transform.
@@ -374,9 +388,10 @@ class ICRStoGCRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr ICRStoGCRS() = default;
 
@@ -389,9 +404,8 @@ public:
 
         @return ICRS to GCRS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::Translation<velocity_type>
-    operator()(Duration time_since_j2000) const noexcept
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         const auto earth_velocity
             = astro::earth.orbit(time_since_j2000).reference_cs_velocity();
@@ -416,9 +430,10 @@ class GCRStoCIRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr GCRStoCIRS() = default;
 
@@ -431,9 +446,8 @@ public:
 
         @return GCRS to CIRS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RotationMatrix<double, 3>
-    operator()(Duration time_since_j2000) const noexcept
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         const double centuries_since_j2000 = time_since_j2000.numerical_value_in(ast::century);
         const double cip_x = astro::cip[0](centuries_since_j2000);
@@ -460,9 +474,10 @@ class CIRStoTIRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr CIRStoTIRS() = default;
 
@@ -475,12 +490,14 @@ public:
 
         @return CIRS to TIRS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] la::RotationMatrix<double, 3>
-    operator()(Duration time_since_j2000) const noexcept
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
-        const double day_fraction = time_since_j2000.numerical_value_in(si::day) - std::floor(time_since_j2000.numerical_value_in(si::day));
-        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(astro::earth.body.rotation_angle(day_fraction));
+        const double day_fraction
+            = time_since_j2000.numerical_value_in(day)
+                - std::floor(time_since_j2000.numerical_value_in(day));
+        return la::RotationMatrix<double, 3>::coordinate_axis<Axis::z>(
+                astro::earth.body.rotation_angle(day_fraction));
     }
 };
 
@@ -502,9 +519,10 @@ class TIRStoITRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr TIRStoITRS() = default;
 
@@ -513,8 +531,11 @@ public:
     /**
         @brief A void returning call operator that does nothing.
     */
-    template <QuantityOf<isq::duration> Duration>
-    constexpr la::Identity operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return {}; }
+    [[nodiscard]] constexpr la::Identity
+    operator()([[maybe_unused]] QuantityOf<duration> auto time_since_j2000) const noexcept
+    {
+        return {};
+    }
 };
 
 /**
@@ -530,9 +551,10 @@ class ITRStoHCS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     constexpr ITRStoHCS() = default;
     constexpr ITRStoHCS(double longitude, double latitude):
@@ -547,9 +569,11 @@ public:
 
         @return ITRS to HCS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] rigid_transform_type
-    operator()([[maybe_unused]] Duration time_since_j2000) const noexcept { return m_transform; }
+    operator()([[maybe_unused]] QuantityOf<duration> auto time_since_j2000) const noexcept
+    {
+        return m_transform;
+    }
 
     /**
         @brief Call operator of the constant transform.
@@ -570,9 +594,10 @@ private:
             = la::RotationMatrix<double, 3>
                 ::composite_axes<Axis::z, Axis::y, chaining>(z_angle, y_angle);
 
+        const quantity surface_speed = astro::earth.body.surface_speed(latitude);
+        const double surface_speed_value = surface_speed.numerical_value_in(decltype(surface_speed)::unit);
         const quantity translation
-            = mpu::quantity_cast<isq::velocity>(
-                    astro::earth.body.surface_speed(latitude)*la::Vector{0.0, 1.0, 0.0});
+            = la::Vector{0.0, surface_speed_value, 0.0}*velocity[decltype(surface_speed)::unit];
 
         return rigid_transform_type::from<chaining>(rotation, translation);
     }
@@ -592,16 +617,18 @@ class GCStoHCS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
-    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoHCS(
         double longitude, double latitude,
-        Speed circular_speed,
-        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
-        const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
+        QuantityOf<speed> auto circular_speed,
+        const QuantityOf<velocity> auto& peculiar_velocity
+            = astro::peculiar_velocity_sbd_2010,
+        const astro::GalacticOrientation& galactic_orientation
+            = astro::orientation_km_2017):
         m_transform(
             GCStoICRS(circular_speed, peculiar_velocity, galactic_orientation),
             ICRStoGCRS(),
@@ -619,12 +646,11 @@ public:
 
         @return GCS to HCS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] rigid_transform_type
-    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000) { return m_transform(time_since_j2000); }
 
 private:
-    Composite<la::Chaining::intrinsic, rigid_transform_type,
+    Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS,
@@ -647,15 +673,17 @@ class GCStoCIRS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
-    template <QuantityOf<isq::speed> Speed, QuantityOf<isq::velocity> Velocity>
     GCStoCIRS(
-        Speed circular_speed,
-        const Velocity& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
-        const astro::GalacticOrientation& galactic_orientation = astro::orientation_km_2017):
+        QuantityOf<isq::speed> auto circular_speed,
+        const QuantityOf<isq::velocity> auto& peculiar_velocity
+            = astro::peculiar_velocity_sbd_2010,
+        const astro::GalacticOrientation& galactic_orientation
+            = astro::orientation_km_2017):
         m_transform(
             GCStoICRS(circular_speed, peculiar_velocity, galactic_orientation),
             ICRStoGCRS(),
@@ -670,12 +698,14 @@ public:
 
         @return GCS to CIRS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] rigid_transform_type
-    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000)
+    {
+        return m_transform(time_since_j2000);
+    }
 
 private:
-    Composite<la::Chaining::intrinsic, rigid_transform_type,
+    Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,
         GCStoICRS,
         ICRStoGCRS,
         GCRStoCIRS
@@ -696,9 +726,10 @@ class CIRStoHCS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     CIRStoHCS(double longitude, double latitude):
         m_transform(
@@ -715,12 +746,14 @@ public:
 
         @return CIRS to HCS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] rigid_transform_type
-    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000)
+    {
+        return m_transform(time_since_j2000);
+    }
 
 private:
-    Composite<la::Chaining::intrinsic, rigid_transform_type,
+    Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,
         CIRStoTIRS,
         TIRStoITRS,
         ITRStoHCS
@@ -741,9 +774,10 @@ class TIRStoHCS
 public:
     using velocity_type
         = quantity<
-            isq::velocity[si::kilo<si::metre>/si::second],
+            velocity[si::kilo<meter>/second],
             la::Vector<double, 3>>;
     using rigid_transform_type = la::RigidTransform<velocity_type>;
+    using parameter_type = quantity<duration[day]>;
 
     TIRStoHCS(double longitude, double latitude):
         m_transform(
@@ -759,12 +793,14 @@ public:
 
         @return TIRS to HCS transform at the given time.
     */
-    template <QuantityOf<isq::duration> Duration>
     [[nodiscard]] rigid_transform_type
-    operator()(Duration time_since_j2000) { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000)
+    {
+        return m_transform(time_since_j2000);
+    }
 
 private:
-    Composite<la::Chaining::intrinsic, rigid_transform_type,
+    Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,
         TIRStoITRS,
         ITRStoHCS
     > m_transform;
@@ -785,10 +821,10 @@ private:
     velocity of the source coordinate system in the destination coordinate
     system.
 */
-QuantityOf<isq::velocity> auto transform_velocity(
+QuantityOf<velocity> auto transform_velocity(
     const celestial_coordinate_transform auto& transform,
-    const QuantityOf<isq::duration> auto& time_since_j2000,
-    const QuantityOf<isq::velocity> auto& velocity)
+    const QuantityOf<duration> auto& time_since_j2000,
+    const QuantityOf<velocity> auto& velocity)
 {
     return transform(time_since_j2000)(velocity);
 }
@@ -808,9 +844,9 @@ QuantityOf<isq::velocity> auto transform_velocity(
     velocity of the source coordinate system in the destination coordinate
     system.
 */
-QuantityOf<isq::velocity> auto transform_velocity(
+QuantityOf<velocity> auto transform_velocity(
     const celestial_coordinate_transform auto& transform,
-    const QuantityOf<isq::duration> auto& time_since_j2000)
+    const QuantityOf<duration> auto& time_since_j2000)
 {
     return transform(time_since_j2000).translation()();
 }

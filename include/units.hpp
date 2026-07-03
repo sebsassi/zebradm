@@ -27,6 +27,7 @@ SOFTWARE.
 #include "mp-units/systems/isq.h"
 #include "mp-units/systems/si.h"
 #include "mp-units/systems/astronomy.h"
+#include "mp-units/systems/hep.h"
 
 #include "concepts.hpp"
 
@@ -36,19 +37,46 @@ namespace zdm
 namespace mpu = mp_units;
 using mp_units::quantity;
 using mp_units::QuantityOf;
+using mp_units::Quantity;
+using namespace mp_units::hep;
+
 namespace isq = mp_units::isq;
 namespace si = mp_units::si;
 namespace ast = mp_units::astronomy;
+namespace hep = mp_units::hep;
+
+// Extra time units that are not defined by mp_units::hep
+inline constexpr struct minute: mpu::named_unit<"min", mpu::mag<60>*second> {} minute;
+inline constexpr struct hour: mpu::named_unit<"h", mpu::mag<60>*minute> {} hour;
+inline constexpr struct day: mpu::named_unit<"D", mpu::mag<24>*hour> {} day;
+inline constexpr struct Julian_year: mpu::named_unit<"a", mpu::mag_ratio<36'525, 100>*day> {} Julian_year;
+inline constexpr struct century: mpu::named_unit<"c", mpu::mag<100>*Julian_year> {} century;
+inline constexpr struct millennium: mpu::named_unit<"ka", mpu::mag<1000>*Julian_year> {} millennium;
+
+inline constexpr struct dalton:
+    mpu::named_unit<"Da", mpu::mag_ratio<16'605'390'666'050, 10'000'000'000'000>*mpu::mag_power<10, -27>*si::kilo<gram>>
+{} dalton;
+
+namespace unit_symbols
+{
+
+constexpr auto min = minute;
+constexpr auto h = hour;
+constexpr auto d = day;
+constexpr auto a = Julian_year;
+constexpr auto ka = millennium;
+
+} // namespace unit_symbols
 
 // Linear algebra operations on vectors and matrices with units.
 namespace la
 {
 
-template <std::size_t... Inds, mpu::Quantity Q>
+template <std::size_t... Inds, Quantity Q>
     requires
         requires (typename Q::rep v) { v.template swizzle<Inds...>(); }
         || requires (typename Q::rep v) { swizzle<Inds...>(v); }
-[[nodiscard]] constexpr mpu::Quantity auto swizzle(const Q& q) noexcept
+[[nodiscard]] constexpr Quantity auto swizzle(const Q& q) noexcept
 {
     if constexpr (requires (typename Q::rep v) { v.template swizzle<Inds...>(); })
         return (q.numerical_value_in(Q::unit).template swizzle<Inds...>())*Q::reference;
@@ -58,18 +86,18 @@ template <std::size_t... Inds, mpu::Quantity Q>
 
 template <typename Q1, typename Q2>
     requires static_vector_like<remove_unit<Q1>> && static_vector_like<remove_unit<Q2>>
-        && (mpu::Quantity<Q1> || mpu::Quantity<Q2>)
+        && (Quantity<Q1> || Quantity<Q2>)
 [[nodiscard]] constexpr mpu::Quantity auto dot(const Q1& q1, const Q2& q2) noexcept
 {
-    if constexpr (mpu::Quantity<Q1> && mpu::Quantity<Q2>)
+    if constexpr (Quantity<Q1> && Quantity<Q2>)
         return dot(q1.numerical_value_in(Q1::unit), q2.numerical_value_in(Q2::unit))*Q1::unit*Q2::unit;
-    else if constexpr (mpu::Quantity<Q1>)
+    else if constexpr (Quantity<Q1>)
         return dot(q1, q2.numerical_value_in(Q2::unit))*Q2::unit;
     else
         return dot(q1.numerical_value_in(Q1::unit), q2)*Q1::unit;
 }
 
-template <mpu::Quantity Q>
+template <Quantity Q>
     requires static_vector_like<remove_unit<Q>>
 [[nodiscard]] constexpr mpu::Quantity auto normalize(const Q& q) noexcept
 {
@@ -79,25 +107,25 @@ template <mpu::Quantity Q>
         return normalize(q.numerical_value_in(Q::unit))*Q::reference;
 }
 
-template <typename Q1, mpu::Quantity Q2>
+template <typename Q1, Quantity Q2>
     requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
-[[nodiscard]] constexpr mpu::Quantity auto matmul(const Q1& q1, const Q2& q2) noexcept
+[[nodiscard]] constexpr Quantity auto matmul(const Q1& q1, const Q2& q2) noexcept
 {
     return q1*q2;
 }
 
 // NOTE: disabled until mp-units supports rank-2 tensors
 //
-// template <mpu::Quantity Q>
+// template <Quantity Q>
 //     requires static_matrix_like<remove_unit<Q>>
-// [[nodiscard]] constexpr mpu::Quantity auto transpose(const Q& q) noexcept
+// [[nodiscard]] constexpr Quantity auto transpose(const Q& q) noexcept
 // {
 //     return transpose(q.numerical_value_in(Q::unit))*Q::reference;
 // }
 
-template <typename Q1, mpu::Quantity Q2>
+template <typename Q1, Quantity Q2>
     requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
-[[nodiscard]] constexpr mpu::Quantity auto quadratic_form(const Q1& q1, const Q2& q2)
+[[nodiscard]] constexpr Quantity auto quadratic_form(const Q1& q1, const Q2& q2)
 {
     return dot(q2, matmul(q1, q2));
 }

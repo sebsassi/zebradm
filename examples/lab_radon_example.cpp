@@ -41,7 +41,7 @@ constexpr double reduced_mass(double m1, double m2)
 }
 
 std::vector<double> calculate_vmin(
-    double nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
+    zdm::QuantityOf<isq::mass> nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
 {
     const double emin = 0.0;
     const double red_mass = reduced_mass(dm_mass, nucleus_mass);
@@ -59,7 +59,9 @@ std::vector<double> calculate_vmin(
 }
 
 // Left distribution unnormalized in this toy example
-constexpr double distribution_norm([[maybe_unused]] double vdisp, [[maybe_unused]] double vesc)
+constexpr double distribution_norm(
+    [[maybe_unused]] zdm::QuantityOf<zdm::isq::speed> auto vdisp,
+    [[maybe_unused]] zdm::QuantityOf<zdm::isq::speed> auto vesc)
 {
     return 1.0;
 }
@@ -87,9 +89,11 @@ void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
     }
 }
 
+template <zdm::QuantityOf<zdm::isq::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
-    std::size_t dist_order, double vesc, double vdisp, double dm_mass,
-    double nucleus_mass, std::span<double> times, double emax)
+    std::size_t dist_order, zdm::QuantityOf<zdm::isq::speed> auto vesc,
+    zdm::QuantityOf<zdm::isq::speed> auto vdisp, double dm_mass,
+    double nucleus_mass, std::span<Duration> times, double emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
     auto velocity_distribution = [&](const std::array<double, 3>& v)
@@ -105,15 +109,18 @@ zest::DynamicMDArray<double, 2> radon_transform(
 
     const double lon = 0.0;
     const double lat = 1.5;
-    const double vcirc = vdisp;
+    const zdm::quantity vcirc = vdisp;
 
     zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, vcirc};
 
-    std::vector<zdm::la::Vector<double, 3>> vlab{times.size()};
+    using Velocity = zdm::quantity<zdm::isq::velocity[zdm::si::kilo<zdm::si::metre>/zdm::si::second]>;
+    using Speed = zdm::quantity<zdm::isq::speed[zdm::si::kilo<zdm::si::metre>/zdm::si::second]>;
+
+    std::vector<Velocity> vlab{times.size()};
     for (std::size_t i = 0; i < times.size(); ++i)
         vlab[i] = zdm::celestial::transform_velocity(gcs_to_hcs, times[i]);
 
-    const std::vector<double> vmin
+    const std::vector<Speed> vmin
         = calculate_vmin(nucleus_mass, dm_mass, vesc, vdisp, emax);
 
     // zebradm

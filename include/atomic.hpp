@@ -189,8 +189,8 @@ public:
     /**
         @brief Mass of the isotope.
     */
-    [[nodiscard]] constexpr quantity<isq::mass[si::dalton], double>
-    mass() const noexcept { return isq::mass(double(m_mass_number)*si::dalton); }
+    [[nodiscard]] constexpr quantity<mass[dalton], double>
+    atomic_mass() const noexcept { return mass(double(m_mass_number)*dalton); }
 
     /**
         @brief Atomic number of the isotope.

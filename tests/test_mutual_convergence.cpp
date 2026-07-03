@@ -715,8 +715,8 @@ int main()
         double shell, double longitude, double colatitude)
     {
         static const std::array<double, 3> ref_dir
-            = zdm::la::normalize(std::array<double, 3>{0.5, 0.5, 0.5});
-        const std::array<double, 3> dir
+            = zdm::la::normalize(zdm::la::Vector<double, 3>{0.5, 0.5, 0.5});
+        const zdm::la::Vector<double, 3> dir
             = zdm::coordinates::spherical_to_cartesian_phys(longitude, colatitude);
         constexpr double rate = 2.0;
         const double u2 = shell*shell;
