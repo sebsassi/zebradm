@@ -35,22 +35,26 @@ SOFTWARE.
 namespace
 {
 
-constexpr double reduced_mass(double m1, double m2)
+[[nodiscard]] constexpr zdm::QuantityOf<zdm::mass> auto
+reduced_mass(zdm::QuantityOf<zdm::mass> auto m1, zdm::QuantityOf<zdm::mass> auto m2)
 {
     return m1*m2/(m1 + m2);
 }
 
-std::vector<double> calculate_vmin(
-    zdm::QuantityOf<isq::mass> nucleus_mass, double dm_mass, double vesc, [[maybe_unused]] double vdisp, double emax)
+auto calculate_vmin(
+    zdm::QuantityOf<zdm::mass> auto nucleus_mass, zdm::QuantityOf<zdm::mass> auto dm_mass,
+    zdm::QuantityOf<zdm::speed> auto vesc,
+    [[maybe_unused]] zdm::QuantityOf<zdm::speed> auto vdisp,
+    zdm::QuantityOf<zdm::energy> auto emax)
 {
-    const double emin = 0.0;
-    const double red_mass = reduced_mass(dm_mass, nucleus_mass);
+    const zdm::quantity emin = 0.0;
+    const zdm::quantity red_mass = reduced_mass(dm_mass, nucleus_mass);
 
     std::size_t count = 50;
-    std::vector<double> vmin(count);
+    std::vector<decltype(vesc)> vmin(count);
     for (std::size_t i = 0; i < count; ++i)
     {
-        const double energy = emin + (emax - emin)*(double(i)/double(count - 1UL));
+        const zdm::quantity energy = emin + (emax - emin)*(double(i)/double(count - 1UL));
         vmin[i] = std::sqrt(nucleus_mass*energy/(2.0*red_mass*red_mass));
         vmin[i] /= vesc;
     }
@@ -60,8 +64,8 @@ std::vector<double> calculate_vmin(
 
 // Left distribution unnormalized in this toy example
 constexpr double distribution_norm(
-    [[maybe_unused]] zdm::QuantityOf<zdm::isq::speed> auto vdisp,
-    [[maybe_unused]] zdm::QuantityOf<zdm::isq::speed> auto vesc)
+    [[maybe_unused]] zdm::QuantityOf<zdm::speed> auto vdisp,
+    [[maybe_unused]] zdm::QuantityOf<zdm::speed> auto vesc)
 {
     return 1.0;
 }
@@ -89,10 +93,10 @@ void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
     }
 }
 
-template <zdm::QuantityOf<zdm::isq::duration> Duration>
+template <zdm::QuantityOf<zdm::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
-    std::size_t dist_order, zdm::QuantityOf<zdm::isq::speed> auto vesc,
-    zdm::QuantityOf<zdm::isq::speed> auto vdisp, double dm_mass,
+    std::size_t dist_order, zdm::QuantityOf<zdm::speed> auto vesc,
+    zdm::QuantityOf<zdm::speed> auto vdisp, double dm_mass,
     double nucleus_mass, std::span<Duration> times, double emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
@@ -113,8 +117,8 @@ zest::DynamicMDArray<double, 2> radon_transform(
 
     zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, vcirc};
 
-    using Velocity = zdm::quantity<zdm::isq::velocity[zdm::si::kilo<zdm::si::metre>/zdm::si::second]>;
-    using Speed = zdm::quantity<zdm::isq::speed[zdm::si::kilo<zdm::si::metre>/zdm::si::second]>;
+    using Velocity = zdm::quantity<zdm::velocity[zdm::si::kilo<zdm::meter>/zdm::second]>;
+    using Speed = zdm::quantity<zdm::speed[zdm::si::kilo<zdm::meter>/zdm::second]>;
 
     std::vector<Velocity> vlab{times.size()};
     for (std::size_t i = 0; i < times.size(); ++i)
