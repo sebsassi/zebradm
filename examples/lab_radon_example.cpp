@@ -100,15 +100,17 @@ zest::DynamicMDArray<double, 2> radon_transform(
     double nucleus_mass, std::span<Duration> times, double emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
-    auto velocity_distribution = [&](const std::array<double, 3>& v)
+    auto velocity_distribution = [&](double lon, double colat, zdm::QuantityOf<zdm::speed> auto v)
     {
-        const double inv_vdisp = 1.0/vdisp;
+        const auto direction = zdm::la::Vector{std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)};
+        const quantity velocity = zdm::velocity(speed)*direction;
+        const quantity inv_vdisp = 1.0/vdisp;
         constexpr zdm::la::Matrix<double, 3, 3> sigma = {
             3.0, 1.4, 0.5,
             1.4, 0.3, 2.1,
             0.5, 2.1, 1.7
         };
-        return dist_norm*std::exp(-0.5*zdm::la::quadratic_form(sigma, v)*(inv_vdisp*inv_vdisp));
+        return dist_norm*std::exp(-0.5*zdm::la::quadratic_form(sigma, velocity)*(inv_vdisp*inv_vdisp));
     };
 
     const double lon = 0.0;
