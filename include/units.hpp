@@ -24,9 +24,7 @@ SOFTWARE.
 #include <array>
 #include <utility>
 
-#include "mp-units/systems/isq.h"
 #include "mp-units/systems/si.h"
-#include "mp-units/systems/astronomy.h"
 #include "mp-units/systems/hep.h"
 
 #include "concepts.hpp"
@@ -40,10 +38,7 @@ using mp_units::QuantityOf;
 using mp_units::Quantity;
 using namespace mp_units::hep;
 
-namespace isq = mp_units::isq;
 namespace si = mp_units::si;
-namespace ast = mp_units::astronomy;
-namespace hep = mp_units::hep;
 
 // Extra time units that are not defined by mp_units::hep
 inline constexpr struct minute: mpu::named_unit<"min", mpu::mag<60>*second> {} minute;
@@ -59,6 +54,8 @@ inline constexpr struct dalton:
 
 namespace unit_symbols
 {
+
+using namespace mp_units::hep::unit_symbols;
 
 constexpr auto min = minute;
 constexpr auto h = hour;

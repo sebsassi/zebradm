@@ -291,7 +291,7 @@ bool test_angle_integrator_aniso_iso_is_correct_for_constant_dist()
 bool test_angle_integrator_aniso_iso_is_correct_for_shm()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const std::array<double, 3>& velocity){
+    auto shm_dist = [&](const zdm::la::Vector<double, 3>& velocity){
         const double speed = zdm::la::norm(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
@@ -320,7 +320,7 @@ bool test_angle_integrator_aniso_iso_is_correct_for_shm()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 shm_dist, 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -600,7 +600,7 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_res
 bool test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp()
 {
     const double disp_speed = 0.4;
-    auto shm_dist = [&](const std::array<double, 3>& velocity){
+    auto shm_dist = [&](const zdm::la::Vector<double, 3>& velocity){
         const double speed = zdm::la::norm(velocity);
         const double ratio = speed/disp_speed;
         return std::exp(-ratio*ratio);
@@ -630,7 +630,7 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 shm_dist, 1.0, order);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};

@@ -272,7 +272,7 @@ public:
         that takes no parameters.
     */
     [[nodiscard]] constexpr rigid_transform_type
-    operator()([[maybe_unused]] QuantityOf<isq::duration> auto time_since_j2000) const noexcept
+    operator()([[maybe_unused]] QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         return m_transform;
     }
@@ -449,7 +449,7 @@ public:
     [[nodiscard]] la::RotationMatrix<double, 3>
     operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
-        const double centuries_since_j2000 = time_since_j2000.numerical_value_in(ast::century);
+        const double centuries_since_j2000 = time_since_j2000.numerical_value_in(century);
         const double cip_x = astro::cip[0](centuries_since_j2000);
         const double cip_y = astro::cip[1](centuries_since_j2000);
         const double cip_r = std::hypot(cip_x, cip_y);
@@ -679,8 +679,8 @@ public:
     using parameter_type = quantity<duration[day]>;
 
     GCStoCIRS(
-        QuantityOf<isq::speed> auto circular_speed,
-        const QuantityOf<isq::velocity> auto& peculiar_velocity
+        QuantityOf<speed> auto circular_speed,
+        const QuantityOf<velocity> auto& peculiar_velocity
             = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& galactic_orientation
             = astro::orientation_km_2017):

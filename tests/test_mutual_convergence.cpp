@@ -141,7 +141,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -292,7 +292,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -448,7 +448,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
@@ -612,7 +612,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
@@ -684,14 +684,14 @@ int main()
         return std::exp(-ratio*ratio);
     };
 
-    [[maybe_unused]] auto gaussian = [](const std::array<double, 3>& v){
+    [[maybe_unused]] auto gaussian = [](const zdm::la::Vector<double, 3>& v){
         constexpr double disp = 0.4;
         const double speed = zdm::la::norm(v);
         const double ratio = speed/disp;
         return std::exp(-ratio*ratio);
     };
 
-    [[maybe_unused]] auto aniso_gaussian = [](const std::array<double, 3>& v)
+    [[maybe_unused]] auto aniso_gaussian = [](const zdm::la::Vector<double, 3>& v)
     {
         constexpr std::array<std::array<double, 3>, 3> sigma = {
             std::array<double, 3>{3.0, 1.4, 0.5},

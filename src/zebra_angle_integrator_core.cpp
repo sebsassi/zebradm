@@ -140,7 +140,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate<rotation_type>(m_rotated_response_exp, wigner_d_pi2, euler_angles);
     for (std::size_t l : m_rotated_response_exp.indices())
         m_zonal_rotated_response_exp[l] = m_rotated_response_exp[l, 0, 0];
 
@@ -172,7 +172,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate<rotation_type>(m_rotated_response_exp, wigner_d_pi2, euler_angles);
     for (std::size_t l : m_rotated_response_exp.indices())
         m_zonal_rotated_response_exp[l] = m_rotated_response_exp[l, 0, 0];
 
@@ -365,7 +365,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate<rotation_type>(m_rotated_response_exp, wigner_d_pi2, euler_angles);
 
     m_glq_transformer.backward_transform(m_rotated_response_exp, m_rotated_response_grid);
 
@@ -403,7 +403,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
 
-    m_rotor.rotate(m_rotated_response_exp, wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate<rotation_type>(m_rotated_response_exp, wigner_d_pi2, euler_angles);
 
     m_glq_transformer.backward_transform(m_rotated_response_exp, m_rotated_response_grid);
 

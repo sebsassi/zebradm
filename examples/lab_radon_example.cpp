@@ -31,6 +31,7 @@ SOFTWARE.
 #include "matrix.hpp"
 #include "time.hpp"
 #include "zebra_angle_integrator.hpp"
+#include "units.hpp"
 
 namespace
 {
@@ -96,15 +97,16 @@ void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
 template <zdm::QuantityOf<zdm::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
     std::size_t dist_order, zdm::QuantityOf<zdm::speed> auto vesc,
-    zdm::QuantityOf<zdm::speed> auto vdisp, double dm_mass,
-    double nucleus_mass, std::span<Duration> times, double emax)
+    zdm::QuantityOf<zdm::speed> auto vdisp, zdm::QuantityOf<zdm::mass> auto dm_mass,
+    zdm::QuantityOf<zdm::mass> auto nucleus_mass, std::span<Duration> times,
+    zdm::QuantityOf<zdm::energy> auto emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
     auto velocity_distribution = [&](double lon, double colat, zdm::QuantityOf<zdm::speed> auto v)
     {
         const auto direction = zdm::la::Vector{std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)};
-        const quantity velocity = zdm::velocity(speed)*direction;
-        const quantity inv_vdisp = 1.0/vdisp;
+        const zdm::quantity velocity = zdm::velocity(zdm::speed)*direction;
+        const zdm::quantity inv_vdisp = 1.0/vdisp;
         constexpr zdm::la::Matrix<double, 3, 3> sigma = {
             3.0, 1.4, 0.5,
             1.4, 0.3, 2.1,
@@ -152,19 +154,21 @@ zest::DynamicMDArray<double, 2> radon_transform(
 
 int main([[maybe_unused]] int argc, char** argv)
 {
-    const double vmax = atof(argv[1]);
-    const double vdisp = atof(argv[2]);
+    using namespace zdm::unit_symbols;
+
+    const zdm::quantity vmax = zdm::speed(atof(argv[1])*km/s);
+    const zdm::quantity vdisp = zdm::speed(atof(argv[2])*km/s);
     const std::size_t dist_order = std::size_t(atoi(argv[3]));
-    const double dm_mass = atof(argv[4]);
-    const double nucleus_mass = atof(argv[5]);
+    const zdm::quantity dm_mass = zdm::mass(atof(argv[4])*GeV/c2);
+    const zdm::quantity nucleus_mass = zdm::mass(atof(argv[5])*GeV/c2);
     const std::string_view start_date{argv[6]};
     const std::string_view end_date{argv[7]};
     const std::size_t ntime = std::size_t(atoi(argv[8]));
-    const double emax = atof(argv[9]);
+    const zdm::quantity emax = zdm::energy(atof(argv[9])*eV);
 
-    std::vector<double> times = zdm::time::ut1_interval<zdm::time::j2000_utc>(start_date, end_date, ntime, "%Y-%m-%d").value();
+    auto times = zdm::time::ut1_interval<zdm::time::j2000_utc>(start_date, end_date, ntime, "%Y-%m-%d").value();
 
-    const auto out = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, times, emax);
+    const auto out = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, std::span(times), emax);
 
     //const char* fname = "lab_radon_example.dat";
     //print_to_file(fname, out);

@@ -28,7 +28,7 @@ SOFTWARE.
 
 int main()
 {
-    auto shm_dist = [](const std::array<double, 3>& v){
+    auto shm_dist = [](const zdm::la::Vector<double, 3>& v){
         constexpr double disp_sq = 0.4*0.4;
         const double speed_sq = zdm::la::dot(v,v);
         return std::exp(-speed_sq/disp_sq);
@@ -37,7 +37,7 @@ int main()
     constexpr std::size_t order = 20;
     constexpr double vmax = 1.0;
     zest::zt::ZernikeExpansion dist_expansion
-        = zest::zt::ZernikeTransformerNormalGeo{}.forward_transform(shm_dist, vmax, order);
+        = zest::zt::ZernikeTransformerNormalGeo{}.forward_transform<zdm::la::Vector<double, 3>>(shm_dist, vmax, order);
 
     std::vector<zdm::la::Vector<double, 3>> vlab = {
         {0.5, 0.5, 0.0}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5}

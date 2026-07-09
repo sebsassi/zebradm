@@ -192,9 +192,8 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
-    m_rotor.rotate(
-            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
-            rotation_type);
+    m_rotor.rotate<rotation_type>(
+            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
 
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
@@ -332,9 +331,8 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         ZernikeSpan<double>::subspan_type<1> rotated_geg_zernike_exp(
                 m_rotated_geg_zernike_exp.data(), n + 1);
 
-        m_rotor.rotate(
-                rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
-                rotation_type);
+        m_rotor.rotate<rotation_type>(
+                rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
         m_glq_transformer.backward_transform(
                 rotated_geg_zernike_exp, rotated_geg_zernike_grids[n]);
     }
@@ -551,11 +549,10 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
-    m_rotor.rotate(
-            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
-            rotation_type);
-    m_rotor.rotate(
-            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles, rotation_type);
+    m_rotor.rotate<rotation_type>(
+            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+    m_rotor.rotate<rotation_type>(
+            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
 
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
@@ -703,9 +700,8 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
                 m_rotated_geg_zernike_exp.begin());
         ZernikeSpan<double>::subspan_type<1> rotated_geg_zernike_exp(
                 m_rotated_geg_zernike_exp.data(), n + 1);
-        m_rotor.rotate(
-                rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
-                rotation_type);
+        m_rotor.rotate<rotation_type>(
+                rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
         m_glq_transformer.backward_transform(
                 rotated_geg_zernike_exp, rotated_geg_zernike_grids[n]);
     }
@@ -730,9 +726,8 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         m_rotated_trans_geg_zernike_exp.flatten(),
         -2.0*offset[2], m_geg_zernike_exp_z.flatten());
 
-    m_rotor.rotate(
-            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles, 
-            rotation_type);
+    m_rotor.rotate<rotation_type>(
+            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
 
     for (std::size_t n = 0; n < m_rotated_trans_geg_zernike_exp.order(); ++n)
         m_glq_transformer.backward_transform(

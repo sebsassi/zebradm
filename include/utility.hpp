@@ -473,7 +473,7 @@ sum(std::span<const T> a)
     @param start Starting value of the interval.
     @param end End value of the interval.
 */
-template <basic_arithmetic T>
+template <zest::representable_as<double> T>
 constexpr void
 linspace(std::span<T>& interval, T start, T stop) noexcept
 {
@@ -484,13 +484,11 @@ linspace(std::span<T>& interval, T start, T stop) noexcept
         return;
     }
 
-    // mp-units quantities aren't directly constructible from standard numeric
-    // types, but they can be multiplied with their representation type.
-    using conversion_t = std::conditional_t<mpu::Quantity<T>, typename T::rep, T>;
+    std::span<double> interval_values{reinterpret_cast<double*>(interval.data()), interval.size()};
 
-    const T step = (stop - start)/conversion_t(interval.size() - 1);
-    for (std::size_t i = 0; i < interval.size(); ++i)
-        interval[i] = start + conversion_t(i)*step;
+    const double step = (std::bit_cast<double>(stop) - std::bit_cast<double>(start))/double(interval_values.size() - 1);
+    for (std::size_t i = 0; i < interval_values.size(); ++i)
+        interval_values[i] = std::bit_cast<double>(start) + double(i)*step;
 
     interval.back() = stop;
 }
@@ -504,7 +502,7 @@ linspace(std::span<T>& interval, T start, T stop) noexcept
     @param start Starting value of the interval.
     @param end End value of the interval.
 */
-template <basic_arithmetic T>
+template <zest::representable_as<double> T>
 [[nodiscard]] std::vector<T>
 linspace(T start, T stop, std::size_t count)
 {

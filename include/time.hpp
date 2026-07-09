@@ -463,7 +463,7 @@ struct DateTime
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr mpu::QuantityOf<isq::duration> auto
+[[nodiscard]] constexpr mpu::QuantityOf<duration> auto
 time_since_epoch(DateTime time) noexcept
 {
     assert(time.is_valid());
@@ -1196,16 +1196,16 @@ ut1_interval(
     std::string_view start_date, std::string_view end_date, std::size_t count,
     std::string_view format)
 {
-    using Duration = decltype(ut1_from_utc<epoch>(parse_date_time(start_date, format)));
+    using Duration = decltype(ut1_from_utc<epoch>(parse_date_time(start_date, format).value().first));
     assert(start_date.size() > 0);
     assert(end_date.size() > 0);
     assert(format.size() > 0);
     std::vector<Duration> res(count);
     const auto status = ut1_interval<epoch>(std::span<Duration>(res), start_date, end_date, format);
     if (status == DateParseStatus::success)
-        return res;
+        return std::expected<std::vector<Duration>, DateParseStatus>(res);
     else
-        return std::unexpected(status);
+        return std::expected<std::vector<Duration>, DateParseStatus>(std::unexpected(status));
 }
 
 /**
