@@ -105,7 +105,7 @@ zest::DynamicMDArray<double, 2> radon_transform(
     auto velocity_distribution = [&](double lon, double colat, zdm::QuantityOf<zdm::speed> auto v)
     {
         const auto direction = zdm::la::Vector{std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)};
-        const zdm::quantity velocity = zdm::velocity(zdm::speed)*direction;
+        const zdm::quantity velocity = zdm::velocity(v)*direction;
         const zdm::quantity inv_vdisp = 1.0/vdisp;
         constexpr zdm::la::Matrix<double, 3, 3> sigma = {
             3.0, 1.4, 0.5,

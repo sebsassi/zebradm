@@ -24,8 +24,8 @@ SOFTWARE.
 #include <array>
 #include <utility>
 
-#include "mp-units/systems/si.h"
-#include "mp-units/systems/hep.h"
+#include <mp-units/systems/si.h>
+#include <mp-units/systems/hep.h>
 
 #include "concepts.hpp"
 

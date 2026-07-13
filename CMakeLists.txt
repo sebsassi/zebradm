@@ -95,11 +95,25 @@ include(FetchContent)
 FetchContent_Declare(
     zest
     GIT_REPOSITORY https://github.com/sebsassi/zest.git
-    GIT_TAG ${ZEST_TAG}
+    GIT_TAG ${ZEST_GIT_TAG}
     FIND_PACKAGE_ARGS NAMES zest
 )
-FetchContent_MakeAvailable(zest)
-target_link_libraries(zebradm PUBLIC zest::zest)
+
+set(MP_UNITS_API_CONTRACTS "NONE")
+FetchContent_Declare(
+    mp-units
+    SOURCE_SUBDIR src
+    GIT_REPOSITORY https://github.com/mpusz/mp-units.git
+    GIT_TAG b6492f31d37ea282170426d82d3104525460081e
+    FIND_PACKAGE_ARGS NAMES mp-units
+)
+
+FetchContent_MakeAvailable(zest mp-units)
+
+target_link_libraries(zebradm
+    PUBLIC zest::zest
+    PUBLIC mp-units::mp-units
+)
 
 if(BUILD_BENCHMARKS OR BUILD_TESTING)
     FetchContent_Declare(

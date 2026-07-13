@@ -28,8 +28,6 @@ SOFTWARE.
 #include "rotation.hpp"
 #include "translation.hpp"
 
-#include "mp-units/cartesian_vector.h"
-
 bool test_vector_can_have_units()
 {
     [[maybe_unused]] const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::displacement[zdm::meter];
