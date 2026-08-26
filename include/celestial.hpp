@@ -622,13 +622,16 @@ public:
     using rigid_transform_type = la::RigidTransform<velocity_type>;
     using parameter_type = quantity<duration[day]>;
 
+    GCStoHCS(double longitude, double latitude, QuantityOf<speed> auto circular_speed):
+        GCStoHCS(
+            longitude, latitude, circular_speed,
+            astro::peculiar_velocity_sbd_2010, astro::orientation_km_2017) {}
+
     GCStoHCS(
         double longitude, double latitude,
         QuantityOf<speed> auto circular_speed,
-        const QuantityOf<velocity> auto& peculiar_velocity
-            = astro::peculiar_velocity_sbd_2010,
-        const astro::GalacticOrientation& galactic_orientation
-            = astro::orientation_km_2017):
+        const QuantityOf<velocity> auto& peculiar_velocity,
+        const astro::GalacticOrientation& galactic_orientation):
         m_transform(
             GCStoICRS(circular_speed, peculiar_velocity, galactic_orientation),
             ICRStoGCRS(),

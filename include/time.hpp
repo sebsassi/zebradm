@@ -1044,7 +1044,10 @@ template <DateTime epoch>
 ut1_from_utc(const DateTime& time)
 {
     assert(time.is_valid());
-    return time_since_epoch<epoch>(time).template in<double>();
+
+    // Force conversion from `int64_t` to `double`. This will lose precision
+    // for times about 300000 years after epoch.
+    return time_since_epoch<epoch>(time).template force_in<double>();
 }
 
 /**

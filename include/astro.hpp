@@ -577,7 +577,7 @@ static constexpr GalacticOrientation orientation_km_2017 = {
         doi:10.1111/j.1365-2966.2010.16253.x.
 */
 static constexpr quantity<velocity[si::kilo<meter>/second], la::Vector<double, 3>>
-peculiar_velocity_sbd_2010 = la::Vector<double, 3>{11.1, 12.24, 7.25}*si::kilo<meter>/second;
+peculiar_velocity_sbd_2010 = velocity(la::Vector<double, 3>{11.1, 12.24, 7.25}*si::kilo<meter>/second);
 
 /**
     @brief Constant parameters defining Earth.
