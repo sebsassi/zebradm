@@ -24,8 +24,9 @@ SOFTWARE.
 #include <array>
 #include <utility>
 
-#include <mp-units/systems/si.h>
 #include <mp-units/systems/hep.h>
+#include <mp-units/systems/si.h>
+#include <mp-units/math.h>
 
 #include "concepts.hpp"
 
@@ -128,6 +129,24 @@ template <typename Q1, Quantity Q2>
 }
 
 } // namespace la
+
+using mp_units::pow;
+using mp_units::sqrt;
+using mp_units::cbrt;
+using mp_units::exp;
+using mp_units::abs;
+using mp_units::epsilon;
+using mp_units::fma;
+using mp_units::fmod;
+using mp_units::remainder;
+using mp_units::isfinite;
+using mp_units::isinf;
+using mp_units::isnan;
+using mp_units::floor;
+using mp_units::ceil;
+using mp_units::round;
+using mp_units::inverse;
+using mp_units::hypot;
 
 } // namespace zdm
 

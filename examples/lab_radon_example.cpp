@@ -48,7 +48,7 @@ auto calculate_vmin(
     [[maybe_unused]] zdm::QuantityOf<zdm::speed> auto vdisp,
     zdm::QuantityOf<zdm::energy> auto emax)
 {
-    const zdm::quantity emin = 0.0;
+    const zdm::quantity emin = zdm::energy(0.0*zdm::electronvolt);
     const zdm::quantity red_mass = reduced_mass(dm_mass, nucleus_mass);
 
     std::size_t count = 50;
@@ -56,8 +56,7 @@ auto calculate_vmin(
     for (std::size_t i = 0; i < count; ++i)
     {
         const zdm::quantity energy = emin + (emax - emin)*(double(i)/double(count - 1UL));
-        vmin[i] = std::sqrt(nucleus_mass*energy/(2.0*red_mass*red_mass));
-        vmin[i] /= vesc;
+        vmin[i] = zdm::sqrt(nucleus_mass*energy/(2.0*red_mass*red_mass));
     }
 
     return vmin;
@@ -112,7 +111,7 @@ zest::DynamicMDArray<double, 2> radon_transform(
             1.4, 0.3, 2.1,
             0.5, 2.1, 1.7
         };
-        return dist_norm*std::exp(-0.5*zdm::la::quadratic_form(sigma, velocity)*(inv_vdisp*inv_vdisp));
+        return dist_norm*zdm::exp(-0.5*zdm::la::quadratic_form(sigma, velocity)*(inv_vdisp*inv_vdisp));
     };
 
     const double lon = 0.0;
@@ -121,7 +120,7 @@ zest::DynamicMDArray<double, 2> radon_transform(
 
     zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, vcirc};
 
-    using Velocity = zdm::quantity<zdm::velocity[zdm::si::kilo<zdm::meter>/zdm::second]>;
+    using Velocity = zdm::quantity<zdm::velocity[zdm::si::kilo<zdm::meter>/zdm::second], zdm::la::Vector<double, 3>>;
     using Speed = zdm::quantity<zdm::speed[zdm::si::kilo<zdm::meter>/zdm::second]>;
 
     std::vector<Velocity> vlab{times.size()};

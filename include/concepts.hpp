@@ -104,6 +104,26 @@ concept conventional_arithmetic = requires (T x, T y)
     { x /= y } -> std::same_as<std::remove_cvref_t<T>&>;
 };
 
+namespace detail
+{
+
+template <typename T>
+struct remove_unit_helper
+{
+    using type = T;
+};
+
+template <mp_units::Quantity T>
+struct remove_unit_helper<T>
+{
+    using type = T::rep;
+};
+
+} // namespace detail
+
+template <typename T>
+using remove_unit = detail::remove_unit_helper<T>::type;
+
 namespace la
 {
 
@@ -142,6 +162,9 @@ inline constexpr std::size_t tensor_extent<T, I> = T::template extent<I>;
 template <typename T>
 concept static_vector_like = requires (T vector, typename T::size_type i) { vector[i]; };
 
+template <typename T>
+concept static_vector_representable = static_vector_like<remove_unit<T>>;
+
 template <static_vector_like T>
 inline constexpr std::size_t tensor_rank<T> = 1;
 
@@ -150,26 +173,6 @@ template <static_vector_like T, std::size_t I>
 inline constexpr std::size_t tensor_extent<T, I> = std::tuple_size_v<T>;
 
 } // namespace la
-
-namespace detail
-{
-
-template <typename T>
-struct remove_unit_helper
-{
-    using type = T;
-};
-
-template <mp_units::Quantity T>
-struct remove_unit_helper<T>
-{
-    using type = T::rep;
-};
-
-} // namespace detail
-
-template <typename T>
-using remove_unit = detail::remove_unit_helper<T>::type;
 
 template <typename T, typename ErrorType>
 concept ExpectedWith = std::same_as<T, std::expected<typename T::value_type, ErrorType>>;

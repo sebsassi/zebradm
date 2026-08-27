@@ -268,6 +268,10 @@ namespace std
 template <zdm::conventional_arithmetic T, std::size_t N>
 struct tuple_size<zdm::la::Vector<T, N>>: std::integral_constant<std::size_t, N> {};
 
+template <typename T>
+    requires std::same_as<typename tuple_size<typename T::rep>::value_type, std::size_t>
+struct tuple_size<T>: tuple_size<typename T::rep> {};
+
 template <std::size_t I, zdm::conventional_arithmetic T, std::size_t N>
 struct tuple_element<I, zdm::la::Vector<T, N>>
 {

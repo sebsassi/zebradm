@@ -50,7 +50,7 @@ template <
     Action action_param = Action::passive,
     MatrixLayout matrix_layout_param = MatrixLayout::column_major
 >
-    requires static_vector_like<remove_unit<VectorType>>
+    requires static_vector_representable<VectorType>
 class RigidTransform
 {
 public:
@@ -291,7 +291,7 @@ private:
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -329,7 +329,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -367,7 +367,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -405,7 +405,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -443,7 +443,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -481,7 +481,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >
@@ -510,7 +510,7 @@ compose(
 */
 template <
     Chaining chaining,
-    static_vector_like VectorType,
+    static_vector_representable VectorType,
     Action action,
     MatrixLayout matrix_layout
 >

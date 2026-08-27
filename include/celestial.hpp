@@ -650,7 +650,7 @@ public:
         @return GCS to HCS transform at the given time.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(QuantityOf<duration> auto time_since_j2000) { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept { return m_transform(time_since_j2000); }
 
 private:
     Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,
@@ -702,7 +702,7 @@ public:
         @return GCS to CIRS transform at the given time.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(QuantityOf<duration> auto time_since_j2000)
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         return m_transform(time_since_j2000);
     }
@@ -750,7 +750,7 @@ public:
         @return CIRS to HCS transform at the given time.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(QuantityOf<duration> auto time_since_j2000)
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         return m_transform(time_since_j2000);
     }
@@ -797,7 +797,7 @@ public:
         @return TIRS to HCS transform at the given time.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(QuantityOf<duration> auto time_since_j2000)
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
     {
         return m_transform(time_since_j2000);
     }
