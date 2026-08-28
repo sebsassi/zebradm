@@ -220,7 +220,7 @@ public:
             else
             {
                 const double momentum_hi_min
-                    = momentum_hi - std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+                    = momentum_hi - std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[i]);
                 if (max_momentum_transfer < momentum_hi_min)
                 {
                     m_shell_grid.append(0);
@@ -228,7 +228,7 @@ public:
                 }
 
                 const double momentum_lo_min
-                    = momentum_lo - std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[j]);
+                    = momentum_lo - std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[i]);
                 if (max_momentum_transfer < momentum_lo_min)
                 {
                     std::span<double> momenta = m_momentum_grid.append(m_shell_glq_nodes.size());
@@ -244,7 +244,7 @@ public:
                 }
 
                 const double momentum_lo_max
-                    = momentum_lo + std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[j]);
+                    = momentum_lo + std::sqrt(momentum_lo*momentum_lo - 2.0*dm_mass*energies[i]);
                 if (max_momentum_transfer < momentum_lo_max)
                 {
                     std::span<double> momenta = m_momentum_grid.append(2*m_shell_glq_nodes.size());
@@ -264,7 +264,7 @@ public:
                 }
 
                 const double momentum_hi_max
-                    = momentum_hi + std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[j]);
+                    = momentum_hi + std::sqrt(momentum_hi*momentum_hi - 2.0*dm_mass*energies[i]);
 
                 std::span<double> momenta = m_momentum_grid.append(3*m_shell_glq_nodes.size());
                 generate_momenta_on(
