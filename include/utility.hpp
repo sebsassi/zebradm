@@ -236,101 +236,50 @@ inner_product(std::span<const T> a, std::span<const T> b) noexcept
 
     auto i = std::ptrdiff_t(size - 1);
 
-    if constexpr (assignable_basic_arithmetic<T>)
+    if (size > 16)
     {
-        if (size > 16)
-        {
-            for (; i > 14; i -= 16)
-            {
-                partial_res[0] += a[i - 0]*b[i - 0];
-                partial_res[1] += a[i - 1]*b[i - 1];
-                partial_res[2] += a[i - 2]*b[i - 2];
-                partial_res[3] += a[i - 3]*b[i - 3];
-                partial_res[4] += a[i - 4]*b[i - 4];
-                partial_res[5] += a[i - 5]*b[i - 5];
-                partial_res[6] += a[i - 6]*b[i - 6];
-                partial_res[7] += a[i - 7]*b[i - 7];
-                partial_res[8] += a[i - 8]*b[i - 8];
-                partial_res[9] += a[i - 9]*b[i - 9];
-                partial_res[10] += a[i - 10]*b[i - 10];
-                partial_res[11] += a[i - 11]*b[i - 11];
-                partial_res[12] += a[i - 12]*b[i - 12];
-                partial_res[13] += a[i - 13]*b[i - 13];
-                partial_res[14] += a[i - 14]*b[i - 14];
-                partial_res[15] += a[i - 15]*b[i - 15];
-            }
-
-            partial_res[0] += partial_res[8];
-            partial_res[1] += partial_res[9];
-            partial_res[2] += partial_res[10];
-            partial_res[3] += partial_res[11];
-            partial_res[4] += partial_res[12];
-            partial_res[5] += partial_res[13];
-            partial_res[6] += partial_res[14];
-            partial_res[7] += partial_res[15];
-
-            partial_res[0] += partial_res[4];
-            partial_res[1] += partial_res[5];
-            partial_res[2] += partial_res[6];
-            partial_res[3] += partial_res[7];
-
-            partial_res[0] += partial_res[2];
-            partial_res[1] += partial_res[3];
-        }
-
-        for (; i > 0; i -= 2)
-        {
-            partial_res[0] += a[i - 0]*b[i - 0];
-            partial_res[1] += a[i - 1]*b[i - 1];
-        }
-    }
-    else
-    {
-        if (size > 16)
-        {
-            for (; i > 14; i -= 16)
-            {
-                partial_res[0] = partial_res[0] + a[i - 0]*b[i - 0];
-                partial_res[1] = partial_res[1] + a[i - 1]*b[i - 1];
-                partial_res[2] = partial_res[2] + a[i - 2]*b[i - 2];
-                partial_res[3] = partial_res[3] + a[i - 3]*b[i - 3];
-                partial_res[4] = partial_res[4] + a[i - 4]*b[i - 4];
-                partial_res[5] = partial_res[5] + a[i - 5]*b[i - 5];
-                partial_res[6] = partial_res[6] + a[i - 6]*b[i - 6];
-                partial_res[7] = partial_res[7] + a[i - 7]*b[i - 7];
-                partial_res[8] = partial_res[8] + a[i - 8]*b[i - 8];
-                partial_res[9] = partial_res[9] + a[i - 9]*b[i - 9];
-                partial_res[10] = partial_res[10] + a[i - 10]*b[i - 10];
-                partial_res[11] = partial_res[11] + a[i - 11]*b[i - 11];
-                partial_res[12] = partial_res[12] + a[i - 12]*b[i - 12];
-                partial_res[13] = partial_res[13] + a[i - 13]*b[i - 13];
-                partial_res[14] = partial_res[14] + a[i - 14]*b[i - 14];
-                partial_res[15] = partial_res[15] + a[i - 15]*b[i - 15];
-            }
-
-            partial_res[0] = partial_res[0] + partial_res[8];
-            partial_res[1] = partial_res[1] + partial_res[9];
-            partial_res[2] = partial_res[2] + partial_res[10];
-            partial_res[3] = partial_res[3] + partial_res[11];
-            partial_res[4] = partial_res[4] + partial_res[12];
-            partial_res[5] = partial_res[5] + partial_res[13];
-            partial_res[6] = partial_res[6] + partial_res[14];
-            partial_res[7] = partial_res[7] + partial_res[15];
-
-            partial_res[0] = partial_res[0] + partial_res[4];
-            partial_res[1] = partial_res[1] + partial_res[5];
-            partial_res[2] = partial_res[2] + partial_res[6];
-            partial_res[3] = partial_res[3] + partial_res[7];
-
-            partial_res[0] = partial_res[0] + partial_res[2];
-            partial_res[1] = partial_res[1] + partial_res[3];
-        }
-
-        for (; i > 0; i -= 2)
+        for (; i > 14; i -= 16)
         {
             partial_res[0] = partial_res[0] + a[i - 0]*b[i - 0];
             partial_res[1] = partial_res[1] + a[i - 1]*b[i - 1];
+            partial_res[2] = partial_res[2] + a[i - 2]*b[i - 2];
+            partial_res[3] = partial_res[3] + a[i - 3]*b[i - 3];
+            partial_res[4] = partial_res[4] + a[i - 4]*b[i - 4];
+            partial_res[5] = partial_res[5] + a[i - 5]*b[i - 5];
+            partial_res[6] = partial_res[6] + a[i - 6]*b[i - 6];
+            partial_res[7] = partial_res[7] + a[i - 7]*b[i - 7];
+            partial_res[8] = partial_res[8] + a[i - 8]*b[i - 8];
+            partial_res[9] = partial_res[9] + a[i - 9]*b[i - 9];
+            partial_res[10] = partial_res[10] + a[i - 10]*b[i - 10];
+            partial_res[11] = partial_res[11] + a[i - 11]*b[i - 11];
+            partial_res[12] = partial_res[12] + a[i - 12]*b[i - 12];
+            partial_res[13] = partial_res[13] + a[i - 13]*b[i - 13];
+            partial_res[14] = partial_res[14] + a[i - 14]*b[i - 14];
+            partial_res[15] = partial_res[15] + a[i - 15]*b[i - 15];
         }
+
+        partial_res[0] = partial_res[0] + partial_res[8];
+        partial_res[1] = partial_res[1] + partial_res[9];
+        partial_res[2] = partial_res[2] + partial_res[10];
+        partial_res[3] = partial_res[3] + partial_res[11];
+        partial_res[4] = partial_res[4] + partial_res[12];
+        partial_res[5] = partial_res[5] + partial_res[13];
+        partial_res[6] = partial_res[6] + partial_res[14];
+        partial_res[7] = partial_res[7] + partial_res[15];
+
+        partial_res[0] = partial_res[0] + partial_res[4];
+        partial_res[1] = partial_res[1] + partial_res[5];
+        partial_res[2] = partial_res[2] + partial_res[6];
+        partial_res[3] = partial_res[3] + partial_res[7];
+
+        partial_res[0] = partial_res[0] + partial_res[2];
+        partial_res[1] = partial_res[1] + partial_res[3];
+    }
+
+    for (; i > 0; i -= 2)
+    {
+        partial_res[0] = partial_res[0] + a[i - 0]*b[i - 0];
+        partial_res[1] = partial_res[1] + a[i - 1]*b[i - 1];
     }
 
     if (i == 0)
@@ -357,101 +306,50 @@ sum(std::span<const T> a)
 
     auto i = std::ptrdiff_t(size - 1);
 
-    if constexpr (assignable_basic_arithmetic<T>)
+    if (size > 16)
     {
-        if (size > 16)
-        {
-            for (; i > 14; i -= 16)
-            {
-                partial_res[0] += a[i - 0];
-                partial_res[1] += a[i - 1];
-                partial_res[2] += a[i - 2];
-                partial_res[3] += a[i - 3];
-                partial_res[4] += a[i - 4];
-                partial_res[5] += a[i - 5];
-                partial_res[6] += a[i - 6];
-                partial_res[7] += a[i - 7];
-                partial_res[8] += a[i - 8];
-                partial_res[9] += a[i - 9];
-                partial_res[10] += a[i - 10];
-                partial_res[11] += a[i - 11];
-                partial_res[12] += a[i - 12];
-                partial_res[13] += a[i - 13];
-                partial_res[14] += a[i - 14];
-                partial_res[15] += a[i - 15];
-            }
-
-            partial_res[0] += partial_res[8];
-            partial_res[1] += partial_res[9];
-            partial_res[2] += partial_res[10];
-            partial_res[3] += partial_res[11];
-            partial_res[4] += partial_res[12];
-            partial_res[5] += partial_res[13];
-            partial_res[6] += partial_res[14];
-            partial_res[7] += partial_res[15];
-
-            partial_res[0] += partial_res[4];
-            partial_res[1] += partial_res[5];
-            partial_res[2] += partial_res[6];
-            partial_res[3] += partial_res[7];
-
-            partial_res[0] += partial_res[2];
-            partial_res[1] += partial_res[3];
-        }
-
-        for (; i > 0; i -= 2)
-        {
-            partial_res[0] += a[i - 0];
-            partial_res[1] += a[i - 1];
-        }
-    }
-    else
-    {
-        if (size > 16)
-        {
-            for (; i > 14; i -= 16)
-            {
-                partial_res[0] = partial_res[0] + a[i - 0];
-                partial_res[1] = partial_res[1] + a[i - 1];
-                partial_res[2] = partial_res[2] + a[i - 2];
-                partial_res[3] = partial_res[3] + a[i - 3];
-                partial_res[4] = partial_res[4] + a[i - 4];
-                partial_res[5] = partial_res[5] + a[i - 5];
-                partial_res[6] = partial_res[6] + a[i - 6];
-                partial_res[7] = partial_res[7] + a[i - 7];
-                partial_res[8] = partial_res[8] + a[i - 8];
-                partial_res[9] = partial_res[9] + a[i - 9];
-                partial_res[10] = partial_res[10] + a[i - 10];
-                partial_res[11] = partial_res[11] + a[i - 11];
-                partial_res[12] = partial_res[12] + a[i - 12];
-                partial_res[13] = partial_res[13] + a[i - 13];
-                partial_res[14] = partial_res[14] + a[i - 14];
-                partial_res[15] = partial_res[15] + a[i - 15];
-            }
-
-            partial_res[0] = partial_res[0] + partial_res[8];
-            partial_res[1] = partial_res[1] + partial_res[9];
-            partial_res[2] = partial_res[2] + partial_res[10];
-            partial_res[3] = partial_res[3] + partial_res[11];
-            partial_res[4] = partial_res[4] + partial_res[12];
-            partial_res[5] = partial_res[5] + partial_res[13];
-            partial_res[6] = partial_res[6] + partial_res[14];
-            partial_res[7] = partial_res[7] + partial_res[15];
-
-            partial_res[0] = partial_res[0] + partial_res[4];
-            partial_res[1] = partial_res[1] + partial_res[5];
-            partial_res[2] = partial_res[2] + partial_res[6];
-            partial_res[3] = partial_res[3] + partial_res[7];
-
-            partial_res[0] = partial_res[0] + partial_res[2];
-            partial_res[1] = partial_res[1] + partial_res[3];
-        }
-
-        for (; i > 0; i -= 2)
+        for (; i > 14; i -= 16)
         {
             partial_res[0] = partial_res[0] + a[i - 0];
             partial_res[1] = partial_res[1] + a[i - 1];
+            partial_res[2] = partial_res[2] + a[i - 2];
+            partial_res[3] = partial_res[3] + a[i - 3];
+            partial_res[4] = partial_res[4] + a[i - 4];
+            partial_res[5] = partial_res[5] + a[i - 5];
+            partial_res[6] = partial_res[6] + a[i - 6];
+            partial_res[7] = partial_res[7] + a[i - 7];
+            partial_res[8] = partial_res[8] + a[i - 8];
+            partial_res[9] = partial_res[9] + a[i - 9];
+            partial_res[10] = partial_res[10] + a[i - 10];
+            partial_res[11] = partial_res[11] + a[i - 11];
+            partial_res[12] = partial_res[12] + a[i - 12];
+            partial_res[13] = partial_res[13] + a[i - 13];
+            partial_res[14] = partial_res[14] + a[i - 14];
+            partial_res[15] = partial_res[15] + a[i - 15];
         }
+
+        partial_res[0] = partial_res[0] + partial_res[8];
+        partial_res[1] = partial_res[1] + partial_res[9];
+        partial_res[2] = partial_res[2] + partial_res[10];
+        partial_res[3] = partial_res[3] + partial_res[11];
+        partial_res[4] = partial_res[4] + partial_res[12];
+        partial_res[5] = partial_res[5] + partial_res[13];
+        partial_res[6] = partial_res[6] + partial_res[14];
+        partial_res[7] = partial_res[7] + partial_res[15];
+
+        partial_res[0] = partial_res[0] + partial_res[4];
+        partial_res[1] = partial_res[1] + partial_res[5];
+        partial_res[2] = partial_res[2] + partial_res[6];
+        partial_res[3] = partial_res[3] + partial_res[7];
+
+        partial_res[0] = partial_res[0] + partial_res[2];
+        partial_res[1] = partial_res[1] + partial_res[3];
+    }
+
+    for (; i > 0; i -= 2)
+    {
+        partial_res[0] = partial_res[0] + a[i - 0];
+        partial_res[1] = partial_res[1] + a[i - 1];
     }
 
 
@@ -459,6 +357,16 @@ sum(std::span<const T> a)
         return partial_res[0] + partial_res[1] + a[0];
     else
         return partial_res[0] + partial_res[1];
+}
+
+template <Quantity Q1, Quantity Q2>
+auto mul_inplace(std::span<Q1> a, std::span<const Q2> b)
+{
+    using ResultQuantity = decltype(a[0]*b[0]);
+    std::span<ResultQuantity> res(reinterpret_cast<ResultQuantity*>(a.data()), a.size());
+    for (std::size_t i = 0; i < std::min(a.size(), b.size()); ++i)
+        res[i] = a[i]*b[i];
+    return res;
 }
 
 [[nodiscard]] std::string format_error(

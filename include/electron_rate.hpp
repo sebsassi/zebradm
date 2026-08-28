@@ -51,6 +51,8 @@ public:
         m_offsets.back() = offset;
     }
 
+    [[nodiscard]] std::size_t size() const noexcept { return m_data.size(); }
+
     void clear()
     {
         m_data.clear();
@@ -146,7 +148,7 @@ public:
         m_angle_integrator.radon_transform(velocity_distribution);
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
-            const double lab_speed = la::length(lab_velocities[i]);
+            const double lab_speed = lab_velocities[i].magnitude();
             generate_optimal_momentum_grid(lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
             calculate_shells(energies, dm_mass, max_speed);
             m_angle_integrator.integrate(lab_speed*inv_max_speed, m_shell_grid.flatten(), m_aiwrt_grid.flatten());
@@ -156,7 +158,7 @@ public:
             {
                 const std::span<const double> aiwrt = m_aiwrt_grid[j];
                 std::span<double> results = m_result_grid[j];
-                const std::size_t num_intervals = shells.size()/num_nodes;
+                const std::size_t num_intervals = m_shell_grid.size()/num_nodes;
                 for (std::size_t k = 0; k < num_intervals; ++k)
                 {
                     for (std::size_t l = 0; l < num_nodes; ++l)
