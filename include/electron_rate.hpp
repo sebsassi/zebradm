@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include "polynomial.hpp"
 #include "types.hpp"
-#include "constants.hpp"
 #include "zebra_angle_integrator.hpp"
 
 namespace zdm
@@ -116,7 +115,8 @@ private:
     std::vector<size_type> m_offsets;
 };
 
-[[nodiscard]] constexpr double reduced_mass(double m1, double m2) noexcept
+[[nodiscard]] constexpr QuantityOf<reduced_mass> auto
+reduced_mass(QuantityOf<mass> auto m1, QuantityOf<mass> auto m2) noexcept
 {
     return m1*m2/(m1 + m2);
 }
@@ -129,19 +129,30 @@ class ElectronRateCalculator<DistType::iso, RespType::iso>
 {
 public:
 
-    void differential_rate(
+    template <
+        QuantityOf<velocity> Velocity,
+        QuantityOf<energy> Energy,
+        QuantityOf<energy_differential_rate_per_unit_mass> Rate
+    >
+    [[nodiscard]] zest::DynamicMDSpan<Rate, 2> energy_differential_rate(
         IsotropicZernikeVectorSpan<const double> velocity_distribution,
+        QuantityOf<speed> auto max_speed,
+        QuantityOf<mass> auto dm_mass,
+        QuantityOf<energy_density> auto dm_energy_density,
+        QuantityOf<cross_section> auto dm_electron_cross_section,
         IsotropicZernikeVectorSpan<const double> target_response,
-        std::span<la::Vector<double, 3>> lab_velocities, std::span<double> energies,
-        double max_momentum_transfer, double max_speed, double dm_mass, double dm_energy_density,
-        double dm_electron_cross_section, double target_density,
-        zest::DynamicMDSpan<double, 2> out)
+        QuantityOf<momentum_transfer> auto max_momentum_transfer,
+        QuantityOf<mass_density> auto target_density,
+        std::span<const Velocity> lab_velocities,
+        std::span<const Energy> energies,
+        zest::DynamicMDSpan<Rate, 2> out)
     {
-        const double inv_max_speed = 1.0/max_speed;
+        const quantity inv_max_speed = 1.0/max_speed;
 
         // All physical units should be in the prefactor.
-        const double prefactor = scattering_rate_prefactor(
-                dm_mass, dm_energy_density, target_density, dm_electron_cross_section, max_momentum_transfer, max_speed);
+        const quantity prefactor = scattering_rate_prefactor(
+                dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
+                max_momentum_transfer, max_speed);
 
         zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
@@ -150,11 +161,16 @@ public:
         m_angle_integrator.radon_transform(velocity_distribution);
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
-            const double lab_speed = lab_velocities[i].magnitude();
-            generate_optimal_momentum_grid(lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
+            const quantity lab_speed = lab_velocities[i].magnitude();
+            generate_optimal_momentum_grid(
+                    lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
             calculate_shells(energies, dm_mass, max_speed);
-            m_angle_integrator.integrate(lab_speed*inv_max_speed, m_shell_grid.flatten(), m_aiwrt_grid.flatten());
-            m_grid_evaluator.evaluate(target_response, m_normalized_momentum_grid.flatten(), m_response_grid.flatten());
+            m_angle_integrator.integrate(
+                    static_cast<double>(lab_speed*inv_max_speed),
+                    m_shell_grid.flatten(), m_aiwrt_grid.flatten());
+            m_grid_evaluator.evaluate(
+                    target_response,
+                    m_normalized_momentum_grid.flatten(), m_response_grid.flatten());
 
             util::mul(m_aiwrt_grid.flatten(), m_response_grid.flatten());
 
@@ -174,29 +190,38 @@ public:
             util::mul(m_aiwrt_grid.flatten(), m_normalized_momentum_grid.flatten());
 
             for (std::size_t j = 0; j < energies.size(); ++j)
-                out[i, j] = prefactor*util::sum(m_aiwrt_grid[j]);
+                out[i, j] = (prefactor*util::sum(m_aiwrt_grid[j])).in(Rate::unit);
         }
     }
 
+    template <QuantityOf<energy> Energy>
     void generate_optimal_momentum_grid(
-        double lab_speed, std::span<double> energies,
-        double max_speed, double max_momentum_transfer, double dm_mass)
+        QuantityOf<speed> auto lab_speed,
+        std::span<const Energy> energies,
+        QuantityOf<speed> auto max_speed,
+        QuantityOf<momentum_transfer> auto max_momentum_transfer,
+        QuantityOf<mass> auto dm_mass)
     {
         m_shell_grid.clear();
 
-        const double inv_max_momentum = 1.0/max_momentum_transfer;
-        const double speed_lo = max_speed - lab_speed;
-        const double speed_hi = max_speed + lab_speed;
-        const double speed_lo_sq = speed_lo*speed_lo;
-        const double speed_hi_sq = speed_hi*speed_hi;
-        const double momentum_lo = inv_max_momentum*dm_mass*speed_lo;
-        const double momentum_hi = inv_max_momentum*dm_mass*speed_hi;
-        const double emax_lo = 0.5*dm_mass*speed_lo_sq;
-        const double emax_hi = 0.5*dm_mass*speed_hi_sq;
+        const quantity inv_max_momentum = 1.0/max_momentum_transfer;
+        const quantity speed_lo = max_speed - lab_speed;
+        const quantity speed_hi = max_speed + lab_speed;
+        const quantity speed_lo_sq = speed_lo*speed_lo;
+        const quantity speed_hi_sq = speed_hi*speed_hi;
+        const quantity emax_lo = 0.5*dm_mass*speed_lo_sq;
+        const quantity emax_hi = 0.5*dm_mass*speed_hi_sq;
+
+        const auto normalized_momentum_lo = static_cast<double>(inv_max_momentum*dm_mass*speed_lo);
+        const auto normalized_momentum_hi = static_cast<double>(inv_max_momentum*dm_mass*speed_hi);
+
+        const double normalized_momentum_lo_sq = normalized_momentum_lo*normalized_momentum_lo;
+        const double normalized_momentum_hi_sq = normalized_momentum_hi*normalized_momentum_hi;
 
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
-            const double mom_sq_floor = (2.0*inv_max_momentum*inv_max_momentum*dm_mass)*energies[i];
+            const auto normalized_mom_sq_floor
+                = static_cast<double>((2.0*inv_max_momentum*inv_max_momentum*dm_mass)*energies[i]);
             // Kinematically forbidden; bail out
             if (energies[i] > emax_hi)
             {
@@ -205,22 +230,24 @@ public:
             }
             else if (energies[i] > emax_lo)
             {
-                const double momentum_hi_min 
-                    = momentum_hi - std::sqrt(momentum_hi*momentum_hi - mom_sq_floor);
-                if (1.0 < momentum_hi_min)
+                const double normalized_momentum_hi_min 
+                    = normalized_momentum_hi
+                        - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+                if (1.0 < normalized_momentum_hi_min)
                 {
                     m_normalized_momentum_grid.append(0);
                     m_interval_weights.append(0);
                     continue;
                 }
 
-                const double momentum_hi_max
-                    = momentum_hi + std::sqrt(momentum_hi*momentum_hi - mom_sq_floor);
+                const double normalized_momentum_hi_max
+                    = normalized_momentum_hi
+                        + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
 
                 const std::array intervals = {
                     std::array<double, 2>{
-                        momentum_hi_min,
-                        std::min(momentum_hi_max, 1.0)
+                        normalized_momentum_hi_min,
+                        std::min(normalized_momentum_hi_max, 1.0)
                     }
                 };
                 std::span<double> momenta = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
@@ -229,70 +256,74 @@ public:
             }
             else
             {
-                const double momentum_hi_min
-                    = momentum_hi - std::sqrt(momentum_hi*momentum_hi - mom_sq_floor);
-                if (1.0 < momentum_hi_min)
+                const double normalized_momentum_hi_min
+                    = normalized_momentum_hi
+                        - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+                if (1.0 < normalized_momentum_hi_min)
                 {
                     m_shell_grid.append(0);
                     m_interval_weights.append(0);
                     continue;
                 }
 
-                const double momentum_lo_min
-                    = momentum_lo - std::sqrt(momentum_lo*momentum_lo - mom_sq_floor);
-                if (1.0 < momentum_lo_min)
+                const double normalized_momentum_lo_min
+                    = normalized_momentum_lo
+                        - std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
+                if (1.0 < normalized_momentum_lo_min)
                 {
                     const std::array intervals = {
                         std::array<double, 2>{
-                            momentum_hi_min,
+                            normalized_momentum_hi_min,
                             1.0
                         }
                     };
-                    std::span<double> momenta = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
-                    generate_momenta_on(intervals, momenta);
+                    std::span<double> normalized_momenta = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
+                    generate_momenta_on(intervals, normalized_momenta);
                     m_interval_weights.append(weights_from_intervals(intervals));
                     continue;
                 }
 
-                const double momentum_lo_max
-                    = momentum_lo + std::sqrt(momentum_lo*momentum_lo - mom_sq_floor);
-                if (1.0 < momentum_lo_max)
+                const double normalized_momentum_lo_max
+                    = normalized_momentum_lo
+                        + std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
+                if (1.0 < normalized_momentum_lo_max)
                 {
                     const std::array intervals = {
                         std::array<double, 2>{
-                            momentum_hi_min,
-                            momentum_lo_min
+                            normalized_momentum_hi_min,
+                            normalized_momentum_lo_min
                         },
                         std::array<double, 2>{
-                            momentum_lo_min,
+                            normalized_momentum_lo_min,
                             1.0,
                         }
                     };
-                    std::span<double> momenta = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
-                    generate_momenta_on(intervals, momenta);
+                    std::span<double> normalized_momenta = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
+                    generate_momenta_on(intervals, normalized_momenta);
                     m_interval_weights.append(weights_from_intervals(intervals));
                     continue;
                 }
 
-                const double momentum_hi_max
-                    = momentum_hi + std::sqrt(momentum_hi*momentum_hi - mom_sq_floor);
+                const double normalized_momentum_hi_max
+                    = normalized_momentum_hi
+                        + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
 
                 const std::array intervals = {
                     std::array<double, 2>{
-                        momentum_hi_min,
-                        momentum_lo_min
+                        normalized_momentum_hi_min,
+                        normalized_momentum_lo_min
                     },
                     std::array<double, 2>{
-                        momentum_lo_min,
-                        momentum_lo_max,
+                        normalized_momentum_lo_min,
+                        normalized_momentum_lo_max,
                     },
                     std::array<double, 2>{
-                        momentum_lo_max,
-                        std::min(momentum_hi_max, 1.0)
+                        normalized_momentum_lo_max,
+                        std::min(normalized_momentum_hi_max, 1.0)
                     }
                 };
-                std::span<double> momenta = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
-                generate_momenta_on(intervals, momenta);
+                std::span<double> normalized_momenta = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
+                generate_momenta_on(intervals, normalized_momenta);
                 m_interval_weights.append(weights_from_intervals(intervals));
             }
 
@@ -301,29 +332,34 @@ public:
     }
 
 private:
-    [[nodiscard]] static constexpr double scattering_rate_prefactor(
-        double dm_mass, double dm_energy_density, double target_density,
-        double dm_electron_cross_section, double max_momentum_transfer, double max_speed) noexcept
+    [[nodiscard]] static constexpr QuantityOf<energy_differential_rate_per_unit_mass> auto
+    scattering_rate_prefactor(
+        QuantityOf<mass> auto dm_mass,
+        QuantityOf<energy_density> auto dm_energy_density,
+        QuantityOf<mass_density> auto target_density,
+        QuantityOf<cross_section> auto dm_electron_cross_section,
+        QuantityOf<momentum_transfer> auto max_momentum_transfer,
+        QuantityOf<speed> auto max_speed) noexcept
     {
         constexpr double two_pi = 2.0*std::numbers::pi;
         constexpr double two_pi_cubed = two_pi*two_pi*two_pi;
-        const double red_mass = reduced_mass(dm_mass, constants::electron_mass<units::GeV>);
-        const double numerator = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section*max_momentum_transfer*max_momentum_transfer;
-        const double denominator = target_density*dm_mass*red_mass*red_mass;
+        const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
+        const quantity numerator = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section*max_momentum_transfer*max_momentum_transfer;
+        const quantity denominator = target_density*dm_mass*red_mass*red_mass;
         return numerator/denominator;
     }
 
     template <std::size_t N>
     void generate_momenta_on(
         const std::array<std::array<double, 2>, N>& momentum_intervals,
-        std::span<double> momenta) noexcept
+        std::span<double> normalized_momenta) noexcept
     {
         const std::size_t num_nodes = m_shell_glq_nodes.size();
-        assert(momenta.size() == N*num_nodes);
+        assert(normalized_momenta.size() == N*num_nodes);
 
         for (std::size_t i = 0; i < N; ++i)
         {
-            std::span<double> interval_momenta = momenta.subspan(i*num_nodes, num_nodes);
+            std::span<double> interval_momenta = normalized_momenta.subspan(i*num_nodes, num_nodes);
             const double mid_point = 0.5*(momentum_intervals[i][1] + momentum_intervals[i][0]);
             const double half_width = 0.5*(momentum_intervals[i][1] - momentum_intervals[i][0]);
             for (std::size_t j = 0; j < num_nodes; ++j)
@@ -334,24 +370,32 @@ private:
         }
     }
 
+    template <QuantityOf<energy> Energy>
     void calculate_shells(
-        std::span<const double> energies, double dm_mass, double max_speed) noexcept
+        std::span<const Energy> energies,
+        QuantityOf<mass> auto dm_mass,
+        QuantityOf<speed> auto max_speed,
+        QuantityOf<momentum_transfer> auto max_momentum_transfer) noexcept
     {
-        const double mass_factor = 0.5/dm_mass;
-        const double inv_max_speed = 1.0/max_speed;
+        const quantity inverted_half_mass = 0.5/dm_mass;
+        const quantity mass_factor = max_momentum_transfer/max_speed;
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
-            std::span<const double> momenta = m_normalized_momentum_grid[i];
+            std::span<const double> normalized_momenta = m_normalized_momentum_grid[i];
             std::span<double> shells = m_shell_grid[i];
-            for (std::size_t j = 0; j < momenta.size(); ++i)
-                shells[j] = (momenta[j]*mass_factor + energies[i]/momenta[j])*inv_max_speed;
+            for (std::size_t j = 0; j < normalized_momenta.size(); ++i)
+                shells[j] = static_cast<double>(
+                        (normalized_momenta[j]*inverted_half_mass
+                            + energies[i]/normalized_momenta[j])*mass_factor);
         }
     }
 
     template <typename T, std::size_t N>
-    [[nodiscard]] static constexpr std::array<T, N> weights_from_intervals(const std::array<std::array<T, 2>, N>& intervals) noexcept
+    [[nodiscard]] static constexpr std::array<T, N>
+    weights_from_intervals(const std::array<std::array<T, 2>, N>& intervals) noexcept
     {
-        return [&]<std::size_t... I>(const std::array<std::array<T, 2>, N>& intervals, std::index_sequence<I...>)
+        return [&]<std::size_t... I>(
+            const std::array<std::array<T, 2>, N>& intervals, std::index_sequence<I...>)
         {
             return std::array<T, N>{0.5*(intervals[I][1] - intervals[I][0])...};
         }(intervals, std::make_index_sequence<N>{});
@@ -363,7 +407,6 @@ private:
     RaggedTable<double> m_shell_grid;
     RaggedTable<double> m_aiwrt_grid;
     RaggedTable<double> m_response_grid;
-    RaggedTable<double> m_result_grid;
     RaggedTable<double> m_interval_weights;
     zebra::AngleIntegrator<DistType::iso, RespType::iso> m_angle_integrator;
 };

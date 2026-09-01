@@ -22,6 +22,7 @@ SOFTWARE.
 #pragma once
 
 #include <array>
+#include <mp-units/framework.h>
 #include <utility>
 
 #include <mp-units/systems/hep.h>
@@ -40,6 +41,11 @@ using mp_units::Quantity;
 using namespace mp_units::hep;
 
 namespace si = mp_units::si;
+
+inline constexpr struct momentum_transfer: mpu::quantity_spec<momentum, mpu::non_negative> {} momentum_transfer;
+inline constexpr struct energy_density: mpu::quantity_spec<energy*number_density> {} energy_density;
+inline constexpr struct mass_density: mpu::quantity_spec<mass*number_density> {} mass_density;
+inline constexpr struct energy_differential_rate_per_unit_mass: mpu::quantity_spec<inverse(energy*time*mass)> {} energy_differential_rate_per_unit_mass;
 
 // Extra time units that are not defined by mp_units::hep
 inline constexpr struct minute: mpu::named_unit<"min", mpu::mag<60>*second> {} minute;
