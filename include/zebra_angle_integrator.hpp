@@ -98,6 +98,8 @@ public:
 
     void resize(std::size_t dist_order);
 
+    void radon_transform(IsotropicZernikeSpan<const double> distribution);
+
     void integrate(
         IsotropicZernikeSpan<const double> distribution,
         std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
@@ -107,8 +109,16 @@ public:
         IsotropicZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
         std::span<const double> shells, std::span<double> out);
 
+    void integrate(
+        std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
+        zest::DynamicMDSpan<double, 2> out);
+
+    void integrate(
+        const la::Vector<double, 3>& offset, std::span<const double> shells,
+        std::span<double> out);
+
 private:
-    IsotropicZernikeExpansion<double> m_geg_zernike_exp;
+    IsotropicZernikeExpansion<double> m_radon_transformed_dist;
     detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
 };
@@ -141,7 +151,7 @@ public:
 
 private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    IsotropicZernikeExpansion<double> m_geg_zernike_exp;
+    IsotropicZernikeExpansion<double> m_radon_transform_exp;
     detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
     std::size_t m_resp_order{};
@@ -221,8 +231,8 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    ZernikeExpansion<double> m_geg_zernike_exp;
-    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
+    ZernikeExpansion<double> m_radon_transform_exp;
+    ZernikeExpansion<double> m_rotated_radon_transform_exp;
     detail::ZernikeExpansionWorkspace m_zernike_expansions;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -364,9 +374,9 @@ private:
         std::size_t top_order, std::span<double> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    ZernikeExpansion<double> m_geg_zernike_exp;
-    std::vector<double> m_rotated_geg_zernike_exp;
-    std::vector<double> m_rotated_geg_zernike_grids;
+    ZernikeExpansion<double> m_radon_transform_exp;
+    std::vector<double> m_rotated_radon_transform_exp;
+    std::vector<double> m_rotated_radon_transform_grids;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;
     detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
@@ -399,7 +409,7 @@ public:
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
 private:
-    IsotropicZernikeExpansion<double, 3> m_transverse_geg_zernike_exp_components;
+    IsotropicZernikeExpansion<double, 3> m_transverse_radon_transform_exp_components;
     detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -433,7 +443,7 @@ public:
 
 private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    IsotropicZernikeExpansion<double, 3> m_transverse_geg_zernike_exp_components;
+    IsotropicZernikeExpansion<double, 3> m_transverse_radon_transform_exp_components;
     detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -517,13 +527,13 @@ private:
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
-    ZernikeExpansion<double> m_geg_zernike_exp;
-    ZernikeExpansion<double> m_geg_zernike_exp_x;
-    ZernikeExpansion<double> m_geg_zernike_exp_y;
-    ZernikeExpansion<double> m_geg_zernike_exp_z;
-    ZernikeExpansion<double> m_geg_zernike_exp_r2;
-    ZernikeExpansion<double> m_rotated_geg_zernike_exp;
-    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
+    ZernikeExpansion<double> m_radon_transform_exp;
+    ZernikeExpansion<double> m_radon_transform_exp_x;
+    ZernikeExpansion<double> m_radon_transform_exp_y;
+    ZernikeExpansion<double> m_radon_transform_exp_z;
+    ZernikeExpansion<double> m_radon_transform_exp_r2;
+    ZernikeExpansion<double> m_rotated_radon_transform_exp;
+    ZernikeExpansion<double> m_rotated_trans_radon_transform_exp;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
     std::size_t m_dist_order{};
@@ -664,15 +674,15 @@ private:
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    ZernikeExpansion<double> m_geg_zernike_exp;
-    ZernikeExpansion<double> m_geg_zernike_exp_x;
-    ZernikeExpansion<double> m_geg_zernike_exp_y;
-    ZernikeExpansion<double> m_geg_zernike_exp_z;
-    ZernikeExpansion<double> m_geg_zernike_exp_r2;
-    std::vector<double> m_rotated_geg_zernike_exp;
-    ZernikeExpansion<double> m_rotated_trans_geg_zernike_exp;
-    std::vector<double> m_rotated_geg_zernike_grids;
-    std::vector<double> m_rotated_trans_geg_zernike_grids;
+    ZernikeExpansion<double> m_radon_tranform_exp;
+    ZernikeExpansion<double> m_radon_transform_exp_x;
+    ZernikeExpansion<double> m_radon_transform_exp_y;
+    ZernikeExpansion<double> m_radon_transform_exp_z;
+    ZernikeExpansion<double> m_radon_transform_exp_r2;
+    std::vector<double> m_rotated_radon_transform_exp;
+    ZernikeExpansion<double> m_rotated_trans_radon_transform_exp;
+    std::vector<double> m_rotated_radon_transform_grids;
+    std::vector<double> m_rotated_trans_radon_transform_grids;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     zest::Rotor m_rotor;
     zest::st::GLQTransformerGeo<> m_glq_transformer;

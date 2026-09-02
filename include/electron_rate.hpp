@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include "polynomial.hpp"
 #include "types.hpp"
+#include "zebra_radon.hpp"
 #include "zebra_angle_integrator.hpp"
 
 namespace zdm
@@ -158,7 +159,7 @@ public:
                 m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
         const std::size_t num_nodes = m_shell_glq_nodes.size();
 
-        m_angle_integrator.radon_transform(velocity_distribution);
+        zebra::radon_transform(velocity_distribution);
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
             const quantity lab_speed = lab_velocities[i].magnitude();

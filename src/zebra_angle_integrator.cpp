@@ -38,7 +38,7 @@ namespace zdm::zebra
 {
 
 AngleIntegrator<DistType::iso, RespType::iso>::AngleIntegrator(std::size_t dist_order):
-    m_geg_zernike_exp(dist_order + 2),
+    m_radon_transformed_dist(dist_order + 2),
     m_integrator_core(dist_order + 2),
     m_dist_order(dist_order) {}
 
@@ -46,41 +46,61 @@ void AngleIntegrator<DistType::iso, RespType::iso>::resize(std::size_t dist_orde
 {
     if (dist_order == m_dist_order) return;
     const std::size_t geg_order = dist_order + 2;
-    m_geg_zernike_exp.reshape(geg_order);
+    m_radon_transformed_dist.reshape(geg_order);
     m_integrator_core.resize(geg_order);
     m_dist_order = dist_order;
 }
 
-void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
-        IsotropicZernikeSpan<const double> distribution,
-        std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
-        zest::DynamicMDSpan<double, 2> out)
+void AngleIntegrator<DistType::iso, RespType::iso>::radon_transform(
+    IsotropicZernikeSpan<const double> distribution)
 {
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transformed_dist);
+}
+
+void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
+    IsotropicZernikeSpan<const double> distribution,
+    std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
+    zest::DynamicMDSpan<double, 2> out)
+{
+    radon_transform(distribution);
+    integrate(offsets, shells, out);
+}
+
+void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
+    std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
+    zest::DynamicMDSpan<double, 2> out)
+{
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         const double offset_len = la::norm(offsets[i]);
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
-                    m_geg_zernike_exp, offset_len, shells[j]);
+                    m_radon_transformed_dist, offset_len, shells[j]);
     }
 }
 
 void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
-        IsotropicZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
-        std::span<const double> shells, std::span<double> out)
+    IsotropicZernikeSpan<const double> distribution, const la::Vector<double, 3>& offset,
+    std::span<const double> shells, std::span<double> out)
 {
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transformed_dist);
+    integrate(offset, shells, out);
+}
+
+void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
+    const la::Vector<double, 3>& offset, std::span<const double> shells,
+    std::span<double> out)
+{
     const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                m_geg_zernike_exp, offset_len, shells[i]);
+                m_radon_transformed_dist, offset_len, shells[i]);
 }
 
 AngleIntegrator<DistType::iso, RespType::aniso>::AngleIntegrator(
     std::size_t dist_order, std::size_t resp_order):
     m_wigner_d_pi2(resp_order),
-    m_geg_zernike_exp(dist_order + 2),
+    m_radon_transform_exp(dist_order + 2),
     m_integrator_core(dist_order + 2, resp_order),
     m_dist_order(dist_order), m_resp_order(resp_order) {}
 
@@ -95,7 +115,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::resize(
     m_resp_order = resp_order;
     if (dist_order == m_dist_order) return;
 
-    m_geg_zernike_exp.reshape(geg_order);
+    m_radon_transform_exp.reshape(geg_order);
     m_dist_order = dist_order;
 }
 
@@ -106,12 +126,12 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::DynamicMDSpan<double, 2> out)
 {
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
-                    m_geg_zernike_exp, response[j], offsets[i], rotation_angles[i], 
+                    m_radon_transform_exp, response[j], offsets[i], rotation_angles[i], 
                     shells[j], m_wigner_d_pi2);
     }
 }
@@ -122,10 +142,10 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<double> out)
 {
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                m_geg_zernike_exp, response[i], offset, rotation_angle, 
+                m_radon_transform_exp, response[i], offset, rotation_angle, 
                 shells[i], m_wigner_d_pi2);
 }
 
@@ -133,8 +153,8 @@ AngleIntegrator<DistType::aniso, RespType::iso>::AngleIntegrator(
     std::size_t dist_order):
     m_wigner_d_pi2(dist_order + 2),
     m_rotor(dist_order + 2),
-    m_geg_zernike_exp(dist_order + 2),
-    m_rotated_geg_zernike_exp(dist_order + 2),
+    m_radon_transform_exp(dist_order + 2),
+    m_rotated_radon_transform_exp(dist_order + 2),
     m_integrator_core(dist_order + 2),
     m_dist_order(dist_order) {}
 
@@ -144,8 +164,8 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size_t dist_or
     const std::size_t geg_order = dist_order + 2;
     m_wigner_d_pi2.expand(geg_order);
     m_rotor.expand(geg_order);
-    m_geg_zernike_exp.reshape(geg_order);
-    m_rotated_geg_zernike_exp.reshape(geg_order);
+    m_radon_transform_exp.reshape(geg_order);
+    m_rotated_radon_transform_exp.reshape(geg_order);
     m_integrator_core.resize(geg_order);
     m_dist_order = dist_order;
 }
@@ -160,7 +180,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         && shells.size() == out.extent(1));
 
     resize(distribution.order());
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(offsets[i], shells, out[i]);
 }
@@ -172,7 +192,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
 {
     assert(shells.size() == out.size());
     resize(distribution.order());
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     integrate(offset, shells, out);
 }
 
@@ -183,8 +203,8 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     assert(shells.size() == out.size());
 
     std::ranges::copy(
-        m_geg_zernike_exp.flatten(),
-        m_rotated_geg_zernike_exp.flatten().begin());
+        m_radon_transform_exp.flatten(),
+        m_rotated_radon_transform_exp.flatten().begin());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [offset_az, offset_colat, offset_len]
@@ -193,11 +213,11 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     m_rotor.rotate<rotation_type>(
-            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+            m_rotated_radon_transform_exp, m_wigner_d_pi2, euler_angles);
 
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                m_rotated_geg_zernike_exp, offset_len, shells[i]);
+                m_rotated_radon_transform_exp, offset_len, shells[i]);
 }
 
 namespace
@@ -221,9 +241,9 @@ namespace
 AngleIntegrator<DistType::aniso, RespType::aniso>::AngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2(std::max(dist_order + 2, resp_order)),
-    m_geg_zernike_exp(dist_order + 2),
-    m_rotated_geg_zernike_exp(zernike_expansion_sh_span_size(dist_order + 2)),
-    m_rotated_geg_zernike_grids(
+    m_radon_transformed_dist(dist_order + 2),
+    m_rotated_radon_transform(zernike_expansion_sh_span_size(dist_order + 2)),
+    m_rotated_radon_transform_grids(
         geg_zernike_grids_size(
             dist_order + 2, dist_order + 2 + resp_order, trunc_order)),
     m_integrator_core(
@@ -241,14 +261,14 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::resize(
 
     if (dist_order != m_dist_order)
     {
-        m_geg_zernike_exp.reshape(dist_order + 2);
-        m_rotated_geg_zernike_exp.resize(
+        m_radon_transformed_dist.reshape(dist_order + 2);
+        m_rotated_radon_transform.resize(
                 zernike_expansion_sh_span_size(dist_order + 2));
     }
 
     if (dist_order != m_dist_order || resp_order != m_resp_order || trunc_order != m_trunc_order)
     {
-        m_rotated_geg_zernike_grids.resize(
+        m_rotated_radon_transform_grids.resize(
                 geg_zernike_grids_size(
                     dist_order + 2, dist_order + 2 + resp_order, trunc_order));
         m_integrator_core.resize(
@@ -278,7 +298,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transformed_dist);
 
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(
@@ -300,7 +320,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const std::size_t geg_order = dist_order + 2;
     const std::size_t top_order = std::min(geg_order + resp_order, trunc_order);
 
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transformed_dist);
 
     integrate(response, offset, rotation_angle, shells, geg_order, top_order, out);
 }
@@ -321,15 +341,15 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 
     zest::st::SphereGLQGridVectorSpan<double>
     rotated_geg_zernike_grids(
-            m_rotated_geg_zernike_grids.data(), geg_order, top_order);
+            m_rotated_radon_transform_grids.data(), geg_order, top_order);
 
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         std::ranges::copy(
-                m_geg_zernike_exp[n].flatten(),
-                m_rotated_geg_zernike_exp.begin());
+                m_radon_transformed_dist[n].flatten(),
+                m_rotated_radon_transform.begin());
         ZernikeSpan<double>::subspan_type<1> rotated_geg_zernike_exp(
-                m_rotated_geg_zernike_exp.data(), n + 1);
+                m_rotated_radon_transform.data(), n + 1);
 
         m_rotor.rotate<rotation_type>(
                 rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
@@ -344,7 +364,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 }
 
 TransverseAngleIntegrator<DistType::iso, RespType::iso>::TransverseAngleIntegrator(std::size_t dist_order):
-    m_transverse_geg_zernike_exp_components(dist_order + 4),
+    m_transverse_radon_transform_exp_components(dist_order + 4),
     m_transverse_radon_helper(dist_order),
     m_integrator_core(dist_order + 2),
     m_dist_order(dist_order) {}
@@ -353,7 +373,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::resize(std::size_t
 {
     if (dist_order == m_dist_order) return;
     const std::size_t geg_order = dist_order + 2;
-    m_transverse_geg_zernike_exp_components.reshape(geg_order);
+    m_transverse_radon_transform_exp_components.reshape(geg_order);
     m_integrator_core.resize(geg_order);
     m_dist_order = dist_order;
 }
@@ -363,13 +383,13 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
     m_transverse_radon_helper
-        .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
+        .evaluate_transverse_components(distribution, m_transverse_radon_transform_exp_components);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         const double offset_len = la::norm(offsets[i]);
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate_transverse(
-                    m_transverse_geg_zernike_exp_components, offset_len, shells[j]);
+                    m_transverse_radon_transform_exp_components, offset_len, shells[j]);
     }
 
 }
@@ -379,18 +399,18 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
     m_transverse_radon_helper
-        .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
+        .evaluate_transverse_components(distribution, m_transverse_radon_transform_exp_components);
     const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
-                m_transverse_geg_zernike_exp_components, offset_len, shells[i]);
+                m_transverse_radon_transform_exp_components, offset_len, shells[i]);
 
 }
 
 TransverseAngleIntegrator<DistType::iso, RespType::aniso>::TransverseAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order):
     m_wigner_d_pi2(resp_order),
-    m_transverse_geg_zernike_exp_components(dist_order + 4),
+    m_transverse_radon_transform_exp_components(dist_order + 4),
     m_transverse_radon_helper(dist_order),
     m_integrator_core(dist_order + 2, resp_order),
     m_dist_order(dist_order), m_resp_order(resp_order) {}
@@ -401,7 +421,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::resize(
     if (dist_order == m_dist_order) return;
     const std::size_t geg_order = dist_order + 2;
     m_wigner_d_pi2.expand(resp_order);
-    m_transverse_geg_zernike_exp_components.reshape(geg_order);
+    m_transverse_radon_transform_exp_components.reshape(geg_order);
     m_integrator_core.resize(geg_order, resp_order);
     m_dist_order = dist_order;
     m_resp_order = resp_order;
@@ -414,12 +434,12 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
     m_transverse_radon_helper
-        .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
+        .evaluate_transverse_components(distribution, m_transverse_radon_transform_exp_components);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate_transverse(
-                    m_transverse_geg_zernike_exp_components, response[j], offsets[i],
+                    m_transverse_radon_transform_exp_components, response[j], offsets[i],
                     rotation_angles[i], shells[j], m_wigner_d_pi2);
     }
 
@@ -431,10 +451,10 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
     m_transverse_radon_helper
-        .evaluate_transverse_components(distribution, m_transverse_geg_zernike_exp_components);
+        .evaluate_transverse_components(distribution, m_transverse_radon_transform_exp_components);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
-                m_transverse_geg_zernike_exp_components, response[i], offset, rotation_angle,
+                m_transverse_radon_transform_exp_components, response[i], offset, rotation_angle,
                 shells[i], m_wigner_d_pi2);
 
 }
@@ -443,13 +463,13 @@ TransverseAngleIntegrator<DistType::aniso, RespType::iso>::TransverseAngleIntegr
     std::size_t dist_order):
     m_wigner_d_pi2(dist_order + 4),
     m_rotor(dist_order + 4),
-    m_geg_zernike_exp(dist_order + 2),
-    m_geg_zernike_exp_x(dist_order + 3),
-    m_geg_zernike_exp_y(dist_order + 3),
-    m_geg_zernike_exp_z(dist_order + 3),
-    m_geg_zernike_exp_r2(dist_order + 4),
-    m_rotated_geg_zernike_exp(dist_order + 2),
-    m_rotated_trans_geg_zernike_exp(dist_order + 4),
+    m_radon_transform_exp(dist_order + 2),
+    m_radon_transform_exp_x(dist_order + 3),
+    m_radon_transform_exp_y(dist_order + 3),
+    m_radon_transform_exp_z(dist_order + 3),
+    m_radon_transform_exp_r2(dist_order + 4),
+    m_rotated_radon_transform_exp(dist_order + 2),
+    m_rotated_trans_radon_transform_exp(dist_order + 4),
     m_multiplier(dist_order + 4),
     m_integrator_core(dist_order + 4),
     m_dist_order(dist_order) {}
@@ -462,13 +482,13 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size
     const std::size_t trans_geg_order = dist_order + 4;
     m_wigner_d_pi2.expand(trans_geg_order);
     m_rotor.expand(trans_geg_order);
-    m_geg_zernike_exp.reshape(const_geg_order);
-    m_geg_zernike_exp_x.reshape(linear_geg_order);
-    m_geg_zernike_exp_y.reshape(linear_geg_order);
-    m_geg_zernike_exp_z.reshape(linear_geg_order);
-    m_geg_zernike_exp_r2.reshape(trans_geg_order);
-    m_rotated_geg_zernike_exp.reshape(const_geg_order);
-    m_rotated_trans_geg_zernike_exp.reshape(trans_geg_order);
+    m_radon_transform_exp.reshape(const_geg_order);
+    m_radon_transform_exp_x.reshape(linear_geg_order);
+    m_radon_transform_exp_y.reshape(linear_geg_order);
+    m_radon_transform_exp_z.reshape(linear_geg_order);
+    m_radon_transform_exp_r2.reshape(trans_geg_order);
+    m_rotated_radon_transform_exp.reshape(const_geg_order);
+    m_rotated_trans_radon_transform_exp.reshape(trans_geg_order);
     m_multiplier.expand(dist_order);
     m_integrator_core.resize(trans_geg_order);
     m_dist_order = dist_order;
@@ -484,15 +504,15 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         && shells.size() == out.extent(1));
 
     resize(distribution.order());
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_x);
+            distribution, m_radon_transform_exp_x);
     m_multiplier.multiply_by_y_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_y);
+            distribution, m_radon_transform_exp_y);
     m_multiplier.multiply_by_z_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_z);
+            distribution, m_radon_transform_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_r2);
+            distribution, m_radon_transform_exp_r2);
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(offsets[i], shells, out[i]);
 }
@@ -505,15 +525,15 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     assert(shells.size() == out.size());
 
     resize(distribution.order());
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_transform_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_x);
+            distribution, m_radon_transform_exp_x);
     m_multiplier.multiply_by_y_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_y);
+            distribution, m_radon_transform_exp_y);
     m_multiplier.multiply_by_z_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_z);
+            distribution, m_radon_transform_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_r2);
+            distribution, m_radon_transform_exp_r2);
     integrate(offset, shells, out);
 }
 
@@ -524,24 +544,24 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     assert(shells.size() == out.size());
 
     std::ranges::copy(
-        m_geg_zernike_exp.flatten(),
-        m_rotated_geg_zernike_exp.flatten().begin());
+        m_radon_transform_exp.flatten(),
+        m_rotated_radon_transform_exp.flatten().begin());
 
     std::ranges::copy(
-        m_geg_zernike_exp_r2.flatten(),
-        m_rotated_trans_geg_zernike_exp.flatten().begin());
+        m_radon_transform_exp_r2.flatten(),
+        m_rotated_trans_radon_transform_exp.flatten().begin());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        la::dot(offset, offset), m_geg_zernike_exp.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        la::dot(offset, offset), m_radon_transform_exp.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[0], m_geg_zernike_exp_x.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[0], m_radon_transform_exp_x.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[1], m_geg_zernike_exp_y.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[1], m_radon_transform_exp_y.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[2], m_geg_zernike_exp_z.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[2], m_radon_transform_exp_z.flatten());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
     const auto& [offset_az, offset_colat, offset_len]
@@ -550,29 +570,29 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     m_rotor.rotate<rotation_type>(
-            m_rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+            m_rotated_radon_transform_exp, m_wigner_d_pi2, euler_angles);
     m_rotor.rotate<rotation_type>(
-            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+            m_rotated_trans_radon_transform_exp, m_wigner_d_pi2, euler_angles);
 
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
-                m_rotated_geg_zernike_exp, m_rotated_trans_geg_zernike_exp, offset_len, shells[i]);
+                m_rotated_radon_transform_exp, m_rotated_trans_radon_transform_exp, offset_len, shells[i]);
 }
 
 TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::TransverseAngleIntegrator(
     std::size_t dist_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2(std::max(dist_order + 4, resp_order)),
-    m_geg_zernike_exp(dist_order + 2),
-    m_geg_zernike_exp_x(dist_order + 3),
-    m_geg_zernike_exp_y(dist_order + 3),
-    m_geg_zernike_exp_z(dist_order + 3),
-    m_geg_zernike_exp_r2(dist_order + 4),
-    m_rotated_geg_zernike_exp(zernike_expansion_sh_span_size(dist_order + 2)),
-    m_rotated_trans_geg_zernike_exp(dist_order + 4),
-    m_rotated_geg_zernike_grids(
+    m_radon_tranform_exp(dist_order + 2),
+    m_radon_transform_exp_x(dist_order + 3),
+    m_radon_transform_exp_y(dist_order + 3),
+    m_radon_transform_exp_z(dist_order + 3),
+    m_radon_transform_exp_r2(dist_order + 4),
+    m_rotated_radon_transform_exp(zernike_expansion_sh_span_size(dist_order + 2)),
+    m_rotated_trans_radon_transform_exp(dist_order + 4),
+    m_rotated_radon_transform_grids(
         geg_zernike_grids_size(
             dist_order + 2, dist_order + 4 + resp_order, trunc_order)),
-    m_rotated_trans_geg_zernike_grids(
+    m_rotated_trans_radon_transform_grids(
         geg_zernike_grids_size(
             dist_order + 4, dist_order + 4 + resp_order, trunc_order)),
     m_multiplier(dist_order + 4),
@@ -592,22 +612,22 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::resize(
     if (dist_order != m_dist_order)
     {
         m_multiplier.expand(dist_order + 4);
-        m_geg_zernike_exp.reshape(dist_order + 2);
-        m_geg_zernike_exp_x.reshape(dist_order + 3);
-        m_geg_zernike_exp_y.reshape(dist_order + 3);
-        m_geg_zernike_exp_z.reshape(dist_order + 3);
-        m_geg_zernike_exp_r2.reshape(dist_order + 4);
-        m_rotated_geg_zernike_exp.resize(
+        m_radon_tranform_exp.reshape(dist_order + 2);
+        m_radon_transform_exp_x.reshape(dist_order + 3);
+        m_radon_transform_exp_y.reshape(dist_order + 3);
+        m_radon_transform_exp_z.reshape(dist_order + 3);
+        m_radon_transform_exp_r2.reshape(dist_order + 4);
+        m_rotated_radon_transform_exp.resize(
                 zernike_expansion_sh_span_size(dist_order + 2));
-        m_rotated_trans_geg_zernike_exp.reshape(dist_order + 4);
+        m_rotated_trans_radon_transform_exp.reshape(dist_order + 4);
     }
 
     if (dist_order != m_dist_order || resp_order != m_resp_order || trunc_order != m_trunc_order)
     {
-        m_rotated_geg_zernike_grids.resize(
+        m_rotated_radon_transform_grids.resize(
                 geg_zernike_grids_size(
                     dist_order + 2, dist_order + 4 + resp_order, trunc_order));
-        m_rotated_trans_geg_zernike_grids.resize(
+        m_rotated_trans_radon_transform_grids.resize(
                 geg_zernike_grids_size(
                     dist_order + 4, dist_order + 4 + resp_order, trunc_order));
         m_integrator_core.resize(
@@ -635,15 +655,15 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const std::size_t resp_order = response[0].order();
     resize(dist_order, resp_order, trunc_order);
 
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_tranform_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_x);
+            distribution, m_radon_transform_exp_x);
     m_multiplier.multiply_by_y_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_y);
+            distribution, m_radon_transform_exp_y);
     m_multiplier.multiply_by_z_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_z);
+            distribution, m_radon_transform_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_r2);
+            distribution, m_radon_transform_exp_r2);
 
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(response, offsets[i], rotation_angles[i], shells, out[i]);
@@ -659,15 +679,15 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const std::size_t resp_order = response[0].order();
     resize(dist_order, resp_order, trunc_order);
 
-    zebra::radon_transform(distribution, m_geg_zernike_exp);
+    zebra::radon_transform(distribution, m_radon_tranform_exp);
     m_multiplier.multiply_by_x_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_x);
+            distribution, m_radon_transform_exp_x);
     m_multiplier.multiply_by_y_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_y);
+            distribution, m_radon_transform_exp_y);
     m_multiplier.multiply_by_z_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_z);
+            distribution, m_radon_transform_exp_z);
     m_multiplier.multiply_by_r2_and_radon_transform_inplace(
-            distribution, m_geg_zernike_exp_r2);
+            distribution, m_radon_transform_exp_r2);
 
     integrate(response, offset, rotation_angle, shells, out);
 }
@@ -691,13 +711,13 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 
     zest::st::SphereGLQGridVectorSpan<double>
     rotated_geg_zernike_grids(
-            m_rotated_geg_zernike_grids.data(), geg_order, top_order);
+            m_rotated_radon_transform_grids.data(), geg_order, top_order);
 
     for (std::size_t n = 0; n < geg_order; ++n)
     {
         std::ranges::copy(
-                m_geg_zernike_exp[n].flatten(),
-                m_rotated_geg_zernike_exp.begin());
+                m_radon_tranform_exp[n].flatten(),
+                m_rotated_radon_transform_exp.begin());
         ZernikeSpan<double>::subspan_type<1> rotated_geg_zernike_exp(
                 m_rotated_geg_zernike_exp.data(), n + 1);
         m_rotor.rotate<rotation_type>(
@@ -708,28 +728,28 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 
     zest::st::SphereGLQGridVectorSpan<double>
     rotated_trans_geg_zernike_grids(
-            m_rotated_trans_geg_zernike_grids.data(), trans_geg_order, top_order);
+            m_rotated_trans_radon_transform_grids.data(), trans_geg_order, top_order);
 
     std::ranges::copy(
-            m_geg_zernike_exp_r2.flatten(),
-            m_rotated_trans_geg_zernike_exp.flatten().begin());
+            m_radon_transform_exp_r2.flatten(),
+            m_rotated_trans_radon_transform_exp.flatten().begin());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        offset_len*offset_len, m_geg_zernike_exp.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        offset_len*offset_len, m_radon_tranform_exp.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[0], m_geg_zernike_exp_x.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[0], m_radon_transform_exp_x.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[1], m_geg_zernike_exp_y.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[1], m_radon_transform_exp_y.flatten());
     util::fmadd(
-        m_rotated_trans_geg_zernike_exp.flatten(),
-        -2.0*offset[2], m_geg_zernike_exp_z.flatten());
+        m_rotated_trans_radon_transform_exp.flatten(),
+        -2.0*offset[2], m_radon_transform_exp_z.flatten());
 
     m_rotor.rotate<rotation_type>(
-            m_rotated_trans_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
+            m_rotated_trans_radon_transform_exp, m_wigner_d_pi2, euler_angles);
 
-    for (std::size_t n = 0; n < m_rotated_trans_geg_zernike_exp.order(); ++n)
+    for (std::size_t n = 0; n < m_rotated_trans_radon_transform_exp.order(); ++n)
         m_glq_transformer.backward_transform(
                 m_rotated_trans_geg_zernike_exp[n], rotated_trans_geg_zernike_grids[n]);
 
