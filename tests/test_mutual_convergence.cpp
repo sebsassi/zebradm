@@ -72,7 +72,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -141,7 +141,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -215,7 +215,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -292,7 +292,7 @@ template <typename DistType>
 
     constexpr std::size_t order = 200;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, order);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -372,7 +372,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
@@ -448,7 +448,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
@@ -529,7 +529,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(dist_order).forward_transform(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
@@ -612,7 +612,7 @@ template <typename DistType, typename RespType>
     constexpr std::size_t dist_order = 80;
     constexpr std::size_t resp_order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(dist_order).forward_transform<zdm::la::Vector<double, 3>>(
                 std::forward<DistType>(dist), 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};

@@ -37,7 +37,7 @@ bool test_zonal_glq_forward_transform_expands_Y00(std::size_t order)
 {
     auto function = []([[maybe_unused]] double lon, [[maybe_unused]] double colat)
     {
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm;
     };
@@ -81,7 +81,7 @@ bool test_zonal_glq_forward_transform_expands_Y10(std::size_t order)
     {
         const double z = std::cos(colat);
 
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*std::numbers::sqrt3*z;
     };
@@ -125,7 +125,7 @@ bool test_zonal_glq_forward_transform_expands_Y20(std::size_t order)
     {
         const double z = std::cos(colat);
 
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*0.5*std::sqrt(5.0)*(3.0*z*z - 1.0);
     };
@@ -168,7 +168,7 @@ bool test_zonal_glq_forward_transform_expands_Y21(std::size_t order)
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*std::sqrt(15.0)*std::sqrt(1.0 - z*z)*z*std::cos(lon);
     };
@@ -203,7 +203,7 @@ bool test_zonal_glq_forward_transform_expands_Y30(std::size_t order)
     {
         const double z = std::cos(colat);
 
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*0.5*std::sqrt(7.0)*(5.0*z*z - 3.0)*z;
     };
@@ -246,7 +246,7 @@ bool test_zonal_glq_forward_transform_expands_Y31(std::size_t order)
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*std::sqrt(21.0/8.0)*std::sqrt(1.0 - z*z)*(5.0*z*z - 1.0)*std::cos(lon);
     };
@@ -280,7 +280,7 @@ bool test_zonal_glq_forward_transform_expands_Y4m3(std::size_t order)
     auto function = [](double lon, double colat)
     {
         const double z = std::cos(colat);
-        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::qm) ?
+        constexpr double shnorm = (sh_norm_param == zest::st::SHNorm::unit) ?
             0.5*std::numbers::inv_sqrtpi : 1.0;
         return shnorm*std::sqrt(315.0/8.0)*std::sqrt(1.0 - z*z)*(1.0 - z*z)*z*std::sin(3.0*lon);
     };
@@ -325,23 +325,23 @@ void test_glq(std::size_t order)
 
 int main()
 {
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::geo>(6);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::geo>(7);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::geo>(8);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::geo>(9);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::four_pi>(6);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::four_pi>(7);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::four_pi>(8);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::four_pi>(9);
 
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::geo>(6);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::geo>(7);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::geo>(8);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::geo>(9);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::four_pi>(6);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::four_pi>(7);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::four_pi>(8);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::four_pi>(9);
 
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::qm>(6);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::qm>(7);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::qm>(8);
-    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::qm>(9);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::unit>(6);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::unit>(7);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::unit>(8);
+    test_glq<zest::st::LatLonLayout<>, zest::st::SHNorm::unit>(9);
 
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::qm>(6);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::qm>(7);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::qm>(8);
-    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::qm>(9);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::unit>(6);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::unit>(7);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::unit>(8);
+    test_glq<zest::st::LonLatLayout<>, zest::st::SHNorm::unit>(9);
 }

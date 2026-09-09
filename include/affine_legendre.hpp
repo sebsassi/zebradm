@@ -54,19 +54,19 @@ public:
     Evaluate recursion of Legendre polynomials with affine transformed argument `y = shift + scale*x`.
     */
     void evaluate_affine(
-        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift, double scale);
+        zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double shift, double scale);
 
     /*
     Evaluate recursion of Legendre polynomials with shifted argument `y = shift + x`.
     */
     void evaluate_shifted(
-        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift);
+        zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double shift);
 
     /*
     Evaluate recursion of Legendre polynomials with scaled argument `y = scale*x`.
     */
     void evaluate_scaled(
-        zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double scale);
+        zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double scale);
 
 private:
     std::vector<double> m_a;

@@ -177,7 +177,7 @@ bool test_angle_integrator_iso_iso_is_correct_for_shm()
 
     constexpr std::size_t order = 100;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
                 shm_dist, 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -320,7 +320,7 @@ bool test_angle_integrator_aniso_iso_is_correct_for_shm()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 shm_dist, 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -472,7 +472,7 @@ bool test_angle_integrator_iso_aniso_is_correct_for_shm_constant_resp()
 
     constexpr std::size_t order = 100;
     zdm::IsotropicZernikeExpansion<double> distribution
-        = zest::zt::IsotropicZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
                 shm_dist, 1.0, order);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
@@ -630,7 +630,7 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform<zdm::la::Vector<double, 3>>(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform<zdm::la::Vector<double, 3>>(
                 shm_dist, 1.0, order);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};

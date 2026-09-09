@@ -105,7 +105,7 @@ void run_errors(
     constexpr std::size_t reference_dist_order = 200;
     constexpr std::size_t reference_resp_order = 800;
     zdm::ZernikeExpansion<double> reference_distribution
-        = zest::zt::ZernikeTransformerNormalGeo(reference_dist_order).forward_transform(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_dist_order).forward_transform(
             dist, 1.0, reference_dist_order);
 
     zdm::SHExpansionVector<double> reference_response(shells.size(), reference_resp_order);

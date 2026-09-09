@@ -117,8 +117,8 @@ int main()
 
     constexpr double radius = 2.0;
     constexpr std::size_t dist_order = 30;
-    zest::zt::ZernikeTransformerNormalGeo zernike_transformer{};
-    zest::zt::ZernikeExpansionNormalGeo distribution
+    zest::zt::ZernikeTransformer<zest::zt::NormedGeo> zernike_transformer{};
+    zdm::ZernikeExpansion<double> distribution
         = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
     constexpr std::size_t resp_order = 60;

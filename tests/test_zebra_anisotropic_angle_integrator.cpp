@@ -82,7 +82,7 @@ bool test_angle_integrator_is_correct_for_constant_dist_constant_resp()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            reference(i, j)
+            reference[i, j]
                 = angle_integrated_const_dist_radon(shells[j], offsets[i]);
         }
     }
@@ -177,7 +177,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
         {
-            shm_reference(i, j) = angle_integrated_radon_shm(
+            shm_reference[i, j] = angle_integrated_radon_shm(
                     offsets[i], shells[j], disp_speed);
         }
     }
@@ -186,7 +186,7 @@ bool test_angle_integrator_is_accurate_for_shm_constant_resp()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(order).forward_transform(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
                 shm_dist, 1.0, order);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};

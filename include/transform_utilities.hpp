@@ -64,18 +64,15 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     for (auto& radius : radii)
         radius *= 1.0/max_radius;
 
-    constexpr zest::IndexingMode indexing_mode = zest::IndexingMode::zero_based;
-    constexpr zest::zt::ZernikeNorm zernike_norm = zest::zt::zernike_norm_of<ZernikeExpansion<double>>();
-    constexpr zest::st::SHNorm sh_norm = zest::st::sh_norm_of<ZernikeExpansion<double>>();
-    constexpr zest::st::SHPhase sh_phase = zest::st::sh_phase_of<ZernikeExpansion<double>>();
+    constexpr zest::Indexing indexing_mode = zest::Indexing::zero_based;
 
-    zest::zt::RadialZernikeExpansion<double, zernike_norm, std::dynamic_extent>
+    zest::zt::RadialZernikeExpansion<double, zest::zt::norm_convention_of<ZernikeExpansion<double>>, std::dynamic_extent>
     radial_zernike{order, points.size()};
 
     zest::zt::RadialZernikeRecursion{order}.generate(radii, radial_zernike);
 
     auto spherical_harmonics = zest::st::RealSHGenerator()
-        .generate<indexing_mode, sh_norm, sh_phase>(longitudes, colatitudes, order);
+        .generate<indexing_mode, zest::st::convention_of<ZernikeExpansion<double>>>(longitudes, colatitudes, order);
 
     ZernikeExpansion<double> expansion{order};
 
@@ -174,7 +171,7 @@ public:
         return res;
     }
 private:
-    zest::st::SHTransformerGeo<> m_transformer;
+    zest::st::SHTransformer<zest::st::Geo> m_transformer;
 };
 
 } // namespace zdm

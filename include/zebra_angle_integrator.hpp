@@ -78,7 +78,7 @@ public:
     [[nodiscard]] ZernikeSpan<const double> rotated_transverse_zernike_expansion() const noexcept { return m_data[6]; };
 
 private:
-    zest::zt::ZernikeExpansionVectorNormalGeo<double, zest::IndexingMode::zero_based> m_data;
+    zest::zt::ZernikeExpansionVector<double, zest::Indexing::zero_based, zest::zt::NormedGeo> m_data;
 };
 
 } // namespace detail
@@ -378,7 +378,7 @@ private:
     std::vector<double> m_rotated_radon_transform_exp;
     std::vector<double> m_rotated_radon_transform_grids;
     zest::Rotor m_rotor;
-    zest::st::GLQTransformerGeo<> m_glq_transformer;
+    zest::st::GLQTransformer<zest::st::Geo> m_glq_transformer;
     detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
     std::size_t m_resp_order{};
@@ -685,7 +685,7 @@ private:
     std::vector<double> m_rotated_trans_radon_transform_grids;
     detail::ZernikeCoordinateMultiplier m_multiplier;
     zest::Rotor m_rotor;
-    zest::st::GLQTransformerGeo<> m_glq_transformer;
+    zest::st::GLQTransformer<zest::st::Geo> m_glq_transformer;
     detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
     std::size_t m_dist_order{};
     std::size_t m_resp_order{};

@@ -67,7 +67,7 @@ void AffineLegendreRecursion::expand(std::size_t max_order)
 }
 
 void AffineLegendreRecursion::evaluate_affine(
-    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift, double scale)
+    zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double shift, double scale)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());
@@ -97,7 +97,7 @@ void AffineLegendreRecursion::evaluate_affine(
 }
 
 void AffineLegendreRecursion::evaluate_shifted(
-    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double shift)
+    zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double shift)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());
@@ -127,7 +127,7 @@ void AffineLegendreRecursion::evaluate_shifted(
 }
 
 void AffineLegendreRecursion::evaluate_scaled(
-    zest::TriangleSpan<double, zest::IndexingMode::zero_based> expansion, double scale)
+    zest::TriangleSpan<double, zest::Indexing::zero_based> expansion, double scale)
 {
     if (expansion.order() == 0) return;
     expand(expansion.order());

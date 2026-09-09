@@ -64,7 +64,7 @@ bool legendre_affine_coeffs_expand_legendre(double a, double b, double x)
     constexpr std::size_t order = 6;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    zest::TriangleArray<double, zest::IndexingMode::zero_based> coeffs{order};
+    zest::TriangleArray<double, zest::Indexing::zero_based> coeffs{order};
 
     recursion.evaluate_affine(coeffs, a, b);
 
@@ -117,7 +117,7 @@ bool legendre_shift_coeffs_expand_legendre(double a, double x)
     constexpr std::size_t order = 6;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    zest::TriangleArray<double, zest::IndexingMode::zero_based> coeffs{order};
+    zest::TriangleArray<double, zest::Indexing::zero_based> coeffs{order};
 
     recursion.evaluate_shifted(coeffs, a);
 
@@ -170,7 +170,7 @@ bool legendre_scale_coeffs_expand_legendre(double b, double x)
     constexpr std::size_t order = 6;
 
     zdm::zebra::AffineLegendreRecursion recursion(order);
-    zest::TriangleArray<double, zest::IndexingMode::zero_based> coeffs{order};
+    zest::TriangleArray<double, zest::Indexing::zero_based> coeffs{order};
 
     recursion.evaluate_scaled(coeffs, b);
 

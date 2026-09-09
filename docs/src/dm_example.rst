@@ -270,7 +270,7 @@ We can then take the Zernike transform of the wrapped distribution
 
 .. code:: cpp
 
-    zest::ZernikeTransformerNormalGeo zernike_transformer{};
+    zest::zt::ZernikeTransformer<zest::zt::NormedGeo> zernike_transformer{};
     zdm::ZernikeExpansion dist
         = zernike_transformer.transform(wrapped_distribution, v_esc, dist_order);
 

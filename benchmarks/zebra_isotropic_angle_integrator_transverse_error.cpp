@@ -58,7 +58,7 @@ void angle_integrator_error(
     const char* name, std::size_t order, bool use_relative_error)
 {
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo(order).forward_transform(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
             dist, 1.0, order);
 
     zest::DynamicMDArray<std::array<double, 2>, 2> out(offsets.size(), shells.size());
@@ -134,7 +134,7 @@ void angle_integrator_errors(
         shells[i] = double(i)*max_shell/double(num_shells - 1);
 
     zdm::ZernikeExpansion<double> reference_distribution
-        = zest::zt::ZernikeTransformerNormalGeo(reference_order).forward_transform(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_order).forward_transform(
             dist, 1.0, reference_order);
 
     zest::DynamicMDArray<std::array<double, 2>, 2> reference(offsets.size(), shells.size());

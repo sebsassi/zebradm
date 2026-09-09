@@ -65,13 +65,13 @@ The first thing we need to do is calculate the Zernike expansion of our velocity
 \begin{minted}{c++}
     #include <zest/zernike_glq_transformer.hpp>
 \end{minted}
-From there we want to use the class \cppinline{ZernikeTransformerNormalGeo} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
+From there we want to use the class \cppinline{ZernikeTransformer} as our transformer. We first need to initialize the transformer. There are two options for this, we can default initialize it
 \begin{minted}{c++}
-    zest::zt::ZernikeTransformerNormalGeo<> zernike_transformer();
+    zest::zt::ZernikeTransformer<zest::zt::NormedGeo> zernike_transformer();
 \end{minted}
 or we can initialize it with a \texttt{order} parameter
 \begin{minted}{c++}
-    zest::zt::ZernikeTransformerNormalGeo<> zernike_transformer(order);
+    zest::zt::ZernikeTransformer<zest::zt::NormedGeo> zernike_transformer(order);
 \end{minted}
 The parameter \cppinline{std::size_t order} specifies the order of the Zernike expansion with higher orders corresponding for more accurate representation of the function. Higher orders require significantly more time to perform computations with, and the level of accuracy for a given order varies by distribution. The desired order should therefore be chosen through careful testing.
 
@@ -109,7 +109,7 @@ However we may want to pass parameters to the distribution, e.g., \texttt{veloci
 In this case we are dealing with the standard halo model, therefore our $v_\text{max}=v_\text{esc}$. With this parameter in hand, we can finally write down the transform
 \begin{minted}{c++}
     const double escape_velocity = 544;
-    zest::zt::RealZernikeExpansionNormalGeo zernike_expansion
+    zdm::ZernikeExpansion<double> zernike_expansion
         = zernike_transformer.transform(
             distribution, escape_velocity, distribution_order);
 \end{minted}

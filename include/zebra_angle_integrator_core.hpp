@@ -221,7 +221,7 @@ public:
 
     [[nodiscard]] zest::Rotor& rotor() { return m_rotor; }
 
-    [[nodiscard]] zest::st::GLQTransformerGeo<>&
+    [[nodiscard]] zest::st::GLQTransformer<zest::st::Geo>&
     glq_transformer() { return m_glq_transformer; }
 
     /**
@@ -253,7 +253,7 @@ private:
     void evaluate_aff_leg_ylm_integrals(double shell, double offset_len);
 
     zest::Rotor m_rotor;
-    zest::st::GLQTransformerGeo<> m_glq_transformer;
+    zest::st::GLQTransformer<zest::st::Geo> m_glq_transformer;
     SHExpansion<double> m_rotated_response_exp;
     zest::st::SphereGLQGrid<double> m_rotated_response_grid;
 
@@ -261,7 +261,7 @@ private:
     TrapezoidArray<double> m_aff_leg_ylm_integrals;
     std::vector<double> m_ylm_integral_norms;
 
-    ZonalGLQTransformer<zest::st::SHNorm::geo> m_zonal_transformer;
+    ZonalGLQTransformer<zest::st::SHNorm::four_pi> m_zonal_transformer;
     zest::st::SphereGLQGrid<double> m_rotated_grid;
     std::vector<double> m_rotated_exp;
 };

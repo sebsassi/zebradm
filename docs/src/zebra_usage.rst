@@ -87,7 +87,7 @@ normalization and the Condon--Shortley phase. In ZebraDM the conventions are cho
 the spherical harmonics are :math:`4\pi`-normalized and defined without the Condon--Shortley phase,
 and the radial Zernike polynomials are fully normalized. Multiple aliases of the basic types are
 defined by zest for different combinations of conventions, and so the correct transformer for
-Zernike expansions compatible with ZebraDM is :cpp:type:`zest::zt::ZernikeTransformerNormalGeo`.
+Zernike expansions compatible with ZebraDM is :cpp:type:`zest::zt::ZernikeTransformer<zest::zt::NormedGeo>`.
 We can use this to easily get the Zernike expansion of our distribution
 
 .. code:: cpp
@@ -95,8 +95,8 @@ We can use this to easily get the Zernike expansion of our distribution
     #include <zest/zernike_glq_transformer.hpp>
 
     constexpr double radius = 2.0;
-    zest::zt::ZernikeExpansionNormalGeo zernike_transformer{};
-    zest::zt::ZernikeExpansionNormalGeo distribution
+    zest::zt::ZernikeExpansion<zest::zt::NormedGeo> zernike_transformer{};
+    zdm::ZernikeExpansion<double> distribution
         = zernike_transformer{}.transform(dist_func, radius, dist_order);
 
 The Zernike functions are defined on the unit ball, but we can obviously scale any ball to a unit
@@ -397,8 +397,8 @@ pairs. In summary, here is the full source code of our program
 
         constexpr double radius = 2.0;
         constexpr std::size_t dist_order = 30;
-        zest::zt::ZernikeTransformerNormalGeo zernike_transformer{};
-        zest::zt::ZernikeExpansionNormalGeo distribution
+        zest::zt::ZernikeTransformer<zest::zt::NormedGeo> zernike_transformer{};
+        zdm::ZernikeExpansion<double> distribution
             = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
         constexpr std::size_t resp_order = 60;

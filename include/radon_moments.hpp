@@ -72,11 +72,11 @@ public:
 
 private:
     using expansion_collection_type = std::conditional_t<dist_type == DistType::iso,
-        zest::zt::IsotropicZernikeExpansionTensorNormalGeo<
-            double, detail::count_of(category)
+        zest::zt::IsotropicZernikeExpansionTensor<
+            double, zest::zt::NormedGeo, detail::count_of(category)
         >,
-        zest::zt::ZernikeExpansionTensorNormalGeo<
-            double, zest::IndexingMode::zero_based, detail::count_of(category)
+        zest::zt::ZernikeExpansionTensor<
+            double, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(category)
         >
     >;
 

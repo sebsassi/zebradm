@@ -56,7 +56,7 @@ void zebra_evaluate(
     zest::DynamicMDSpan<double, 2> out)
 {
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformerNormalGeo<>(dist_order).forward_transform(
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(dist_order).forward_transform(
                 dist, 1.0, dist_order);
 
     zdm::SHExpansionVector<double> response(shells.size(), resp_order);

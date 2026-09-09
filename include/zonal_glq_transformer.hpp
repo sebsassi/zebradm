@@ -68,7 +68,7 @@ public:
             legendre_recursion(std::span<double>(leg_i), z);
             for (std::size_t l = 0; l < order; ++l)
             {
-                if constexpr (sh_norm_param == zest::st::SHNorm::qm)
+                if constexpr (sh_norm_param == zest::st::SHNorm::unit)
                     leg_i[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
                     leg_i[l] *= std::sqrt(double(2*l + 1));
@@ -96,7 +96,7 @@ public:
             legendre_recursion(std::span<double>(leg_i), z);
             for (std::size_t l = 0; l < order; ++l)
             {
-                if constexpr (sh_norm_param == zest::st::SHNorm::qm)
+                if constexpr (sh_norm_param == zest::st::SHNorm::unit)
                     leg_i[l] *= 0.5*std::numbers::inv_sqrtpi*std::sqrt(double(2*l + 1));
                 else
                     leg_i[l] *= std::sqrt(double(2*l + 1));

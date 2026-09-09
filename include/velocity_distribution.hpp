@@ -38,7 +38,7 @@ concept bounded_distribution = requires (const FieldType& dist, const la::Vector
 };
 
 template <bounded_distribution Func>
-zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std::size_t lmax, const la::RotationMatrix<double, 3>& rotation)
+ZernikeExpansion<double> zernike_transform(const Func& dist, std::size_t lmax, const la::RotationMatrix<double, 3>& rotation)
 {
     const double scale = dist.max_velocity();
     auto dist_wrap = [&](const std::array<double, 3>& x)
@@ -47,7 +47,7 @@ zest::zt::RealZernikeExpansionNormalGeo zernike_transform(const Func& dist, std:
     };
 
     zest::zt::BallGLQGridPoints points(lmax);
-    return zest::zt::GLQTransformerNormalGeo(lmax).forward_transform(
+    return zest::zt::GLQTransformer<zest::zt::NormedGeo>(lmax).forward_transform(
             points.generate_values(dist_wrap, lmax), lmax);
 }
 
