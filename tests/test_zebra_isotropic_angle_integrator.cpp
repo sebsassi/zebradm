@@ -174,8 +174,8 @@ bool test_angle_integrator_is_accurate_for_shm()
 
     constexpr std::size_t order = 100;
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
-                shm_dist, 1.0, order);
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
+            .forward_transform(shm_dist, 1.0, order);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
         .integrate(distribution, offsets, shells, shm_test);

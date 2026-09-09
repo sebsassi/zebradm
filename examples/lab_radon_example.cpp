@@ -133,8 +133,8 @@ zest::DynamicMDArray<double, 2> radon_transform(
     // zebradm
     // zest
     const zest::zt::ZernikeExpansion dist_expansion
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>{}.forward_transform(
-            velocity_distribution, vesc, dist_order);
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>{}
+            .forward_transform(velocity_distribution, vesc, dist_order);
 
     zest::DynamicMDArray<double, 2> out{vlab.size(), vmin.size()};
 

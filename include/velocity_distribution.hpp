@@ -47,8 +47,8 @@ ZernikeExpansion<double> zernike_transform(const Func& dist, std::size_t lmax, c
     };
 
     zest::zt::BallGLQGridPoints points(lmax);
-    return zest::zt::GLQTransformer<zest::zt::NormedGeo>(lmax).forward_transform(
-            points.generate_values(dist_wrap, lmax), lmax);
+    return zest::zt::GLQTransformer<zest::zt::NormedGeo>(lmax)
+        .forward_transform(points.generate_values(dist_wrap, lmax), lmax);
 }
 
 } // namespace zdm

@@ -112,8 +112,8 @@ void run_benchmarks(
 
     constexpr std::size_t reference_order = 200;
     zdm::ZernikeExpansion<double> reference_distribution
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_order).forward_transform(
-            dist, 1.0, reference_order);
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_order)
+            .forward_transform(dist, 1.0, reference_order);
 
     zest::DynamicMDArray<std::array<double, 2>, 2> reference(offsets.size(), shells.size());
 

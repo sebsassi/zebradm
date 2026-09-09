@@ -37,8 +37,8 @@ void isotropic_convergence(
     std::size_t order)
 {
     zdm::ZernikeExpansion<double> distribution
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order).forward_transform(
-            dist, 1.0, order);
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
+            .forward_transform(dist, 1.0, order);
 
     std::vector<double> out(shells.size());
 
@@ -74,8 +74,8 @@ void convergence_demo(
         shells[i] = double(i)*max_shell/double(num_shells - 1);
 
     zdm::ZernikeExpansion<double> reference_distribution
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_order).forward_transform(
-            dist, 1.0, reference_order);
+        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(reference_order)
+            .forward_transform(dist, 1.0, reference_order);
 
     std::vector<double> reference(shells.size());
 
