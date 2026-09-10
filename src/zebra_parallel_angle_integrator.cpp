@@ -91,7 +91,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         m_geg_zernike_exp.flatten(),
         rotated_geg_zernike_exp.flatten().begin());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     zest::Rotor& rotor = m_contexts[thread_id].rotor;
     for (std::size_t n = 0; n < m_geg_zernike_exp.order(); ++n)
         rotor.rotate<rotation_type>(
@@ -217,8 +217,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
                 std::ranges::copy(m_geg_zernike_exp[n].flatten(), m_rotated_geg_zernike_exp.begin());
 
 
-                constexpr zest::RotationType rotation_type
-                    = zest::RotationType::coordinate;
+                constexpr zest::RotationType rotation_type = zest::RotationType::passive;
                 m_integrators[team_ind].rotor().rotate<rotation_type>(
                         rotated_geg_zernike_exp, m_wigner_d_pi2, euler_angles);
                 m_integrators[team_ind].glq_transformer().backward_transform(

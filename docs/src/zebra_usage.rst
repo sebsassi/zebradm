@@ -413,7 +413,7 @@ pairs. In summary, here is the full source code of our program
         zest::WignerdPiHalfCollection wigner(resp_order);
         zest::Rotor rotor(resp_order);
         for (std::size_t i = 0; i < response.extent(0); ++i)
-            rotor.rotate(response[i], wigner, euler_angles, zest::RotationType::coordinate);
+            rotor.rotate(response[i], wigner, euler_angles, zest::RotationType::passive);
 
         zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso> integrator(dist_order, resp_order);
 

@@ -206,7 +206,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         m_radon_transform_exp.flatten(),
         m_rotated_radon_transform_exp.flatten().begin());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
@@ -333,7 +333,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 {
     assert(shells.size() == out.size());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
@@ -563,7 +563,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         m_rotated_trans_radon_transform_exp.flatten(),
         -2.0*offset[2], m_radon_transform_exp_z.flatten());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
@@ -699,7 +699,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 {
     assert(shells.size() == out.size());
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles

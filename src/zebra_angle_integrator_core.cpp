@@ -133,7 +133,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
 
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
@@ -165,7 +165,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
         = coordinates::cartesian_to_spherical_phys(offset);
     if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
@@ -358,7 +358,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
 
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
@@ -396,7 +396,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
         = coordinates::cartesian_to_spherical_phys(offset);
     if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
 
-    constexpr zest::RotationType rotation_type = zest::RotationType::coordinate;
+    constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
         = util::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
