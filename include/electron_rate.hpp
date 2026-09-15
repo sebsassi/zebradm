@@ -23,6 +23,8 @@ SOFTWARE.
 
 #include <algorithm>
 
+#include <zest/grid_evaluator.hpp>
+
 #include "polynomial.hpp"
 #include "types.hpp"
 #include "zebra_radon.hpp"
@@ -169,14 +171,14 @@ public:
             m_angle_integrator.integrate(
                     static_cast<double>(lab_speed*inv_max_speed),
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
-            m_grid_evaluator.evaluate(
-                    target_response,
-                    m_normalized_momentum_grid.flatten(), m_response_grid.flatten());
 
             util::mul(m_aiwrt_grid.flatten(), m_response_grid.flatten());
 
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
+                m_grid_evaluator.evaluate(
+                        target_response[j],
+                        m_normalized_momentum_grid.flatten(), m_response_grid.flatten());
                 std::span<double> aiwrt = m_aiwrt_grid[j];
                 std::span<const double> interval_weights = m_interval_weights[j];
 
@@ -410,6 +412,7 @@ private:
     RaggedTable<double> m_response_grid;
     RaggedTable<double> m_interval_weights;
     zebra::AngleIntegrator<DistType::iso, RespType::iso> m_angle_integrator;
+    zest::zt::IsotropicGridEvaluator m_grid_evaluator;
 };
 
 
