@@ -23,6 +23,7 @@ SOFTWARE.
 #include "types.hpp"
 #include "zernike_recursions.hpp"
 #include "vector.hpp"
+#include "zebra_radon.hpp"
 
 namespace zdm::zebra
 {
@@ -65,17 +66,7 @@ namespace detail
 
 [[nodiscard]] consteval std::size_t max_offset(DistType dist_type, MomentCategory category) noexcept
 {
-    if (dist_type == DistType::iso)
-    {
-        constexpr std::array<std::size_t, 3> max_offsets = {0, 4, 4};
-        return max_offsets[std::to_underlying(category)];
-    }
-    else
-    {
-        constexpr std::array<std::size_t, 3> max_offsets = {0, 2, 2};
-        return max_offsets[std::to_underlying(category)];
-    }
-
+    return (category == MomentCategory::identity) ? 0 : 2;
 }
 
 [[nodiscard]] consteval std::size_t offset_of(Moment moment) noexcept
@@ -87,12 +78,12 @@ namespace detail
 template <typename ElementType, MomentCategory category>
 class IsotropicRadonMomentSpan:
     public zest::zt::IsotropicZernikeTensorSpan<
-        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
     >
 {
 private:
     using Base = zest::zt::IsotropicZernikeTensorSpan<
-        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
     >;
 
 public:
@@ -104,12 +95,12 @@ public:
 template <typename ElementType, MomentCategory category>
 class IsotropicRadonMomentArray:
     public zest::zt::IsotropicZernikeExpansionTensor<
-        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
     >
 {
 private:
     using Base = zest::zt::IsotropicZernikeExpansionTensor<
-        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
     >;
 
 public:
@@ -121,12 +112,12 @@ public:
 template <typename ElementType, DistType dist_type, MomentCategory category>
 class RadonMomentSpan:
     public zest::zt::ZernikeTensorSpan<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeTensorSpan<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
     >;
 
 public:
@@ -138,12 +129,12 @@ public:
 template <typename ElementType, DistType dist_type, MomentCategory category>
 class RadonMomentArray:
     public zest::zt::ZernikeExpansionTensor<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeExpansionTensor<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
     >;
 
 public:

@@ -92,12 +92,12 @@ class AngleIntegrator<DistType::iso, RespType::iso>
 {
 public:
     AngleIntegrator() = default;
-    explicit AngleIntegrator(std::size_t dist_order);
+    explicit AngleIntegrator(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
-    void resize(std::size_t dist_order);
+    void resize(std::size_t radon_order);
 
     void integrate(
         IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
@@ -110,7 +110,7 @@ public:
 
 private:
     detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
 };
 
 template<>
@@ -118,15 +118,15 @@ class AngleIntegrator<DistType::iso, RespType::aniso>
 {
 public:
     AngleIntegrator() = default;
-    explicit AngleIntegrator(std::size_t dist_order, std::size_t resp_order);
+    explicit AngleIntegrator(std::size_t radon_order, std::size_t resp_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
     [[nodiscard]] std::size_t
     response_order() const noexcept { return m_resp_order; }
 
-    void resize(std::size_t dist_order, std::size_t resp_order);
+    void resize(std::size_t radon_order, std::size_t resp_order);
 
     void integrate(
         IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
@@ -144,7 +144,7 @@ public:
 private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
     std::size_t m_resp_order{};
 };
 
@@ -156,12 +156,12 @@ class AngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
     AngleIntegrator() = default;
-    explicit AngleIntegrator(std::size_t dist_order);
+    explicit AngleIntegrator(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    distribution_order() const noexcept { return m_radon_order; }
 
-    void resize(std::size_t dist_order);
+    void resize(std::size_t radon_order);
 
     /**
         @brief Angle integrated Radon transform of a disitribution on an offset unit ball.
@@ -227,7 +227,7 @@ private:
     ZernikeExpansion<double> m_rotated_radon_transform_exp;
     detail::ZernikeExpansionWorkspace m_zernike_expansions;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
 };
 
 /**
@@ -240,11 +240,11 @@ class AngleIntegrator<DistType::aniso, RespType::aniso>
 public:
     AngleIntegrator() = default;
     AngleIntegrator(
-        std::size_t dist_order, std::size_t resp_order,
+        std::size_t radon_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
     [[nodiscard]] std::size_t
     response_order() const noexcept { return m_resp_order; }
@@ -374,7 +374,7 @@ private:
     zest::Rotor m_rotor;
     zest::st::GLQTransformer<zest::st::Geo> m_glq_transformer;
     detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
     std::size_t m_resp_order{};
     std::size_t m_trunc_order{};
 };
@@ -387,12 +387,12 @@ class TransverseAngleIntegrator<DistType::iso, RespType::iso>
 {
 public:
     TransverseAngleIntegrator() = default;
-    explicit TransverseAngleIntegrator(std::size_t dist_order);
+    explicit TransverseAngleIntegrator(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
-    void resize(std::size_t dist_order);
+    void resize(std::size_t radon_order);
 
     void integrate(
         IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
@@ -407,7 +407,7 @@ public:
 private:
     detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
 };
 
 template<>
@@ -415,15 +415,15 @@ class TransverseAngleIntegrator<DistType::iso, RespType::aniso>
 {
 public:
     TransverseAngleIntegrator() = default;
-    TransverseAngleIntegrator(std::size_t dist_order, std::size_t resp_order);
+    TransverseAngleIntegrator(std::size_t radon_order, std::size_t resp_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
     [[nodiscard]] std::size_t
     response_order() const noexcept { return m_resp_order; }
 
-    void resize(std::size_t dist_order, std::size_t resp_order);
+    void resize(std::size_t radon_order, std::size_t resp_order);
 
     void integrate(
         IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
@@ -442,7 +442,7 @@ private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
     std::size_t m_resp_order{};
 };
 
@@ -455,12 +455,12 @@ class TransverseAngleIntegrator<DistType::aniso, RespType::iso>
 {
 public:
     TransverseAngleIntegrator() = default;
-    explicit TransverseAngleIntegrator(std::size_t dist_order);
+    explicit TransverseAngleIntegrator(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
-    void resize(std::size_t dist_order);
+    void resize(std::size_t radon_order);
 
     /**
         @brief Angle integrated transverse and nontransverse Radon transform of a
@@ -519,17 +519,12 @@ public:
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
 private:
-    void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-        const la::Vector<double, 3>& offset, std::span<const double> shells,
-        std::span<std::array<double, 2>> out);
-
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
     ZernikeExpansion<double> m_rotated_radon_transform_exp;
     ZernikeExpansion<double> m_rotated_trans_radon_transform_exp;
     detail::AngleIntegratorCore<DistType::aniso, RespType::iso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
 };
 
 /**
@@ -542,11 +537,11 @@ class TransverseAngleIntegrator<DistType::aniso, RespType::aniso>
 public:
     TransverseAngleIntegrator() = default;
     TransverseAngleIntegrator(
-        std::size_t dist_order, std::size_t resp_order,
+        std::size_t radon_order, std::size_t resp_order,
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
     [[nodiscard]] std::size_t
-    distribution_order() const noexcept { return m_dist_order; }
+    radon_order() const noexcept { return m_radon_order; }
 
     [[nodiscard]] std::size_t
     response_order() const noexcept { return m_resp_order; }
@@ -677,7 +672,7 @@ private:
     zest::Rotor m_rotor;
     zest::st::GLQTransformer<zest::st::Geo> m_glq_transformer;
     detail::AngleIntegratorCore<DistType::aniso, RespType::aniso> m_integrator_core;
-    std::size_t m_dist_order{};
+    std::size_t m_radon_order{};
     std::size_t m_resp_order{};
     std::size_t m_trunc_order{};
 };
