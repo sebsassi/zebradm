@@ -161,7 +161,7 @@ public:
                 m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
         const std::size_t num_nodes = m_shell_glq_nodes.size();
 
-        zebra::radon_transform(velocity_distribution);
+        zebra::radon_transform(velocity_distribution, m_radon_transform);
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
             const quantity lab_speed = lab_velocities[i].magnitude();
@@ -412,6 +412,7 @@ private:
     RaggedTable<double> m_response_grid;
     RaggedTable<double> m_interval_weights;
     zebra::AngleIntegrator<DistType::iso, RespType::iso> m_angle_integrator;
+    IsotropicZernikeExpansion<double> m_radon_transform;
     zest::zt::IsotropicGridEvaluator m_grid_evaluator;
 };
 

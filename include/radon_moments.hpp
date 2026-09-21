@@ -22,6 +22,7 @@ SOFTWARE.
 
 #include "types.hpp"
 #include "zernike_recursions.hpp"
+#include "vector.hpp"
 
 namespace zdm::zebra
 {
@@ -51,10 +52,30 @@ enum class Moment: std::uint8_t
 namespace detail
 {
 
-[[nodiscard]] consteval std::size_t count_of(MomentCategory category) noexcept
+[[nodiscard]] consteval std::size_t count_of(DistType dist_type, MomentCategory category) noexcept
 {
-    constexpr std::array<std::size_t, 3> counts = {1, 5, 11};
-    return counts[std::to_underlying(category)];
+    if (dist_type == DistType::iso)
+        return (category == MomentCategory::identity) ? 1 : 3;
+    else
+    {
+        constexpr std::array<std::size_t, 3> counts = {1, 5, 11};
+        return counts[std::to_underlying(category)];
+    }
+}
+
+[[nodiscard]] consteval std::size_t max_offset(DistType dist_type, MomentCategory category) noexcept
+{
+    if (dist_type == DistType::iso)
+    {
+        constexpr std::array<std::size_t, 3> max_offsets = {0, 4, 4};
+        return max_offsets[std::to_underlying(category)];
+    }
+    else
+    {
+        constexpr std::array<std::size_t, 3> max_offsets = {0, 2, 2};
+        return max_offsets[std::to_underlying(category)];
+    }
+
 }
 
 [[nodiscard]] consteval std::size_t offset_of(Moment moment) noexcept
@@ -63,70 +84,72 @@ namespace detail
     return offsets[std::to_underlying(moment)];
 }
 
-template <typename ElementType, DistType dist_type, MomentCategory category>
-class RadonMomentSpan:
-    public std::conditional_t<dist_type == DistType::iso,
-        zest::zt::IsotropicZernikeTensorSpan<
-            ElementType, zest::zt::NormedGeo, detail::count_of(category)
-        >,
-        zest::zt::ZernikeTensorSpan<
-            ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(category)
-        >
+template <typename ElementType, MomentCategory category>
+class IsotropicRadonMomentSpan:
+    public zest::zt::IsotropicZernikeTensorSpan<
+        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
     >
 {
 private:
-    using Base = std::conditional_t<dist_type == DistType::iso,
-        zest::zt::IsotropicZernikeTensorSpan<
-            ElementType, zest::zt::NormedGeo, detail::count_of(category)
-        >,
-        zest::zt::ZernikeTensorSpan<
-            ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(category)
-        >
+    using Base = zest::zt::IsotropicZernikeTensorSpan<
+        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
     >;
 
 public:
-    using Base::Base;
+    IsotropicRadonMomentSpan() = default;
+    IsotropicRadonMomentSpan(Base::pointer data, std::size_t order):
+        Base{data, order + max_offset(DistType::iso, category)} {}
+};
 
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) < Base::shape_type::rank)
-    [[nodiscard]] auto
-    operator[](Moment moment, Inds... indices) const noexcept
-    {
-        return Base::operator[](std::to_underlying(moment), indices...);
-    }
+template <typename ElementType, MomentCategory category>
+class IsotropicRadonMomentArray:
+    public zest::zt::IsotropicZernikeExpansionTensor<
+        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+    >
+{
+private:
+    using Base = zest::zt::IsotropicZernikeExpansionTensor<
+        elementtype, zest::zt::normedgeo, detail::count_of(dist_type, category)
+    >;
+
+public:
+    IsotropicRadonMomentArray() = default;
+    IsotropicRadonMomentArray(std::size_t order):
+        Base{order + max_offset(DistType::iso, category)} {}
+};
+
+template <typename ElementType, DistType dist_type, MomentCategory category>
+class RadonMomentSpan:
+    public zest::zt::ZernikeTensorSpan<
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+    >
+{
+private:
+    using Base = zest::zt::ZernikeTensorSpan<
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
+    >;
+
+public:
+    RadonMomentSpan() = default;
+    RadonMomentSpan(std::size_t order):
+        Base{order + max_offset(DistType::aniso, category)} {}
 };
 
 template <typename ElementType, DistType dist_type, MomentCategory category>
 class RadonMomentArray:
-    public std::conditional_t<dist_type == DistType::iso,
-        zest::zt::IsotropicZernikeExpansionTensor<
-            ElementType, zest::zt::NormedGeo, detail::count_of(category)
-        >,
-        zest::zt::ZernikeExpansionTensor<
-            ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(category)
-        >
+    public zest::zt::ZernikeExpansionTensor<
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
     >
 {
 private:
-    using Base = std::conditional_t<dist_type == DistType::iso,
-        zest::zt::IsotropicZernikeExpansionTensor<
-            ElementType, zest::zt::NormedGeo, detail::count_of(category)
-        >,
-        zest::zt::ZernikeExpansionTensor<
-            ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(category)
-        >
+    using Base = zest::zt::ZernikeExpansionTensor<
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(dist_type, category)
     >;
 
 public:
-    using Base::Base;
-
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) < Base::shape_type::rank)
-    [[nodiscard]] auto
-    operator[](Moment moment, Inds... indices) const noexcept
-    {
-        return Base::operator[](std::to_underlying(moment), indices...);
-    }
+    RadonMomentArray() = default;
+    RadonMomentArray(std::size_t order):
+        Base{order + max_offset(DistType::aniso, category)} {}
 };
 
 } // namespace detail
@@ -143,30 +166,72 @@ using RadonMomentArray = detail::RadonMomentArray<ElementType, DistType::iso, ca
 template <typename ElementType, MomentCategory category>
 using IsotropicRadonMomentArray = detail::RadonMomentArray<ElementType, DistType::iso, category>;
 
-class RadonTransformer
+template <typename ElementType, MomentCategory category>
+void evaluate_transverse_radon_transform(
+    RadonMomentSpan<ElementType, category> moments, const la::Vector<double, 3>& offset,
+    ZernikeSpan<ElementType> transverse_radon_transform)
+{
+    std::ranges::copy(
+        moments[Moment::r2].flatten(),
+        transverse_radon_transform.flatten().begin());
+    util::fmadd(
+        transverse_radon_transform.flatten(),
+        la::dot(offset, offset), moments[Moment::identity].flatten());
+    util::fmadd(
+        transverse_radon_transform.flatten(),
+        -2.0*offset[0], moments[Moment::x].flatten());
+    util::fmadd(
+        transverse_radon_transform.flatten(),
+        -2.0*offset[1], moments[Moment::y].flatten());
+    util::fmadd(
+        transverse_radon_transform.flatten(),
+        -2.0*offset[2], moments[Moment::z].flatten());
+}
+
+template <DistType dist_type, MomentCategory category>
+class RadonTransformer {};
+
+template <>
+class RadonTransformer<DistType::iso, MomentCategory::identity>
 {
 public:
     RadonTransformer() = default;
-    explicit RadonTransformer(std::size_t order): m_recursion_coeffs{order} {}
 
-    template <MomentCategory category>
-    void transform(
+    static void evaluate_transformed_moments(
+        IsotropicZernikeSpan<double> zernike_expansion,
+        IsotropicRadonMomentSpan<double, MomentCategory::identity> radon_moments)
+    {
+        radon_transform(zernike_expansion, radon_moments[0]);
+    }
+
+    [[nodiscard]] static IsotropicRadonMomentArray<double, MomentCategory::identity>
+    evaluate_transformed_moments(IsotropicZernikeSpan<double> zernike_expansion)
+    {
+        IsotropicRadonMomentArray<double, MomentCategory::identity> moments{zernike_expansion.order()};
+
+        transform(zernike_expansion, moments);
+        return moments;
+    }
+};
+
+template <MomentCategory category>
+    requires (category != MomentCategory::identity)
+class RadonTransformer<DistType::iso, category>
+{
+public:
+    RadonTransformer() = default;
+    explicit RadonTransformer(std::size_t order): m_transform_helper{order} {}
+
+    void evaluate_transformed_moments(
         IsotropicZernikeSpan<double> zernike_expansion,
         IsotropicRadonMomentSpan<double, category> radon_moments)
     {
-        radon_transform(zernike_expansion, radon_moments[Moment::identity]);
-        if constexpr (category != MomentCategory::identity)
-        {
-            multiply_by_x_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::x]);
-            multiply_by_y_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::y]);
-            multiply_by_z_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::z]);
-            multiply_by_r2_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::r2]);
-        }
+        radon_transform(zernike_expansion, radon_moments[0]);
+        m_transform_helper.evaluate_transverse_components(zernike_expansion, radon_moments);
     }
 
-    template <MomentCategory category>
     [[nodiscard]] IsotropicRadonMomentArray<double, category>
-    transform(IsotropicZernikeSpan<double> zernike_expansion)
+    evaluate_transformed_moments(IsotropicZernikeSpan<double> zernike_expansion)
     {
         IsotropicRadonMomentArray<double, category> moments{zernike_expansion.order()};
 
@@ -174,23 +239,52 @@ public:
         return moments;
     }
 
+private:
+    detail::IsotropicZernikeTransverseRadonHelper m_transform_helper;
+};
+
+template <>
+class RadonTransformer<DistType::aniso, MomentCategory::identity>
+{
+public:
+    RadonTransformer() = default;
+
     template <MomentCategory category>
-    void transform(
-        ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, category> radon_moments)
+    void evaluate_transformed_moments(
+        ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, MomentCategory::identity> radon_moments)
     {
         radon_transform(zernike_expansion, radon_moments[Moment::identity]);
-        if constexpr (category != MomentCategory::identity)
-        {
-            multiply_by_x_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::x]);
-            multiply_by_y_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::y]);
-            multiply_by_z_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::z]);
-            multiply_by_r2_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::r2]);
-        }
     }
 
     template <MomentCategory category>
+    [[nodiscard]] RadonMomentArray<double, MomentCategory::identity>
+    evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
+    {
+        RadonMomentArray<double, MomentCategory::identity> moments{zernike_expansion.order()};
+        transform(zernike_expansion, moments);
+        return moments;
+    }
+};
+
+template <MomentCategory category>
+class RadonTransformer<DistType::aniso, category>
+{
+public:
+    RadonTransformer() = default;
+    explicit RadonTransformer(std::size_t order): m_recursion_coeffs{order} {}
+
+    void evaluate_transformed_moments(
+        ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, category> radon_moments)
+    {
+        radon_transform(zernike_expansion, radon_moments[Moment::identity]);
+        multiply_by_x_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::x]);
+        multiply_by_y_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::y]);
+        multiply_by_z_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::z]);
+        multiply_by_r2_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::r2]);
+    }
+
     [[nodiscard]] RadonMomentArray<double, category>
-    transform(ZernikeSpan<double> zernike_expansion)
+    evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
     {
         RadonMomentArray<double, category> moments{zernike_expansion.order()};
         transform(zernike_expansion, moments);
@@ -200,5 +294,7 @@ public:
 private:
     detail::ZernikeRecursionData m_recursion_coeffs;
 };
+
+
 
 } // namespace zdm::zebra
