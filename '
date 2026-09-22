@@ -125,14 +125,6 @@ public:
     {
         return std::get<1>(Base::extents());
     }
-
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) + 1 <= Base::shape_type::rank)
-    [[nodiscard]] constexpr auto
-    operator[](Moment moment, Inds... inds) noexcept
-    {
-        return Base::operator[](std::to_underlying(moment), inds...);
-    }
 };
 
 template <typename ElementType, MomentCategory category>
@@ -171,10 +163,6 @@ public:
 };
 
 template <typename ElementType, MomentCategory category>
-IsotropicRadonMomentSpan(IsotropicRadonMomentArray<ElementType, category>)
-    -> IsotropicRadonMomentSpan<std::remove_cv_t<ElementType>, category>;
-
-template <typename ElementType, MomentCategory category>
 class RadonMomentArray:
     public zest::zt::ZernikeExpansionTensor<
         ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
@@ -207,19 +195,7 @@ public:
     {
         return std::get<1>(Base::extents());
     }
-
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) + 1 <= Base::shape_type::rank)
-    [[nodiscard]] auto
-    operator[](Moment moment, Inds... inds) noexcept
-    {
-        return Base::operator[](std::to_underlying(moment), inds...);
-    }
 };
-
-template <typename ElementType, MomentCategory category>
-RadonMomentSpan(RadonMomentArray<ElementType, category>)
-    -> RadonMomentSpan<std::remove_cv_t<ElementType>, category>;
 
 template <typename ElementType, MomentCategory category>
 void evaluate_transverse_radon_transform(
@@ -316,7 +292,7 @@ public:
     evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
     {
         RadonMomentArray<double, MomentCategory::identity> moments{zernike_expansion.order()};
-        evaluate_transformed_moments(zernike_expansion, RadonMomentSpan(moments));
+        evaluate_transformed_moments(zernike_expansion, moments);
         return moments;
     }
 };

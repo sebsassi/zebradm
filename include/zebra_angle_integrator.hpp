@@ -214,14 +214,10 @@ public:
     */
     void integrate(
         RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
-        const la::Vector<double, 3>& offset,
-        std::span<const double> shells, std::span<double> out);
-
-private:
-    void integrate(
         const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<double> out);
 
+private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     zest::Rotor m_rotor;
     ZernikeExpansion<double> m_rotated_radon_transform_exp;
