@@ -123,15 +123,21 @@ public:
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<1>(Base::extents());
+        return std::get<0>(std::get<1>(Base::extents()));
     }
 
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) + 1 <= Base::shape_type::rank)
     [[nodiscard]] constexpr auto
-    operator[](Moment moment, Inds... inds) noexcept
+    operator[](Moment moment, std::integral auto... inds) noexcept
+        requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
         return Base::operator[](std::to_underlying(moment), inds...);
+    }
+
+    [[nodiscard]] constexpr auto
+    operator[](std::integral auto... inds) noexcept
+        requires (sizeof...(inds) <= Base::shape_type::rank)
+    {
+        return Base::operator[](inds...);
     }
 };
 

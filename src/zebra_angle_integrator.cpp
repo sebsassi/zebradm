@@ -186,19 +186,20 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
                 m_rotated_radon_transform_exp, offset_len, shells[i]);
 }
 
-namespace detail
+namespace
 {
 
 [[nodiscard]] constexpr std::size_t
 radon_zernike_grids_size(
     std::size_t num_grids, std::size_t grid_order, std::size_t trunc_order) noexcept
 {
-    return num_grids*zest::st::SphereGLQGridSpan<double>::size(std::min(grid_order, trunc_order));
+    return zest::st::SphereGLQGridVectorSpan<double>::size(num_grids, std::min(grid_order, trunc_order));
 }
 
-[[nodiscard]] constexpr std::size_t zernike_expansion_sh_span_size(std::size_t order)
+[[nodiscard]] constexpr std::size_t
+zernike_expansion_sh_span_size(std::size_t order)
 {
-    return ZernikeExpansion<double>::subspan_type<1>::size(order);
+    return zest::subspan<ZernikeExpansion<double>, 1>::size(order);
 }
 
 } // namespace
@@ -206,9 +207,9 @@ radon_zernike_grids_size(
 AngleIntegrator<DistType::aniso, RespType::aniso>::AngleIntegrator(
     std::size_t radon_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2{std::max(radon_order, resp_order)},
-    m_rotated_radon_transform_exp{zernike_expansion_sh_span_size(radon_order)},
-    m_rotated_radon_transform_grids{
-        radon_zernike_grids_size(radon_order, radon_order + resp_order, trunc_order)},
+    m_rotated_radon_transform_exp(zernike_expansion_sh_span_size(radon_order)),
+    m_rotated_radon_transform_grids(
+        radon_zernike_grids_size(radon_order, radon_order + resp_order, trunc_order)),
     m_integrator_core{
         radon_order, resp_order,
         std::min(radon_order + resp_order, trunc_order)},
@@ -302,7 +303,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         std::ranges::copy(
                 distribution_radon_transform[0, n].flatten(),
                 m_rotated_radon_transform_exp.begin());
-        ZernikeSpan<double>::subspan_type<1>
+        zest::subspan<ZernikeSpan<double>, 1>
         rotated_radon_zernike_exp{m_rotated_radon_transform_exp.data(), n + 1};
 
         m_rotor.rotate<rotation_type>(
