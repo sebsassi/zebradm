@@ -654,12 +654,6 @@ public:
         std::size_t trunc_order = std::numeric_limits<std::size_t>::max());
 
 private:
-    void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-        SHVectorSpan<const double> response,
-        const la::Vector<double, 3>& offset, double rotation_angle,
-        std::span<const double> shells, std::span<std::array<double, 2>> out);
-
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
     std::vector<double> m_rotated_radon_transform_exp;
     ZernikeExpansion<double> m_rotated_trans_radon_transform_exp;

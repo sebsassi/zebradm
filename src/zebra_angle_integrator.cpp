@@ -433,7 +433,6 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-    ZernikeSpan<const double> distribution,
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
@@ -448,29 +447,18 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-    ZernikeSpan<const double> distribution,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
     assert(shells.size() == out.size());
-
     resize(distribution_radon_transform.order());
-    integrate(distribution_radon_transform, offset, shells, out);
-}
-
-void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-    const la::Vector<double, 3>& offset, std::span<const double> shells,
-    std::span<std::array<double, 2>> out)
-{
-    assert(shells.size() == out.size());
 
     std::ranges::copy(
         distribution_radon_transform[0].flatten(),
         m_rotated_radon_transform_exp.flatten().begin());
 
     evaluate_transverse_radon_transform(
-        distribution_radon_transform, offset, m_rotated_trans_radon_transform_exp);
+        distribution_radon_transform, offset, ZernikeSpan(m_rotated_trans_radon_transform_exp));
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
@@ -491,14 +479,14 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
 TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::TransverseAngleIntegrator(
     std::size_t radon_order, std::size_t resp_order, std::size_t trunc_order):
     m_wigner_d_pi2{std::max(radon_order + 2, resp_order)},
-    m_rotated_radon_transform_exp{zernike_expansion_sh_span_size(radon_order)},
+    m_rotated_radon_transform_exp(zernike_expansion_sh_span_size(radon_order)),
     m_rotated_trans_radon_transform_exp{radon_order + 2},
-    m_rotated_radon_transform_grids{
+    m_rotated_radon_transform_grids(
         radon_zernike_grids_size(
-            radon_order, radon_order + 2 + resp_order, trunc_order)},
-    m_rotated_trans_radon_transform_grids{
+            radon_order, radon_order + 2 + resp_order, trunc_order)),
+    m_rotated_trans_radon_transform_grids(
         radon_zernike_grids_size(
-            radon_order + 2, radon_order + 2 + resp_order, trunc_order)},
+            radon_order + 2, radon_order + 2 + resp_order, trunc_order)),
     m_integrator_core{
         radon_order + 2, resp_order,
         std::min(radon_order + 2 + resp_order, trunc_order)},
@@ -561,20 +549,11 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     std::span<const double> shells, std::span<std::array<double, 2>> out,
     std::size_t trunc_order)
 {
+    assert(shells.size() == out.size());
+
     const std::size_t radon_order = distribution_radon_transform.order();
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
-
-    integrate(distribution_radon_transform, response, offset, rotation_angle, shells, out);
-}
-
-void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
-    SHVectorSpan<const double> response,
-    const la::Vector<double, 3>& offset, double rotation_angle,
-    std::span<const double> shells, std::span<std::array<double, 2>> out)
-{
-    assert(shells.size() == out.size());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
@@ -608,7 +587,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
             m_rotated_trans_radon_transform_grids.data(), trans_radon_order, top_order);
 
     evaluate_transverse_radon_transform(
-        distribution_radon_transform, offset, m_rotated_trans_radon_transform_exp);
+        distribution_radon_transform, offset, ZernikeSpan(m_rotated_trans_radon_transform_exp));
 
     m_rotor.rotate<rotation_type>(
             m_rotated_trans_radon_transform_exp, m_wigner_d_pi2, euler_angles);

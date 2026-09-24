@@ -31,18 +31,19 @@ SOFTWARE.
 namespace zdm::zebra::detail
 {
 
-AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size_t geg_order):
-    m_legendre_integral_recursion(geg_order + 2),
-    m_legendre_integrals(geg_order + 2) {}
+AngleIntegratorCore<DistType::iso, RespType::iso>::AngleIntegratorCore(std::size_t radon_order):
+    m_legendre_integral_recursion{radon_order + 2},
+    m_legendre_integrals(radon_order + 2) {}
 
-void AngleIntegratorCore<DistType::iso, RespType::iso>::resize(std::size_t geg_order)
+void AngleIntegratorCore<DistType::iso, RespType::iso>::resize(std::size_t radon_order)
 {
-    m_legendre_integral_recursion.expand(geg_order);
-    m_legendre_integrals.resize(geg_order);
+    m_legendre_integral_recursion.expand(radon_order);
+    m_legendre_integrals.resize(radon_order);
 }
 
 double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
-    IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell)
+    IsotropicZernikeSpan<const double> distribution_radon_transform,
+    double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
 
@@ -51,16 +52,17 @@ double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
     const la::Vector<double, 2> x = {xmin, xmax};
     m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
 
-    la::Vector<double, 2> res = geg_zernike_exp[0]*m_legendre_integrals[0];
-    for (auto n : geg_zernike_exp.indices(2))
-        res += geg_zernike_exp[n]*m_legendre_integrals[n];
+    la::Vector<double, 2> res = distribution_radon_transform[0]*m_legendre_integrals[0];
+    for (auto n : distribution_radon_transform.indices(2))
+        res += distribution_radon_transform[n]*m_legendre_integrals[n];
 
     constexpr double two_pi_sq = (2.0*std::numbers::pi)*(2.0*std::numbers::pi);
     return two_pi_sq*(res[1] - res[0])/offset_len;
 }
 
 std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integrate_transverse(
-    IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, double offset_len, double shell)
+    IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return {};
 
@@ -69,21 +71,15 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
     const la::Vector<double, 2> x = {xmin, xmax};
     m_legendre_integral_recursion.generate(std::span(m_legendre_integrals), x);
 
-    std::array<la::Vector<double, 2>, 3> res = {
-        trans_geg_zernike_exp[0, 0]*m_legendre_integrals[0],
-        trans_geg_zernike_exp[0, 1]*m_legendre_integrals[1],
-        trans_geg_zernike_exp[0, 2]*m_legendre_integrals[0]
-    };
+    std::array<la::Vector<double, 2>, 3> res = {};
 
-    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
-    for (std::size_t n = 2; n < nmax; n += 2)
-    {
-        res[0] += trans_geg_zernike_exp[n, 0]*m_legendre_integrals[n];
-        res[1] += trans_geg_zernike_exp[n, 1]*m_legendre_integrals[n + 1];
-        res[2] += trans_geg_zernike_exp[n, 2]*m_legendre_integrals[n];
-    }
-
-    res[0] += trans_geg_zernike_exp[nmax, 0]*m_legendre_integrals[nmax];
+    const std::size_t nmax = util::even_floor(distribution_radon_transform.order() - 1);
+    for (std::size_t n = 0; n <= nmax; n += 2)
+        res[0] += distribution_radon_transform[0, n]*m_legendre_integrals[n];
+    for (std::size_t n = 0; n < nmax; n += 2)
+        res[1] += distribution_radon_transform[1, n]*m_legendre_integrals[n + 1];
+    for (std::size_t n = 0; n < nmax; n += 2)
+        res[2] += distribution_radon_transform[2, n]*m_legendre_integrals[n];
 
     la::Vector<double, 2> nontrans_res = res[2];
     la::Vector<double, 2> trans_res = res[0] + 2.0*shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
@@ -95,12 +91,13 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
 }
 
 AngleIntegratorCore<DistType::iso, RespType::aniso>::AngleIntegratorCore(
-    std::size_t geg_order, std::size_t resp_order):
-    m_rotor(resp_order),
-    m_rotated_response_exp(resp_order),
+    std::size_t radon_order, std::size_t resp_order):
+    m_rotor{resp_order},
+    m_rotated_response_exp{resp_order},
     m_zonal_rotated_response_exp(resp_order),
-    m_aff_leg_integrals(geg_order + 2, resp_order),
-    m_aff_leg_ylm_integrals(geg_order + 2, resp_order),
+    m_aff_leg_integrals{radon_order + 2, resp_order},
+    m_aff_leg_ylm_integrals{radon_order + 2, resp_order},
+    m_angle_integrals(radon_order + 2),
     m_ylm_integral_norms(resp_order)
 {
     for (std::size_t l = 0; l  < resp_order; ++l)
@@ -108,14 +105,15 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::AngleIntegratorCore(
 }
 
 void AngleIntegratorCore<DistType::iso, RespType::aniso>::resize(
-    std::size_t geg_order, std::size_t resp_order)
+    std::size_t radon_order, std::size_t resp_order)
 {
     m_rotor.expand(resp_order);
     m_rotated_response_exp.reshape(resp_order);
     m_zonal_rotated_response_exp.resize(resp_order);
 
-    m_aff_leg_integrals.resize(geg_order + 2, resp_order);
-    m_aff_leg_ylm_integrals.reshape(geg_order + 2, resp_order);
+    m_aff_leg_integrals.resize(radon_order + 2, resp_order);
+    m_aff_leg_ylm_integrals.reshape(radon_order + 2, resp_order);
+    m_angle_integrals.resize(radon_order + 2);
     m_ylm_integral_norms.resize(resp_order);
     for (std::size_t l = 0; l  < resp_order; ++l)
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
@@ -123,7 +121,7 @@ void AngleIntegratorCore<DistType::iso, RespType::aniso>::resize(
 
 [[nodiscard]] double
 AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
-    IsotropicZernikeSpan<const double> geg_zernike_exp,
+    IsotropicZernikeSpan<const double> distribution_radon_transform,
     SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell,
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
@@ -147,8 +145,8 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
     evaluate_aff_leg_ylm_integrals(shell, offset_len);
 
     double res = 0.0;
-    for (std::size_t n : geg_zernike_exp.indices())
-        res += geg_zernike_exp[n]*util::inner_product(
+    for (std::size_t n : distribution_radon_transform.indices())
+        res += distribution_radon_transform[n]*util::inner_product(
                 std::span<double>(m_zonal_rotated_response_exp),
                 m_aff_leg_ylm_integrals[n].flatten());
 
@@ -157,9 +155,9 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
 
 [[nodiscard]] std::array<double, 2>
 AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
-    IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, SHSpan<const double> response_exp,
-    const la::Vector<double, 3>& offset, double rotation_angle, double shell,
-    const zest::WignerdPiHalfCollection& wigner_d_pi2)
+    IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    SHSpan<const double> response_exp, const la::Vector<double, 3>& offset,
+    double rotation_angle, double shell, const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
@@ -180,26 +178,18 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
 
     std::array<double, 3> res = {};
 
-    const std::size_t nmax = util::even_floor(trans_geg_zernike_exp.order() - 1);
+    for (std::size_t n = 0; n < m_angle_integrals.size(); ++n)
+        m_angle_integrals[n]
+            = util::inner_product(
+                std::span(m_zonal_rotated_response_exp), m_aff_leg_ylm_integrals[n].flatten());
+
+    const std::size_t nmax = util::even_floor(distribution_radon_transform.order() - 1);
+    for (std::size_t n = 0; n <= nmax; n += 2)
+        res[0] += distribution_radon_transform[0, n]*m_angle_integrals[n];
     for (std::size_t n = 0; n < nmax; n += 2)
-    {
-        const std::array<double, 2> angle_integrals = {
-            util::inner_product(
-                std::span<double>(m_zonal_rotated_response_exp),
-                m_aff_leg_ylm_integrals[n].flatten()),
-            util::inner_product(
-                std::span<double>(m_zonal_rotated_response_exp),
-                m_aff_leg_ylm_integrals[n + 1].flatten())
-        };
-
-        res[0] += trans_geg_zernike_exp[n, 0]*angle_integrals[0];
-        res[1] += trans_geg_zernike_exp[n, 1]*angle_integrals[1];
-        res[2] += trans_geg_zernike_exp[n, 2]*angle_integrals[0];
-    }
-
-    res[0] += trans_geg_zernike_exp[nmax, 0]*util::inner_product(
-            std::span<double>(m_zonal_rotated_response_exp),
-            m_aff_leg_ylm_integrals[nmax].flatten());
+        res[1] += distribution_radon_transform[1, n]*m_angle_integrals[n + 1];
+    for (std::size_t n = 0; n < nmax; n += 2)
+        res[2] += distribution_radon_transform[2, n]*m_angle_integrals[n];
 
     return {
         2.0*std::numbers::pi*res[2],
@@ -221,29 +211,29 @@ void AngleIntegratorCore<DistType::iso, RespType::aniso>::evaluate_aff_leg_ylm_i
 
 
 AngleIntegratorCore<DistType::aniso, RespType::iso>::AngleIntegratorCore(
-    std::size_t geg_order):
-    m_aff_leg_integrals(geg_order, 0),
-    m_aff_leg_ylm_integrals(geg_order, 0),
-    m_ylm_integral_norms(geg_order)
+    std::size_t radon_order):
+    m_aff_leg_integrals(radon_order, 0),
+    m_aff_leg_ylm_integrals(radon_order, 0),
+    m_ylm_integral_norms(radon_order)
 {
-    for (std::size_t l = 0; l  < geg_order; ++l)
+    for (std::size_t l = 0; l  < radon_order; ++l)
         m_ylm_integral_norms[l]
             = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
-void AngleIntegratorCore<DistType::aniso, RespType::iso>::resize(std::size_t geg_order)
+void AngleIntegratorCore<DistType::aniso, RespType::iso>::resize(std::size_t radon_order)
 {
-    if (order() == geg_order) return;
-    m_aff_leg_integrals.resize(geg_order, 0);
-    m_aff_leg_ylm_integrals.reshape(geg_order, 0);
-    m_ylm_integral_norms.resize(geg_order);
-    for (std::size_t l = 0; l  < geg_order; ++l)
+    if (order() == radon_order) return;
+    m_aff_leg_integrals.resize(radon_order, 0);
+    m_aff_leg_ylm_integrals.reshape(radon_order, 0);
+    m_ylm_integral_norms.resize(radon_order);
+    for (std::size_t l = 0; l  < radon_order; ++l)
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
 }
 
 [[nodiscard]] double
 AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate(
-    ZernikeSpan<const double> rotated_geg_zernike_exp,
+    ZernikeSpan<const double> rotated_dist_radon_transform,
     double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return 0.0;
@@ -253,7 +243,7 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate(
     double res = 0;
     for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_geg_n = rotated_geg_zernike_exp[n];
+        auto rotated_geg_n = rotated_dist_radon_transform[n];
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
             res += rotated_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
@@ -264,8 +254,8 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate(
 
 [[nodiscard]] std::array<double, 2>
 AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
-    ZernikeSpan<const double> rotated_geg_zernike_exp,
-    ZernikeSpan<const double> rotated_trans_geg_zernike_exp,
+    ZernikeSpan<const double> rotated_dist_radon_transform,
+    ZernikeSpan<const double> rotated_dist_trans_radon_transform,
     double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return {0.0, 0.0};
@@ -276,7 +266,7 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
     double trans = 0.0;
     for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_trans_geg_n = rotated_trans_geg_zernike_exp[n];
+        auto rotated_trans_geg_n = rotated_dist_trans_radon_transform[n];
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
             trans += rotated_trans_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
@@ -292,7 +282,7 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
     double nontrans = 0.0;
     for (std::size_t n : non_trans_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_geg_n = rotated_geg_zernike_exp[n];
+        auto rotated_geg_n = rotated_dist_radon_transform[n];
         auto aff_leg_ylm_integrals_n = non_trans_aff_leg_ylm_integrals[n];
 
         for (std::size_t l = n & 1; l <= n; l += 2)
@@ -315,11 +305,11 @@ void AngleIntegratorCore<DistType::aniso, RespType::iso>::evaluate_aff_leg_ylm_i
 }
 
 AngleIntegratorCore<DistType::aniso, RespType::aniso>::AngleIntegratorCore(
-    std::size_t geg_order, std::size_t resp_order, std::size_t top_order):
-    m_rotor(std::max(geg_order, resp_order)), m_glq_transformer(top_order),
+    std::size_t radon_order, std::size_t resp_order, std::size_t top_order):
+    m_rotor(std::max(radon_order, resp_order)), m_glq_transformer(top_order),
     m_rotated_response_exp(resp_order), m_rotated_response_grid(top_order),
-    m_aff_leg_integrals(geg_order, resp_order),
-    m_aff_leg_ylm_integrals(geg_order, resp_order),
+    m_aff_leg_integrals(radon_order, resp_order),
+    m_aff_leg_ylm_integrals(radon_order, resp_order),
     m_ylm_integral_norms(top_order), m_zonal_transformer(top_order),
     m_rotated_grid(top_order), m_rotated_exp(top_order)
 {
@@ -328,15 +318,15 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::AngleIntegratorCore(
 }
 
 void AngleIntegratorCore<DistType::aniso, RespType::aniso>::resize(
-    std::size_t geg_order, std::size_t resp_order, std::size_t top_order)
+    std::size_t radon_order, std::size_t resp_order, std::size_t top_order)
 {
-    m_rotor.expand(std::max(geg_order, resp_order));
+    m_rotor.expand(std::max(radon_order, resp_order));
     m_glq_transformer.resize(top_order);
     m_rotated_response_exp.reshape(resp_order);
     m_rotated_response_grid.reshape(top_order);
 
-    m_aff_leg_integrals.resize(geg_order, resp_order);
-    m_aff_leg_ylm_integrals.reshape(geg_order, resp_order);
+    m_aff_leg_integrals.resize(radon_order, resp_order);
+    m_aff_leg_ylm_integrals.reshape(radon_order, resp_order);
     m_ylm_integral_norms.resize(top_order);
     for (std::size_t l = 0; l  < top_order; ++l)
         m_ylm_integral_norms[l] = (2.0*std::numbers::pi)*std::sqrt(double(2*l + 1));
@@ -348,7 +338,7 @@ void AngleIntegratorCore<DistType::aniso, RespType::aniso>::resize(
 
 [[nodiscard]] double
 AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
-    zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
+    zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_radon_grids,
     SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell,
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
@@ -376,7 +366,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
     {
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
-        util::mul(m_rotated_grid.flatten(), rotated_geg_zernike_grids[n].flatten());
+        util::mul(m_rotated_grid.flatten(), rotated_dist_radon_grids[n].flatten());
         m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
         res += util::inner_product(std::span<double>(m_rotated_exp), aff_leg_ylm_integrals_n.flatten());
     }
@@ -386,8 +376,8 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
 
 [[nodiscard]] std::array<double, 2>
 AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
-    zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
-    zest::st::SphereGLQGridVectorSpan<const double> rotated_trans_geg_zernike_grids,
+    zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_radon_grids,
+    zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_trans_radon_grids,
     SHSpan<const double> response_exp,
     const la::Vector<double, 3>& offset, double rotation_angle, double shell,
     const zest::WignerdPiHalfCollection& wigner_d_pi2)
@@ -415,8 +405,8 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
     {
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
-        assert(m_rotated_grid.flatten().size() == rotated_trans_geg_zernike_grids[n].flatten().size());
-        util::mul(m_rotated_grid.flatten(), rotated_trans_geg_zernike_grids[n].flatten());
+        assert(m_rotated_grid.flatten().size() == rotated_dist_trans_radon_grids[n].flatten().size());
+        util::mul(m_rotated_grid.flatten(), rotated_dist_trans_radon_grids[n].flatten());
         m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
         trans += util::inner_product(std::span<double>(m_rotated_exp), aff_leg_ylm_integrals_n.flatten());
     }
@@ -433,8 +423,8 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
     {
         auto non_trans_aff_leg_ylm_integrals_n = non_trans_aff_leg_ylm_integrals[n];
         std::ranges::copy(m_rotated_response_grid.flatten(), m_rotated_grid.flatten().begin());
-        assert(m_rotated_grid.flatten().size() == rotated_geg_zernike_grids[n].flatten().size());
-        util::mul(m_rotated_grid.flatten(), rotated_geg_zernike_grids[n].flatten());
+        assert(m_rotated_grid.flatten().size() == rotated_dist_radon_grids[n].flatten().size());
+        util::mul(m_rotated_grid.flatten(), rotated_dist_radon_grids[n].flatten());
         m_zonal_transformer.forward_transform(m_rotated_grid, m_rotated_exp);
         nontrans += util::inner_product(std::span<const double>(m_rotated_exp), non_trans_aff_leg_ylm_integrals_n.flatten());
     }

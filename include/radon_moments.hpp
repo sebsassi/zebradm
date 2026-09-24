@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 SOFTWARE.
 */
+#pragma once
 
 #include "types.hpp"
 #include "zernike_recursions.hpp"
@@ -229,7 +230,7 @@ RadonMomentSpan(RadonMomentArray<ElementType, category>)
 
 template <typename ElementType, MomentCategory category>
 void evaluate_transverse_radon_transform(
-    RadonMomentSpan<ElementType, category> moments, const la::Vector<double, 3>& offset,
+    RadonMomentSpan<const ElementType, category> moments, const la::Vector<double, 3>& offset,
     ZernikeSpan<ElementType> transverse_radon_transform)
 {
     std::ranges::copy(

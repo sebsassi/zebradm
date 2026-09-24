@@ -33,6 +33,7 @@ SOFTWARE.
 #include "types.hpp"
 #include "vector.hpp"
 #include "zonal_glq_transformer.hpp"
+#include "radon_moments.hpp"
 
 namespace zdm::zebra::detail
 {
@@ -90,27 +91,32 @@ class AngleIntegratorCore<DistType::iso, RespType::iso>
 {
 public:
     AngleIntegratorCore() = default;
-    explicit AngleIntegratorCore(std::size_t geg_order);
+    explicit AngleIntegratorCore(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
-    order() const noexcept { return m_legendre_integral_recursion.order(); }
+    order() const noexcept
+    {
+        return m_legendre_integral_recursion.order();
+    }
 
     /**
         @brief Resize the integrator.
     */
-    void resize(std::size_t geg_order);
+    void resize(std::size_t radon_order);
 
     /**
         @brief Evaluate the angle-integrated Radon transform.
     */
     [[nodiscard]] double integrate(
-        IsotropicZernikeSpan<const double> geg_zernike_exp, double offset_len, double shell);
+        IsotropicZernikeSpan<const double> distribution_radon_transform,
+        double offset_len, double shell);
 
     /**
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, double offset_len, double shell);
+        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        double offset_len, double shell);
 
 private:
     LegendreIntegralRecursion m_legendre_integral_recursion;
@@ -127,31 +133,34 @@ class AngleIntegratorCore<DistType::iso, RespType::aniso>
 {
 public:
     AngleIntegratorCore() = default;
-    explicit AngleIntegratorCore(std::size_t geg_order, std::size_t resp_order);
+    explicit AngleIntegratorCore(std::size_t radon_order, std::size_t resp_order);
 
     [[nodiscard]] std::size_t
-    order() const noexcept { return m_aff_leg_integrals.order(); }
+    order() const noexcept
+    {
+        return m_aff_leg_integrals.order();
+    }
 
     /**
         @brief Resize the integrator.
     */
-    void resize(std::size_t geg_order, std::size_t resp_order);
+    void resize(std::size_t radon_order, std::size_t resp_order);
 
     /**
         @brief Evaluate the angle-integrated Radon transform.
     */
     [[nodiscard]] double integrate(
-        IsotropicZernikeSpan<const double> geg_zernike_exp, SHSpan<const double> response_exp,
-        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
-        const zest::WignerdPiHalfCollection& wigner_d_pi2);
+        IsotropicZernikeSpan<const double> distribution_radon_transform,
+        SHSpan<const double> response_exp, const la::Vector<double, 3>& offset,
+        double rotation_angle, double shell, const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
     /**
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        IsotropicZernikeSpan<const double, 3> trans_geg_zernike_exp, SHSpan<const double> response_exp,
-        const la::Vector<double, 3>& offset, double rotation_angle, double shell,
-        const zest::WignerdPiHalfCollection& wigner_d_pi2);
+        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        SHSpan<const double> response_exp, const la::Vector<double, 3>& offset,
+        double rotation_angle, double shell, const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
 private:
     void evaluate_aff_leg_ylm_integrals(double shell, double offset_len);
@@ -161,6 +170,7 @@ private:
     std::vector<double> m_zonal_rotated_response_exp;
     AffineLegendreIntegrals m_aff_leg_integrals;
     TrapezoidArray<double> m_aff_leg_ylm_integrals;
+    std::vector<double> m_angle_integrals;
     std::vector<double> m_ylm_integral_norms;
 };
 
@@ -174,7 +184,7 @@ class AngleIntegratorCore<DistType::aniso, RespType::iso>
 {
 public:
     AngleIntegratorCore() = default;
-    explicit AngleIntegratorCore(std::size_t geg_order);
+    explicit AngleIntegratorCore(std::size_t radon_order);
 
     [[nodiscard]] std::size_t
     order() const noexcept { return m_aff_leg_integrals.order(); }
@@ -182,20 +192,20 @@ public:
     /**
         @brief Resize the integrator.
     */
-    void resize(std::size_t geg_order);
+    void resize(std::size_t radon_order);
 
     /**
         @brief Evaluate the angle-integrated Radon transform.
     */
     [[nodiscard]] double integrate(
-        ZernikeSpan<const double> rotated_geg_zernike_exp, double offset_len, double shell);
+        ZernikeSpan<const double> rotated_dist_radon_transform, double offset_len, double shell);
 
     /**
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        ZernikeSpan<const double> rotated_geg_zernike_exp,
-        ZernikeSpan<const double> rotated_trans_geg_zernike_exp,
+        ZernikeSpan<const double> rotated_dist_radon_transform,
+        ZernikeSpan<const double> rotated_dist_trans_radon_transform,
         double offset_len, double shell);
 
 private:
@@ -217,7 +227,7 @@ class AngleIntegratorCore<DistType::aniso, RespType::aniso>
 public:
     AngleIntegratorCore() = default;
     AngleIntegratorCore(
-        std::size_t geg_order, std::size_t resp_order, std::size_t top_order);
+        std::size_t radon_order, std::size_t resp_order, std::size_t top_order);
 
     [[nodiscard]] zest::Rotor& rotor() { return m_rotor; }
 
@@ -228,13 +238,13 @@ public:
         @brief Resize the integrator.
     */
     void resize(
-        std::size_t geg_order, std::size_t resp_order, std::size_t top_order);
+        std::size_t radon_order, std::size_t resp_order, std::size_t top_order);
 
     /**
         @brief Evaluate the angle-integrated Radon transform.
     */
     [[nodiscard]] double integrate(
-        zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_radon_grids,
         SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell,
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
@@ -243,8 +253,8 @@ public:
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        zest::st::SphereGLQGridVectorSpan<const double> rotated_geg_zernike_grids,
-        zest::st::SphereGLQGridVectorSpan<const double> rotated_trans_geg_zernike_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_radon_grids,
+        zest::st::SphereGLQGridVectorSpan<const double> rotated_dist_trans_radon_grids,
         SHSpan<const double> response_exp,
         const la::Vector<double, 3>& offset, double rotation_angle, double shell,
         const zest::WignerdPiHalfCollection& wigner_d_pi2);
