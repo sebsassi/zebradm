@@ -30,12 +30,12 @@ SOFTWARE.
 #include <zest/md_span.hpp>
 
 #include "utility.hpp"
+#include "swap_chain.hpp"
 
 namespace zdm::zebra
 {
 
-void legendre_recursion_vec(
-    zest::DynamicMDSpan<double, 2> legendre, std::span<double> x);
+void legendre_recursion_vec(zest::DynamicMDSpan<double, 2> legendre, std::span<double> x);
 
 void legendre_recursion(std::span<double> legendre, double x);
 
@@ -102,13 +102,15 @@ public:
     explicit LegendreArrayRecursion(std::size_t size);
     explicit LegendreArrayRecursion(std::span<const double> x);
 
-    [[nodiscard]] std::size_t size() const noexcept { return m_swap_chain.buffer_size(); }
+    [[nodiscard]] std::size_t size() const noexcept
+    {
+        return m_swap_chain.buffer_size();
+    }
 
     void resize(std::size_t size);
     void init(std::span<const double> x);
 
-    template <std::regular_invocable<std::span<double>> Func>
-    void init(const Func& f) noexcept
+    void init(const std::regular_invocable<std::span<double>> auto& f) noexcept
     {
         std::ranges::fill(m_swap_chain.current(), 1.0);
         f(m_x);
@@ -117,13 +119,22 @@ public:
     }
 
     [[nodiscard]] std::span<const double>
-    second_prev() const noexcept { return m_swap_chain.previous<2>(); }
+    second_prev() const noexcept
+    {
+        return m_swap_chain.previous<2>();
+    }
 
     [[nodiscard]] std::span<const double>
-    prev() const noexcept { return m_swap_chain.previous<1>(); }
+    prev() const noexcept
+    {
+        return m_swap_chain.previous<1>();
+    }
 
     [[nodiscard]] std::span<const double>
-    current() const noexcept { return m_swap_chain.current(); }
+    current() const noexcept
+    {
+        return m_swap_chain.current();
+    }
 
     void iterate() noexcept;
     void iterate(std::size_t n) noexcept;
