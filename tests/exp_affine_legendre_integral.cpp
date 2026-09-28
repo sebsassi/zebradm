@@ -37,7 +37,7 @@ namespace
     {
         for (std::size_t l = 0; l <= n + data.shape().extra_extent(); ++l)
         {
-            output << std::format("{:.16e} ", std::fabs(data(n, l)));
+            output << std::format("{:.16e} ", std::fabs(data[n, l]));
         }
         for (std::size_t l = n + 1 + data.shape().extra_extent(); l < data.order() + data.shape().extra_extent(); ++l)
         {

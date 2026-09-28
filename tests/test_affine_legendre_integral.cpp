@@ -229,7 +229,7 @@ bool test_affine_legendre_integral_recursion_matches_numerical_integral_for_orde
     {
         for (std::size_t l = 0; l < n + extra_extent + 1; ++l)
         {
-            success = success && is_close(test_integrals(n, l), reference_integrals(n, l), tol);
+            success = success && is_close(test_integrals[n, l], reference_integrals[n, l], tol);
         }
     }
 

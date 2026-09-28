@@ -79,7 +79,7 @@ public:
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
-                out(i, j) = integrate(
+                out[i, j] = integrate(
                         distribution, offsets[i], shells[j], abserr, relerr, 
                         max_subdiv);
         }
@@ -122,7 +122,7 @@ public:
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
-                out(i, j) = integrate_transverse(
+                out[i, j] = integrate_transverse(
                         distribution, offsets[i], shells[j], abserr, relerr, 
                         max_subdiv);
         }
@@ -182,7 +182,7 @@ public:
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
-                out(i, j) = integrate(
+                out[i, j] = integrate(
                         distribution, response, offsets[i], rotation_angles[i],
                         shells[j], abserr, relerr, max_subdiv);
         }
@@ -242,7 +242,7 @@ public:
         for (std::size_t i = 0; i < offsets.size(); ++i)
         {
             for (std::size_t j = 0; j < shells.size(); ++j)
-                out(i, j) = integrate_transverse(
+                out[i, j] = integrate_transverse(
                         distribution, response, offsets[i], rotation_angles[i],
                         shells[j], abserr, relerr, max_subdiv);
         }

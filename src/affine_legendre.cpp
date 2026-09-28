@@ -85,7 +85,7 @@ void AffineLegendreRecursion::evaluate_affine(
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
             expansion[n, l] = m_a[n]*shift*expansion[n - 1, l]
-                    - m_b[n]*expansion(n - 2, l)
+                    - m_b[n]*expansion[n - 2, l]
                     + m_a[n]*m_c[l]*scale*expansion[n - 1, l + 1]
                     + m_a[n]*m_d[l]*scale*expansion[n - 1, l - 1];
         }
@@ -110,7 +110,7 @@ void AffineLegendreRecursion::evaluate_shifted(
     for (std::size_t n = 2; n < expansion.order(); ++n)
     {
         expansion[n, 0] = m_a[n]*shift*expansion[n - 1, 0]
-                - m_b[n]*expansion(n - 2, 0)
+                - m_b[n]*expansion[n - 2, 0]
                 + m_a[n]*(1.0/3.0)*expansion[n - 1, 1];
         for (std::size_t l = 1; l <= n - 2; ++l)
         {
