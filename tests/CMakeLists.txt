@@ -34,6 +34,7 @@ macro(create_experiment EXPNAME)
     target_link_libraries(${EXPNAME}.exp zebradm)
 endmacro()
 
+create_test(test_utility)
 create_test(test_linalg)
 create_test(test_polynomial)
 create_test(test_units)

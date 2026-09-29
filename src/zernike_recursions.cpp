@@ -67,6 +67,15 @@ void ZernikeRecursionData::expand(std::size_t order)
     }
 }
 
+template <>
+void multiply_by<Moment::identity>(
+    [[maybe_unused]] const ZernikeRecursionData& coeff_data,
+    [[maybe_unused]] ZernikeSpan<const double> in,
+    [[maybe_unused]] ZernikeSpan<double> out) noexcept
+{
+    std::ranges::copy(in.flatten(), out.flatten().begin());
+}
+
 namespace
 {
 
@@ -1094,14 +1103,16 @@ void multiply_by_x_y_impl(
 
 } // namespace
 
-void multiply_by_x(
+template <>
+void multiply_by<Moment::x>(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
     multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
 }
 
-void multiply_by_y(
+template <>
+void multiply_by<Moment::y>(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
@@ -1500,7 +1511,8 @@ void multiply_by_z_impl(
 
 } // namespace
 
-void multiply_by_z(
+template <>
+void multiply_by<Moment::z>(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
@@ -1810,6 +1822,7 @@ void multiply_by_r2_impl(
         }
     }
 }
+
 void multiply_by_r2_impl(
     const ZernikeRecursionData& coeff_data,
     IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept
@@ -1910,7 +1923,8 @@ void multiply_by_r2_impl(
 
 } // namespace
 
-void multiply_by_r2(
+template <>
+void multiply_by<Moment::r2>(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
@@ -1924,117 +1938,12 @@ void multiply_by_r2(
     multiply_by_r2_impl(coeff_data, in, out);
 }
 
-void multiply_by_x_and_radon_transform_inplace(
-    const ZernikeRecursionData& coeff_data,
-    ZernikeSpan<const double> in,
-    ZernikeSpan<double> out) noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_x_y_impl<PlaneCoord::X>(coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void multiply_by_y_and_radon_transform_inplace(
-    const ZernikeRecursionData& coeff_data,
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_x_y_impl<PlaneCoord::Y>(coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void multiply_by_z_and_radon_transform_inplace(
-    const ZernikeRecursionData& coeff_data,
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_z_impl(coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void multiply_by_r2_and_radon_transform_inplace(
-    const ZernikeRecursionData& coeff_data,
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
-{
-    assert(in.order() + 3 < out.order());
-    multiply_by_r2_impl(coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
 void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept
 {
     assert(in.order() + 3 < out.order());
     multiply_by_r2_impl(coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-ZernikeCoordinateMultiplier::ZernikeCoordinateMultiplier(std::size_t order):
-    m_coeff_data(order) {}
-
-void ZernikeCoordinateMultiplier::expand(std::size_t order)
-{
-    m_coeff_data.expand(order);
-}
-
-void ZernikeCoordinateMultiplier::multiply_by_x(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
-}
-
-void ZernikeCoordinateMultiplier::multiply_by_y(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
-}
-
-void ZernikeCoordinateMultiplier::multiply_by_z(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    multiply_by_z_impl(m_coeff_data, in, out);
-}
-
-void ZernikeCoordinateMultiplier::multiply_by_r2(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    multiply_by_r2_impl(m_coeff_data, in, out);
-}
-
-void
-ZernikeCoordinateMultiplier::multiply_by_x_and_radon_transform_inplace(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_x_y_impl<PlaneCoord::X>(m_coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void
-ZernikeCoordinateMultiplier::multiply_by_y_and_radon_transform_inplace(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_x_y_impl<PlaneCoord::Y>(m_coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void
-ZernikeCoordinateMultiplier::multiply_by_z_and_radon_transform_inplace(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    assert(in.order() + 2 < out.order());
-    multiply_by_z_impl(m_coeff_data, in, out);
-    zebra::radon_transform_inplace(out);
-}
-
-void
-ZernikeCoordinateMultiplier::multiply_by_r2_and_radon_transform_inplace(
-    ZernikeSpan<const double> in, ZernikeSpan<double> out) const noexcept
-{
-    assert(in.order() + 3 < out.order());
-    multiply_by_r2_impl(m_coeff_data, in, out);
     zebra::radon_transform_inplace(out);
 }
 

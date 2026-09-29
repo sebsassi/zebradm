@@ -45,7 +45,7 @@ namespace zdm::util
 template <std::unsigned_integral T>
 [[nodiscard]] constexpr T even_floor(T n) noexcept
 {
-    return n & (~T(1));
+    return n & (~T{1});
 }
 
 /**
@@ -141,6 +141,23 @@ template <basic_arithmetic T>
 constexpr void mul(std::span<T> a, T b, std::span<T> c) noexcept
 {
     mul(a, b, std::span<const T>(c));
+}
+template <basic_arithmetic T>
+constexpr void mul(std::span<T> a, std::span<const T> b, T c) noexcept
+{
+    assert(!have_overlap(a, b));
+    const std::size_t size = std::min(a.size(), b.size());
+    [](T* RESTRICT a, const T* b, T c, std::size_t size) noexcept
+    {
+        for (std::size_t i = 0; i < size; ++i)
+            a[i] = b[i]*c;
+    }(a.data(), b.data(), c, size);
+}
+
+template <basic_arithmetic T>
+constexpr void mul(std::span<T> a, std::span<T> b, T c) noexcept
+{
+    mul(a, std::span<const T>(b), c);
 }
 
 // multiply `c` and `b` and add to `a`: `a += b*c`

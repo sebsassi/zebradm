@@ -21,62 +21,16 @@ SOFTWARE.
 */
 #pragma once
 
+#include <utility>
+
 #include "types.hpp"
 #include "zernike_recursions.hpp"
 #include "vector.hpp"
 #include "zebra_radon.hpp"
+#include "moments.hpp"
 
 namespace zdm::zebra
 {
-
-enum class MomentCategory: std::uint8_t
-{
-    identity,
-    transverse,
-    full
-};
-
-enum class Moment: std::uint8_t
-{
-    identity,
-    x,
-    y,
-    z,
-    r2,
-    x2,
-    y2,
-    z2,
-    xy,
-    xz,
-    yz
-};
-
-namespace detail
-{
-
-[[nodiscard]] consteval std::size_t count_of(DistType dist_type, MomentCategory category) noexcept
-{
-    if (dist_type == DistType::iso)
-        return (category == MomentCategory::identity) ? 1 : 3;
-    else
-    {
-        constexpr std::array<std::size_t, 3> counts = {1, 5, 11};
-        return counts[std::to_underlying(category)];
-    }
-}
-
-[[nodiscard]] consteval std::size_t max_offset(MomentCategory category) noexcept
-{
-    return (category == MomentCategory::identity) ? 0 : 2;
-}
-
-[[nodiscard]] consteval std::size_t offset_of(Moment moment) noexcept
-{
-    constexpr std::array<std::size_t, 11> offsets = {2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
-    return offsets[std::to_underlying(moment)];
-}
-
-} // namespace detail
 
 template <typename ElementType, MomentCategory category>
 class IsotropicRadonMomentSpan:
@@ -92,14 +46,27 @@ private:
 public:
     constexpr IsotropicRadonMomentSpan() = default;
     constexpr IsotropicRadonMomentSpan(Base::pointer data, std::size_t order):
-        Base{data, order + detail::max_offset(category)} {}
+        Base{data, order + detail::max_offset(DistType::iso, category)} {}
     constexpr IsotropicRadonMomentSpan(Base::pointer data, const Base::shape_type& shape):
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<1>(Base::extents());
+        return std::get<1>(Base::extents()) - detail::max_offset(DistType::iso, category);
+    }
+
+    [[nodiscard]] constexpr auto
+    operator[](IsoMoment moment, std::integral auto... inds) noexcept
+        requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
+    {
+        if constexpr (sizeof...(inds) == 0)
+        {
+            auto exp = Base::operator[](std::to_underlying(moment));
+            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+        }
+        else
+            return Base::operator[](std::to_underlying(moment), inds...);
     }
 };
 
@@ -117,28 +84,27 @@ private:
 public:
     RadonMomentSpan() = default;
     RadonMomentSpan(Base::pointer data, std::size_t order):
-        Base{data, order + detail::max_offset(category)} {}
+        Base{data, order + detail::max_offset(DistType::aniso, category)} {}
     RadonMomentSpan(Base::pointer data, const Base::shape_type& shape):
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<0>(std::get<1>(Base::extents()));
+        return std::get<0>(std::get<1>(Base::extents())) - detail::max_offset(DistType::aniso, category);
     }
 
     [[nodiscard]] constexpr auto
     operator[](Moment moment, std::integral auto... inds) noexcept
         requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
-        return Base::operator[](std::to_underlying(moment), inds...);
-    }
-
-    [[nodiscard]] constexpr auto
-    operator[](std::integral auto... inds) noexcept
-        requires (sizeof...(inds) <= Base::shape_type::rank)
-    {
-        return Base::operator[](inds...);
+        if constexpr (sizeof...(inds) == 0)
+        {
+            auto exp = Base::operator[](std::to_underlying(moment));
+            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+        }
+        else
+            return Base::operator[](std::to_underlying(moment), inds...);
     }
 };
 
@@ -156,7 +122,7 @@ private:
 public:
     IsotropicRadonMomentArray() = default;
     IsotropicRadonMomentArray(std::size_t order):
-        Base{order + detail::max_offset(category)} {}
+        Base{order + detail::max_offset(DistType::iso, category)} {}
 
     [[nodiscard]] explicit operator
     IsotropicRadonMomentSpan<typename Base::value_type, category>() noexcept
@@ -173,7 +139,20 @@ public:
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<1>(Base::extents());
+        return std::get<1>(Base::extents()) - detail::max_offset(DistType::iso, category);
+    }
+
+    [[nodiscard]] constexpr auto
+    operator[](IsoMoment moment, std::integral auto... inds) noexcept
+        requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
+    {
+        if constexpr (sizeof...(inds) == 0)
+        {
+            auto exp = Base::operator[](std::to_underlying(moment));
+            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+        }
+        else
+            return Base::operator[](std::to_underlying(moment), inds...);
     }
 };
 
@@ -195,7 +174,7 @@ private:
 public:
     RadonMomentArray() = default;
     RadonMomentArray(std::size_t order):
-        Base{order + detail::max_offset(category)} {}
+        Base{order + detail::max_offset(DistType::aniso, category)} {}
 
     [[nodiscard]] explicit operator
     RadonMomentSpan<typename Base::value_type, category>() noexcept
@@ -212,15 +191,20 @@ public:
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<1>(Base::extents());
+        return std::get<1>(Base::extents()) - detail::max_offset(DistType::aniso, category);
     }
 
-    template <std::integral... Inds>
-        requires (sizeof...(Inds) + 1 <= Base::shape_type::rank)
-    [[nodiscard]] auto
-    operator[](Moment moment, Inds... inds) noexcept
+    [[nodiscard]] constexpr auto
+    operator[](Moment moment, std::integral auto... inds) noexcept
+        requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
-        return Base::operator[](std::to_underlying(moment), inds...);
+        if constexpr (sizeof...(inds) == 0)
+        {
+            auto exp = Base::operator[](std::to_underlying(moment));
+            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+        }
+        else
+            return Base::operator[](std::to_underlying(moment), inds...);
     }
 };
 
@@ -282,14 +266,47 @@ class RadonTransformer<DistType::iso, category>
 {
 public:
     RadonTransformer() = default;
-    explicit RadonTransformer(std::size_t order): m_transform_helper{order} {}
+    explicit RadonTransformer(std::size_t order):
+        m_coeffs(order + 4)
+    {
+        constexpr double sqrt7 = 2.6457513110645905905016158;
+        constexpr double sqrt11 = 3.316624790355399849114933;
+        m_coeffs[0, 0] = 0.0;
+        m_coeffs[0, 1] = 0.0;
+        m_coeffs[0, 2] = 1.0/(5.0*std::numbers::sqrt3);
+        m_coeffs[0, 3] = 2.0/(15.0*sqrt7);
+        m_coeffs[0, 4] = 0.0;
+        m_coeffs[0, 5] = std::numbers::sqrt3/5.0;
+        m_coeffs[0, 6] = 2.0/(5.0*sqrt7);
+        m_coeffs[0, 7] = 1.0/std::numbers::sqrt3;
+
+        m_coeffs[2, 0] = 0.0;
+        m_coeffs[2, 1] = -5.0/(7.0*std::numbers::sqrt3);
+        m_coeffs[2, 2] = -15.0/(27.0*sqrt7);
+        m_coeffs[2, 3] = -4.0/(63.0*sqrt11);
+        m_coeffs[2, 4] = -std::numbers::sqrt3/5.0;
+        m_coeffs[2, 5] = sqrt7/45.0;
+        m_coeffs[2, 6] = 4.0/(9.0*sqrt11);
+        m_coeffs[2, 7] = 1.0/sqrt7;
+
+        generate_coeffs(4);
+    }
+
+    std::size_t order() { return m_coeffs.order(); }
+
+    void expand(std::size_t order)
+    {
+        const std::size_t old_nmax = util::even_floor(m_coeffs.order() - 1);
+        m_coeffs.reshape(order + 4);
+        generate_coeffs(old_nmax + 2);
+    }
 
     void evaluate_transformed_moments(
         IsotropicZernikeSpan<double> zernike_expansion,
         IsotropicRadonMomentSpan<double, category> radon_moments)
     {
         radon_transform(zernike_expansion, radon_moments[0]);
-        m_transform_helper.evaluate_transverse_components(zernike_expansion, radon_moments);
+        evaluate_transverse_components(zernike_expansion, radon_moments);
     }
 
     [[nodiscard]] IsotropicRadonMomentArray<double, category>
@@ -302,7 +319,79 @@ public:
     }
 
 private:
-    detail::IsotropicZernikeTransverseRadonHelper m_transform_helper;
+    void evaluate_transverse_components(
+        IsotropicZernikeSpan<const double> in,
+        IsotropicRadonMomentSpan<double, category> out) const noexcept
+    {
+        if (in.order() == 0) return;
+
+        assert(out.order() >= in.order());
+        out[IsoMoment::quadratic, 0] = m_coeffs[0, 2]*in[0];
+        out[IsoMoment::linear, 0] = m_coeffs[0, 5]*in[0];
+        out[IsoMoment::identity, 0] = m_coeffs[0, 7]*in[0];
+
+        out[IsoMoment::quadratic, 2] = m_coeffs[2, 1]*in[0];
+        out[IsoMoment::linear, 2] = m_coeffs[2, 4]*in[0];
+        out[IsoMoment::identity, 2] = -m_coeffs[0, 7]*in[0];
+
+        if (in.order() > 2)
+        {
+            out[IsoMoment::quadratic, 0] += m_coeffs[0, 3]*in[2];
+            out[IsoMoment::linear, 0] += m_coeffs[0, 6]*in[2];
+
+            out[IsoMoment::quadratic, 2] += m_coeffs[2, 2]*in[2];
+            out[IsoMoment::linear, 2] += m_coeffs[2, 5]*in[2];
+            out[IsoMoment::identity, 2] += m_coeffs[2, 7]*in[2];
+        }
+
+        if (in.order() > 4)
+        {
+            out[IsoMoment::quadratic, 2] += m_coeffs[2, 3]*in[4];
+            out[IsoMoment::linear, 2] += m_coeffs[2, 6]*in[4];
+        }
+
+        const std::size_t nmax = util::even_floor(in.order() + 3);
+        for (std::size_t n = 4; n < nmax - 4; n += 2)
+        {
+            out[IsoMoment::quadratic, n] = m_coeffs[n, 0]*in[n - 4] + m_coeffs[n, 1]*in[n - 2] + m_coeffs[n, 2]*in[n] + m_coeffs[n, 3]*in[n + 2];
+            out[IsoMoment::linear, n] = m_coeffs[n, 4]*in[n - 2] + m_coeffs[n, 5]*in[n] + m_coeffs[n, 6]*in[n + 2];
+            out[IsoMoment::identity, n] = m_coeffs[n, 7]*in[n] - m_coeffs[n - 2, 7]*in[n - 2];
+        }
+
+        out[IsoMoment::quadratic, nmax] = m_coeffs[nmax, 0]*in[nmax - 4];
+        out[IsoMoment::linear, nmax] = 0.0;
+        out[IsoMoment::identity, nmax] = 0.0;
+
+        if (nmax == 4) return;
+
+        out[IsoMoment::quadratic] = m_coeffs[nmax - 2, 0]*in[nmax - 6] + m_coeffs[nmax - 2, 1]*in[nmax - 4];
+        out[IsoMoment::linear] = m_coeffs[nmax - 2, 4]*in[nmax - 4];
+        out[IsoMoment::identity, nmax - 2] = -m_coeffs[nmax - 4, 7]*in[nmax - 4];
+
+        if (nmax == 6) return;
+
+        out[IsoMoment::quadratic, nmax - 4] = m_coeffs[nmax - 4, 0]*in[nmax - 8] + m_coeffs[nmax - 4, 1]*in[nmax - 6] + m_coeffs[nmax - 4, 2]*in[nmax - 4];
+        out[IsoMoment::linear, nmax - 4] = m_coeffs[nmax - 4, 4]*in[nmax - 6] + m_coeffs[nmax - 4, 5]*in[nmax - 4];
+        out[IsoMoment::identity, nmax - 4] = m_coeffs[nmax - 4, 7]*in[nmax - 4] - m_coeffs[nmax - 6, 7]*in[nmax - 6];
+    }
+
+    void generate_coeffs(std::size_t start_index)
+    {
+        for (std::size_t n : m_coeffs.indices(start_index))
+        {
+            const auto dn = double(n);
+            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
+            m_coeffs[n, 1] = (dn*(dn - 3.0) - 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn + 3.0));
+            m_coeffs[n, 2] = -(dn*(dn + 5.0) + 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 3] = -(dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
+            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
+        }
+    }
+
+    IsotropicZernikeExpansion<double, 8> m_coeffs;
 };
 
 template <>
@@ -338,11 +427,11 @@ public:
     void evaluate_transformed_moments(
         ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, category> radon_moments)
     {
-        radon_transform(zernike_expansion, radon_moments[Moment::identity]);
-        multiply_by_x_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::x]);
-        multiply_by_y_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::y]);
-        multiply_by_z_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::z]);
-        multiply_by_r2_and_radon_transform_inplace(zernike_expansion, radon_moments[Moment::r2]);
+        multiply_by_and_radon_transform_inplace<Moment::identity>(zernike_expansion, radon_moments[Moment::identity]);
+        multiply_by_and_radon_transform_inplace<Moment::x>(zernike_expansion, radon_moments[Moment::x]);
+        multiply_by_and_radon_transform_inplace<Moment::y>(zernike_expansion, radon_moments[Moment::y]);
+        multiply_by_and_radon_transform_inplace<Moment::z>(zernike_expansion, radon_moments[Moment::z]);
+        multiply_by_and_radon_transform_inplace<Moment::r2>(zernike_expansion, radon_moments[Moment::r2]);
     }
 
     [[nodiscard]] RadonMomentArray<double, category>

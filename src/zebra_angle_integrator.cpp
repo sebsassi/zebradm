@@ -29,7 +29,6 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
-#include "radon_util.hpp"
 #include "types.hpp"
 #include "utility.hpp"
 #include "zebra_radon.hpp"

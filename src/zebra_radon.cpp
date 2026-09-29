@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include <zest/zernike_conventions.hpp>
 
-#include "radon_util.hpp"
 #include "utility.hpp"
 
 namespace zdm::zebra
@@ -227,7 +226,7 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t nmax = detail::even_floor(in.order() + 1);
+    const std::size_t nmax = util::even_floor(in.order() + 1);
     const double coeff_nm2 = detail::zernike_radon_coeff<zernike_norm>(nmax - 2);
     out[nmax] = -coeff_nm2*in[nmax - 2];
 }
