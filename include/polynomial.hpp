@@ -87,11 +87,14 @@ estrin_eval(const R& coeffs, const DomainType& x)
         estrin_coeffs[i] = ResultType{coeffs[2*i] + coeffs[2*i + 1]*x};
 
     if constexpr ((size & 1) == 0)
-        estrin_coeffs[estrin_order] = ResultType{coeffs[2*estrin_order] + coeffs[2*estrin_order + 1]*x};
+        estrin_coeffs[estrin_order]
+            = ResultType{coeffs[2*estrin_order] + coeffs[2*estrin_order + 1]*x};
     else
-        estrin_coeffs[estrin_order] = ResultType{coeffs[2*estrin_order]};
+        estrin_coeffs[estrin_order]
+            = ResultType{coeffs[2*estrin_order]};
 
-    return estrin_eval<std::array<ResultType, estrin_order + 1>, DomainType, ResultType>(estrin_coeffs, x*x);
+    return estrin_eval<std::array<ResultType, estrin_order + 1>, DomainType, ResultType>(
+        estrin_coeffs, x*x);
 }
 
 template <typename R, typename DomainType, typename ResultType>
@@ -162,12 +165,14 @@ template <typename ValueType, std::size_t order_param>
 struct Polynomial
 {
     using value_type = ValueType;
+    using container_type = std::array<value_type, order + 1>;
     static constexpr std::size_t order = order_param;
 
-    std::array<value_type, order + 1> coeffs;
+    container_type coeffs;
 
     constexpr Polynomial() = default;
-    explicit constexpr Polynomial(const std::array<value_type, order + 1>& coeffs_): coeffs(coeffs_) {}
+    explicit constexpr Polynomial(const std::array<value_type, order + 1>& coeffs_):
+        coeffs(coeffs_) {}
 
     template <typename... Types>
         requires (std::convertible_to<Types, value_type> && ...)
@@ -179,7 +184,7 @@ struct Polynomial
     [[nodiscard]] constexpr value_type
     operator()(DomainType x) const noexcept
     {
-        return detail::estrin_eval<std::array<value_type, order + 1>, DomainType, value_type>(coeffs, x);
+        return detail::estrin_eval<container_type, DomainType, value_type>(coeffs, x);
     }
 
     [[nodiscard]] constexpr auto
@@ -452,14 +457,16 @@ struct DynamicPolynomial
         std::ranges::copy(coeffs_, coeffs.begin());
     }
 
-    [[nodiscard]] constexpr bool operator==(const DynamicPolynomial& other) const noexcept = default;
+    [[nodiscard]] constexpr bool
+    operator==(const DynamicPolynomial& other) const noexcept = default;
 
     template<typename DomainType>
         requires std::integral<DomainType> || std::floating_point<DomainType>
     [[nodiscard]] value_type
     operator()(DomainType x) const noexcept
     {
-        return detail::horner_eval<std::span<value_type>, DomainType, value_type>(std::span<value_type>(coeffs), x);
+        return detail::horner_eval<std::span<value_type>, DomainType, value_type>(
+            std::span<value_type>(coeffs), x);
     }
 
     [[nodiscard]] DynamicPolynomial

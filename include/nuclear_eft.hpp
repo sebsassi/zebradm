@@ -205,7 +205,8 @@ struct EFTFormFactorInitHelper<basis, order, 4, 4>
         const EFTFormFactorInputData& input_data,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
     {
-        return 0.0625*input_data.eft_spin_factor*(nuclear_form_factors.sigma1 + nuclear_form_factors.sigma2);
+        return 0.0625*input_data.eft_spin_factor*(
+            nuclear_form_factors.sigma1 + nuclear_form_factors.sigma2);
     }
 };
 
@@ -472,7 +473,9 @@ public:
     constexpr EFTFormFactor(
         [[maybe_unused]] ParticleSpin spin, [[maybe_unused]] double nucleus_mass,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept:
-        m_polynomial{detail::eft_form_factor_init<basis, order, I, J>(spin, nucleus_mass, nuclear_form_factors)} {}
+        m_polynomial{
+            detail::eft_form_factor_init<basis, order, I, J>(spin, nucleus_mass, nuclear_form_factors)
+        } {}
 
     /**
         @brief Tells whether the form factor depends on DM spin.
@@ -549,7 +552,8 @@ template <std::size_t order>
 class InteractionFactor
 {
 public:
-    InteractionFactor(const double b_sq, const std::array<Polynomial<double, order>, 2>& polynomial):
+    InteractionFactor(
+        const double b_sq, const std::array<Polynomial<double, order>, 2>& polynomial) noexcept:
         m_polynomial{polynomial}, m_b_sq{b_sq} {}
 
     /**
@@ -624,7 +628,9 @@ public:
     DMInteraction(
         ParticleSpin spin, Isotope isotope,
         const NuclearResponseFormFactors<basis, order>& nuclear_form_factors):
-        m_form_factors{FormFactorTypes{detail::EFTFormFactorInputData{spin, isotope}, nuclear_form_factors}...},
+        m_form_factors{
+            FormFactorTypes{detail::EFTFormFactorInputData{spin, isotope}, nuclear_form_factors}...
+        },
         m_b_sq{harmonic_oscillator_parameter_sq(isotope.mass_number)} {}
 
     /**

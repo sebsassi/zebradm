@@ -95,7 +95,7 @@ public:
     static constexpr size_type extent = Matrix<T, N, N, action, layout>::template extent<I>;
 
     constexpr explicit RotationMatrix() = default;
-    constexpr explicit RotationMatrix(std::array<T, N*N> array): m_matrix{array} {}
+    constexpr explicit RotationMatrix(std::array<T, N*N> array) noexcept: m_matrix{array} {}
 
     /**
         @brief Create an identity matrix.
@@ -256,21 +256,21 @@ public:
         const T xy = axis[0]*axis[1];
         const T xz = axis[0]*axis[2];
         const T yz = axis[1]*axis[2];
-        const T cos_angle = std::cos(angle);
-        const T sin_angle = std::sin(angle);
+        const T ca = std::cos(angle);
+        const T sa = std::sin(angle);
         if constexpr (
                 (layout == MatrixLayout::row_major && action == Action::active)
                 || (layout == MatrixLayout::column_major && action == Action::passive))
             return RotationMatrix(std::array{
-                xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) - z*sin_angle, xz*(1.0 - cos_angle) + y*sin_angle,
-                xy*(1.0 - cos_angle) + z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) - x*sin_angle,
-                xz*(1.0 - cos_angle) - y*sin_angle, yz*(1.0 - cos_angle) + x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
+                xx*(1.0 - ca) + ca, xy*(1.0 - ca) - z*sa, xz*(1.0 - ca) + y*sa,
+                xy*(1.0 - ca) + z*sa, yy*(1.0 - ca) + ca, yz*(1.0 - ca) - x*sa,
+                xz*(1.0 - ca) - y*sa, yz*(1.0 - ca) + x*sa, zz*(1.0 - ca) + ca
             });
         else
             return RotationMatrix(std::array{
-                xx*(1.0 - cos_angle) + cos_angle, xy*(1.0 - cos_angle) + z*sin_angle, xz*(1.0 - cos_angle) - y*sin_angle,
-                xy*(1.0 - cos_angle) - z*sin_angle, yy*(1.0 - cos_angle) + cos_angle, yz*(1.0 - cos_angle) + x*sin_angle,
-                xz*(1.0 - cos_angle) + y*sin_angle, yz*(1.0 - cos_angle) - x*sin_angle, zz*(1.0 - cos_angle) + cos_angle
+                xx*(1.0 - ca) + ca, xy*(1.0 - ca) + z*sa, xz*(1.0 - ca) - y*sa,
+                xy*(1.0 - ca) - z*sa, yy*(1.0 - ca) + ca, yz*(1.0 - ca) + x*sa,
+                xz*(1.0 - ca) + y*sa, yz*(1.0 - ca) - x*sa, zz*(1.0 - ca) + ca
             });
     }
 
@@ -551,45 +551,75 @@ public:
                 });
     }
 
-    [[nodiscard]] constexpr operator Matrix<T, N, N, action, layout>() const noexcept { return m_matrix; }
-    [[nodiscard]] constexpr explicit operator std::array<T, N*N>() const noexcept { return m_matrix.array; }
+    [[nodiscard]] constexpr
+    operator Matrix<T, N, N, action, layout>() const noexcept
+    {
+        return m_matrix;
+    }
+
+    [[nodiscard]] constexpr explicit
+    operator std::array<T, N*N>() const noexcept
+    {
+        return m_matrix.array;
+    }
 
     [[nodiscard]] constexpr bool operator==(const RotationMatrix& other) const noexcept = default;
 
     [[nodiscard]] constexpr T&
-    operator[](std::size_t i, std::size_t j) noexcept { return m_matrix[i, j]; }
+    operator[](std::size_t i, std::size_t j) noexcept
+    {
+        return m_matrix[i, j];
+    }
 
     [[nodiscard]] constexpr const T&
-    operator[](std::size_t i, std::size_t j) const noexcept { return m_matrix[i, j]; }
+    operator[](std::size_t i, std::size_t j) const noexcept
+    {
+        return m_matrix[i, j];
+    }
 
     template <static_vector_like V>
     [[nodiscard]] constexpr V
-    operator()(const V& v) { return matmul(*this, v); }
+    operator()(const V& v)
+    {
+        return matmul(*this, v);
+    }
 
     /**
         @brief Multiply two rotation matrices.
     */
     [[nodiscard]] constexpr RotationMatrix
-    operator*(const RotationMatrix& other) const noexcept { return matmul(*this, other); }
+    operator*(const RotationMatrix& other) const noexcept
+    {
+        return matmul(*this, other);
+    }
 
     /**
         @brief Multiply rotation matrix by a general matrix.
     */
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
-    operator*(const RotationMatrix& r, const Matrix<T, N, N, action, layout>& m) { return matmul(r, m); }
+    operator*(const RotationMatrix& r, const Matrix<T, N, N, action, layout>& m)
+    {
+        return matmul(r, m);
+    }
 
     /**
         @brief Multiply rotation matrix by a general matrix.
     */
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
-    operator*(const Matrix<T, N, N, action, layout>& m, const RotationMatrix& r) { return matmul(m, r); }
+    operator*(const Matrix<T, N, N, action, layout>& m, const RotationMatrix& r)
+    {
+        return matmul(m, r);
+    }
 
     /**
         @brief Multiply a vector by a rotation matrix.
     */
     template <static_vector_like V>
     [[nodiscard]] constexpr V
-    operator*(const V& vector) const noexcept { return matmul(*this, vector); }
+    operator*(const V& vector) const noexcept
+    {
+        return matmul(*this, vector);
+    }
 
     [[nodiscard]] constexpr RotationMatrix
     transpose() const noexcept
@@ -611,7 +641,8 @@ public:
 private:
     enum class Order { keep, reverse };
 
-    constexpr explicit RotationMatrix(const Matrix<T, N, N, action, layout>& matrix): m_matrix{matrix} {}
+    constexpr explicit RotationMatrix(const Matrix<T, N, N, action, layout>& matrix) noexcept:
+        m_matrix{matrix} {}
 
     [[nodiscard]] static constexpr RotationMatrix axis_x(T angle) noexcept requires (N == 3)
     {

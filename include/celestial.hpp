@@ -42,7 +42,8 @@ namespace detail
 {
 
 template <typename T, typename ParameterType, typename... TransformTypes>
-concept parametric_transform_on_one_of = (parametric_transform<T, ParameterType, TransformTypes> || ...);
+concept parametric_transform_on_one_of
+    = (parametric_transform<T, ParameterType, TransformTypes> || ...);
 
 template <typename T>
 concept zdm_rigid_transform
@@ -102,7 +103,7 @@ concept celestial_coordinate_transform
 /**
     @brief Enum representing different celestial coordinate systems.
 */
-enum class CSTag
+enum class CSTag: std::uint8_t
 {
     BCRS,
     CIRS,
@@ -232,6 +233,20 @@ private:
     U m_transform;
 };
 
+namespace detail
+{
+
+[[nodiscard]] QuantityOf<velocity> auto
+solar_velocity_from(
+    QuantityOf<speed> auto circular_speed,
+    const QuantityOf<velocity> auto& peculiar_velocity) noexcept
+{
+    return peculiar_velocity
+        + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*velocity_type::unit;
+}
+
+} // namespace detail
+
 /**
     @brief Transformation from the Galactic Coordinate System (GCS) to the
     International Celestial Reference System (ICRS).
@@ -253,9 +268,11 @@ public:
         QuantityOf<speed> auto circular_speed,
         const QuantityOf<velocity> auto& peculiar_velocity = astro::peculiar_velocity_sbd_2010,
         const astro::GalacticOrientation& orientation = astro::orientation_km_2017):
-        m_transform(rigid_transform_type::from<la::Chaining::intrinsic>(
-            peculiar_velocity + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*velocity_type::unit,
-            orientation.gcs_to_reference_cs())) {};
+        m_transform{
+            rigid_transform_type::from<la::Chaining::intrinsic>(
+                solar_velocity_from(circular_speed, peculiar_velocity),
+                orientation.gcs_to_reference_cs())
+        } {};
 
     [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
 
@@ -595,7 +612,8 @@ private:
                 ::composite_axes<Axis::z, Axis::y, chaining>(z_angle, y_angle);
 
         const quantity surface_speed = astro::earth.body.surface_speed(latitude);
-        const double surface_speed_value = surface_speed.numerical_value_in(decltype(surface_speed)::unit);
+        const double surface_speed_value
+            = surface_speed.numerical_value_in(decltype(surface_speed)::unit);
         const quantity translation
             = la::Vector{0.0, surface_speed_value, 0.0}*velocity[decltype(surface_speed)::unit];
 
@@ -650,7 +668,10 @@ public:
         @return GCS to HCS transform at the given time.
     */
     [[nodiscard]] rigid_transform_type
-    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept { return m_transform(time_since_j2000); }
+    operator()(QuantityOf<duration> auto time_since_j2000) const noexcept
+    {
+        return m_transform(time_since_j2000);
+    }
 
 private:
     Composite<la::Chaining::intrinsic, parameter_type, rigid_transform_type,

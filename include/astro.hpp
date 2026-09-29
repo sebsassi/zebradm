@@ -51,7 +51,8 @@ struct GalacticOrientation
     double ngp_ra;  /// Right ascension of the north galactic pole.
     double ncp_lon; /// Galactic longitude of the north celestial pole.
 
-    [[nodiscard]] constexpr bool operator==(const GalacticOrientation& other) const noexcept = default;
+    [[nodiscard]] constexpr bool
+    operator==(const GalacticOrientation& other) const noexcept = default;
 
     /**
         @brief Rotation from the galactic coordinate system to the reference
@@ -132,7 +133,8 @@ struct OrbitOrientation
         constexpr auto convention = la::EulerConvention::zxz;
         constexpr auto chaining = la::Chaining::intrinsic;
 
-        const double argument_of_periapsis = longitude_of_periapsis - longitude_of_the_ascending_node;
+        const double argument_of_periapsis
+            = longitude_of_periapsis - longitude_of_the_ascending_node;
         return la::RotationMatrix<double, 3>::from_euler_angles<convention, chaining>(
             -argument_of_periapsis, -inclination, -longitude_of_the_ascending_node);
     }
@@ -150,10 +152,10 @@ struct OrbitOrientation
 */
 struct OrbitPosition
 {
-    double eccentricity;    /// Eccentricity of the orbit
-    quantity<length[si::kilo<meter>]> semi_major_axis; /// Semi-major axis of the orbit in kilometers.
-    double mean_longitude;  /// Mean longitude of the body.
-    quantity<mpu::one/duration[day]> mean_motion;     /// Mean motion of the body in radians per day.
+    double eccentricity;                                /// Eccentricity of the orbit
+    quantity<length[si::kilo<meter>]> semi_major_axis;  /// Semi-major axis of the orbit in kilometers.
+    double mean_longitude;                              /// Mean longitude of the body.
+    quantity<mpu::one/duration[day]> mean_motion;       /// Mean motion of the body in radians per day.
 
     [[nodiscard]] constexpr bool operator==(const OrbitPosition& other) const noexcept = default;
 };
@@ -292,7 +294,9 @@ struct OrbitalState
         const double cos_ea = std::cos(ea);
         const double sin_ea = std::sin(ea);
         const auto& [cos_ta, sin_ta] = true_anomaly_cossin(cos_ea, sin_ea);
-        const auto speed = position.mean_motion*position.semi_major_axis/std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
+        const auto speed
+            = position.mean_motion*position.semi_major_axis
+                /std::sqrt((1.0 - position.eccentricity)*(1.0 + position.eccentricity));
         const la::Vector direction = {-sin_ta, position.eccentricity + cos_ta, 0.0};
         return velocity(speed)*direction;
     }
@@ -346,7 +350,8 @@ struct DynamicalOrbitOrientation
     Polynomial<double, M> longitude_of_the_ascending_node;
     Polynomial<double, P> longitude_of_periapsis;
 
-    [[nodiscard]] constexpr bool operator==(const DynamicalOrbitOrientation& other) const noexcept = default;
+    [[nodiscard]] constexpr bool
+    operator==(const DynamicalOrbitOrientation& other) const noexcept = default;
 
     /**
         @brief Orientation of the orbit at a point in time.
@@ -369,7 +374,9 @@ struct DynamicalOrbitOrientation
 };
 
 template <std::size_t N, std::size_t M, std::size_t P>
-DynamicalOrbitOrientation(Polynomial<double, N>, Polynomial<double, M>, Polynomial<double, P>) -> DynamicalOrbitOrientation<N, M, P>;
+DynamicalOrbitOrientation(
+    Polynomial<double, N>, Polynomial<double, M>, Polynomial<double, P>
+) -> DynamicalOrbitOrientation<N, M, P>;
 
 /**
     @brief Time evolution of the shape and motion parameters of an orbit.
@@ -423,8 +430,8 @@ struct KeplerOrbit
 template <std::size_t N, std::size_t M>
 KeplerOrbit(
     Polynomial<double, N>, Polynomial<double, M>, quantity<length[si::kilo<meter>]>,
-    quantity<mpu::one/duration[day]>)
--> KeplerOrbit<N, N>;
+    quantity<mpu::one/duration[day]>
+) -> KeplerOrbit<N, N>;
 
 /**
     @brief Orbit of a celestial body.
@@ -470,7 +477,9 @@ struct Orbit
 };
 
 template <std::size_t N, std::size_t M, std::size_t P, std::size_t K, std::size_t L>
-Orbit(DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::DateTime) -> Orbit<N, M, P, K, L>;
+Orbit(
+    DynamicalOrbitOrientation<N, M, P>, KeplerOrbit<K, L>, time::DateTime
+) -> Orbit<N, M, P, K, L>;
 
 /**
     @brief An oblate spheroid.
@@ -520,7 +529,8 @@ struct PlanetaryBody
         const double ecc_sq = spheroid.flattening*(2.0 - spheroid.flattening);
         const double sin_lat = std::sin(latitude);
         const auto pvroc = spheroid.equatorial_radius/std::sqrt(1.0 - ecc_sq*sin_lat*sin_lat);
-        const auto angular_speed = frequency(rotation_angle.derivative()(0.0)*mpu::one/day).in(mpu::one/second);
+        const auto angular_speed
+            = frequency(rotation_angle.derivative()(0.0)*mpu::one/day).in(mpu::one/second);
         return quantity_cast<speed>(angular_speed*pvroc*std::cos(latitude));
 
     }
@@ -577,7 +587,8 @@ static constexpr GalacticOrientation orientation_km_2017 = {
         doi:10.1111/j.1365-2966.2010.16253.x.
 */
 static constexpr quantity<velocity[si::kilo<meter>/second], la::Vector<double, 3>>
-peculiar_velocity_sbd_2010 = velocity(la::Vector<double, 3>{11.1, 12.24, 7.25}*si::kilo<meter>/second);
+peculiar_velocity_sbd_2010
+    = velocity(la::Vector<double, 3>{11.1, 12.24, 7.25}*si::kilo<meter>/second);
 
 /**
     @brief Constant parameters defining Earth.

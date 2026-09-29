@@ -45,9 +45,9 @@ private:
 
 public:
     constexpr IsotropicRadonMomentSpan() = default;
-    constexpr IsotropicRadonMomentSpan(Base::pointer data, std::size_t order):
+    constexpr IsotropicRadonMomentSpan(Base::pointer data, std::size_t order) noexcept:
         Base{data, order + detail::max_offset(DistType::iso, category)} {}
-    constexpr IsotropicRadonMomentSpan(Base::pointer data, const Base::shape_type& shape):
+    constexpr IsotropicRadonMomentSpan(Base::pointer data, const Base::shape_type& shape) noexcept:
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
@@ -73,25 +73,28 @@ public:
 template <typename ElementType, MomentCategory category>
 class RadonMomentSpan:
     public zest::zt::ZernikeTensorSpan<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
+        detail::count_of(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeTensorSpan<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
+        detail::count_of(DistType::aniso, category)
     >;
 
 public:
     RadonMomentSpan() = default;
-    RadonMomentSpan(Base::pointer data, std::size_t order):
+    RadonMomentSpan(Base::pointer data, std::size_t order) noexcept:
         Base{data, order + detail::max_offset(DistType::aniso, category)} {}
-    RadonMomentSpan(Base::pointer data, const Base::shape_type& shape):
+    RadonMomentSpan(Base::pointer data, const Base::shape_type& shape) noexcept:
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
     order() const noexcept
     {
-        return std::get<0>(std::get<1>(Base::extents())) - detail::max_offset(DistType::aniso, category);
+        return std::get<0>(std::get<1>(Base::extents()))
+            - detail::max_offset(DistType::aniso, category);
     }
 
     [[nodiscard]] constexpr auto
@@ -121,7 +124,7 @@ private:
 
 public:
     IsotropicRadonMomentArray() = default;
-    IsotropicRadonMomentArray(std::size_t order):
+    explicit IsotropicRadonMomentArray(std::size_t order):
         Base{order + detail::max_offset(DistType::iso, category)} {}
 
     [[nodiscard]] explicit operator
@@ -163,17 +166,19 @@ IsotropicRadonMomentSpan(IsotropicRadonMomentArray<ElementType, category>)
 template <typename ElementType, MomentCategory category>
 class RadonMomentArray:
     public zest::zt::ZernikeExpansionTensor<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
+        detail::count_of(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeExpansionTensor<
-        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, detail::count_of(DistType::aniso, category)
+        ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
+        detail::count_of(DistType::aniso, category)
     >;
 
 public:
     RadonMomentArray() = default;
-    RadonMomentArray(std::size_t order):
+    explicit RadonMomentArray(std::size_t order):
         Base{order + detail::max_offset(DistType::aniso, category)} {}
 
     [[nodiscard]] explicit operator
@@ -253,7 +258,8 @@ public:
     [[nodiscard]] static IsotropicRadonMomentArray<double, MomentCategory::identity>
     evaluate_transformed_moments(IsotropicZernikeSpan<double> zernike_expansion)
     {
-        IsotropicRadonMomentArray<double, MomentCategory::identity> moments{zernike_expansion.order()};
+        IsotropicRadonMomentArray<double, MomentCategory::identity>
+        moments{zernike_expansion.order()};
 
         evaluate_transformed_moments(zernike_expansion, IsotropicRadonMomentSpan(moments));
         return moments;
@@ -353,9 +359,13 @@ private:
         const std::size_t nmax = util::even_floor(in.order() + 3);
         for (std::size_t n = 4; n < nmax - 4; n += 2)
         {
-            out[IsoMoment::quadratic, n] = m_coeffs[n, 0]*in[n - 4] + m_coeffs[n, 1]*in[n - 2] + m_coeffs[n, 2]*in[n] + m_coeffs[n, 3]*in[n + 2];
-            out[IsoMoment::linear, n] = m_coeffs[n, 4]*in[n - 2] + m_coeffs[n, 5]*in[n] + m_coeffs[n, 6]*in[n + 2];
-            out[IsoMoment::identity, n] = m_coeffs[n, 7]*in[n] - m_coeffs[n - 2, 7]*in[n - 2];
+            out[IsoMoment::quadratic, n]
+                = m_coeffs[n, 0]*in[n - 4] + m_coeffs[n, 1]*in[n - 2] + m_coeffs[n, 2]*in[n]
+                    + m_coeffs[n, 3]*in[n + 2];
+            out[IsoMoment::linear, n]
+                = m_coeffs[n, 4]*in[n - 2] + m_coeffs[n, 5]*in[n] + m_coeffs[n, 6]*in[n + 2];
+            out[IsoMoment::identity, n]
+                = m_coeffs[n, 7]*in[n] - m_coeffs[n - 2, 7]*in[n - 2];
         }
 
         out[IsoMoment::quadratic, nmax] = m_coeffs[nmax, 0]*in[nmax - 4];
@@ -364,15 +374,22 @@ private:
 
         if (nmax == 4) return;
 
-        out[IsoMoment::quadratic] = m_coeffs[nmax - 2, 0]*in[nmax - 6] + m_coeffs[nmax - 2, 1]*in[nmax - 4];
-        out[IsoMoment::linear] = m_coeffs[nmax - 2, 4]*in[nmax - 4];
-        out[IsoMoment::identity, nmax - 2] = -m_coeffs[nmax - 4, 7]*in[nmax - 4];
+        out[IsoMoment::quadratic]
+            = m_coeffs[nmax - 2, 0]*in[nmax - 6] + m_coeffs[nmax - 2, 1]*in[nmax - 4];
+        out[IsoMoment::linear]
+            = m_coeffs[nmax - 2, 4]*in[nmax - 4];
+        out[IsoMoment::identity, nmax - 2]
+            = -m_coeffs[nmax - 4, 7]*in[nmax - 4];
 
         if (nmax == 6) return;
 
-        out[IsoMoment::quadratic, nmax - 4] = m_coeffs[nmax - 4, 0]*in[nmax - 8] + m_coeffs[nmax - 4, 1]*in[nmax - 6] + m_coeffs[nmax - 4, 2]*in[nmax - 4];
-        out[IsoMoment::linear, nmax - 4] = m_coeffs[nmax - 4, 4]*in[nmax - 6] + m_coeffs[nmax - 4, 5]*in[nmax - 4];
-        out[IsoMoment::identity, nmax - 4] = m_coeffs[nmax - 4, 7]*in[nmax - 4] - m_coeffs[nmax - 6, 7]*in[nmax - 6];
+        out[IsoMoment::quadratic, nmax - 4]
+            = m_coeffs[nmax - 4, 0]*in[nmax - 8] + m_coeffs[nmax - 4, 1]*in[nmax - 6]
+                + m_coeffs[nmax - 4, 2]*in[nmax - 4];
+        out[IsoMoment::linear, nmax - 4]
+            = m_coeffs[nmax - 4, 4]*in[nmax - 6] + m_coeffs[nmax - 4, 5]*in[nmax - 4];
+        out[IsoMoment::identity, nmax - 4]
+            = m_coeffs[nmax - 4, 7]*in[nmax - 4] - m_coeffs[nmax - 6, 7]*in[nmax - 6];
     }
 
     void generate_coeffs(std::size_t start_index)
@@ -380,14 +397,22 @@ private:
         for (std::size_t n : m_coeffs.indices(start_index))
         {
             const auto dn = double(n);
-            m_coeffs[n, 0] = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
-            m_coeffs[n, 1] = (dn*(dn - 3.0) - 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn + 3.0));
-            m_coeffs[n, 2] = -(dn*(dn + 5.0) + 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 3] = -(dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 4] = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
-            m_coeffs[n, 5] = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 6] = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
-            m_coeffs[n, 7] = 1.0/std::sqrt(2.0*dn + 3.0);
+            m_coeffs[n, 0]
+                = (dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn - 5.0)*(2.0*dn - 3.0)*(2.0*dn - 1.0));
+            m_coeffs[n, 1]
+                = (dn*(dn - 3.0) - 3.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn - 3.0)*(2.0*dn + 3.0));
+            m_coeffs[n, 2]
+                = -(dn*(dn + 5.0) + 1.0)/(std::sqrt(2.0*dn + 3.0)*(2.0*dn - 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 3]
+                = -(dn - 1.0)*(dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 3.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 4]
+                = -(dn + 1.0)/(std::sqrt(2.0*dn - 1.0)*(2.0*dn + 1.0));
+            m_coeffs[n, 5]
+                = std::sqrt(2.0*dn + 3.0)/((2.0*dn + 1.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 6]
+                = (dn + 2.0)/(std::sqrt(2.0*dn + 7.0)*(2.0*dn + 5.0));
+            m_coeffs[n, 7]
+                = 1.0/std::sqrt(2.0*dn + 3.0);
         }
     }
 
@@ -402,7 +427,8 @@ public:
 
     template <MomentCategory category>
     void evaluate_transformed_moments(
-        ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, MomentCategory::identity> radon_moments)
+        ZernikeSpan<double> zernike_expansion,
+        RadonMomentSpan<double, MomentCategory::identity> radon_moments)
     {
         radon_transform(zernike_expansion, radon_moments[Moment::identity]);
     }
@@ -418,6 +444,7 @@ public:
 };
 
 template <MomentCategory category>
+    requires (category != MomentCategory::identity)
 class RadonTransformer<DistType::aniso, category>
 {
 public:
@@ -425,7 +452,8 @@ public:
     explicit RadonTransformer(std::size_t order): m_recursion_coeffs{order} {}
 
     void evaluate_transformed_moments(
-        ZernikeSpan<double> zernike_expansion, RadonMomentSpan<double, category> radon_moments)
+        ZernikeSpan<double> zernike_expansion,
+        RadonMomentSpan<double, category> radon_moments)
     {
         multiply_by_and_radon_transform_inplace<Moment::identity>(zernike_expansion, radon_moments[Moment::identity]);
         multiply_by_and_radon_transform_inplace<Moment::x>(zernike_expansion, radon_moments[Moment::x]);

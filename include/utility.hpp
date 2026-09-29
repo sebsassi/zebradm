@@ -230,7 +230,8 @@ constexpr void fmadd(std::span<T> a, T b, T c, std::span<T> d) noexcept
 
 // multiply `d` and `c`, add `b`, and save to `a`: `a = b + c*d`
 template <basic_arithmetic T>
-constexpr void linear_combination(std::span<T> a, T b, std::span<const T> c, T d, std::span<const T> e) noexcept
+constexpr void
+linear_combination(std::span<T> a, T b, std::span<const T> c, T d, std::span<const T> e) noexcept
 {
     assert(!have_overlap(a, c));
     assert(!have_overlap(a, c));
@@ -409,9 +410,12 @@ linspace(std::span<T>& interval, T start, T stop) noexcept
         return;
     }
 
-    std::span<double> interval_values{reinterpret_cast<double*>(interval.data()), interval.size()};
+    std::span<double>
+    interval_values{reinterpret_cast<double*>(interval.data()), interval.size()};
 
-    const double step = (std::bit_cast<double>(stop) - std::bit_cast<double>(start))/double(interval_values.size() - 1);
+    const double step
+        = (std::bit_cast<double>(stop) - std::bit_cast<double>(start))
+            /double(interval_values.size() - 1);
     for (std::size_t i = 0; i < interval_values.size(); ++i)
         interval_values[i] = std::bit_cast<double>(start) + double(i)*step;
 

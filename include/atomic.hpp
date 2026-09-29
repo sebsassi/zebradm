@@ -42,20 +42,26 @@ class TinyString
 {
 public:
     constexpr TinyString() = default;
-    constexpr TinyString(std::string_view string):
+    constexpr TinyString(std::string_view string) noexcept:
         m_data{string[0], string[1]} {}
-    constexpr TinyString(const char* string):
+    constexpr TinyString(const char* string) noexcept:
         m_data{string[0], string[1]} {}
 
-    [[nodiscard]] constexpr operator std::string_view() noexcept { return std::string_view(m_data.data(), m_data.size()); }
+    [[nodiscard]] constexpr operator std::string_view() noexcept
+    {
+        return std::string_view(m_data.data(), m_data.size());
+    }
 
-    [[nodiscard]] constexpr std::string_view view() const noexcept { return std::string_view(m_data.data(), m_data.size()); }
+    [[nodiscard]] constexpr std::string_view view() const noexcept
+    {
+        return std::string_view(m_data.data(), m_data.size());
+    }
 
 private:
     std::array<char, N> m_data;
 };
 
-constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol)
+constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexcept
 {
     static constexpr std::array<std::uint8_t, 27UL*27UL> number_table = {
 //      0  "a" "b"  "c"  "d"  "e" "f"  "g"  "h"  "i" "j""k" "l"  "m"  "n"  "o"  "p" "q""r"  "s"  "t"  "u" "v"  "w""x""y" "z"
@@ -95,7 +101,7 @@ constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol)
     return number_table[27*first_index + second_index];
 }
 
-constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number)
+constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number) noexcept
 {
     static constexpr std::array<TinyString<2>, 119> periodic_table = {
         "\x00\x00",
@@ -143,7 +149,7 @@ public:
         @param atomic_number
         @param mass_number
     */
-    constexpr Isotope(std::uint8_t atomic_number, std::uint16_t mass_number):
+    constexpr Isotope(std::uint8_t atomic_number, std::uint16_t mass_number) noexcept:
         m_mass_number(mass_number), m_atomic_number(atomic_number) {}
 
     /**
@@ -155,7 +161,7 @@ public:
         @return Isotope or `invalid_isotope` error if invalid.
     */
     [[nodiscard]] static constexpr std::expected<Isotope, IsotopeError>
-    create(std::uint8_t atomic_number, std::uint16_t mass_number)
+    create(std::uint8_t atomic_number, std::uint16_t mass_number) noexcept
     {
         const Isotope isotope{atomic_number, mass_number};
         if (isotope.is_valid())
@@ -190,19 +196,20 @@ public:
         @brief Mass of the isotope.
     */
     [[nodiscard]] constexpr quantity<mass[dalton], double>
-    atomic_mass() const noexcept { return mass(double(m_mass_number)*dalton); }
+    atomic_mass() const noexcept
+    {
+        return mass(double(m_mass_number)*dalton);
+    }
 
     /**
         @brief Atomic number of the isotope.
     */
-    [[nodiscard]] constexpr std::uint8_t
-    atomic_number() const noexcept { return m_atomic_number; }
+    [[nodiscard]] constexpr std::uint8_t atomic_number() const noexcept { return m_atomic_number; }
 
     /**
         @brief Mass number of the isotope.
     */
-    [[nodiscard]] constexpr std::uint16_t
-    mass_number() const noexcept { return m_mass_number; }
+    [[nodiscard]] constexpr std::uint16_t mass_number() const noexcept { return m_mass_number; }
 
     /**
         @brief Chemical symbol of the isotope's element.
@@ -214,7 +221,10 @@ public:
         symbol it returns a view of an empty string.
     */
     [[nodiscard]] constexpr std::string_view
-    symbol() const noexcept { return detail::chemical_symbol_of(m_atomic_number); }
+    symbol() const noexcept
+    {
+        return detail::chemical_symbol_of(m_atomic_number);
+    }
 
 private:
     std::uint16_t m_mass_number;
@@ -243,7 +253,7 @@ public:
 
         @param atomic_number
     */
-    constexpr Element(std::uint8_t atomic_number):
+    explicit constexpr Element(std::uint8_t atomic_number) noexcept:
         m_atomic_number(atomic_number) {}
 
     /**
@@ -255,7 +265,7 @@ public:
         correspond to any existing chemical symbol, the null element is
         constructed.
     */
-    constexpr Element(std::string_view chemical_symbol):
+    explicit constexpr Element(std::string_view chemical_symbol) noexcept:
         m_atomic_number(detail::atomic_number_of(chemical_symbol)) {}
 
     /**
@@ -266,7 +276,7 @@ public:
         @return Element or `invalid_element` error if invalid.
     */
     [[nodiscard]] static constexpr std::expected<Element, ElementError>
-    create(std::string_view chemical_symbol)
+    create(std::string_view chemical_symbol) noexcept
     {
         const Element element{chemical_symbol};
         if (element.is_valid())
@@ -294,8 +304,7 @@ public:
     /**
         @brief Atomic number of the element.
     */
-    [[nodiscard]] constexpr std::uint8_t
-    atomic_number() const noexcept { return m_atomic_number; }
+    [[nodiscard]] constexpr std::uint8_t atomic_number() const noexcept { return m_atomic_number; }
 
     /**
         @brief Chemical symbol of the element.
@@ -307,7 +316,10 @@ public:
         it returns a view of an empty string.
     */
     [[nodiscard]] constexpr std::string_view
-    symbol() const noexcept { return detail::chemical_symbol_of(m_atomic_number); }
+    symbol() const noexcept
+    {
+        return detail::chemical_symbol_of(m_atomic_number);
+    }
 
     /**
         @brief Primordial isotopes of the element.
@@ -342,7 +354,8 @@ public:
     }
 
 private:
-    static constexpr std::array<std::array<std::uint8_t, 2>, 119> isotope_table_offsets_lengths = {
+    static constexpr std::array<std::array<std::uint8_t, 2>, 119>
+    isotope_table_offsets_lengths = {
         std::array<std::uint8_t, 2>{0,   0 },    // 0   Null element
         std::array<std::uint8_t, 2>{1,   2 },    // 1   H
         std::array<std::uint8_t, 2>{3,   2 },    // 2   He

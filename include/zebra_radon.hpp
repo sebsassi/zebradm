@@ -79,7 +79,8 @@ void radon_transform(
     ZernikeSpan<const double> in, ZernikeSpan<double> out,
     std::span<const double> zernike_radon_coeff) noexcept;
 
-void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
+void radon_transform(
+    IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
 
 void radon_transform(
     IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out,
@@ -102,10 +103,14 @@ void radon_transform(
 */
 void radon_transform_inplace(ZernikeSpan<double> exp) noexcept;
 
-void radon_transform_inplace(ZernikeSpan<double> exp, std::span<const double> zernike_radon_coeff) noexcept;
+void radon_transform_inplace(
+    ZernikeSpan<double> exp,
+    std::span<const double> zernike_radon_coeff) noexcept;
 
 void radon_transform_inplace(IsotropicZernikeSpan<double> exp) noexcept;
 
-void radon_transform_inplace(IsotropicZernikeSpan<double> exp, IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept;
+void radon_transform_inplace(
+    IsotropicZernikeSpan<double> exp,
+    IsotropicZernikeSpan<const double> zernike_radon_coeff) noexcept;
 
 } // namespace zdm::zebra

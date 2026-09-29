@@ -32,16 +32,17 @@ namespace zdm::la
 struct Identity
 {
     template <typename T>
-    [[nodiscard]] static constexpr T operator()(T v) { return v; }
+    [[nodiscard]] static constexpr T operator()(T v) noexcept { return v; }
 
-    [[nodiscard]] static constexpr Identity inverse() { return Identity{}; }
+    [[nodiscard]] static constexpr Identity inverse() noexcept { return Identity{}; }
 };
 
 /**
     @brief Composition of two identity operators.
 */
 template <Chaining chaining>
-[[nodiscard]] constexpr Identity compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2)
+[[nodiscard]] constexpr Identity
+compose([[maybe_unused]] Identity id1, [[maybe_unused]] Identity id2) noexcept
 {
     return {};
 }
@@ -50,7 +51,8 @@ template <Chaining chaining>
     @brief Composition of an identity operator with any other operator.
 */
 template <Chaining chaining, typename T>
-[[nodiscard]] constexpr T compose([[maybe_unused]] Identity id, T op)
+[[nodiscard]] constexpr T
+compose([[maybe_unused]] Identity id, T op) noexcept
 {
     return op;
 }
@@ -59,7 +61,8 @@ template <Chaining chaining, typename T>
     @brief Composition of any other operator with an identity operator.
 */
 template <Chaining chaining, typename T>
-[[nodiscard]] constexpr T compose(T op, [[maybe_unused]] Identity id)
+[[nodiscard]] constexpr T
+compose(T op, [[maybe_unused]] Identity id) noexcept
 {
     return op;
 }

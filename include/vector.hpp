@@ -56,11 +56,11 @@ struct Vector
     std::array<T, N> array;
 
     constexpr Vector() = default;
-    constexpr Vector(const std::array<T, N>& arr): array{arr} {}
+    constexpr Vector(const std::array<T, N>& arr) noexcept: array{arr} {}
 
     template <typename... Types>
         requires (std::constructible_from<value_type, Types> && ...)
-    constexpr Vector(Types... values): array{value_type(values)...} {};
+    constexpr Vector(Types... values) noexcept: array{value_type(values)...} {};
 
     [[nodiscard]] constexpr
     operator std::array<T, N>() const noexcept { return array; }

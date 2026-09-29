@@ -44,7 +44,7 @@ public:
 
     constexpr Translation() = default;
 
-    explicit constexpr Translation(const vector_type& vector):
+    explicit constexpr Translation(const vector_type& vector) noexcept:
         m_translation{vector} {}
 
     [[nodiscard]] static constexpr Translation
@@ -154,7 +154,7 @@ template <
     Action action
 >
 [[nodiscard]] constexpr Translation<VectorType, action>
-compose(const Translation<VectorType, action>& a, const Translation<VectorType, action>& b)
+compose(const Translation<VectorType, action>& a, const Translation<VectorType, action>& b) noexcept
 {
     return a + b;
 }

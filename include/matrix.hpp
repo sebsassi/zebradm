@@ -115,7 +115,7 @@ struct Matrix
 
         @return Array with \f$NM\f$ elements.
     */
-    [[nodiscard]] explicit constexpr 
+    [[nodiscard]] explicit constexpr
     operator std::array<value_type, N*M>() const noexcept { return array; }
 
     [[nodiscard]] constexpr bool operator==(const Matrix& other) const noexcept = default;

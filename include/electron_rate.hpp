@@ -85,32 +85,50 @@ public:
 
     [[nodiscard]] std::span<T> front() noexcept
     {
-        return {m_data.data(), m_offsets[1] - m_offsets.front()};
+        return {
+            m_data.data(),
+            m_offsets[1] - m_offsets.front()
+        };
     }
 
     [[nodiscard]] std::span<const T> front() const noexcept
     {
-        return {m_data.data(), m_offsets[1] - m_offsets.front()};
+        return {
+            m_data.data(),
+            m_offsets[1] - m_offsets.front()
+        };
     }
 
     [[nodiscard]] std::span<T> back() noexcept
     {
-        return {m_data.data() + m_offsets[m_data.size() - 1], m_offsets.back() - m_offsets[m_data.size() - 1]};
+        return {
+            m_data.data() + m_offsets[m_data.size() - 1],
+            m_offsets.back() - m_offsets[m_data.size() - 1]
+        };
     }
 
     [[nodiscard]] std::span<const T> back() const noexcept
     {
-        return {m_data.data() + m_offsets[m_data.size() - 1], m_offsets.back() - m_offsets[m_data.size() - 1]};
+        return {
+            m_data.data() + m_offsets[m_data.size() - 1],
+            m_offsets.back() - m_offsets[m_data.size() - 1]
+        };
     }
 
     [[nodiscard]] std::span<T> operator[](size_type i) noexcept
     {
-        return {m_data.data() + m_offsets[i], m_offsets[i + 1] - m_offsets[i]};
+        return {
+            m_data.data() + m_offsets[i],
+            m_offsets[i + 1] - m_offsets[i]
+        };
     }
 
     [[nodiscard]] std::span<const T> operator[](size_type i) const noexcept
     {
-        return {m_data.data() + m_offsets[i], m_offsets[i + 1] - m_offsets[i]};
+        return {
+            m_data.data() + m_offsets[i],
+            m_offsets[i + 1] - m_offsets[i]
+        };
     }
 
 private:
@@ -253,7 +271,8 @@ public:
                         std::min(normalized_momentum_hi_max, 1.0)
                     }
                 };
-                std::span<double> momenta = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
+                std::span<double> momenta
+                    = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
                 generate_momenta_on(intervals, momenta);
                 m_interval_weights.append(weights_from_intervals(intervals));
             }
@@ -280,7 +299,8 @@ public:
                             1.0
                         }
                     };
-                    std::span<double> normalized_momenta = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
+                    std::span<double> normalized_momenta
+                        = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
                     generate_momenta_on(intervals, normalized_momenta);
                     m_interval_weights.append(weights_from_intervals(intervals));
                     continue;
@@ -301,7 +321,8 @@ public:
                             1.0,
                         }
                     };
-                    std::span<double> normalized_momenta = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
+                    std::span<double> normalized_momenta
+                        = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
                     generate_momenta_on(intervals, normalized_momenta);
                     m_interval_weights.append(weights_from_intervals(intervals));
                     continue;
@@ -325,7 +346,8 @@ public:
                         std::min(normalized_momentum_hi_max, 1.0)
                     }
                 };
-                std::span<double> normalized_momenta = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
+                std::span<double> normalized_momenta
+                    = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
                 generate_momenta_on(intervals, normalized_momenta);
                 m_interval_weights.append(weights_from_intervals(intervals));
             }
@@ -347,7 +369,9 @@ private:
         constexpr double two_pi = 2.0*std::numbers::pi;
         constexpr double two_pi_cubed = two_pi*two_pi*two_pi;
         const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
-        const quantity numerator = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section*max_momentum_transfer*max_momentum_transfer;
+        const quantity numerator
+            = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section
+                *max_momentum_transfer*max_momentum_transfer;
         const quantity denominator = target_density*dm_mass*red_mass*red_mass;
         return numerator/denominator;
     }

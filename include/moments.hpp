@@ -61,7 +61,8 @@ enum class IsoMoment: std::uint8_t
 namespace detail
 {
 
-[[nodiscard]] consteval std::size_t count_of(DistType dist_type, MomentCategory category) noexcept
+[[nodiscard]] consteval std::size_t
+count_of(DistType dist_type, MomentCategory category) noexcept
 {
     if (dist_type == DistType::iso)
         return (category == MomentCategory::identity) ? 1 : 3;
@@ -72,18 +73,21 @@ namespace detail
     }
 }
 
-[[nodiscard]] consteval std::size_t max_offset([[maybe_unused]] DistType dist_type, MomentCategory category) noexcept
+[[nodiscard]] consteval std::size_t
+max_offset([[maybe_unused]] DistType dist_type, MomentCategory category) noexcept
 {
     return (category == MomentCategory::identity) ? 0 : 2;
 }
 
-[[nodiscard]] consteval std::size_t offset_of(Moment moment) noexcept
+[[nodiscard]] consteval std::size_t
+offset_of(Moment moment) noexcept
 {
     constexpr std::array<std::size_t, 11> offsets = {0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2};
     return offsets[std::to_underlying(moment)];
 }
 
-[[nodiscard]] consteval std::size_t offset_of(IsoMoment moment) noexcept
+[[nodiscard]] consteval std::size_t
+offset_of(IsoMoment moment) noexcept
 {
     constexpr std::array<std::size_t, 3> offsets = {0, 2, 4};
     return offsets[std::to_underlying(moment)];
