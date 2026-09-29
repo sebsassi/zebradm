@@ -24,6 +24,9 @@ SOFTWARE.
 #include <array>
 #include <cmath>
 
+#include <zest/rotor.hpp>
+#include <zest/zernike_conventions.hpp>
+
 #include "vector.hpp"
 
 namespace zdm::coordinates
@@ -133,6 +136,24 @@ spherical_to_cartesian_phys(double azimuth, double colatitude) noexcept
 {
     const std::array<double, 2> vert_rot = {std::sin(colatitude), std::cos(colatitude)};
     return {vert_rot[0]*std::cos(azimuth), vert_rot[0]*std::sin(azimuth), vert_rot[1]};
+}
+
+/**
+    @brief Set Euler angles for rotation to a coordinate system whose z-axis
+    is in the direction given by the arguments.
+
+    @note The convention for the Euler angles is that used by
+    `zest::Rotor::rotate`.
+*/
+template <zest::RotationType TYPE>
+constexpr std::array<double, 3>
+euler_angles_to_align_z(double azimuth, double colatitude) noexcept
+{
+    assert(0.0 <= colatitude && colatitude <= std::numbers::pi);
+    if constexpr (TYPE == zest::RotationType::passive)
+        return {azimuth, colatitude, 0.0};
+    else
+        return {0.0, -colatitude, std::numbers::pi - azimuth};
 }
 
 } // namespace zdm::coordinates

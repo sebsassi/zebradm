@@ -24,24 +24,37 @@ SOFTWARE.
 #include <zest/zernike_conventions.hpp>
 #include <zest/zernike_expansion.hpp>
 
-#include "radon_util.hpp"
 #include "types.hpp"
 
 namespace zdm::zebra
 {
 
+namespace detail
+{
+
+template <zest::zt::ZernikeNorm NORM>
+inline double zernike_radon_coeff(std::size_t n) noexcept
+{
+    if constexpr (NORM == zest::zt::ZernikeNorm::unnormed)
+        return 1.0/double(2*n + 3);
+    else
+        return 1.0/std::sqrt(double(2*n + 3));
+}
+
+} // namespace detail
+
 template <zest::zt::ZernikeNorm zernike_norm>
 void generate_zernike_radon_coeff(std::span<double> zernike_radon_coeff) noexcept
 {
     for (std::size_t n = 0; n < zernike_radon_coeff.size(); ++n)
-        zernike_radon_coeff[n] = util::zernike_radon_coeff<zernike_norm>(n);
+        zernike_radon_coeff[n] = detail::zernike_radon_coeff<zernike_norm>(n);
 }
 
 template <zest::zt::ZernikeNorm zernike_norm>
 void generate_zernike_radon_coeff(IsotropicZernikeSpan<double> zernike_radon_coeff) noexcept
 {
     for (std::size_t n : zernike_radon_coeff.indices())
-        zernike_radon_coeff[n] = util::zernike_radon_coeff<zernike_norm>(n);
+        zernike_radon_coeff[n] = detail::zernike_radon_coeff<zernike_norm>(n);
 }
 
 /**

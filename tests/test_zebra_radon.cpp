@@ -93,76 +93,76 @@ bool test_zebra_radon_is_correct_to_order_5()
     in[4, 4, 4, 1] = -22.0;
 
     zdm::ZernikeExpansion<double> out_ref{order + 2};
-    out_ref[0, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 0];
-    out_ref[0, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 1];
-    out_ref[1, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 0];
-    out_ref[1, 1, 0, 1] = zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 1];
-    out_ref[1, 1, 1, 0] = zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 0];
-    out_ref[1, 1, 1, 1] = zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 1];
-    out_ref[2, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 0];
-    out_ref[2, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 1];
-    out_ref[2, 2, 0, 0] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 0];
-    out_ref[2, 2, 0, 1] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 1];
-    out_ref[2, 2, 1, 0] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 0];
-    out_ref[2, 2, 1, 1] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 1];
-    out_ref[2, 2, 2, 0] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 0];
-    out_ref[2, 2, 2, 1] = zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 1];
-    out_ref[3, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 0];
-    out_ref[3, 1, 0, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 1];
-    out_ref[3, 1, 1, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 0];
-    out_ref[3, 1, 1, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 1];
-    out_ref[3, 3, 0, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 0];
-    out_ref[3, 3, 0, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 1];
-    out_ref[3, 3, 1, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 0];
-    out_ref[3, 3, 1, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 1];
-    out_ref[3, 3, 2, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 0];
-    out_ref[3, 3, 2, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 1];
-    out_ref[3, 3, 3, 0] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 0];
-    out_ref[3, 3, 3, 1] = zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 1];
-    out_ref[4, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 0];
-    out_ref[4, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 1];
-    out_ref[4, 2, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 0];
-    out_ref[4, 2, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 1];
-    out_ref[4, 2, 1, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 0];
-    out_ref[4, 2, 1, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 1];
-    out_ref[4, 2, 2, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 0];
-    out_ref[4, 2, 2, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 1];
-    out_ref[4, 4, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 0];
-    out_ref[4, 4, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 1];
-    out_ref[4, 4, 1, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 0];
-    out_ref[4, 4, 1, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 1];
-    out_ref[4, 4, 2, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 0];
-    out_ref[4, 4, 2, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 1];
-    out_ref[4, 4, 3, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 0];
-    out_ref[4, 4, 3, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 1];
-    out_ref[4, 4, 4, 0] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 0];
-    out_ref[4, 4, 4, 1] = zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 1];
-    out_ref[5, 1, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 0];
-    out_ref[5, 1, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 1];
-    out_ref[5, 1, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 0];
-    out_ref[5, 1, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 1];
-    out_ref[5, 3, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 0];
-    out_ref[5, 3, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 1];
-    out_ref[5, 3, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 0];
-    out_ref[5, 3, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 1];
-    out_ref[5, 3, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 0];
-    out_ref[5, 3, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 1];
-    out_ref[5, 3, 3, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 0];
-    out_ref[5, 3, 3, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 1];
+    out_ref[0, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 0];
+    out_ref[0, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 1];
+    out_ref[1, 1, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 0];
+    out_ref[1, 1, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 1];
+    out_ref[1, 1, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 0];
+    out_ref[1, 1, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 1];
+    out_ref[2, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 0];
+    out_ref[2, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0, 0, 0, 1];
+    out_ref[2, 2, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 0];
+    out_ref[2, 2, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 1];
+    out_ref[2, 2, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 0];
+    out_ref[2, 2, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 1];
+    out_ref[2, 2, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 0];
+    out_ref[2, 2, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 1];
+    out_ref[3, 1, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 0];
+    out_ref[3, 1, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 0, 1];
+    out_ref[3, 1, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 0];
+    out_ref[3, 1, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*in[1, 1, 1, 1];
+    out_ref[3, 3, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 0];
+    out_ref[3, 3, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 1];
+    out_ref[3, 3, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 0];
+    out_ref[3, 3, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 1];
+    out_ref[3, 3, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 0];
+    out_ref[3, 3, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 1];
+    out_ref[3, 3, 3, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 0];
+    out_ref[3, 3, 3, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 1];
+    out_ref[4, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 0];
+    out_ref[4, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 0, 0, 1];
+    out_ref[4, 2, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 0];
+    out_ref[4, 2, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 0, 1];
+    out_ref[4, 2, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 0];
+    out_ref[4, 2, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 1, 1];
+    out_ref[4, 2, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 0];
+    out_ref[4, 2, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2, 2, 2, 1];
+    out_ref[4, 4, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 0];
+    out_ref[4, 4, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 1];
+    out_ref[4, 4, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 0];
+    out_ref[4, 4, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 1];
+    out_ref[4, 4, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 0];
+    out_ref[4, 4, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 1];
+    out_ref[4, 4, 3, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 0];
+    out_ref[4, 4, 3, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 1];
+    out_ref[4, 4, 4, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 0];
+    out_ref[4, 4, 4, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 1];
+    out_ref[5, 1, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 0];
+    out_ref[5, 1, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 0, 1];
+    out_ref[5, 1, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 0];
+    out_ref[5, 1, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 1, 1, 1];
+    out_ref[5, 3, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 0];
+    out_ref[5, 3, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 0, 1];
+    out_ref[5, 3, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 0];
+    out_ref[5, 3, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 1, 1];
+    out_ref[5, 3, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 0];
+    out_ref[5, 3, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 2, 1];
+    out_ref[5, 3, 3, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 0];
+    out_ref[5, 3, 3, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*in[3, 3, 3, 1];
     out_ref[5, 5, 0, 0] = 0.0;
     out_ref[5, 5, 0, 1] = 0.0;
     out_ref[5, 5, 1, 0] = 0.0;
@@ -175,24 +175,24 @@ bool test_zebra_radon_is_correct_to_order_5()
     out_ref[5, 5, 4, 1] = 0.0;
     out_ref[5, 5, 5, 0] = 0.0;
     out_ref[5, 5, 5, 1] = 0.0;
-    out_ref[6, 0, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 0];
-    out_ref[6, 0, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 1];
-    out_ref[6, 2, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 0];
-    out_ref[6, 2, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 1];
-    out_ref[6, 2, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 0];
-    out_ref[6, 2, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 1];
-    out_ref[6, 2, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 0];
-    out_ref[6, 2, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 1];
-    out_ref[6, 4, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 0];
-    out_ref[6, 4, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 1];
-    out_ref[6, 4, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 0];
-    out_ref[6, 4, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 1];
-    out_ref[6, 4, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 0];
-    out_ref[6, 4, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 1];
-    out_ref[6, 4, 3, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 0];
-    out_ref[6, 4, 3, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 1];
-    out_ref[6, 4, 4, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 0];
-    out_ref[6, 4, 4, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 1];
+    out_ref[6, 0, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 0];
+    out_ref[6, 0, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 0, 0, 1];
+    out_ref[6, 2, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 0];
+    out_ref[6, 2, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 0, 1];
+    out_ref[6, 2, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 0];
+    out_ref[6, 2, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 1, 1];
+    out_ref[6, 2, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 0];
+    out_ref[6, 2, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 2, 2, 1];
+    out_ref[6, 4, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 0];
+    out_ref[6, 4, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 0, 1];
+    out_ref[6, 4, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 0];
+    out_ref[6, 4, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 1, 1];
+    out_ref[6, 4, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 0];
+    out_ref[6, 4, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 2, 1];
+    out_ref[6, 4, 3, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 0];
+    out_ref[6, 4, 3, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 3, 1];
+    out_ref[6, 4, 4, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 0];
+    out_ref[6, 4, 4, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4, 4, 4, 1];
     out_ref[6, 6, 0, 0] = 0.0;
     out_ref[6, 6, 0, 1] = 0.0;
     out_ref[6, 6, 1, 0] = 0.0;
@@ -301,76 +301,76 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     exp[4, 4, 4, 1] = -22.0;
 
     zdm::ZernikeExpansion<double> out_ref{order + 2};
-    out_ref[0, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 0];
-    out_ref[0, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 1];
-    out_ref[1, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 0];
-    out_ref[1, 1, 0, 1] = zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 1];
-    out_ref[1, 1, 1, 0] = zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 0];
-    out_ref[1, 1, 1, 1] = zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 1];
-    out_ref[2, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 0];
-    out_ref[2, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 1];
-    out_ref[2, 2, 0, 0] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 0];
-    out_ref[2, 2, 0, 1] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 1];
-    out_ref[2, 2, 1, 0] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 0];
-    out_ref[2, 2, 1, 1] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 1];
-    out_ref[2, 2, 2, 0] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 0];
-    out_ref[2, 2, 2, 1] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 1];
-    out_ref[3, 1, 0, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 0];
-    out_ref[3, 1, 0, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 1];
-    out_ref[3, 1, 1, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 0];
-    out_ref[3, 1, 1, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 1];
-    out_ref[3, 3, 0, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 0];
-    out_ref[3, 3, 0, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 1];
-    out_ref[3, 3, 1, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 0];
-    out_ref[3, 3, 1, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 1];
-    out_ref[3, 3, 2, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 0];
-    out_ref[3, 3, 2, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 1];
-    out_ref[3, 3, 3, 0] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 0];
-    out_ref[3, 3, 3, 1] = zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 1];
-    out_ref[4, 0, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 0];
-    out_ref[4, 0, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 1];
-    out_ref[4, 2, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 0];
-    out_ref[4, 2, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 1];
-    out_ref[4, 2, 1, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 0];
-    out_ref[4, 2, 1, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 1];
-    out_ref[4, 2, 2, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 0]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 0];
-    out_ref[4, 2, 2, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 1]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 1];
-    out_ref[4, 4, 0, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 0];
-    out_ref[4, 4, 0, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 1];
-    out_ref[4, 4, 1, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 0];
-    out_ref[4, 4, 1, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 1];
-    out_ref[4, 4, 2, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 0];
-    out_ref[4, 4, 2, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 1];
-    out_ref[4, 4, 3, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 0];
-    out_ref[4, 4, 3, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 1];
-    out_ref[4, 4, 4, 0] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 0];
-    out_ref[4, 4, 4, 1] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 1];
-    out_ref[5, 1, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 0];
-    out_ref[5, 1, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 1];
-    out_ref[5, 1, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 0];
-    out_ref[5, 1, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 1];
-    out_ref[5, 3, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 0];
-    out_ref[5, 3, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 1];
-    out_ref[5, 3, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 0];
-    out_ref[5, 3, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 1];
-    out_ref[5, 3, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 0];
-    out_ref[5, 3, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 1];
-    out_ref[5, 3, 3, 0] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 0];
-    out_ref[5, 3, 3, 1] = -zdm::util::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 1];
+    out_ref[0, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 0];
+    out_ref[0, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 1];
+    out_ref[1, 1, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 0];
+    out_ref[1, 1, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 1];
+    out_ref[1, 1, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 0];
+    out_ref[1, 1, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 1];
+    out_ref[2, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 0];
+    out_ref[2, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0, 0, 0, 1];
+    out_ref[2, 2, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 0];
+    out_ref[2, 2, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 1];
+    out_ref[2, 2, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 0];
+    out_ref[2, 2, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 1];
+    out_ref[2, 2, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 0];
+    out_ref[2, 2, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 1];
+    out_ref[3, 1, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 0];
+    out_ref[3, 1, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 0, 1];
+    out_ref[3, 1, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 0];
+    out_ref[3, 1, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(1)*exp[1, 1, 1, 1];
+    out_ref[3, 3, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 0];
+    out_ref[3, 3, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 1];
+    out_ref[3, 3, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 0];
+    out_ref[3, 3, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 1];
+    out_ref[3, 3, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 0];
+    out_ref[3, 3, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 1];
+    out_ref[3, 3, 3, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 0];
+    out_ref[3, 3, 3, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 1];
+    out_ref[4, 0, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 0];
+    out_ref[4, 0, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 0, 0, 1];
+    out_ref[4, 2, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 0];
+    out_ref[4, 2, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 0, 1];
+    out_ref[4, 2, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 0];
+    out_ref[4, 2, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 1, 1];
+    out_ref[4, 2, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 0]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 0];
+    out_ref[4, 2, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 1]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2, 2, 2, 1];
+    out_ref[4, 4, 0, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 0];
+    out_ref[4, 4, 0, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 1];
+    out_ref[4, 4, 1, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 0];
+    out_ref[4, 4, 1, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 1];
+    out_ref[4, 4, 2, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 0];
+    out_ref[4, 4, 2, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 1];
+    out_ref[4, 4, 3, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 0];
+    out_ref[4, 4, 3, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 1];
+    out_ref[4, 4, 4, 0] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 0];
+    out_ref[4, 4, 4, 1] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 1];
+    out_ref[5, 1, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 0];
+    out_ref[5, 1, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 0, 1];
+    out_ref[5, 1, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 0];
+    out_ref[5, 1, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 1, 1, 1];
+    out_ref[5, 3, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 0];
+    out_ref[5, 3, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 0, 1];
+    out_ref[5, 3, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 0];
+    out_ref[5, 3, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 1, 1];
+    out_ref[5, 3, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 0];
+    out_ref[5, 3, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 2, 1];
+    out_ref[5, 3, 3, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 0];
+    out_ref[5, 3, 3, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(3)*exp[3, 3, 3, 1];
     out_ref[5, 5, 0, 0] = 0.0;
     out_ref[5, 5, 0, 1] = 0.0;
     out_ref[5, 5, 1, 0] = 0.0;
@@ -383,24 +383,24 @@ bool test_inplace_zebra_radon_is_correct_to_order_5()
     out_ref[5, 5, 4, 1] = 0.0;
     out_ref[5, 5, 5, 0] = 0.0;
     out_ref[5, 5, 5, 1] = 0.0;
-    out_ref[6, 0, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 0];
-    out_ref[6, 0, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 1];
-    out_ref[6, 2, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 0];
-    out_ref[6, 2, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 1];
-    out_ref[6, 2, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 0];
-    out_ref[6, 2, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 1];
-    out_ref[6, 2, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 0];
-    out_ref[6, 2, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 1];
-    out_ref[6, 4, 0, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 0];
-    out_ref[6, 4, 0, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 1];
-    out_ref[6, 4, 1, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 0];
-    out_ref[6, 4, 1, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 1];
-    out_ref[6, 4, 2, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 0];
-    out_ref[6, 4, 2, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 1];
-    out_ref[6, 4, 3, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 0];
-    out_ref[6, 4, 3, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 1];
-    out_ref[6, 4, 4, 0] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 0];
-    out_ref[6, 4, 4, 1] = -zdm::util::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 1];
+    out_ref[6, 0, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 0];
+    out_ref[6, 0, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 0, 0, 1];
+    out_ref[6, 2, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 0];
+    out_ref[6, 2, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 0, 1];
+    out_ref[6, 2, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 0];
+    out_ref[6, 2, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 1, 1];
+    out_ref[6, 2, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 0];
+    out_ref[6, 2, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 2, 2, 1];
+    out_ref[6, 4, 0, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 0];
+    out_ref[6, 4, 0, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 0, 1];
+    out_ref[6, 4, 1, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 0];
+    out_ref[6, 4, 1, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 1, 1];
+    out_ref[6, 4, 2, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 0];
+    out_ref[6, 4, 2, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 2, 1];
+    out_ref[6, 4, 3, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 0];
+    out_ref[6, 4, 3, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 3, 1];
+    out_ref[6, 4, 4, 0] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 0];
+    out_ref[6, 4, 4, 1] = -zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4, 4, 4, 1];
     out_ref[6, 6, 0, 0] = 0.0;
     out_ref[6, 6, 0, 1] = 0.0;
     out_ref[6, 6, 1, 0] = 0.0;
@@ -468,16 +468,16 @@ bool test_isotropic_zebra_radon_is_correct_to_order_9()
     in[8] = 5.0;
 
     zdm::IsotropicZernikeExpansion<double> out_ref{order + 2};
-    out_ref[0] = zdm::util::zernike_radon_coeff<norm>(0)*in[0];
-    out_ref[2] = zdm::util::zernike_radon_coeff<norm>(2)*in[2]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*in[0];
-    out_ref[4] = zdm::util::zernike_radon_coeff<norm>(4)*in[4]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*in[2];
-    out_ref[6] = zdm::util::zernike_radon_coeff<norm>(6)*in[6]
-                        - zdm::util::zernike_radon_coeff<norm>(4)*in[4];
-    out_ref[8] = zdm::util::zernike_radon_coeff<norm>(8)*in[8]
-                        - zdm::util::zernike_radon_coeff<norm>(6)*in[6];
-    out_ref[10] = -zdm::util::zernike_radon_coeff<norm>(8)*in[8];
+    out_ref[0] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0];
+    out_ref[2] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*in[0];
+    out_ref[4] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*in[2];
+    out_ref[6] = zdm::zebra::detail::zernike_radon_coeff<norm>(6)*in[6]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(4)*in[4];
+    out_ref[8] = zdm::zebra::detail::zernike_radon_coeff<norm>(8)*in[8]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(6)*in[6];
+    out_ref[10] = -zdm::zebra::detail::zernike_radon_coeff<norm>(8)*in[8];
 
     zdm::IsotropicZernikeExpansion<double> out{order + 2};
 
@@ -510,16 +510,16 @@ bool test_inplace_isotropic_zebra_radon_is_correct_to_order_9()
     exp[8] = 5.0;
 
     zdm::IsotropicZernikeExpansion<double> out_ref{order + 2};
-    out_ref[0] = zdm::util::zernike_radon_coeff<norm>(0)*exp[0];
-    out_ref[2] = zdm::util::zernike_radon_coeff<norm>(2)*exp[2]
-                        - zdm::util::zernike_radon_coeff<norm>(0)*exp[0];
-    out_ref[4] = zdm::util::zernike_radon_coeff<norm>(4)*exp[4]
-                        - zdm::util::zernike_radon_coeff<norm>(2)*exp[2];
-    out_ref[6] = zdm::util::zernike_radon_coeff<norm>(6)*exp[6]
-                        - zdm::util::zernike_radon_coeff<norm>(4)*exp[4];
-    out_ref[8] = zdm::util::zernike_radon_coeff<norm>(8)*exp[8]
-                        - zdm::util::zernike_radon_coeff<norm>(6)*exp[6];
-    out_ref[10] = -zdm::util::zernike_radon_coeff<norm>(8)*exp[8];
+    out_ref[0] = zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0];
+    out_ref[2] = zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(0)*exp[0];
+    out_ref[4] = zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(2)*exp[2];
+    out_ref[6] = zdm::zebra::detail::zernike_radon_coeff<norm>(6)*exp[6]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(4)*exp[4];
+    out_ref[8] = zdm::zebra::detail::zernike_radon_coeff<norm>(8)*exp[8]
+                        - zdm::zebra::detail::zernike_radon_coeff<norm>(6)*exp[6];
+    out_ref[10] = -zdm::zebra::detail::zernike_radon_coeff<norm>(8)*exp[8];
 
     zdm::zebra::radon_transform_inplace(exp);
 

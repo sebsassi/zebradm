@@ -40,13 +40,13 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
 
     if (in.order() == 0) return;
 
-    const double coeff_0 = util::zernike_radon_coeff<zernike_norm>(0);
+    const double coeff_0 = detail::zernike_radon_coeff<zernike_norm>(0);
     out[0, 0, 0, 0] = coeff_0*in[0, 0, 0, 0];
     out[0, 0, 0, 1] = coeff_0*in[0, 0, 0, 1];
 
     if (in.order() > 1)
     {
-        const double coeff_1 = util::zernike_radon_coeff<zernike_norm>(1);
+        const double coeff_1 = detail::zernike_radon_coeff<zernike_norm>(1);
         out[1, 1, 0, 0] = coeff_1*in[1, 1, 0, 0];
         out[1, 1, 0, 1] = coeff_1*in[1, 1, 0, 1];
         out[1, 1, 1, 0] = coeff_1*in[1, 1, 1, 0];
@@ -71,8 +71,8 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
         auto in_n = in[n];
         auto in_nm2 = in[n - 2];
 
-        const double coeff_n = util::zernike_radon_coeff<zernike_norm>(n);
-        const double coeff_nm2 = -util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_n = detail::zernike_radon_coeff<zernike_norm>(n);
+        const double coeff_nm2 = -detail::zernike_radon_coeff<zernike_norm>(n - 2);
         auto out_n_flat = out_n.flatten();
         auto in_n_flat = in_n.flatten();
         auto in_nm2_flat = in_nm2.flatten();
@@ -98,7 +98,7 @@ void radon_transform(ZernikeSpan<const double> in, ZernikeSpan<double> out) noex
         auto out_n = out[n];
         auto in_nm2 = in[n - 2];
 
-        const double coeff_nm2 = -util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_nm2 = -detail::zernike_radon_coeff<zernike_norm>(n - 2);
         auto out_n_flat = out_n.flatten();
         auto in_nm2_flat = in_nm2.flatten();
 
@@ -211,7 +211,7 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
 
     if (in.order() == 0) return;
 
-    const double coeff_0 = util::zernike_radon_coeff<zernike_norm>(0);
+    const double coeff_0 = detail::zernike_radon_coeff<zernike_norm>(0);
     out[0] = coeff_0*in[0];
 
     if (in.order() < 2)
@@ -222,13 +222,13 @@ void radon_transform(IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan
 
     for (std::size_t n : in.indices(2))
     {
-        const double coeff_n = util::zernike_radon_coeff<zernike_norm>(n);
-        const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_n = detail::zernike_radon_coeff<zernike_norm>(n);
+        const double coeff_nm2 = detail::zernike_radon_coeff<zernike_norm>(n - 2);
         out[n] = coeff_n*in[n] - coeff_nm2*in[n - 2];
     }
 
-    const std::size_t nmax = util::even_floor(in.order() + 1);
-    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(nmax - 2);
+    const std::size_t nmax = detail::even_floor(in.order() + 1);
+    const double coeff_nm2 = detail::zernike_radon_coeff<zernike_norm>(nmax - 2);
     out[nmax] = -coeff_nm2*in[nmax - 2];
 }
 
@@ -277,7 +277,7 @@ void radon_transform_inplace(
         auto exp_n = exp[n];
         auto exp_nm2 = exp[n - 2];
 
-        const double coeff_nm2 = -util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_nm2 = -detail::zernike_radon_coeff<zernike_norm>(n - 2);
         auto exp_n_flat = exp_n.flatten();
         auto exp_nm2_flat = exp_nm2.flatten();
 
@@ -300,8 +300,8 @@ void radon_transform_inplace(
         auto exp_n = exp[n];
         auto exp_nm2 = exp[n - 2];
 
-        const double coeff_n = util::zernike_radon_coeff<zernike_norm>(n);
-        const double coeff_nm2 = -util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_n = detail::zernike_radon_coeff<zernike_norm>(n);
+        const double coeff_nm2 = -detail::zernike_radon_coeff<zernike_norm>(n - 2);
         auto exp_n_flat = exp_n.flatten();
         auto exp_nm2_flat = exp_nm2.flatten();
 
@@ -316,13 +316,13 @@ void radon_transform_inplace(
         }
     }
 
-    const double coeff_1 = util::zernike_radon_coeff<zernike_norm>(1);
+    const double coeff_1 = detail::zernike_radon_coeff<zernike_norm>(1);
     exp[1, 1, 0, 0] = coeff_1*exp[1, 1, 0, 0];
     exp[1, 1, 0, 1] = coeff_1*exp[1, 1, 0, 1];
     exp[1, 1, 1, 0] = coeff_1*exp[1, 1, 1, 0];
     exp[1, 1, 1, 1] = coeff_1*exp[1, 1, 1, 1];
 
-    const double coeff_0 = util::zernike_radon_coeff<zernike_norm>(0);
+    const double coeff_0 = detail::zernike_radon_coeff<zernike_norm>(0);
     exp[0, 0, 0, 0] = coeff_0*exp[0, 0, 0, 0];
     exp[0, 0, 0, 1] = coeff_0*exp[0, 0, 0, 1];
 }
@@ -400,17 +400,17 @@ void radon_transform_inplace(
     if (order < 3) return;
 
     const std::size_t nmax = util::even_floor(exp.order() - 1);
-    const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(nmax - 2);
+    const double coeff_nm2 = detail::zernike_radon_coeff<zernike_norm>(nmax - 2);
     exp[nmax] = -coeff_nm2*exp[nmax - 2];
 
     for (std::size_t n = nmax - 2; n > 1; n -= 2)
     {
-        const double coeff_n = util::zernike_radon_coeff<zernike_norm>(n);
-        const double coeff_nm2 = util::zernike_radon_coeff<zernike_norm>(n - 2);
+        const double coeff_n = detail::zernike_radon_coeff<zernike_norm>(n);
+        const double coeff_nm2 = detail::zernike_radon_coeff<zernike_norm>(n - 2);
         exp[n] = coeff_n*exp[n] - coeff_nm2*exp[n - 2];
     }
 
-    const double coeff_0 = util::zernike_radon_coeff<zernike_norm>(0);
+    const double coeff_0 = detail::zernike_radon_coeff<zernike_norm>(0);
     exp[0] = coeff_0*exp[0];
 }
 
