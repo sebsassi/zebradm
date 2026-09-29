@@ -28,9 +28,9 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 #include <zest/md_span.hpp>
+#include <zest/buffer_chain.hpp>
 
 #include "utility.hpp"
-#include "swap_chain.hpp"
 
 namespace zdm::zebra
 {
@@ -143,7 +143,7 @@ public:
 private:
     void reset() noexcept;
 
-    util::SwapChain<double, 3> m_swap_chain;
+    zest::BufferChain<double, 3, std::dynamic_extent> m_swap_chain;
     std::array<std::vector<double>, 3> m_buffers;
     std::vector<double> m_x;
     std::size_t m_l = 0;
