@@ -53,11 +53,15 @@ void zebra_evaluate(
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(dist_order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, dist_order);
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(zdm::ZernikeSpan<const double>(distribution));
+
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
     zdm::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate(distribution, response, offsets, rotation_angles, shells, out);
+        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), response, offsets, rotation_angles, shells, out);
 }
 
 template <typename DistType, typename RespType>

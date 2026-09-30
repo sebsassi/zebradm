@@ -23,7 +23,6 @@ SOFTWARE.
 #include <cassert>
 #include <print>
 
-#include "radon_util.hpp"
 #include "zebra_radon.hpp"
 
 namespace

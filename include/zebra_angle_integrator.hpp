@@ -401,7 +401,6 @@ public:
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
 private:
-    detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::iso> m_integrator_core;
     std::size_t m_radon_order{};
 };
@@ -436,7 +435,6 @@ public:
 
 private:
     zest::WignerdPiHalfCollection m_wigner_d_pi2;
-    detail::IsotropicZernikeTransverseRadonHelper m_transverse_radon_helper;
     detail::AngleIntegratorCore<DistType::iso, RespType::aniso> m_integrator_core;
     std::size_t m_radon_order{};
     std::size_t m_resp_order{};

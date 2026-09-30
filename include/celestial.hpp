@@ -236,15 +236,6 @@ private:
 namespace detail
 {
 
-[[nodiscard]] QuantityOf<velocity> auto
-solar_velocity_from(
-    QuantityOf<speed> auto circular_speed,
-    const QuantityOf<velocity> auto& peculiar_velocity) noexcept
-{
-    return peculiar_velocity
-        + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*velocity_type::unit;
-}
-
 } // namespace detail
 
 /**
@@ -303,6 +294,15 @@ public:
     operator()() const noexcept { return m_transform; }
 
 private:
+    [[nodiscard]] static constexpr velocity_type
+    solar_velocity_from(
+        QuantityOf<speed> auto circular_speed,
+        const QuantityOf<velocity> auto& peculiar_velocity) noexcept
+    {
+        return peculiar_velocity
+            + la::Vector{0.0, circular_speed.numerical_value(), 0.0}*velocity_type::unit;
+    }
+
     rigid_transform_type m_transform;
 };
 

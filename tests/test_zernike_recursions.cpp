@@ -49,7 +49,7 @@ bool test_multiply_empty_expansion_by_x_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -76,7 +76,7 @@ bool test_multiply_empty_expansion_by_y_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -103,7 +103,7 @@ bool test_multiply_empty_expansion_by_z_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -130,7 +130,7 @@ bool test_multiply_empty_expansion_by_r2_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -160,7 +160,7 @@ bool test_multiply_Z000_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -211,7 +211,7 @@ bool test_multiply_Z000_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -262,7 +262,7 @@ bool test_multiply_Z000_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -313,7 +313,7 @@ bool test_multiply_Z000_by_r2_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -370,7 +370,7 @@ bool test_multiply_Z111_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -437,7 +437,7 @@ bool test_multiply_Z111_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -489,7 +489,7 @@ bool test_multiply_Z111_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -541,7 +541,7 @@ bool test_multiply_Z11m1_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -593,7 +593,7 @@ bool test_multiply_Z11m1_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -660,7 +660,7 @@ bool test_multiply_Z11m1_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -712,7 +712,7 @@ bool test_multiply_Z110_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -764,7 +764,7 @@ bool test_multiply_Z110_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -816,7 +816,7 @@ bool test_multiply_Z110_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -903,7 +903,7 @@ bool test_multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -980,7 +980,7 @@ bool test_multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_x(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1057,7 +1057,7 @@ bool test_multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_y(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1131,7 +1131,7 @@ bool test_multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1208,7 +1208,7 @@ bool test_multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_z(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1285,7 +1285,7 @@ bool test_multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1360,7 +1360,7 @@ bool test_multiply_random_isotropic_input_by_r2_is_correct_for_order(std::size_t
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1371,139 +1371,6 @@ bool test_multiply_random_isotropic_input_by_r2_is_correct_for_order(std::size_t
     {
         for (std::size_t n = 0; n < out.order(); ++n)
             std::println("{}: {} {}", n, out[n], reference_out[n]);
-    }
-
-    return success;
-}
-
-bool test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(std::size_t order)
-{
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
-    zdm::IsotropicZernikeExpansion<double> expansion{order};
-    expansion[0] = 1.0/std::numbers::sqrt3;
-
-    zdm::IsotropicZernikeExpansion<double, 3> reference_components{order + 4};
-    reference_components[0, 0] = 1.0/15.0;
-    reference_components[0, 1] = 1.0/5.0;
-    reference_components[0, 2] = 1.0/3.0;
-    reference_components[2, 0] = -5.0/21.0;
-    reference_components[2, 1] = -1.0/5.0;
-    reference_components[2, 2] = -1.0/3.0;
-    reference_components[4, 0] = 6.0/35.0;
-
-    zdm::IsotropicZernikeExpansion<double, 3> components{order + 4};
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
-        .evaluate_transverse_components(expansion, components);
-
-    constexpr double tol = 1.0e-13;
-
-    bool success = true;
-    for (std::size_t n : components.indices())
-        success = success
-                && is_close(components[n, 0], reference_components[n, 0], tol)
-                && is_close(components[n, 1], reference_components[n, 1], tol)
-                && is_close(components[n, 2], reference_components[n, 2], tol);
-
-    if (!success)
-    {
-        std::println("components reference");
-        for (std::size_t n : components.indices())
-            std::println("[{}, {}, {}] [{}, {}, {}]",
-                    components[n, 0], components[n, 1], components[n, 2],
-                    reference_components[n, 0], reference_components[n, 1], reference_components[n, 2]);
-    }
-
-    return success;
-}
-
-bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(std::size_t order)
-{
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
-
-    zdm::IsotropicZernikeExpansion<double> expansion{order};
-    for (auto& element : expansion.flatten())
-        element = 1.0;
-
-    zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
-
-    zdm::IsotropicZernikeExpansion<double> radon{order + 2};
-    zdm::zebra::radon_transform(expansion, radon);
-
-    zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
-
-    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order + 4};
-    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
-        recursion_data, zdm::IsotropicZernikeSpan<const double>(expansion), r2_radon);
-
-    zdm::IsotropicZernikeExpansion<double, 3> composite_components{order + 4};
-    zdm::zebra::detail::transverse_radon_components(radon, r2_radon, composite_components);
-
-    zdm::IsotropicZernikeExpansion<double, 3> direct_components{order + 4};
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
-        .evaluate_transverse_components(expansion, direct_components);
-
-    constexpr double tol = 1.0e-13;
-
-    bool success = true;
-    for (std::size_t n : direct_components.indices())
-        success = success
-                && is_close(direct_components[n, 0], composite_components[n, 0], tol)
-                && is_close(direct_components[n, 1], composite_components[n, 1], tol)
-                && is_close(direct_components[n, 2], composite_components[n, 2], tol);
-
-    if (!success)
-    {
-        std::println("direct composite");
-        for (std::size_t n : direct_components.indices())
-            std::println("[{}, {}, {}] [{}, {}, {}]",
-                    direct_components[n, 0], direct_components[n, 1], direct_components[n, 2],
-                    composite_components[n, 0], composite_components[n, 1], composite_components[n, 2]);
-    }
-
-    return success;
-}
-
-bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(std::size_t order, std::size_t index)
-{
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper helper{order};
-
-    zdm::IsotropicZernikeExpansion<double> expansion{order};
-    expansion[index] = 1.0;
-
-    zdm::IsotropicZernikeExpansion<double> r2_expansion{order + 2};
-
-    zdm::IsotropicZernikeExpansion<double> radon{order + 2};
-    zdm::zebra::radon_transform(expansion, radon);
-
-    zdm::IsotropicZernikeExpansion<double> r2_radon{order + 4};
-
-    const zdm::zebra::detail::ZernikeRecursionData recursion_data{order + 4};
-    zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
-        recursion_data, zdm::IsotropicZernikeSpan<const double>(expansion), r2_radon);
-
-    zdm::IsotropicZernikeExpansion<double, 3> composite_components{order + 4};
-    zdm::zebra::detail::transverse_radon_components(radon, r2_radon, composite_components);
-
-    zdm::IsotropicZernikeExpansion<double, 3> direct_components{order + 4};
-    zdm::zebra::detail::IsotropicZernikeTransverseRadonHelper{order}
-        .evaluate_transverse_components(expansion, direct_components);
-
-    constexpr double tol = 1.0e-13;
-
-    bool success = true;
-    for (std::size_t n : direct_components.indices())
-        success = success
-                && is_close(direct_components[n, 0], composite_components[n, 0], tol)
-                && is_close(direct_components[n, 1], composite_components[n, 1], tol)
-                && is_close(direct_components[n, 2], composite_components[n, 2], tol);
-
-    if (!success)
-    {
-        std::println("direct composite");
-        for (std::size_t n : direct_components.indices())
-            std::println("[{}, {}, {}] [{}, {}, {}]",
-                    direct_components[n, 0], direct_components[n, 1], direct_components[n, 2],
-                    composite_components[n, 0], composite_components[n, 1], composite_components[n, 2]);
     }
 
     return success;
@@ -1560,13 +1427,4 @@ int main()
     assert(test_multiply_random_input_by_r2_is_correct_for_order(1));
 
     assert(test_multiply_random_isotropic_input_by_r2_is_correct_for_order(10));
-
-    assert(test_isotropic_zernike_transverse_radon_helper_is_correct_for_constant_distribution(10));
-
-    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 0));
-    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 2));
-    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20, 4));
-
-    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(20));
-    assert(test_isotropic_zernike_transverse_radon_helper_components_are_consistent(21));
 }

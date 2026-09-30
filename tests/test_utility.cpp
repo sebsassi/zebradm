@@ -5,7 +5,7 @@ namespace
 
 bool empty_spans_have_no_overlap()
 {
-    return !zdm::util::have_overlap(std::span<int>{}, std::span<int>{})
+    return !zdm::util::have_overlap(std::span<int>{}, std::span<int>{});
 }
 
 bool nonempty_span_overlaps_with_itself()
@@ -106,9 +106,9 @@ bool product_of_array_with_identity_does_not_change_value()
     std::array<int, 39> arr1 = {};
     arr1.fill(2);
     std::array<int, 39> resr = {};
-    zdm::util::mul(std::span<int>{res}, std::span<const int>{arr1}, 1);
+    zdm::util::mul(std::span<int>{resr}, std::span<const int>{arr1}, 1);
     std::array<int, 39> resl = {};
-    zdm::util::mul(std::span<int>{res}, 1, std::span<const int>{arr1});
+    zdm::util::mul(std::span<int>{resl}, 1, std::span<const int>{arr1});
     return resr == arr1 && resl == resr;
 }
 
@@ -140,10 +140,10 @@ bool checkerboard_inner_product_gives_zero()
 {
     std::array<int, 39> arr1 = {};
     for (std::size_t i = 0; i < 39; i += 2)
-        arr[i] = 1;
+        arr1[i] = 1;
     std::array<int, 39> arr2 = {};
     for (std::size_t i = 1; i < 39; i += 2)
-        arr[i] = 1;
+        arr2[i] = 1;
     return zdm::util::inner_product(std::span<const int>{arr1}, std::span<const int>{arr2});
 }
 

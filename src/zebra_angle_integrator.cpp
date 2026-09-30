@@ -29,6 +29,7 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
+#include "moments.hpp"
 #include "types.hpp"
 #include "utility.hpp"
 #include "zebra_radon.hpp"
@@ -52,13 +53,16 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<double, 2> out)
 {
-    resize(distribution_radon_transform.order());
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+    resize(radon_order);
+
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         const double offset_len = la::norm(offsets[i]);
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
-                    distribution_radon_transform[0], offset_len, shells[j]);
+                    distribution_radon_transform[IsoMoment::identity], offset_len, shells[j]);
     }
 }
 
@@ -67,11 +71,14 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
-    resize(distribution_radon_transform.order());
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+    resize(radon_order);
+
     const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                distribution_radon_transform[0], offset_len, shells[i]);
+                distribution_radon_transform[IsoMoment::identity], offset_len, shells[i]);
 }
 
 AngleIntegrator<DistType::iso, RespType::aniso>::AngleIntegrator(
@@ -99,14 +106,20 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
     std::span<const double> rotation_angles, std::span<const double> shells,
     zest::DynamicMDSpan<double, 2> out)
 {
-    const std::size_t radon_order = distribution_radon_transform.order();
+    assert(
+        offsets.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
+
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
             out[i, j] = m_integrator_core.integrate(
-                    distribution_radon_transform[0], response[j], offsets[i], rotation_angles[i], 
+                    distribution_radon_transform[IsoMoment::identity], response[j], offsets[i], rotation_angles[i], 
                     shells[j], m_wigner_d_pi2);
     }
 }
@@ -118,12 +131,16 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<double> out)
 {
-    const std::size_t radon_order = distribution_radon_transform.order();
+    assert(shells.size() == out.size());
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
+
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate(
-                distribution_radon_transform[0], response[i], offset, rotation_angle, 
+                distribution_radon_transform[IsoMoment::identity], response[i], offset, rotation_angle, 
                 shells[i], m_wigner_d_pi2);
 }
 
@@ -154,7 +171,10 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         offsets.size() == out.extent(0)
         && shells.size() == out.extent(1));
 
-    resize(distribution_radon_transform.order());
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+    resize(radon_order);
+
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(distribution_radon_transform, offsets[i], shells, out[i]);
 }
@@ -165,17 +185,20 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     std::span<double> out)
 {
     assert(shells.size() == out.size());
-    resize(distribution_radon_transform.order());
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+    resize(radon_order);
 
     std::ranges::copy(
-        distribution_radon_transform.flatten(),
+        distribution_radon_transform[Moment::identity].flatten(),
         m_rotated_radon_transform_exp.flatten().begin());
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
+        = coordinates::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     m_rotor.rotate<rotation_type>(
             m_rotated_radon_transform_exp, m_wigner_d_pi2, euler_angles);
@@ -250,7 +273,8 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         && rotation_angles.size() == out.extent(0)
         && shells.size() == out.extent(1));
 
-    const std::size_t radon_order = distribution_radon_transform.order();
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
     const std::size_t top_order = std::min(radon_order + resp_order, trunc_order);
@@ -270,7 +294,8 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 {
     assert(shells.size() == out.size());
 
-    const std::size_t radon_order = distribution_radon_transform.order();
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
     const std::size_t top_order = std::min(radon_order + resp_order, trunc_order);
@@ -291,7 +316,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
+        = coordinates::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     zest::st::SphereGLQGridVectorSpan<double>
     rotated_radon_zernike_grids(
@@ -300,7 +325,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     for (std::size_t n = 0; n < radon_order; ++n)
     {
         std::ranges::copy(
-                distribution_radon_transform[0, n].flatten(),
+                distribution_radon_transform[Moment::identity, n].flatten(),
                 m_rotated_radon_transform_exp.begin());
         zest::subspan<ZernikeSpan<double>, 1>
         rotated_radon_zernike_exp{m_rotated_radon_transform_exp.data(), n + 1};
@@ -333,7 +358,13 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
-    resize(distribution_radon_transform.order());
+    assert(
+        offsets.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+    resize(radon_order);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         const double offset_len = la::norm(offsets[i]);
@@ -349,7 +380,11 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         const la::Vector<double, 3>& offset,
         std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
-    resize(distribution_radon_transform.order());
+    assert(shells.size() == out.size());
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+    resize(radon_order);
     const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
@@ -381,9 +416,15 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
-    const std::size_t radon_order = distribution_radon_transform.order();
+    assert(
+        offsets.size() == out.extent(0)
+        && shells.size() == out.extent(1));
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
+
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
         for (std::size_t j = 0; j < shells.size(); ++j)
@@ -400,9 +441,13 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
-    const std::size_t radon_order = distribution_radon_transform.order();
+    assert(shells.size() == out.size());
+
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
+
     for (std::size_t i = 0; i < shells.size(); ++i)
         out[i] = m_integrator_core.integrate_transverse(
                 distribution_radon_transform, response[i], offset, rotation_angle,
@@ -439,7 +484,10 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         offsets.size() == out.extent(0)
         && shells.size() == out.extent(1));
 
-    resize(distribution_radon_transform.order());
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+    resize(radon_order);
+
     for (std::size_t i = 0; i < offsets.size(); ++i)
         integrate(distribution_radon_transform, offsets[i], shells, out[i]);
 }
@@ -450,10 +498,12 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     std::span<std::array<double, 2>> out)
 {
     assert(shells.size() == out.size());
-    resize(distribution_radon_transform.order());
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+    resize(radon_order);
 
     std::ranges::copy(
-        distribution_radon_transform[0].flatten(),
+        distribution_radon_transform[Moment::identity].flatten(),
         m_rotated_radon_transform_exp.flatten().begin());
 
     evaluate_transverse_radon_transform(
@@ -463,7 +513,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
+        = coordinates::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     m_rotor.rotate<rotation_type>(
             m_rotated_radon_transform_exp, m_wigner_d_pi2, euler_angles);
@@ -533,7 +583,8 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         && rotation_angles.size() == out.extent(0)
         && shells.size() == out.extent(1));
 
-    const std::size_t radon_order = distribution_radon_transform.order();
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
 
@@ -550,7 +601,8 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 {
     assert(shells.size() == out.size());
 
-    const std::size_t radon_order = distribution_radon_transform.order();
+    const std::size_t radon_order
+        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
 
@@ -558,7 +610,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     const auto& [offset_az, offset_colat, offset_len]
         = coordinates::cartesian_to_spherical_phys(offset);
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
+        = coordinates::euler_angles_to_align_z<rotation_type>(offset_az, offset_colat);
 
     const std::size_t trans_radon_order = m_radon_order + 2;
     const std::size_t top_order = std::min(trans_radon_order + m_resp_order, m_trunc_order);
@@ -570,7 +622,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     for (std::size_t n = 0; n < m_radon_order; ++n)
     {
         std::ranges::copy(
-                distribution_radon_transform[0, n].flatten(),
+                distribution_radon_transform[Moment::identity, n].flatten(),
                 m_rotated_radon_transform_exp.begin());
         ZernikeSpan<double>::subspan_type<1>
         rotated_radon_zernike_exp{m_rotated_radon_transform_exp.data(), n + 1};

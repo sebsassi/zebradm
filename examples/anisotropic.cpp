@@ -121,6 +121,12 @@ int main()
     zdm::ZernikeExpansion<double> distribution
         = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
+    zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>
+    radon_transformer{};
+
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = radon_transformer.evaluate_transformed_moments(zdm::ZernikeSpan<const double>(distribution));
+
     constexpr std::size_t resp_order = 60;
     zdm::ResponseTransformer response_transformer{};
     zdm::SHExpansionVector<double> response 
@@ -139,7 +145,7 @@ int main()
 
     zest::DynamicMDArray<double, 2> out{offset_count, shell_count};
     integrator.integrate(
-            distribution, response, offsets, rotation_angles, shells, out);
+            zdM::zebra::RadonMomentSpan<const double>(distribution_radon), response, offsets, rotation_angles, shells, out);
 
     for (auto& element : out.flatten())
         element *= radius*radius;

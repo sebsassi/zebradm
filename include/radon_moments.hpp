@@ -35,38 +35,46 @@ namespace zdm::zebra
 template <typename ElementType, MomentCategory category>
 class IsotropicRadonMomentSpan:
     public zest::zt::IsotropicZernikeTensorSpan<
-        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
+        ElementType, zest::zt::NormedGeo, detail::moment_count(DistType::iso, category)
     >
 {
 private:
     using Base = zest::zt::IsotropicZernikeTensorSpan<
-        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
+        ElementType, zest::zt::NormedGeo, detail::moment_count(DistType::iso, category)
     >;
 
 public:
     constexpr IsotropicRadonMomentSpan() = default;
     constexpr IsotropicRadonMomentSpan(Base::pointer data, std::size_t order) noexcept:
-        Base{data, order + detail::max_offset(DistType::iso, category)} {}
+        Base{data, order} {}
     constexpr IsotropicRadonMomentSpan(Base::pointer data, const Base::shape_type& shape) noexcept:
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
-    order() const noexcept
+    max_order() const noexcept
     {
-        return std::get<1>(Base::extents()) - detail::max_offset(DistType::iso, category);
+        return std::get<1>(Base::extents());
     }
 
-    [[nodiscard]] constexpr auto
+    [[nodiscard]] constexpr Base::size_type
+    order(IsoMoment moment) const noexcept
+    {
+        return max_order() - detail::inverse_offset_of(moment);
+    }
+
+    [[nodiscard]] constexpr decltype(auto)
     operator[](IsoMoment moment, std::integral auto... inds) noexcept
         requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
         if constexpr (sizeof...(inds) == 0)
         {
             auto exp = Base::operator[](std::to_underlying(moment));
-            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+            return decltype(exp){exp.data(), order(moment)};
         }
         else
+        {
             return Base::operator[](std::to_underlying(moment), inds...);
+        }
     }
 };
 
@@ -74,37 +82,42 @@ template <typename ElementType, MomentCategory category>
 class RadonMomentSpan:
     public zest::zt::ZernikeTensorSpan<
         ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
-        detail::count_of(DistType::aniso, category)
+        detail::moment_count(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeTensorSpan<
         ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
-        detail::count_of(DistType::aniso, category)
+        detail::moment_count(DistType::aniso, category)
     >;
 
 public:
     RadonMomentSpan() = default;
     RadonMomentSpan(Base::pointer data, std::size_t order) noexcept:
-        Base{data, order + detail::max_offset(DistType::aniso, category)} {}
+        Base{data, order} {}
     RadonMomentSpan(Base::pointer data, const Base::shape_type& shape) noexcept:
         Base{data, shape} {}
 
     [[nodiscard]] constexpr Base::size_type
-    order() const noexcept
+    max_order() const noexcept
     {
-        return std::get<0>(std::get<1>(Base::extents()))
-            - detail::max_offset(DistType::aniso, category);
+        return std::get<0>(std::get<1>(Base::extents()));
     }
 
-    [[nodiscard]] constexpr auto
+    [[nodiscard]] constexpr Base::size_type
+    order(Moment moment) const noexcept
+    {
+        return max_order() - detail::inverse_offset_of(moment);
+    }
+
+    [[nodiscard]] constexpr decltype(auto)
     operator[](Moment moment, std::integral auto... inds) noexcept
         requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
         if constexpr (sizeof...(inds) == 0)
         {
             auto exp = Base::operator[](std::to_underlying(moment));
-            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+            return decltype(exp){exp.data(), order(moment)};
         }
         else
             return Base::operator[](std::to_underlying(moment), inds...);
@@ -114,18 +127,17 @@ public:
 template <typename ElementType, MomentCategory category>
 class IsotropicRadonMomentArray:
     public zest::zt::IsotropicZernikeExpansionTensor<
-        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
+        ElementType, zest::zt::NormedGeo, detail::moment_count(DistType::iso, category)
     >
 {
 private:
     using Base = zest::zt::IsotropicZernikeExpansionTensor<
-        ElementType, zest::zt::NormedGeo, detail::count_of(DistType::iso, category)
+        ElementType, zest::zt::NormedGeo, detail::moment_count(DistType::iso, category)
     >;
 
 public:
     IsotropicRadonMomentArray() = default;
-    explicit IsotropicRadonMomentArray(std::size_t order):
-        Base{order + detail::max_offset(DistType::iso, category)} {}
+    explicit IsotropicRadonMomentArray(std::size_t order): Base{order} {}
 
     [[nodiscard]] explicit operator
     IsotropicRadonMomentSpan<typename Base::value_type, category>() noexcept
@@ -139,20 +151,26 @@ public:
         return {Base::data(), Base::shape()};
     }
 
-    [[nodiscard]] constexpr Base::size_type
-    order() const noexcept
+    [[nodiscard]] Base::size_type
+    max_order() const noexcept
     {
-        return std::get<1>(Base::extents()) - detail::max_offset(DistType::iso, category);
+        return std::get<1>(Base::extents());
     }
 
-    [[nodiscard]] constexpr auto
+    [[nodiscard]] Base::size_type
+    order(IsoMoment moment) const noexcept
+    {
+        return max_order() - detail::inverse_offset_of(moment);
+    }
+
+    [[nodiscard]] decltype(auto)
     operator[](IsoMoment moment, std::integral auto... inds) noexcept
         requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
         if constexpr (sizeof...(inds) == 0)
         {
             auto exp = Base::operator[](std::to_underlying(moment));
-            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+            return decltype(exp){exp.data(), order(moment)};
         }
         else
             return Base::operator[](std::to_underlying(moment), inds...);
@@ -167,19 +185,18 @@ template <typename ElementType, MomentCategory category>
 class RadonMomentArray:
     public zest::zt::ZernikeExpansionTensor<
         ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
-        detail::count_of(DistType::aniso, category)
+        detail::moment_count(DistType::aniso, category)
     >
 {
 private:
     using Base = zest::zt::ZernikeExpansionTensor<
         ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo,
-        detail::count_of(DistType::aniso, category)
+        detail::moment_count(DistType::aniso, category)
     >;
 
 public:
     RadonMomentArray() = default;
-    explicit RadonMomentArray(std::size_t order):
-        Base{order + detail::max_offset(DistType::aniso, category)} {}
+    explicit RadonMomentArray(std::size_t order): Base{order} {}
 
     [[nodiscard]] explicit operator
     RadonMomentSpan<typename Base::value_type, category>() noexcept
@@ -193,20 +210,26 @@ public:
         return {Base::data(), Base::shape()};
     }
 
-    [[nodiscard]] constexpr Base::size_type
-    order() const noexcept
+    [[nodiscard]] Base::size_type
+    max_order() const noexcept
     {
-        return std::get<1>(Base::extents()) - detail::max_offset(DistType::aniso, category);
+        return std::get<0>(std::get<1>(Base::extents()));
     }
 
-    [[nodiscard]] constexpr auto
+    [[nodiscard]] Base::size_type
+    order(Moment moment) const noexcept
+    {
+        return max_order() - detail::inverse_offset_of(moment);
+    }
+
+    [[nodiscard]] decltype(auto)
     operator[](Moment moment, std::integral auto... inds) noexcept
         requires (sizeof...(inds) + 1 <= Base::shape_type::rank)
     {
         if constexpr (sizeof...(inds) == 0)
         {
             auto exp = Base::operator[](std::to_underlying(moment));
-            return decltype(exp){exp.data(), order() + detail::offset_of(moment)};
+            return decltype(exp){exp.data(), order(moment)};
         }
         else
             return Base::operator[](std::to_underlying(moment), inds...);
@@ -222,6 +245,7 @@ void evaluate_transverse_radon_transform(
     RadonMomentSpan<const ElementType, category> moments, const la::Vector<double, 3>& offset,
     ZernikeSpan<ElementType> transverse_radon_transform)
 {
+    assert(moments.max_order() <= transverse_radon_transform.order());
     std::ranges::copy(
         moments[Moment::r2].flatten(),
         transverse_radon_transform.flatten().begin());
@@ -252,14 +276,15 @@ public:
         IsotropicZernikeSpan<double> zernike_expansion,
         IsotropicRadonMomentSpan<double, MomentCategory::identity> radon_moments)
     {
-        radon_transform(zernike_expansion, radon_moments[0]);
+        assert(max_radon_order(MomentCategory::identity, zernike_expansion.order()) <= radon_moments.max_order());
+        radon_transform(zernike_expansion, radon_moments[IsoMoment::identity]);
     }
 
     [[nodiscard]] static IsotropicRadonMomentArray<double, MomentCategory::identity>
     evaluate_transformed_moments(IsotropicZernikeSpan<double> zernike_expansion)
     {
         IsotropicRadonMomentArray<double, MomentCategory::identity>
-        moments{zernike_expansion.order()};
+        moments{max_radon_order(MomentCategory::identity, zernike_expansion.order())};
 
         evaluate_transformed_moments(zernike_expansion, IsotropicRadonMomentSpan(moments));
         return moments;
@@ -311,14 +336,15 @@ public:
         IsotropicZernikeSpan<double> zernike_expansion,
         IsotropicRadonMomentSpan<double, category> radon_moments)
     {
-        radon_transform(zernike_expansion, radon_moments[0]);
+        assert(max_radon_order(category, zernike_expansion.order()) <= radon_moments.max_order());
         evaluate_transverse_components(zernike_expansion, radon_moments);
     }
 
     [[nodiscard]] IsotropicRadonMomentArray<double, category>
     evaluate_transformed_moments(IsotropicZernikeSpan<double> zernike_expansion)
     {
-        IsotropicRadonMomentArray<double, category> moments{zernike_expansion.order()};
+        IsotropicRadonMomentArray<double, category>
+        moments{max_radon_order(category, zernike_expansion.order())};
 
         evaluate_transformed_moments(zernike_expansion, moments);
         return moments;
@@ -331,7 +357,7 @@ private:
     {
         if (in.order() == 0) return;
 
-        assert(out.order() >= in.order());
+        assert(in.order() <= out.order());
         out[IsoMoment::quadratic, 0] = m_coeffs[0, 2]*in[0];
         out[IsoMoment::linear, 0] = m_coeffs[0, 5]*in[0];
         out[IsoMoment::identity, 0] = m_coeffs[0, 7]*in[0];
@@ -374,9 +400,9 @@ private:
 
         if (nmax == 4) return;
 
-        out[IsoMoment::quadratic]
+        out[IsoMoment::quadratic, nmax - 2]
             = m_coeffs[nmax - 2, 0]*in[nmax - 6] + m_coeffs[nmax - 2, 1]*in[nmax - 4];
-        out[IsoMoment::linear]
+        out[IsoMoment::linear, nmax - 2]
             = m_coeffs[nmax - 2, 4]*in[nmax - 4];
         out[IsoMoment::identity, nmax - 2]
             = -m_coeffs[nmax - 4, 7]*in[nmax - 4];
@@ -427,9 +453,10 @@ public:
 
     template <MomentCategory category>
     void evaluate_transformed_moments(
-        ZernikeSpan<double> zernike_expansion,
+        ZernikeSpan<const double> zernike_expansion,
         RadonMomentSpan<double, MomentCategory::identity> radon_moments)
     {
+        assert(max_radon_order(MomentCategory::identity, zernike_expansion.order()) <= radon_moments.max_order());
         radon_transform(zernike_expansion, radon_moments[Moment::identity]);
     }
 
@@ -437,7 +464,9 @@ public:
     [[nodiscard]] RadonMomentArray<double, MomentCategory::identity>
     evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
     {
-        RadonMomentArray<double, MomentCategory::identity> moments{zernike_expansion.order()};
+        RadonMomentArray<double, MomentCategory::identity>
+        moments{max_radon_order(category, zernike_expansion.order())};
+
         evaluate_transformed_moments(zernike_expansion, RadonMomentSpan(moments));
         return moments;
     }
@@ -455,6 +484,7 @@ public:
         ZernikeSpan<double> zernike_expansion,
         RadonMomentSpan<double, category> radon_moments)
     {
+        assert(max_radon_order(category, zernike_expansion.order()) <= radon_moments.max_order());
         multiply_by_and_radon_transform_inplace<Moment::identity>(zernike_expansion, radon_moments[Moment::identity]);
         multiply_by_and_radon_transform_inplace<Moment::x>(zernike_expansion, radon_moments[Moment::x]);
         multiply_by_and_radon_transform_inplace<Moment::y>(zernike_expansion, radon_moments[Moment::y]);
@@ -465,7 +495,9 @@ public:
     [[nodiscard]] RadonMomentArray<double, category>
     evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
     {
-        RadonMomentArray<double, category> moments{zernike_expansion.order()};
+        RadonMomentArray<double, category>
+        moments{max_radon_order(category, zernike_expansion.order())};
+
         evaluate_transformed_moments(zernike_expansion, moments);
         return moments;
     }

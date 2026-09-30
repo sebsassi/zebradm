@@ -165,7 +165,7 @@ template <typename ValueType, std::size_t order_param>
 struct Polynomial
 {
     using value_type = ValueType;
-    using container_type = std::array<value_type, order + 1>;
+    using container_type = std::array<value_type, order_param + 1>;
     static constexpr std::size_t order = order_param;
 
     container_type coeffs;

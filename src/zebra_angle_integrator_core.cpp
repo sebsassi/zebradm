@@ -24,6 +24,7 @@ SOFTWARE.
 #include <zest/grid_evaluator.hpp>
 
 #include "coordinate_transforms.hpp"
+#include "moments.hpp"
 #include "types.hpp"
 #include "utility.hpp"
 
@@ -72,13 +73,12 @@ std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integra
 
     std::array<la::Vector<double, 2>, 3> res = {};
 
-    const std::size_t nmax = util::even_floor(distribution_radon_transform.order() - 1);
-    for (std::size_t n = 0; n <= nmax; n += 2)
-        res[0] += distribution_radon_transform[0, n]*m_legendre_integrals[n];
-    for (std::size_t n = 0; n < nmax; n += 2)
-        res[1] += distribution_radon_transform[1, n]*m_legendre_integrals[n + 1];
-    for (std::size_t n = 0; n < nmax; n += 2)
-        res[2] += distribution_radon_transform[2, n]*m_legendre_integrals[n];
+    for (std::size_t n = 0; n < distribution_radon_transform.order(IsoMoment::quadratic); n += 2)
+        res[0] += distribution_radon_transform[IsoMoment::quadratic, n]*m_legendre_integrals[n];
+    for (std::size_t n = 0; n < distribution_radon_transform.order(IsoMoment::linear); n += 2)
+        res[1] += distribution_radon_transform[IsoMoment::linear, n]*m_legendre_integrals[n + 1];
+    for (std::size_t n = 0; n < distribution_radon_transform.order(IsoMoment::identity); n += 2)
+        res[2] += distribution_radon_transform[IsoMoment::identity, n]*m_legendre_integrals[n];
 
     la::Vector<double, 2> nontrans_res = res[2];
     la::Vector<double, 2> trans_res = res[0] + 2.0*shell*res[1] + (offset_len*offset_len - shell*shell)*res[2];
@@ -132,7 +132,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(
+        = coordinates::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
@@ -164,7 +164,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(
+        = coordinates::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
@@ -182,13 +182,12 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
             = util::inner_product(
                 std::span(m_zonal_rotated_response_exp), m_aff_leg_ylm_integrals[n].flatten());
 
-    const std::size_t nmax = util::even_floor(distribution_radon_transform.order() - 1);
-    for (std::size_t n = 0; n <= nmax; n += 2)
-        res[0] += distribution_radon_transform[0, n]*m_angle_integrals[n];
-    for (std::size_t n = 0; n < nmax; n += 2)
-        res[1] += distribution_radon_transform[1, n]*m_angle_integrals[n + 1];
-    for (std::size_t n = 0; n < nmax; n += 2)
-        res[2] += distribution_radon_transform[2, n]*m_angle_integrals[n];
+    for (std::size_t n = 0; n <= distribution_radon_transform.order(IsoMoment::quadratic); n += 2)
+        res[0] += distribution_radon_transform[IsoMoment::quadratic, n]*m_angle_integrals[n];
+    for (std::size_t n = 0; n < distribution_radon_transform.order(IsoMoment::linear); n += 2)
+        res[1] += distribution_radon_transform[IsoMoment::linear, n]*m_angle_integrals[n + 1];
+    for (std::size_t n = 0; n < distribution_radon_transform.order(IsoMoment::identity); n += 2)
+        res[2] += distribution_radon_transform[IsoMoment::identity, n]*m_angle_integrals[n];
 
     return {
         2.0*std::numbers::pi*res[2],
@@ -242,10 +241,10 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate(
     double res = 0;
     for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_geg_n = rotated_dist_radon_transform[n];
+        auto rotated_radon_n = rotated_dist_radon_transform[n];
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
-            res += rotated_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
+            res += rotated_radon_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
     return (2.0*std::numbers::pi)*res;
@@ -265,10 +264,10 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
     double trans = 0.0;
     for (std::size_t n : m_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_trans_geg_n = rotated_dist_trans_radon_transform[n];
+        auto rotated_trans_radon_n = rotated_dist_trans_radon_transform[n];
         auto aff_leg_ylm_integrals_n = m_aff_leg_ylm_integrals[n];
         for (std::size_t l = n & 1; l <= n; l += 2)
-            trans += rotated_trans_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
+            trans += rotated_trans_radon_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
     TrapezoidSpan<const double>
@@ -281,11 +280,11 @@ AngleIntegratorCore<DistType::aniso, RespType::iso>::integrate_transverse(
     double nontrans = 0.0;
     for (std::size_t n : non_trans_aff_leg_ylm_integrals.indices())
     {
-        auto rotated_geg_n = rotated_dist_radon_transform[n];
+        auto rotated_radon_n = rotated_dist_radon_transform[n];
         auto aff_leg_ylm_integrals_n = non_trans_aff_leg_ylm_integrals[n];
 
         for (std::size_t l = n & 1; l <= n; l += 2)
-            nontrans += rotated_geg_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
+            nontrans += rotated_radon_n[l, 0, 0]*aff_leg_ylm_integrals_n[l];
     }
 
     const double shell_sq = shell*shell;
@@ -349,7 +348,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate(
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(
+        = coordinates::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
@@ -387,7 +386,7 @@ AngleIntegratorCore<DistType::aniso, RespType::aniso>::integrate_transverse(
 
     constexpr zest::RotationType rotation_type = zest::RotationType::passive;
     const std::array<double, 3> euler_angles
-        = util::euler_angles_to_align_z<rotation_type>(
+        = coordinates::euler_angles_to_align_z<rotation_type>(
                 offset_az - rotation_angle, offset_colat);
 
     std::ranges::copy(response_exp.flatten(), m_rotated_response_exp.flatten().begin());
