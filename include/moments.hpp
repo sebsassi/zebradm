@@ -58,6 +58,47 @@ enum class IsoMoment: std::uint8_t
     quadratic
 };
 
+[[nodiscard]] constexpr std::string_view to_string(MomentCategory category) noexcept
+{
+    constexpr std::array strings = {
+        "identity",
+        "transverse",
+        "full"
+    };
+
+    return strings[std::to_underlying(category)];
+}
+
+[[nodiscard]] constexpr std::string_view to_string(Moment moment) noexcept
+{
+    constexpr std::array strings = {
+        "identity",
+        "x",
+        "y",
+        "z",
+        "r2",
+        "x2",
+        "y2",
+        "z2",
+        "xy",
+        "xz",
+        "yz"
+    };
+
+    return strings[std::to_underlying(moment)];
+}
+
+[[nodiscard]] constexpr std::string_view to_string(IsoMoment moment) noexcept
+{
+    constexpr std::array strings = {
+        "identity",
+        "linear",
+        "quadratic",
+    };
+
+    return strings[std::to_underlying(moment)];
+}
+
 namespace detail
 {
 

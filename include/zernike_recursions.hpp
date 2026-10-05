@@ -160,9 +160,4 @@ void multiply_by_r2_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     IsotropicZernikeSpan<const double> in, IsotropicZernikeSpan<double> out) noexcept;
 
-void transverse_radon_components(
-    IsotropicZernikeSpan<const double> in_radon,
-    IsotropicZernikeSpan<const double> in_r2_radon,
-    IsotropicZernikeSpan<double, 3> out);
-
 } // namespace zdm::zebra::detail

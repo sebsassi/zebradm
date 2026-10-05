@@ -1360,7 +1360,7 @@ bool test_multiply_random_isotropic_input_by_r2_is_correct_for_order(std::size_t
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by_r2(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;

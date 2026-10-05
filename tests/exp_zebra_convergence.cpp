@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include <zest/md_array.hpp>
 
+#include "moments.hpp"
 #include "transform_utilities.hpp"
 #include "matrix.hpp"
 #include "types.hpp"
@@ -55,13 +56,13 @@ void zebra_evaluate(
 
     zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
-        .evaluate_transformed_moments(zdm::ZernikeSpan<const double>(distribution));
+        .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};
     zdm::ResponseTransformer(resp_order).forward_transform(std::forward<RespType>(resp), shells, response);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), response, offsets, rotation_angles, shells, out);
+        .integrate(distribution_radon, response, offsets, rotation_angles, shells, out);
 }
 
 template <typename DistType, typename RespType>

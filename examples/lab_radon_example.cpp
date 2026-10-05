@@ -141,7 +141,11 @@ zest::DynamicMDArray<double, 2> radon_transform(
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
     radon_integrator(dist_order);
 
-    radon_integrator.integrate((typename decltype(dist_expansion)::const_view)(dist_expansion), vlab, vmin, out);
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    dist_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(dist_expansion);
+
+    radon_integrator.integrate(dist_expansion, vlab, vmin, out);
 
     for (auto& element : out.flatten())
         element *= vesc*vesc;

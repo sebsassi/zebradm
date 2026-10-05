@@ -139,13 +139,13 @@ public:
     IsotropicRadonMomentArray() = default;
     explicit IsotropicRadonMomentArray(std::size_t order): Base{order} {}
 
-    [[nodiscard]] explicit operator
+    [[nodiscard]] operator
     IsotropicRadonMomentSpan<typename Base::value_type, category>() noexcept
     {
         return {Base::data(), Base::shape()};
     }
 
-    [[nodiscard]] explicit operator
+    [[nodiscard]] operator
     IsotropicRadonMomentSpan<const typename Base::value_type, category>() const noexcept
     {
         return {Base::data(), Base::shape()};
@@ -198,13 +198,13 @@ public:
     RadonMomentArray() = default;
     explicit RadonMomentArray(std::size_t order): Base{order} {}
 
-    [[nodiscard]] explicit operator
+    [[nodiscard]] operator
     RadonMomentSpan<typename Base::value_type, category>() noexcept
     {
         return {Base::data(), Base::shape()};
     }
 
-    [[nodiscard]] explicit operator
+    [[nodiscard]] operator
     RadonMomentSpan<const typename Base::value_type, category>() const noexcept
     {
         return {Base::data(), Base::shape()};
@@ -237,8 +237,12 @@ public:
 };
 
 template <typename ElementType, MomentCategory category>
-RadonMomentSpan(RadonMomentArray<ElementType, category>)
-    -> RadonMomentSpan<std::remove_cv_t<ElementType>, category>;
+RadonMomentSpan(RadonMomentArray<ElementType, category>&)
+    -> RadonMomentSpan<ElementType, category>;
+
+template <typename ElementType, MomentCategory category>
+RadonMomentSpan(const RadonMomentArray<ElementType, category>&)
+    -> RadonMomentSpan<const ElementType, category>;
 
 template <typename ElementType, MomentCategory category>
 void evaluate_transverse_radon_transform(
@@ -337,7 +341,7 @@ public:
         IsotropicRadonMomentSpan<double, category> radon_moments)
     {
         assert(max_radon_order(category, zernike_expansion.order()) <= radon_moments.max_order());
-        evaluate_transverse_components(zernike_expansion, radon_moments);
+        evaluate_transverse_moments_impl(zernike_expansion, radon_moments);
     }
 
     [[nodiscard]] IsotropicRadonMomentArray<double, category>
@@ -351,13 +355,17 @@ public:
     }
 
 private:
-    void evaluate_transverse_components(
+    void evaluate_transverse_moments_impl(
         IsotropicZernikeSpan<const double> in,
         IsotropicRadonMomentSpan<double, category> out) const noexcept
     {
         if (in.order() == 0) return;
 
-        assert(in.order() <= out.order());
+        assert(
+            in.order() + 2 <= out.order(IsoMoment::identity)
+            && in.order() + 2 <= out.order(IsoMoment::linear)
+            && in.order() + 4 <= out.order(IsoMoment::quadratic));
+
         out[IsoMoment::quadratic, 0] = m_coeffs[0, 2]*in[0];
         out[IsoMoment::linear, 0] = m_coeffs[0, 5]*in[0];
         out[IsoMoment::identity, 0] = m_coeffs[0, 7]*in[0];
@@ -451,8 +459,7 @@ class RadonTransformer<DistType::aniso, MomentCategory::identity>
 public:
     RadonTransformer() = default;
 
-    template <MomentCategory category>
-    void evaluate_transformed_moments(
+    static void evaluate_transformed_moments(
         ZernikeSpan<const double> zernike_expansion,
         RadonMomentSpan<double, MomentCategory::identity> radon_moments)
     {
@@ -460,12 +467,11 @@ public:
         radon_transform(zernike_expansion, radon_moments[Moment::identity]);
     }
 
-    template <MomentCategory category>
-    [[nodiscard]] RadonMomentArray<double, MomentCategory::identity>
-    evaluate_transformed_moments(ZernikeSpan<double> zernike_expansion)
+    [[nodiscard]] static RadonMomentArray<double, MomentCategory::identity>
+    evaluate_transformed_moments(ZernikeSpan<const double> zernike_expansion)
     {
         RadonMomentArray<double, MomentCategory::identity>
-        moments{max_radon_order(category, zernike_expansion.order())};
+        moments{max_radon_order(MomentCategory::identity, zernike_expansion.order())};
 
         evaluate_transformed_moments(zernike_expansion, RadonMomentSpan(moments));
         return moments;
@@ -485,11 +491,11 @@ public:
         RadonMomentSpan<double, category> radon_moments)
     {
         assert(max_radon_order(category, zernike_expansion.order()) <= radon_moments.max_order());
-        multiply_by_and_radon_transform_inplace<Moment::identity>(zernike_expansion, radon_moments[Moment::identity]);
-        multiply_by_and_radon_transform_inplace<Moment::x>(zernike_expansion, radon_moments[Moment::x]);
-        multiply_by_and_radon_transform_inplace<Moment::y>(zernike_expansion, radon_moments[Moment::y]);
-        multiply_by_and_radon_transform_inplace<Moment::z>(zernike_expansion, radon_moments[Moment::z]);
-        multiply_by_and_radon_transform_inplace<Moment::r2>(zernike_expansion, radon_moments[Moment::r2]);
+        detail::multiply_by_and_radon_transform_inplace<Moment::identity>(m_recursion_coeffs, zernike_expansion, radon_moments[Moment::identity]);
+        detail::multiply_by_and_radon_transform_inplace<Moment::x>(m_recursion_coeffs, zernike_expansion, radon_moments[Moment::x]);
+        detail::multiply_by_and_radon_transform_inplace<Moment::y>(m_recursion_coeffs, zernike_expansion, radon_moments[Moment::y]);
+        detail::multiply_by_and_radon_transform_inplace<Moment::z>(m_recursion_coeffs, zernike_expansion, radon_moments[Moment::z]);
+        detail::multiply_by_and_radon_transform_inplace<Moment::r2>(m_recursion_coeffs, zernike_expansion, radon_moments[Moment::r2]);
     }
 
     [[nodiscard]] RadonMomentArray<double, category>
@@ -506,6 +512,14 @@ private:
     detail::ZernikeRecursionData m_recursion_coeffs;
 };
 
+namespace detail
+{
 
+void transverse_radon_moments(
+    IsotropicZernikeSpan<const double> in_radon,
+    IsotropicZernikeSpan<const double> in_r2_radon,
+    IsotropicRadonMomentSpan<double, MomentCategory::transverse> out);
+
+}
 
 } // namespace zdm::zebra

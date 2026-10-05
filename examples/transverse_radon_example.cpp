@@ -48,8 +48,12 @@ int main()
 
     zest::DynamicMDArray<std::array<double, 2>, 2> out{vlab.size(), vmin.size()};
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{}
+        .evaluate_transformed_moments(dist_expansion);
+
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(dist_expansion, vlab, vmin, out);
+        .integrate(distribution_radon, vlab, vmin, out);
 
     for (std::size_t i = 0; i < vlab.size(); ++i)
     {

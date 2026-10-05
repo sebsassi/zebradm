@@ -114,7 +114,7 @@ bool test_angle_integrator_iso_iso_is_correct_for_constant_dist()
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::IsotropicRadonMomentSpan<const double>(distribution_radon), offsets, shells, test);
+        .integrate(distribution_radon, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -186,10 +186,10 @@ bool test_angle_integrator_iso_iso_is_correct_for_shm()
 
     zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
-        .evaluate_transformed_moments(zdm::IsotropicZernikeSpan<const double>(distribution));
+        .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), offsets, shells, shm_test);
+        .integrate(distribution_radon, offsets, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -255,13 +255,13 @@ bool test_angle_integrator_aniso_iso_is_correct_for_constant_dist()
     constexpr std::size_t order = 1;
     zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
 
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), offsets, shells, test);
+        .integrate(distribution_radon, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -334,10 +334,10 @@ bool test_angle_integrator_aniso_iso_is_correct_for_shm()
 
     zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
-        .evaluate_transformed_moments(zdm::ZernikeSpan<const double>(distribution));
+        .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), offsets, shells, shm_test);
+        .integrate(distribution_radon, offsets, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -420,7 +420,7 @@ bool test_angle_integrator_iso_aniso_is_correct_for_constant_dist_constant_resp(
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::IsotropicRadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -493,14 +493,14 @@ bool test_angle_integrator_iso_aniso_is_correct_for_shm_constant_resp()
 
     zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
-        .evaluate_transformed_moments(zdm::IsotropicZernikeSpan<const double>(distribution));
+        .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
         resp[i, 0, 0, 0] = 1.0;
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::IsotropicRadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, shm_test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -572,8 +572,8 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_res
     constexpr std::size_t order = 1;
     zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -582,7 +582,7 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_res
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -656,14 +656,14 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp()
 
     zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
     distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
-        .evaluate_transformed_moments(zdm::ZernikeSpan<const double>(distribution));
+        .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
         resp[i, 0, 0, 0] = 1.0;
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, shm_test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, shm_test);
 
     constexpr double tol = 1.0e-13;
 
@@ -763,20 +763,20 @@ bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
     distribution_radon{order};
     distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
     distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
+    distribution_radon[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
+    distribution_radon[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::IsotropicRadonMomentSpan<const double>(distribution_radon), offsets, shells, test);
+        .integrate(distribution_radon, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -832,20 +832,22 @@ bool test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2, 0, 0, 0] = -1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 0, 0, 0, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 2, 0, 0, 0] = -1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 0, 0, 0, 0] = 1.0/15.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 2, 0, 0, 0] = -5.0/21.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 4, 0, 0, 0] = 6.0/35.0;
+    constexpr double sqrt5 = 2.2360679774997896964091737;
+    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
+    distribution_radon[zdm::zebra::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
+    distribution_radon[zdm::zebra::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), offsets, shells, test);
+        .integrate(distribution_radon, offsets, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -904,15 +906,15 @@ bool test_transverse_angle_integrator_iso_aniso_is_correct_for_constant_dist_con
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
     distribution_radon{order};
     distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
     distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
+    distribution_radon[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
+    distribution_radon[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
+    distribution_radon[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -921,7 +923,7 @@ bool test_transverse_angle_integrator_iso_aniso_is_correct_for_constant_dist_con
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::IsotropicRadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;
@@ -980,15 +982,17 @@ bool test_transverse_angle_integrator_aniso_aniso_is_correct_for_constant_dist_c
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2, 0, 0, 0] = -1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 0, 0, 0, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 2, 0, 0, 0] = -1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 0, 0, 0, 0] = 1.0/15.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 2, 0, 0, 0] = -5.0/21.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 4, 0, 0, 0] = 6.0/35.0;
+    constexpr double sqrt5 = 2.2360679774997896964091737;
+    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::zebra::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
+    distribution_radon[zdm::zebra::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
+    distribution_radon[zdm::zebra::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
+    distribution_radon[zdm::zebra::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -997,7 +1001,7 @@ bool test_transverse_angle_integrator_aniso_aniso_is_correct_for_constant_dist_c
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(order, order)
-        .integrate(zdm::zebra::RadonMomentSpan<const double>(distribution_radon), resp, offsets, rotation_angles, shells, test);
+        .integrate(distribution_radon, resp, offsets, rotation_angles, shells, test);
 
     constexpr double tol = 1.0e-13;
     bool success = true;

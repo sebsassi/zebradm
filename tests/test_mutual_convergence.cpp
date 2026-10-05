@@ -75,8 +75,12 @@ template <typename DistType>
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(std::forward<DistType>(dist), 1.0, order);
 
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
-        .integrate(distribution, offsets, shells, transformer_test);
+        .integrate(distribution_radon, offsets, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -144,8 +148,12 @@ template <typename DistType>
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, order);
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(distribution, offsets, shells, transformer_test);
+        .integrate(distribution_radon, offsets, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -218,8 +226,12 @@ template <typename DistType>
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(std::forward<DistType>(dist), 1.0, order);
 
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
-        .integrate(distribution, offsets, shells, transformer_test);
+        .integrate(distribution_radon, offsets, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -295,8 +307,12 @@ template <typename DistType>
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, order);
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
-        .integrate(distribution, offsets, shells, transformer_test);
+        .integrate(distribution_radon, offsets, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -379,8 +395,12 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
+        .integrate(distribution_radon, response, offsets, rotation_angles, shells, transformer_test);
 
 
     bool success = true;
@@ -455,8 +475,12 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
+        .integrate(distribution_radon, response, offsets, rotation_angles, shells, transformer_test);
 
 
     bool success = true;
@@ -536,8 +560,12 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
+    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate(distribution, response, offsets, rotation_angles, shells, transformer_test);
+        .integrate(distribution_radon, response, offsets, rotation_angles, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -619,8 +647,12 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
+    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{}
+        .evaluate_transformed_moments(distribution);
+
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
-        .integrate( distribution, response, offsets, rotation_angles, shells, transformer_test);
+        .integrate(distribution_radon, response, offsets, rotation_angles, shells, transformer_test);
 
     bool success = true;
     for (std::size_t i = 0; i < offsets.size(); ++i)
