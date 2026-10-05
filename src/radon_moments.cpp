@@ -34,32 +34,32 @@ void transverse_radon_moments(
 {
     if (in_radon.order() < 3) return;
     assert(in_r2_radon.order() == in_radon.order() + 2);
-    assert(out.order() >= in_r2_radon.order());
+    assert(in_r2_radon.order() + 2 <= out.max_order());
 
-    out[0, IsoMoment::quadratic] = in_r2_radon[0] - (2.0/3.0)*in_radon[0] - (4.0/15.0)*in_radon[2];
-    out[0, IsoMoment::linear] = in_radon[0] + (2.0/5.0)*in_radon[2];
-    out[0, IsoMoment::identity] = in_radon[0];
+    out[IsoMoment::quadratic, 0] = in_r2_radon[0] - (2.0/3.0)*in_radon[0] - (4.0/15.0)*in_radon[2];
+    out[IsoMoment::linear, 0] = in_radon[0] + (2.0/5.0)*in_radon[2];
+    out[IsoMoment::identity, 0] = in_radon[0];
 
     const std::size_t nmax = (in_r2_radon.order() - 1) & (~1UL);
     for (std::size_t n = 2; n < nmax - 2; n += 2)
     {
         const auto dn = double(n);
-        out[n, IsoMoment::quadratic] = in_r2_radon[n] - 2.0*(in_radon[n - 2]*dn*(dn - 1.0)/((2.0*dn - 3.0)*(2.0*dn - 1.0))
+        out[IsoMoment::quadratic, n] = in_r2_radon[n] - 2.0*(in_radon[n - 2]*dn*(dn - 1.0)/((2.0*dn - 3.0)*(2.0*dn - 1.0))
             + in_radon[n]*((dn + 1.0)*(dn + 1.0)/(2.0*dn + 3.0) + dn*dn/(2.0*dn - 1.0))/(2.0*dn + 1.0)
             + in_radon[n + 2]*(dn + 1.0)*(dn + 2.0)/((2.0*dn + 3.0)*(2.0*dn + 5.0)));
-        out[n, IsoMoment::linear] = in_radon[n]*(dn + 1.0)/(2.0*dn + 1.0) + in_radon[n + 2]*(dn + 2.0)/(2.0*dn + 5.0);
-        out[n, IsoMoment::identity] = in_radon[n];
+        out[IsoMoment::linear, n] = in_radon[n]*(dn + 1.0)/(2.0*dn + 1.0) + in_radon[n + 2]*(dn + 2.0)/(2.0*dn + 5.0);
+        out[IsoMoment::identity, n] = in_radon[n];
     }
 
     const auto dn = double(nmax);
-    out[nmax - 2, IsoMoment::quadratic] = in_r2_radon[nmax - 2] - 2.0*(in_radon[nmax - 4]*(dn - 2.0)*(dn - 3.0)/((2.0*dn - 7.0)*(2.0*dn - 5.0))
+    out[IsoMoment::quadratic, nmax - 2] = in_r2_radon[nmax - 2] - 2.0*(in_radon[nmax - 4]*(dn - 2.0)*(dn - 3.0)/((2.0*dn - 7.0)*(2.0*dn - 5.0))
         + in_radon[nmax - 2]*((dn - 1.0)*(dn - 1.0)/(2.0*dn - 1.0) + (dn - 2.0)*(dn - 2.0)/(2.0*dn - 5.0))/(2.0*dn - 3.0));
-    out[nmax - 2, IsoMoment::linear] = in_radon[nmax - 2]*(dn - 1.0)/(2.0*dn - 3.0);
-    out[nmax - 2, IsoMoment::identity] = in_radon[nmax - 2];
+    out[IsoMoment::linear, nmax - 2] = in_radon[nmax - 2]*(dn - 1.0)/(2.0*dn - 3.0);
+    out[IsoMoment::identity, nmax - 2] = in_radon[nmax - 2];
 
-    out[nmax, IsoMoment::quadratic] = in_r2_radon[nmax] - in_radon[nmax - 2]*2.0*dn*(dn - 1.0)/((2.0*dn - 3.0)*(2.0*dn - 1.0));
-    out[nmax, IsoMoment::linear] = 0.0;
-    out[nmax, IsoMoment::identity] = 0.0;
+    out[IsoMoment::quadratic, nmax] = in_r2_radon[nmax] - in_radon[nmax - 2]*2.0*dn*(dn - 1.0)/((2.0*dn - 3.0)*(2.0*dn - 1.0));
+    out[IsoMoment::linear, nmax] = 0.0;
+    out[IsoMoment::identity, nmax] = 0.0;
 }
 
 }

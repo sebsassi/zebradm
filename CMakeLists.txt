@@ -37,6 +37,7 @@ add_library(zebradm
     src/affine_legendre.cpp
     src/affine_legendre_integral.cpp
     src/radon_integrator.cpp
+    src/radon_moments.cpp
     src/zebra_radon.cpp
     src/zernike_recursions.cpp
 )
