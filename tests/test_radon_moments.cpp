@@ -16,29 +16,29 @@ bool test_radon_transformer_iso_trans_is_correct_for_constant_distribution(std::
     zdm::IsotropicZernikeExpansion<double> expansion{order};
     expansion[0] = 1.0/std::numbers::sqrt3;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     reference_moments{order + 4};
 
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
-    reference_moments[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
-    reference_moments[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
-    reference_moments[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
+    reference_moments[zdm::IsoMoment::quadratic, 0] = 1.0/15.0;
+    reference_moments[zdm::IsoMoment::linear, 0] = 1.0/5.0;
+    reference_moments[zdm::IsoMoment::identity, 0] = 1.0/3.0;
+    reference_moments[zdm::IsoMoment::quadratic, 2] = -5.0/21.0;
+    reference_moments[zdm::IsoMoment::linear, 2] = -1.0/5.0;
+    reference_moments[zdm::IsoMoment::identity, 2] = -1.0/3.0;
+    reference_moments[zdm::IsoMoment::quadratic, 4] = 6.0/35.0;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     moments{order + 4};
 
-    zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{order}
+    zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::transverse>{order}
         .evaluate_transformed_moments(expansion, moments);
 
     constexpr double tol = 1.0e-13;
 
     const std::array moment_labels = {
-        zdm::zebra::IsoMoment::identity,
-        zdm::zebra::IsoMoment::linear,
-        zdm::zebra::IsoMoment::quadratic,
+        zdm::IsoMoment::identity,
+        zdm::IsoMoment::linear,
+        zdm::IsoMoment::quadratic,
     };
 
     bool success = true;
@@ -52,7 +52,7 @@ bool test_radon_transformer_iso_trans_is_correct_for_constant_distribution(std::
     {
         for (auto label : moment_labels)
         {
-            std::println("{}: moment reference", zdm::zebra::to_string(label));
+            std::println("{}: moment reference", zdm::to_string(label));
             for (std::size_t n : moments[label].indices())
                 std::println("{}: {} {}", n, moments[label, n], reference_moments[label, n]);
         }
@@ -66,33 +66,33 @@ bool test_radon_transformer_aniso_trans_is_correct_for_constant_distribution(std
     zdm::ZernikeExpansion<double> expansion{order};
     expansion[0, 0, 0, 0] = 1.0/std::numbers::sqrt3;
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
     reference_moments{order + 4};
 
     constexpr double sqrt5 = 2.2360679774997896964091737;
-    reference_moments[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    reference_moments[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
-    reference_moments[zdm::zebra::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
-    reference_moments[zdm::zebra::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
-    reference_moments[zdm::zebra::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
-    reference_moments[zdm::zebra::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
-    reference_moments[zdm::zebra::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
-    reference_moments[zdm::zebra::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
+    reference_moments[zdm::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    reference_moments[zdm::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    reference_moments[zdm::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
+    reference_moments[zdm::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
+    reference_moments[zdm::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
+    reference_moments[zdm::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
+    reference_moments[zdm::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
+    reference_moments[zdm::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
     moments{order + 4};
 
-    zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{order}
+    zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::transverse>{order}
         .evaluate_transformed_moments(expansion, moments);
 
     constexpr double tol = 1.0e-13;
 
     const std::array moment_labels = {
-        zdm::zebra::Moment::identity,
-        zdm::zebra::Moment::x,
-        zdm::zebra::Moment::y,
-        zdm::zebra::Moment::z,
-        zdm::zebra::Moment::r2
+        zdm::Moment::identity,
+        zdm::Moment::x,
+        zdm::Moment::y,
+        zdm::Moment::z,
+        zdm::Moment::r2
     };
 
     bool success = true;
@@ -123,7 +123,7 @@ bool test_radon_transformer_aniso_trans_is_correct_for_constant_distribution(std
     {
         for (auto label : moment_labels)
         {
-            std::println("{}: moment reference", zdm::zebra::to_string(label));
+            std::println("{}: moment reference", zdm::to_string(label));
             for (std::size_t n : moments[label].indices())
             {
                 for (std:: size_t l : moments[label, n].indices())
@@ -159,23 +159,23 @@ bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(st
     zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
         recursion_data, expansion, r2_radon);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     composite_moments{order + 4};
 
-    zdm::zebra::detail::transverse_radon_moments(radon, r2_radon, composite_moments);
+    zdm::detail::transverse_radon_moments(radon, r2_radon, composite_moments);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     direct_moments{order + 4};
 
-    zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{order}
+    zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::transverse>{order}
         .evaluate_transformed_moments(expansion, direct_moments);
 
     constexpr double tol = 1.0e-13;
 
     const std::array moment_labels = {
-        zdm::zebra::IsoMoment::identity,
-        zdm::zebra::IsoMoment::linear,
-        zdm::zebra::IsoMoment::quadratic,
+        zdm::IsoMoment::identity,
+        zdm::IsoMoment::linear,
+        zdm::IsoMoment::quadratic,
     };
 
     bool success = true;
@@ -189,7 +189,7 @@ bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(st
     {
         for (auto label : moment_labels)
         {
-            std::println("{}: direct composite", zdm::zebra::to_string(label));
+            std::println("{}: direct composite", zdm::to_string(label));
             for (std::size_t n : direct_moments[label].indices())
                 std::println("{}: {} {}", n, direct_moments[label, n], composite_moments[label, n]);
         }
@@ -214,21 +214,21 @@ bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(st
     zdm::zebra::detail::multiply_by_r2_and_radon_transform_inplace(
         recursion_data, expansion, r2_radon);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     composite_moments{order + 4};
-    zdm::zebra::detail::transverse_radon_moments(radon, r2_radon, composite_moments);
+    zdm::detail::transverse_radon_moments(radon, r2_radon, composite_moments);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     direct_moments{order + 4};
-    zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{order}
+    zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::transverse>{order}
         .evaluate_transformed_moments(expansion, direct_moments);
 
     constexpr double tol = 1.0e-13;
 
     const std::array moment_labels = {
-        zdm::zebra::IsoMoment::identity,
-        zdm::zebra::IsoMoment::linear,
-        zdm::zebra::IsoMoment::quadratic,
+        zdm::IsoMoment::identity,
+        zdm::IsoMoment::linear,
+        zdm::IsoMoment::quadratic,
     };
 
     bool success = true;
@@ -242,7 +242,7 @@ bool test_isotropic_zernike_transverse_radon_helper_components_are_consistent(st
     {
         for (auto label : moment_labels)
         {
-            std::println("{}: direct composite", zdm::zebra::to_string(label));
+            std::println("{}: direct composite", zdm::to_string(label));
             for (std::size_t n : direct_moments[label].indices())
                 std::println("{}: {} {}", n, direct_moments[label, n], composite_moments[label, n]);
         }

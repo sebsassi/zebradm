@@ -49,12 +49,12 @@ void AngleIntegrator<DistType::iso, RespType::iso>::resize(std::size_t radon_ord
 }
 
 void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
-    IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<double, 2> out)
 {
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     resize(radon_order);
 
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -67,12 +67,12 @@ void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
 }
 
 void AngleIntegrator<DistType::iso, RespType::iso>::integrate(
-    IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     resize(radon_order);
 
     const double offset_len = la::norm(offset);
@@ -100,7 +100,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::resize(
 }
 
 void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
-    IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     SHVectorSpan<const double> response,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
@@ -111,7 +111,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
 
@@ -126,7 +126,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
 
 
 void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
-    IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<double> out)
@@ -134,7 +134,7 @@ void AngleIntegrator<DistType::iso, RespType::aniso>::integrate(
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
 
@@ -163,7 +163,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size_t radon_o
 }
 
 void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> shells, zest::DynamicMDSpan<double, 2> out)
 {
@@ -172,7 +172,7 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     resize(radon_order);
 
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -180,14 +180,14 @@ void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
 }
 
 void AngleIntegrator<DistType::aniso, RespType::iso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<double> out)
 {
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     resize(radon_order);
 
     std::ranges::copy(
@@ -262,7 +262,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::resize(
 }
 
 void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     SHVectorSpan<const double> response,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
@@ -274,7 +274,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
     const std::size_t top_order = std::min(radon_order + resp_order, trunc_order);
@@ -286,7 +286,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 }
 
 void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<double> out,
@@ -295,7 +295,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::identity);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::identity);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
     const std::size_t top_order = std::min(radon_order + resp_order, trunc_order);
@@ -304,7 +304,7 @@ void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 }
 
 void AngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::size_t radon_order,
@@ -354,7 +354,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::resize(std::size_t
 }
 
 void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
@@ -363,7 +363,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     resize(radon_order);
     for (std::size_t i = 0; i < offsets.size(); ++i)
     {
@@ -376,14 +376,14 @@ void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
 }
 
 void TransverseAngleIntegrator<DistType::iso, RespType::iso>::integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         const la::Vector<double, 3>& offset,
         std::span<const double> shells, std::span<std::array<double, 2>> out)
 {
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     resize(radon_order);
     const double offset_len = la::norm(offset);
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -410,7 +410,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::resize(
 }
 
 void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
@@ -421,7 +421,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
 
@@ -436,7 +436,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
 }
 
 void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out)
@@ -444,7 +444,7 @@ void TransverseAngleIntegrator<DistType::iso, RespType::aniso>::integrate(
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order);
 
@@ -476,7 +476,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::resize(std::size
 }
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
     zest::DynamicMDSpan<std::array<double, 2>, 2> out)
 {
@@ -485,7 +485,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     resize(radon_order);
 
     for (std::size_t i = 0; i < offsets.size(); ++i)
@@ -493,13 +493,13 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
 }
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::iso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     const la::Vector<double, 3>& offset, std::span<const double> shells,
     std::span<std::array<double, 2>> out)
 {
     assert(shells.size() == out.size());
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     resize(radon_order);
 
     std::ranges::copy(
@@ -572,7 +572,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::resize(
 }
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     SHVectorSpan<const double> response,
     std::span<const la::Vector<double, 3>> offsets,
     std::span<const double> rotation_angles, std::span<const double> shells,
@@ -584,7 +584,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
         && shells.size() == out.extent(1));
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
 
@@ -593,7 +593,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
 }
 
 void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
-    RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     SHVectorSpan<const double> response,
     const la::Vector<double, 3>& offset, double rotation_angle,
     std::span<const double> shells, std::span<std::array<double, 2>> out,
@@ -602,7 +602,7 @@ void TransverseAngleIntegrator<DistType::aniso, RespType::aniso>::integrate(
     assert(shells.size() == out.size());
 
     const std::size_t radon_order
-        = distribution_radon_transform.max_order() - detail::max_offset(MomentCategory::transverse);
+        = distribution_radon_transform.max_order() - zdm::detail::max_offset(MomentSet::transverse);
     const std::size_t resp_order = std::get<0>(std::get<1>(response.extents()));
     resize(radon_order, resp_order, trunc_order);
 

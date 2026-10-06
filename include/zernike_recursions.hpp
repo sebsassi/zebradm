@@ -140,7 +140,7 @@ void multiply_by_and_radon_transform_inplace(
     const ZernikeRecursionData& coeff_data,
     ZernikeSpan<const double> in, ZernikeSpan<double> out) noexcept
 {
-    assert(in.order() + offset_of(moment) <= out.order());
+    assert(in.order() + zdm::detail::offset_of(moment) <= out.order());
     multiply_by<moment>(coeff_data, in, out);
     radon_transform_inplace(out);
 }

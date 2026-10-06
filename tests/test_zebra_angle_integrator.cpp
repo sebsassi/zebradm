@@ -106,10 +106,10 @@ bool test_angle_integrator_iso_iso_is_correct_for_constant_dist()
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 0] = 1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 2] = -1.0/3.0;
 
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
@@ -184,8 +184,8 @@ bool test_angle_integrator_iso_iso_is_correct_for_shm()
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(shm_dist, 1.0, order);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -253,10 +253,10 @@ bool test_angle_integrator_aniso_iso_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
 
     zest::DynamicMDArray<double, 2> test{offsets.size(), shells.size()};
 
@@ -332,8 +332,8 @@ bool test_angle_integrator_aniso_iso_is_correct_for_shm()
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(shm_dist, 1.0, order);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -408,10 +408,10 @@ bool test_angle_integrator_iso_aniso_is_correct_for_constant_dist_constant_resp(
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 0] = 1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 2] = -1.0/3.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -491,8 +491,8 @@ bool test_angle_integrator_iso_aniso_is_correct_for_shm_constant_resp()
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(shm_dist, 1.0, order);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
@@ -570,10 +570,10 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_constant_dist_constant_res
     }
 
     constexpr std::size_t order = 1;
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -654,8 +654,8 @@ bool test_angle_integrator_aniso_aniso_is_correct_for_shm_constant_resp()
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(shm_dist, 1.0, order);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
@@ -763,15 +763,15 @@ bool test_transverse_angle_integrator_iso_iso_is_correct_for_constant_dist()
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
-    distribution_radon[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
+    distribution_radon[zdm::IsoMoment::identity, 0] = 1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 2] = -1.0/3.0;
+    distribution_radon[zdm::IsoMoment::linear, 0] = 1.0/5.0;
+    distribution_radon[zdm::IsoMoment::linear, 2] = -1.0/5.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 0] = 1.0/15.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 2] = -5.0/21.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 4] = 6.0/35.0;
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
@@ -832,17 +832,17 @@ bool test_transverse_angle_integrator_aniso_iso_is_correct_for_constant_dist()
     }
 
     constexpr std::size_t order = 1;
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
     distribution_radon{order};
     constexpr double sqrt5 = 2.2360679774997896964091737;
-    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
-    distribution_radon[zdm::zebra::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
-    distribution_radon[zdm::zebra::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
+    distribution_radon[zdm::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
+    distribution_radon[zdm::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
+    distribution_radon[zdm::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
+    distribution_radon[zdm::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
+    distribution_radon[zdm::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
+    distribution_radon[zdm::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
 
     zest::DynamicMDArray<std::array<double, 2>, 2> test{offsets.size(), shells.size()};
 
@@ -906,15 +906,15 @@ bool test_transverse_angle_integrator_iso_aniso_is_correct_for_constant_dist_con
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
     distribution_radon{order};
-    distribution_radon[zdm::zebra::IsoMoment::identity, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::identity, 2] = -1.0/3.0;
-    distribution_radon[zdm::zebra::IsoMoment::linear, 0] = 1.0/5.0;
-    distribution_radon[zdm::zebra::IsoMoment::linear, 2] = -1.0/5.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 0] = 1.0/15.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 2] = -5.0/21.0;
-    distribution_radon[zdm::zebra::IsoMoment::quadratic, 4] = 6.0/35.0;
+    distribution_radon[zdm::IsoMoment::identity, 0] = 1.0/3.0;
+    distribution_radon[zdm::IsoMoment::identity, 2] = -1.0/3.0;
+    distribution_radon[zdm::IsoMoment::linear, 0] = 1.0/5.0;
+    distribution_radon[zdm::IsoMoment::linear, 2] = -1.0/5.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 0] = 1.0/15.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 2] = -5.0/21.0;
+    distribution_radon[zdm::IsoMoment::quadratic, 4] = 6.0/35.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)
@@ -982,17 +982,17 @@ bool test_transverse_angle_integrator_aniso_aniso_is_correct_for_constant_dist_c
 
     constexpr std::size_t order = 1;
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
     distribution_radon{order};
     constexpr double sqrt5 = 2.2360679774997896964091737;
-    distribution_radon[zdm::zebra::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
-    distribution_radon[zdm::zebra::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
-    distribution_radon[zdm::zebra::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
-    distribution_radon[zdm::zebra::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
-    distribution_radon[zdm::zebra::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
+    distribution_radon[zdm::Moment::identity, 0, 0, 0, 0] = 1.0/3.0;
+    distribution_radon[zdm::Moment::identity, 2, 0, 0, 0] = -1.0/3.0;
+    distribution_radon[zdm::Moment::x, 1, 1, 1, 0] = -1.0/sqrt5;
+    distribution_radon[zdm::Moment::y, 1, 1, 1, 1] = -1.0/sqrt5;
+    distribution_radon[zdm::Moment::z, 1, 1, 0, 0] = 1.0/sqrt5;
+    distribution_radon[zdm::Moment::r2, 0, 0, 0, 0] = 1.0/5.0;
+    distribution_radon[zdm::Moment::r2, 2, 0, 0, 0] = -1.0/7.0;
+    distribution_radon[zdm::Moment::r2, 4, 0, 0, 0] = -2.0/35.0;
 
     zdm::SHExpansionVector<double> resp{shells.size(), order};
     for (std::size_t i = 0; i < shells.size(); ++i)

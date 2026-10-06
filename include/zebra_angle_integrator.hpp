@@ -100,12 +100,12 @@ public:
     void resize(std::size_t radon_order);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         std::span<const la::Vector<double, 3>> offsets, std::span<const double> shells,
         zest::DynamicMDSpan<double, 2> out);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         const la::Vector<double, 3>& offset, std::span<const double> shells, std::span<double> out);
 
 private:
@@ -129,14 +129,14 @@ public:
     void resize(std::size_t radon_order, std::size_t resp_order);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         SHVectorSpan<const double> response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::DynamicMDSpan<double, 2> out);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<double> out);
@@ -186,7 +186,7 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::DynamicMDSpan<double, 2> out);
 
@@ -213,7 +213,7 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         const la::Vector<double, 3>& offset, std::span<const double> shells,
         std::span<double> out);
 
@@ -299,7 +299,7 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         SHVectorSpan<const double> response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
@@ -350,7 +350,7 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<double> out,
@@ -358,7 +358,7 @@ public:
 
 private:
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::identity> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::identity> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::size_t geg_order,
@@ -391,12 +391,12 @@ public:
     void resize(std::size_t radon_order);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         const la::Vector<double, 3>& offset,
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
@@ -421,14 +421,14 @@ public:
     void resize(std::size_t radon_order, std::size_t resp_order);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
         zest::DynamicMDSpan<std::array<double, 2>, 2> out);
 
     void integrate(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out);
@@ -480,7 +480,7 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> shells, zest::DynamicMDSpan<std::array<double, 2>, 2> out);
 
@@ -508,7 +508,7 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         const la::Vector<double, 3>& offset,
         std::span<const double> shells, std::span<std::array<double, 2>> out);
 
@@ -594,7 +594,7 @@ public:
         @note `distribution` and `offsets` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         std::span<const la::Vector<double, 3>> offsets,
         std::span<const double> rotation_angles, std::span<const double> shells,
@@ -645,7 +645,7 @@ public:
         @note `distribution` and `offset` are defined in the same coordinates.
     */
     void integrate(
-        RadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        RadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHVectorSpan<const double> response,
         const la::Vector<double, 3>& offset, double rotation_angle,
         std::span<const double> shells, std::span<std::array<double, 2>> out,

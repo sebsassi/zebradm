@@ -61,7 +61,7 @@ double AngleIntegratorCore<DistType::iso, RespType::iso>::integrate(
 }
 
 std::array<double, 2> AngleIntegratorCore<DistType::iso, RespType::iso>::integrate_transverse(
-    IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     double offset_len, double shell)
 {
     if (std::fabs(shell) > 1.0 + offset_len) return {};
@@ -154,7 +154,7 @@ AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate(
 
 [[nodiscard]] std::array<double, 2>
 AngleIntegratorCore<DistType::iso, RespType::aniso>::integrate_transverse(
-    IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+    IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
     SHSpan<const double> response_exp, const la::Vector<double, 3>& offset,
     double rotation_angle, double shell, const zest::WignerdPiHalfCollection& wigner_d_pi2)
 {

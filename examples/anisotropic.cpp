@@ -121,10 +121,10 @@ int main()
     zdm::ZernikeExpansion<double> distribution
         = zernike_transformer.forward_transform(dist_func, radius, dist_order);
 
-    zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>
+    zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>
     radon_transformer{};
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
     distribution_radon = radon_transformer.evaluate_transformed_moments(distribution);
 
     constexpr std::size_t resp_order = 60;

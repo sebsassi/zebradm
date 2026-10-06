@@ -54,8 +54,8 @@ void zebra_evaluate(
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(dist_order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, dist_order);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::SHExpansionVector<double> response{shells.size(), resp_order};

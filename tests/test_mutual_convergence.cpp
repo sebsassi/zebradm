@@ -75,8 +75,8 @@ template <typename DistType>
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -148,8 +148,8 @@ template <typename DistType>
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -226,8 +226,8 @@ template <typename DistType>
         = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform(std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::transverse>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::iso>(order)
@@ -307,8 +307,8 @@ template <typename DistType>
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>(order)
             .forward_transform<zdm::la::Vector<double, 3>>(std::forward<DistType>(dist), 1.0, order);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::transverse>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>(order)
@@ -395,8 +395,8 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::identity>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
@@ -475,8 +475,8 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::identity>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::identity>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)
@@ -560,8 +560,8 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::IsotropicRadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::iso, zdm::zebra::MomentCategory::transverse>{}
+    zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::transverse>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::iso, zdm::MomentSet::transverse>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::iso, zdm::RespType::aniso>(dist_order, resp_order)
@@ -647,8 +647,8 @@ template <typename DistType, typename RespType>
     zdm::ResponseTransformer(resp_order)
         .forward_transform(std::forward<RespType>(resp), shells, response);
 
-    zdm::zebra::RadonMomentArray<double, zdm::zebra::MomentCategory::transverse>
-    distribution_radon = zdm::zebra::RadonTransformer<zdm::DistType::aniso, zdm::zebra::MomentCategory::transverse>{}
+    zdm::RadonMomentArray<double, zdm::MomentSet::transverse>
+    distribution_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::transverse>{}
         .evaluate_transformed_moments(distribution);
 
     zdm::zebra::TransverseAngleIntegrator<zdm::DistType::aniso, zdm::RespType::aniso>(dist_order, resp_order)

@@ -1,4 +1,3 @@
-
 /*
 Copyright (c) 2024-2026 Sebastian Sassi
 
@@ -26,14 +25,14 @@ SOFTWARE.
 
 #include "types.hpp"
 
-namespace zdm::zebra
+namespace zdm
 {
 
-enum class MomentCategory: std::uint8_t
+enum class MomentSet: std::uint8_t
 {
     identity,
     transverse,
-    full
+    full,
 };
 
 enum class Moment: std::uint8_t
@@ -48,22 +47,22 @@ enum class Moment: std::uint8_t
     z2,
     xy,
     xz,
-    yz
+    yz,
 };
 
 enum class IsoMoment: std::uint8_t
 {
     identity,
     linear,
-    quadratic
+    quadratic,
 };
 
-[[nodiscard]] constexpr std::string_view to_string(MomentCategory category) noexcept
+[[nodiscard]] constexpr std::string_view to_string(MomentSet category) noexcept
 {
     constexpr std::array strings = {
         "identity",
         "transverse",
-        "full"
+        "full",
     };
 
     return strings[std::to_underlying(category)];
@@ -82,7 +81,7 @@ enum class IsoMoment: std::uint8_t
         "z2",
         "xy",
         "xz",
-        "yz"
+        "yz",
     };
 
     return strings[std::to_underlying(moment)];
@@ -103,10 +102,10 @@ namespace detail
 {
 
 [[nodiscard]] constexpr std::size_t
-moment_count(DistType dist_type, MomentCategory category) noexcept
+moment_count(DistType dist_type, MomentSet category) noexcept
 {
     if (dist_type == DistType::iso)
-        return (category == MomentCategory::identity) ? 1 : 3;
+        return (category == MomentSet::identity) ? 1 : 3;
     else
     {
         constexpr std::array<std::size_t, 3> counts = {1, 5, 11};
@@ -115,9 +114,9 @@ moment_count(DistType dist_type, MomentCategory category) noexcept
 }
 
 [[nodiscard]] constexpr std::size_t
-max_offset(MomentCategory category) noexcept
+max_offset(MomentSet category) noexcept
 {
-    return (category == MomentCategory::identity) ? 0 : 2;
+    return (category == MomentSet::identity) ? 0 : 2;
 }
 
 [[nodiscard]] constexpr std::size_t
@@ -150,9 +149,9 @@ inverse_offset_of(IsoMoment moment) noexcept
 } // namespace detail
 
 [[nodiscard]] constexpr std::size_t
-max_radon_order(MomentCategory category, std::size_t zernike_order)
+max_radon_order(MomentSet category, std::size_t zernike_order)
 {
     return zernike_order + 2 + detail::max_offset(category);
 }
 
-} // namespace zdm::zebra
+} // namespace zdm

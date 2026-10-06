@@ -24,13 +24,13 @@ SOFTWARE.
 
 #include <cassert>
 
-namespace zdm::zebra::detail
+namespace zdm::detail
 {
 
 void transverse_radon_moments(
     IsotropicZernikeSpan<const double> in_radon,
     IsotropicZernikeSpan<const double> in_r2_radon,
-    IsotropicRadonMomentSpan<double, MomentCategory::transverse> out)
+    IsotropicRadonMomentSpan<double, MomentSet::transverse> out)
 {
     if (in_radon.order() < 3) return;
     assert(in_r2_radon.order() == in_radon.order() + 2);

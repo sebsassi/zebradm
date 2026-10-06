@@ -25,6 +25,7 @@ SOFTWARE.
 
 #include <zest/grid_evaluator.hpp>
 
+#include "moments.hpp"
 #include "polynomial.hpp"
 #include "types.hpp"
 #include "zebra_radon.hpp"
@@ -156,7 +157,7 @@ public:
         QuantityOf<energy_differential_rate_per_unit_mass> Rate
     >
     [[nodiscard]] zest::DynamicMDSpan<Rate, 2> energy_differential_rate(
-        IsotropicZernikeVectorSpan<const double> velocity_distribution,
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> velocity_dist_moments,
         QuantityOf<speed> auto max_speed,
         QuantityOf<mass> auto dm_mass,
         QuantityOf<energy_density> auto dm_energy_density,
@@ -170,7 +171,8 @@ public:
     {
         const quantity inv_max_speed = 1.0/max_speed;
 
-        // All physical units should be in the prefactor.
+        // All physical units should be in the prefactor. The integration
+        // happens with dimensionless quantities.
         const quantity prefactor = scattering_rate_prefactor(
                 dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
                 max_momentum_transfer, max_speed);
@@ -179,7 +181,6 @@ public:
                 m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
         const std::size_t num_nodes = m_shell_glq_nodes.size();
 
-        zebra::radon_transform(velocity_distribution, m_radon_transform);
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
             const quantity lab_speed = lab_velocities[i].magnitude();
@@ -187,6 +188,7 @@ public:
                     lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
             calculate_shells(energies, dm_mass, max_speed);
             m_angle_integrator.integrate(
+                    velocity_dist_moments,
                     static_cast<double>(lab_speed*inv_max_speed),
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
 
@@ -436,7 +438,6 @@ private:
     RaggedTable<double> m_response_grid;
     RaggedTable<double> m_interval_weights;
     zebra::AngleIntegrator<DistType::iso, RespType::iso> m_angle_integrator;
-    IsotropicZernikeExpansion<double> m_radon_transform;
     zest::zt::IsotropicGridEvaluator m_grid_evaluator;
 };
 

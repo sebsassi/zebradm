@@ -49,7 +49,7 @@ bool test_multiply_empty_expansion_by_x_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -76,7 +76,7 @@ bool test_multiply_empty_expansion_by_y_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -103,7 +103,7 @@ bool test_multiply_empty_expansion_by_z_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -130,7 +130,7 @@ bool test_multiply_empty_expansion_by_r2_does_nothing()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{4};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::r2>(coeff_data, in, out);
 
     bool success = true;
     for (const auto& element : out.flatten())
@@ -160,7 +160,7 @@ bool test_multiply_Z000_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -211,7 +211,7 @@ bool test_multiply_Z000_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -262,7 +262,7 @@ bool test_multiply_Z000_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -313,7 +313,7 @@ bool test_multiply_Z000_by_r2_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::r2>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -370,7 +370,7 @@ bool test_multiply_Z111_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -437,7 +437,7 @@ bool test_multiply_Z111_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -489,7 +489,7 @@ bool test_multiply_Z111_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -541,7 +541,7 @@ bool test_multiply_Z11m1_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -593,7 +593,7 @@ bool test_multiply_Z11m1_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -660,7 +660,7 @@ bool test_multiply_Z11m1_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -712,7 +712,7 @@ bool test_multiply_Z110_by_x_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -764,7 +764,7 @@ bool test_multiply_Z110_by_y_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -816,7 +816,7 @@ bool test_multiply_Z110_by_z_is_correct_for_order()
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data{out_order};
 
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -903,7 +903,7 @@ bool test_multiply_unit_input_by_x_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -980,7 +980,7 @@ bool test_multiply_random_input_by_x_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::x>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::x>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1057,7 +1057,7 @@ bool test_multiply_random_input_by_y_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::y>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::y>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1131,7 +1131,7 @@ bool test_multiply_unit_input_by_z_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1208,7 +1208,7 @@ bool test_multiply_random_input_by_z_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::z>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::z>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;
@@ -1285,7 +1285,7 @@ bool test_multiply_random_input_by_r2_is_correct_for_order(std::size_t in_order)
     transformer.forward_transform(reference_grid, reference_out);
 
     zdm::zebra::detail::ZernikeRecursionData coeff_data(out_order);
-    zdm::zebra::detail::multiply_by<zdm::zebra::Moment::r2>(coeff_data, in, out);
+    zdm::zebra::detail::multiply_by<zdm::Moment::r2>(coeff_data, in, out);
 
     constexpr double tol = 1.0e-14;
     bool success = true;

@@ -115,7 +115,7 @@ public:
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         double offset_len, double shell);
 
 private:
@@ -158,7 +158,7 @@ public:
         @brief Evaluate the angle-integrated transverse Radon transform.
     */
     [[nodiscard]] std::array<double, 2> integrate_transverse(
-        IsotropicRadonMomentSpan<const double, MomentCategory::transverse> distribution_radon_transform,
+        IsotropicRadonMomentSpan<const double, MomentSet::transverse> distribution_radon_transform,
         SHSpan<const double> response_exp, const la::Vector<double, 3>& offset,
         double rotation_angle, double shell, const zest::WignerdPiHalfCollection& wigner_d_pi2);
 
