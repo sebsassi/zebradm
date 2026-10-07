@@ -38,23 +38,38 @@ template <typename T>
 class RaggedTable
 {
 public:
+    enum OffsetSource: std::uint8_t
+    {
+        size_source,
+        offset_source,
+    };
+
     using size_type = std::size_t;
 
     RaggedTable() = default;
-    explicit RaggedTable(std::span<size_type> sizes):
-        m_data(std::ranges::fold_left(sizes, 0, std::plus{})),
-        m_offsets(sizes.size() + 1)
+
+    template <OffsetSource>
+    [[nodiscard]] RaggedTable from(std::span<const size_type> source);
+
+    template <>
+    [[nodiscard]] RaggedTable from<size_source>(std::span<const size_type> sizes)
     {
-        size_type offset = 0;
-        for (std::size_t i = 0; i < sizes.size(); ++i)
-        {
-            m_offsets[i] = offset;
-            offset += sizes[i];
-        }
-        m_offsets.back() = offset;
+        return RaggedTable{from_sizes_tag{}, sizes};
     }
 
-    [[nodiscard]] std::size_t size() const noexcept { return m_data.size(); }
+    template <>
+    [[nodiscard]] RaggedTable from<offset_source>(std::span<const size_type> offsets)
+    {
+        return RaggedTable{from_offsets_tag{}, offsets};
+    }
+
+    [[nodiscard]] size_type size() const noexcept { return m_data.size(); }
+    [[nodiscard]] size_type extent() const noexcept
+    {
+        return std::max(1UL, m_offsets.size()) - 1;
+    }
+
+    [[nodiscard]] std::span<const size_type> offsets() const noexcept { return m_data.offsets(); }
 
     void clear()
     {
@@ -62,16 +77,38 @@ public:
         m_offsets.clear();
     }
 
+    template <OffsetSource>
+    void reshape(std::span<const size_type> source);
+
+    template <>
+    void reshape<size_source>(std::span<const size_type> sizes)
+    {
+        m_data.resize(std::ranges::fold_left(sizes, 0, std::plus{}));
+        m_offsets.resize(sizes.size() + 1);
+
+        initialize_offsets(sizes);
+    }
+
+    template <>
+    void reshape<offset_source>(std::span<const size_type> offsets)
+    {
+        m_data.resize(offsets.back());
+        m_offsets.resize(offsets.size());
+        std::ranges::copy(offsets, m_offsets.begin());
+    }
+
     std::span<T> append(size_type size)
     {
         m_data.resize(m_data.size() + size);
         m_offsets.emplace_back(m_data.size());
+        return back();
     }
 
     std::span<T> append(std::span<const T> row)
     {
         m_data.append_range(row);
         m_offsets.emplace_back(m_data.size());
+        return back();
     }
 
     [[nodiscard]] std::span<T> flatten() noexcept
@@ -88,7 +125,7 @@ public:
     {
         return {
             m_data.data(),
-            m_offsets[1] - m_offsets.front()
+            m_offsets[1] - m_offsets.front(),
         };
     }
 
@@ -96,7 +133,7 @@ public:
     {
         return {
             m_data.data(),
-            m_offsets[1] - m_offsets.front()
+            m_offsets[1] - m_offsets.front(),
         };
     }
 
@@ -104,7 +141,7 @@ public:
     {
         return {
             m_data.data() + m_offsets[m_data.size() - 1],
-            m_offsets.back() - m_offsets[m_data.size() - 1]
+            m_offsets.back() - m_offsets[m_data.size() - 1],
         };
     }
 
@@ -112,7 +149,7 @@ public:
     {
         return {
             m_data.data() + m_offsets[m_data.size() - 1],
-            m_offsets.back() - m_offsets[m_data.size() - 1]
+            m_offsets.back() - m_offsets[m_data.size() - 1],
         };
     }
 
@@ -120,7 +157,7 @@ public:
     {
         return {
             m_data.data() + m_offsets[i],
-            m_offsets[i + 1] - m_offsets[i]
+            m_offsets[i + 1] - m_offsets[i],
         };
     }
 
@@ -128,11 +165,35 @@ public:
     {
         return {
             m_data.data() + m_offsets[i],
-            m_offsets[i + 1] - m_offsets[i]
+            m_offsets[i + 1] - m_offsets[i],
         };
     }
 
 private:
+    struct from_offsets_tag {};
+    struct from_sizes_tag {};
+
+    RaggedTable(from_sizes_tag, std::span<const size_type> sizes):
+        m_offsets(sizes.size() + 1)
+    {
+        initialize_offsets(sizes);
+        m_data.resize(m_offsets.back());
+    }
+
+    RaggedTable(from_offsets_tag, std::span<const size_type> offsets):
+        m_data(offsets.back()), m_offsets(std::ranges::to<std::vector>(offsets)) {}
+
+    void initialize_offsets(std::span<const size_type> sizes)
+    {
+        size_type offset = 0;
+        for (std::size_t i = 0; i < sizes.size(); ++i)
+        {
+            m_offsets[i] = offset;
+            offset += sizes[i];
+        }
+        m_offsets.back() = offset;
+    }
+
     std::vector<T> m_data;
     std::vector<size_type> m_offsets;
 };
@@ -150,6 +211,20 @@ template <>
 class ElectronRateCalculator<DistType::iso, RespType::iso>
 {
 public:
+    ElectronRateCalculator() = default;
+    ElectronRateCalculator(
+        std::size_t max_radon_order, std::size_t resp_order, std::size_t trunc_order):
+        m_shell_glq_nodes(std::min(max_radon_order + resp_order, trunc_order)),
+        m_shell_glq_weights(std::min(max_radon_order + resp_order, trunc_order)),
+        m_angle_integrator{max_radon_order},
+        m_grid_evaluator{resp_order} {}
+
+    void resize(std::size_t max_radon_order, std::size_t resp_order, std::size_t trunc_order)
+    {
+        m_shell_glq_nodes.resize(std::min(max_radon_order + resp_order, trunc_order));
+        m_shell_glq_weights.resize(std::min(max_radon_order + resp_order, trunc_order));
+        m_angle_integrator.resize(max_radon_order);
+    }
 
     template <
         QuantityOf<velocity> Velocity,
@@ -187,18 +262,20 @@ public:
             generate_optimal_momentum_grid(
                     lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
             calculate_shells(energies, dm_mass, max_speed);
+            m_aiwrt_grid.reshape<RaggedTable<double>::offset_source>(m_shell_grid.offsets());
             m_angle_integrator.integrate(
                     velocity_dist_moments,
                     static_cast<double>(lab_speed*inv_max_speed),
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
 
-            util::mul(m_aiwrt_grid.flatten(), m_response_grid.flatten());
+            m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
+            m_grid_evaluator.resize(target_response.order(), m_response_grid.size());
 
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
                 m_grid_evaluator.evaluate(
                         target_response[j],
-                        m_normalized_momentum_grid.flatten(), m_response_grid.flatten());
+                        m_normalized_momentum_grid[j], m_response_grid[j]);
                 std::span<double> aiwrt = m_aiwrt_grid[j];
                 std::span<const double> interval_weights = m_interval_weights[j];
 
@@ -245,6 +322,7 @@ public:
         {
             const auto normalized_mom_sq_floor
                 = static_cast<double>((2.0*inv_max_momentum*inv_max_momentum*dm_mass)*energies[i]);
+
             // Kinematically forbidden; bail out
             if (energies[i] > emax_hi)
             {
@@ -270,8 +348,8 @@ public:
                 const std::array intervals = {
                     std::array<double, 2>{
                         normalized_momentum_hi_min,
-                        std::min(normalized_momentum_hi_max, 1.0)
-                    }
+                        std::min(normalized_momentum_hi_max, 1.0),
+                    },
                 };
                 std::span<double> momenta
                     = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
@@ -285,7 +363,7 @@ public:
                         - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
                 if (1.0 < normalized_momentum_hi_min)
                 {
-                    m_shell_grid.append(0);
+                    m_normalized_momentum_grid.append(0);
                     m_interval_weights.append(0);
                     continue;
                 }
@@ -298,8 +376,8 @@ public:
                     const std::array intervals = {
                         std::array<double, 2>{
                             normalized_momentum_hi_min,
-                            1.0
-                        }
+                            1.0,
+                        },
                     };
                     std::span<double> normalized_momenta
                         = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
@@ -316,12 +394,12 @@ public:
                     const std::array intervals = {
                         std::array<double, 2>{
                             normalized_momentum_hi_min,
-                            normalized_momentum_lo_min
+                            normalized_momentum_lo_min,
                         },
                         std::array<double, 2>{
                             normalized_momentum_lo_min,
                             1.0,
-                        }
+                        },
                     };
                     std::span<double> normalized_momenta
                         = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
@@ -337,7 +415,7 @@ public:
                 const std::array intervals = {
                     std::array<double, 2>{
                         normalized_momentum_hi_min,
-                        normalized_momentum_lo_min
+                        normalized_momentum_lo_min,
                     },
                     std::array<double, 2>{
                         normalized_momentum_lo_min,
@@ -345,8 +423,8 @@ public:
                     },
                     std::array<double, 2>{
                         normalized_momentum_lo_max,
-                        std::min(normalized_momentum_hi_max, 1.0)
-                    }
+                        std::min(normalized_momentum_hi_max, 1.0),
+                    },
                 };
                 std::span<double> normalized_momenta
                     = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
@@ -408,6 +486,8 @@ private:
     {
         const quantity inverted_half_mass = 0.5/dm_mass;
         const quantity mass_factor = max_momentum_transfer/max_speed;
+
+        m_shell_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
             std::span<const double> normalized_momenta = m_normalized_momentum_grid[i];
@@ -433,10 +513,10 @@ private:
     std::vector<double> m_shell_glq_nodes;
     std::vector<double> m_shell_glq_weights;
     RaggedTable<double> m_normalized_momentum_grid;
-    RaggedTable<double> m_shell_grid;
-    RaggedTable<double> m_aiwrt_grid;
-    RaggedTable<double> m_response_grid;
     RaggedTable<double> m_interval_weights;
+    RaggedTable<double> m_shell_grid;
+    RaggedTable<double> m_response_grid;
+    RaggedTable<double> m_aiwrt_grid;
     zebra::AngleIntegrator<DistType::iso, RespType::iso> m_angle_integrator;
     zest::zt::IsotropicGridEvaluator m_grid_evaluator;
 };
