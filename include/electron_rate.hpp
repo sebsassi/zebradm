@@ -28,7 +28,6 @@ SOFTWARE.
 #include "moments.hpp"
 #include "polynomial.hpp"
 #include "types.hpp"
-#include "zebra_radon.hpp"
 #include "zebra_angle_integrator.hpp"
 
 namespace zdm
@@ -265,7 +264,7 @@ public:
             m_aiwrt_grid.reshape<RaggedTable<double>::offset_source>(m_shell_grid.offsets());
             m_angle_integrator.integrate(
                     velocity_dist_moments,
-                    static_cast<double>(lab_speed*inv_max_speed),
+                    static_cast<double>((lab_speed*inv_max_speed).in(mpu::one)),
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
 
             m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
@@ -294,6 +293,12 @@ public:
         }
     }
 
+    /*
+        Because the velocity distribution has a cut off at the maximum
+        velocity, the weighted angle-integrated Radon transform is not smooth
+        at the shell parameter value `1 - vlab/vmax`. As a result, to maintain
+        good convergence, the momentum integral needs to be segmented.
+    */
     template <QuantityOf<energy> Energy>
     void generate_optimal_momentum_grid(
         QuantityOf<speed> auto lab_speed,
@@ -307,31 +312,36 @@ public:
         const quantity inv_max_momentum = 1.0/max_momentum_transfer;
         const quantity speed_lo = max_speed - lab_speed;
         const quantity speed_hi = max_speed + lab_speed;
-        const quantity speed_lo_sq = speed_lo*speed_lo;
-        const quantity speed_hi_sq = speed_hi*speed_hi;
-        const quantity emax_lo = 0.5*dm_mass*speed_lo_sq;
-        const quantity emax_hi = 0.5*dm_mass*speed_hi_sq;
+        const quantity momentum_lo = dm_mass*speed_lo;
+        const quantity momentum_hi = dm_mass*speed_hi;
 
-        const auto normalized_momentum_lo = static_cast<double>(inv_max_momentum*dm_mass*speed_lo);
-        const auto normalized_momentum_hi = static_cast<double>(inv_max_momentum*dm_mass*speed_hi);
+        const auto normalized_momentum_lo
+            = static_cast<double>((inv_max_momentum*momentum_lo).in(mpu::one));
+        const auto normalized_momentum_hi
+            = static_cast<double>((inv_max_momentum*momentum_lo).in(mpu::one));
 
-        const double normalized_momentum_lo_sq = normalized_momentum_lo*normalized_momentum_lo;
-        const double normalized_momentum_hi_sq = normalized_momentum_hi*normalized_momentum_hi;
+        const double normalized_momentum_lo_sq = intpow<2>(normalized_momentum_lo);
+        const double normalized_momentum_hi_sq = intpow<2>(normalized_momentum_hi);
 
+        const quantity kinetic_energy_lo = 0.5*dm_mass*intpow<2>(speed_lo);
+        const quantity kinetic_energy_hi = 0.5*dm_mass*intpow<2>(speed_hi);
+        const quantity inverse_max_kinetic_energy = 2.0*dm_mass*intpow<2>(inv_max_momentum);
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
             const auto normalized_mom_sq_floor
-                = static_cast<double>((2.0*inv_max_momentum*inv_max_momentum*dm_mass)*energies[i]);
+                = static_cast<double>(
+                    (inverse_max_kinetic_energy*energies[i]).in(mpu::one));
 
             // Kinematically forbidden; bail out
-            if (energies[i] > emax_hi)
+            if (energies[i] > kinetic_energy_hi)
             {
                 m_normalized_momentum_grid.append(0);
                 m_interval_weights.append(0);
             }
-            else if (energies[i] > emax_lo)
+            // Does not reach down to discontinuity; single segment
+            else if (energies[i] > kinetic_energy_lo)
             {
-                const double normalized_momentum_hi_min 
+                const double normalized_momentum_hi_min
                     = normalized_momentum_hi
                         - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
                 if (1.0 < normalized_momentum_hi_min)
@@ -356,6 +366,7 @@ public:
                 generate_momenta_on(intervals, momenta);
                 m_interval_weights.append(weights_from_intervals(intervals));
             }
+            // Segmented integral to avoid loss of accuracy from discontinuity
             else
             {
                 const double normalized_momentum_hi_min
