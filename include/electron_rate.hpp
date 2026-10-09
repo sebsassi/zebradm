@@ -250,7 +250,7 @@ public:
         // happens with dimensionless quantities.
         const quantity prefactor = scattering_rate_prefactor(
                 dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
-                max_momentum_transfer, max_speed);
+                max_momentum_transfer);
 
         zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
@@ -443,18 +443,15 @@ private:
         QuantityOf<energy_density> auto dm_energy_density,
         QuantityOf<mass_density> auto target_density,
         QuantityOf<cross_section> auto dm_electron_cross_section,
-        QuantityOf<momentum_transfer> auto max_momentum_transfer,
-        QuantityOf<speed> auto max_speed) noexcept
+        QuantityOf<momentum_transfer> auto max_momentum_transfer) noexcept
     {
-        constexpr double two_pi = 2.0*std::numbers::pi;
-        constexpr double two_pi_cubed = two_pi*two_pi*two_pi;
         const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
-        const quantity red_mass_sq = red_mass*red_mass;
-        const quantity max_momentum_transfer_sq = max_momentum_transfer*max_momentum_transfer;
         const quantity numerator
-            = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section
-                *max_momentum_transfer_sq;
-        const quantity denominator = target_density*dm_mass*red_mass_sq;
+            = (std::numbers::pi/intpow<3>(2.0*std::numbers::pi))
+                *dm_energy_density*dm_electron_cross_section*intpow<5>(max_momentum_transfer);
+        const quantity denominator
+            = intpow<3>(1.0*reduced_plank_constant*speed_of_light_in_vacuum)
+                *target_density*dm_mass*intpow<2>(red_mass);
         return numerator/denominator;
     }
 

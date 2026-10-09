@@ -42,10 +42,39 @@ namespace zdm::util
 /**
     @brief Largest even number less than or equal to the input.
 */
-template <std::unsigned_integral T>
-[[nodiscard]] constexpr T even_floor(T n) noexcept
+[[nodiscard]] constexpr std::unsigned_integral auto
+even_floor(std::unsigned_integral auto n) noexcept
 {
-    return n & (~T{1});
+    return n & (~decltype(n){1});
+}
+
+namespace detail
+{
+
+template <typename T>
+inline constexpr T one;
+
+template <Quantity T>
+inline constexpr T one<T> = mpu::one;
+
+template <typename T>
+    requires std::integral<T> || std::floating_point<T>
+inline constexpr T one<T> = T{1};
+
+} // namespace detail
+
+template <int N>
+[[nodiscard]] constexpr auto
+intpow(auto x)
+    requires Quantity<decltype(x)>
+        || std::integral<decltype(x)>
+        || std::floating_point<decltype(x)>
+{
+    if constexpr (N < 0) return detail::one<decltype(x)>/intpow<-N>(x);
+    else if constexpr (N == 0) return detail::one<decltype(x)>;
+    else if constexpr (N == 1) return x;
+    else if constexpr (N & 1) return x*intpow<N - 1>(x);
+    else return intpow<(N >> 1)>(x*x);
 }
 
 /**

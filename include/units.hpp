@@ -30,6 +30,7 @@ SOFTWARE.
 #include <mp-units/math.h>
 
 #include "concepts.hpp"
+#include "mp-units/systems/si/constants.h"
 
 namespace zdm
 {
@@ -55,9 +56,15 @@ inline constexpr struct Julian_year: mpu::named_unit<"a", mpu::mag_ratio<36'525,
 inline constexpr struct century: mpu::named_unit<"c", mpu::mag<100>*Julian_year> {} century;
 inline constexpr struct millennium: mpu::named_unit<"ka", mpu::mag<1000>*Julian_year> {} millennium;
 
+// Additional units
 inline constexpr struct dalton:
     mpu::named_unit<"Da", mpu::mag_ratio<16'605'390'666'050, 10'000'000'000'000>*mpu::mag_power<10, -27>*si::kilo<gram>>
 {} dalton;
+
+// Numerical constants
+inline constexpr struct reduced_plank_constant:
+    mpu::named_constant<mpu::symbol_text{u8"\u210f", "hbar"}, planck_constant/(mpu::mag<2>*mpu::pi)>
+{} reduced_plank_constant;
 
 namespace unit_symbols
 {
