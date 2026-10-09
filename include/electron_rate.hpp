@@ -449,10 +449,12 @@ private:
         constexpr double two_pi = 2.0*std::numbers::pi;
         constexpr double two_pi_cubed = two_pi*two_pi*two_pi;
         const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
+        const quantity red_mass_sq = red_mass*red_mass;
+        const quantity max_momentum_transfer_sq = max_momentum_transfer*max_momentum_transfer;
         const quantity numerator
             = (std::numbers::pi/two_pi_cubed)*dm_energy_density*dm_electron_cross_section
-                *max_momentum_transfer*max_momentum_transfer;
-        const quantity denominator = target_density*dm_mass*red_mass*red_mass;
+                *max_momentum_transfer_sq;
+        const quantity denominator = target_density*dm_mass*red_mass_sq;
         return numerator/denominator;
     }
 
