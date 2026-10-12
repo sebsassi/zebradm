@@ -222,8 +222,6 @@ day_of_year(std::int32_t year, std::uint32_t month, std::uint32_t day_of_month) 
 month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
 {
     assert(1 <= day_of_year && day_of_year <= 366);
-    static constexpr std::array<std::array<std::uint32_t, 12>, 2>
-    days_before_month = detail::days_in_year_before_month();
 
     const auto leap_year = std::uint32_t(is_leap_year(year));
     std::uint32_t index = 1;
@@ -231,7 +229,7 @@ month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
     {
         if (detail::constants::days_in_year_before_month[leap_year][index] >= day_of_year) break;
     }
-    const std::uint32_t day_of_month = day_of_year - days_before_month[leap_year][index - 1];
+    const std::uint32_t day_of_month = day_of_year - detail::constants::days_in_year_before_month[leap_year][index - 1];
     const std::uint32_t month = index;
     assert(1 <= month && month <= 12);
     assert(1 <= day_of_month && day_of_month <= 31);

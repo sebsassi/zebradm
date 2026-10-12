@@ -23,6 +23,7 @@ SOFTWARE.
 
 
 #include <cmath>
+#include <cstdint>
 
 #include "transform_conventions.hpp"
 #include "matrix.hpp"
