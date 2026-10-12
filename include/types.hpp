@@ -30,17 +30,17 @@ namespace zdm
 /**
     @brief Tag for type of distribution.
 */
-enum class DistType { iso, aniso };
+enum class DistType: std::uint8_t { iso, aniso };
 
 /**
     @brief Tag for type of response.
 */
-enum class RespType { iso, aniso };
+enum class RespType: std::uint8_t { iso, aniso };
 
 /**
     @brief Tag for type of Radon transform.
 */
-enum class RadonType { regular, transverse };
+enum class RadonType: std::uint8_t { regular, transverse };
 
 /**
     @brief Alias for spherical harmonic expansion with conventions used by

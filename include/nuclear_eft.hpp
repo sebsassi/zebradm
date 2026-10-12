@@ -59,7 +59,7 @@ harmonic_oscillator_parameter_sq(std::size_t mass_number) noexcept
 /**
     @brief Choice of isospin basis for nuclear form factor computations.
 */
-enum class IsospinBasis
+enum class IsospinBasis: std::uint8_t
 {
     nucleon,
     isospin
@@ -68,14 +68,14 @@ enum class IsospinBasis
 /**
     @brief Labels for particle spin representations.
 */
-enum class ParticleSpin
+enum class ParticleSpin: std::uint8_t
 {
     scalar = 0,
     fermion = 1,
     vector = 2
 };
 
-enum class TransverseVelocityDependence
+enum class TransverseVelocityDependence: std::uint8_t
 {
     none,
     mono,

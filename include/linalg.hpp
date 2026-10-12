@@ -30,7 +30,7 @@ SOFTWARE.
 namespace zdm
 {
 
-enum class Axis { x, y, z };
+enum class Axis: std::uint8_t { x, y, z };
 
 namespace la
 {

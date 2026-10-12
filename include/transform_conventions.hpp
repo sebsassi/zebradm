@@ -32,7 +32,7 @@ namespace zdm::la
     defined. In the former case, the transformation is called active, while
     in the latter case it is called passive.
 */
-enum class Action
+enum class Action: std::uint8_t
 {
     active,
     passive
@@ -52,7 +52,7 @@ enum class Action
     transformations are implicitly composed in the extrinsic convention, and
     passive transformations are composed in the intrinsic convention.
 */
-enum class Chaining
+enum class Chaining: std::uint8_t
 {
     intrinsic,
     extrinsic

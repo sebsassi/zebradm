@@ -34,7 +34,7 @@ namespace zdm::la
 /**
     @brief Enum specifying an Euler angle convention.
 */
-enum class EulerConvention
+enum class EulerConvention: std::uint8_t
 {
     xzx,
     xyx,
@@ -47,7 +47,7 @@ enum class EulerConvention
 /**
     @brief Enum specifying a Tait-Bryan angle convention.
 */
-enum class TaitBryanConvention
+enum class TaitBryanConvention: std::uint8_t
 {
     xyz,
     xzy,
