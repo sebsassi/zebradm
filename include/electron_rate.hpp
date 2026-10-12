@@ -81,9 +81,17 @@ public:
         std::span<const Energy> energies,
         zest::DynamicMDSpan<Rate, 2> out)
     {
-        assert(max_speed > 0 && dm_mass > 0 && max_momentum_transfer > 0 && target_density > 0);
+        assert(
+            max_speed > 0                   // distribution must have finite support
+            && dm_mass > 0                  // DM must be massive and not exotic
+            && dm_energy_density >= 0       // No negative energies, but zero density is fine
+            && max_momentum_transfer > 0    // respose must have finite support
+            && target_density > 0);         // target is ordinary matter
+
         assert(target_response.extent(0) == energies.size());
-        assert(out.extent(0) == lab_velocities.size() && out.extent(1) == energies.size());
+        assert(
+            out.extent(0) == lab_velocities.size()
+            && out.extent(1) == energies.size());
 
         const quantity inv_max_speed = 1.0/max_speed;
 
