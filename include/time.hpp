@@ -40,7 +40,7 @@ namespace zdm::time
 /**
     @brief Status codes for datetime parsing.
 */
-enum class DateParseStatus
+enum class DateParseStatus: std::uint8_t
 {
     success,                        /// Parsing completed successfully.
     incomplete_format_string,       /// Format string ended with single '%'.
@@ -63,7 +63,7 @@ enum class DateParseStatus
 namespace detail
 {
 
-enum class FormatSpecifier : unsigned char
+enum class FormatSpecifier: unsigned char
 {
     unsupported = 0,
     percentage,         // %%
@@ -88,7 +88,7 @@ enum class FormatSpecifier : unsigned char
     time_zone_offset,   // %z
 };
 
-enum class DateParseStatusFlag : std::uint32_t
+enum class DateParseStatusFlag: std::uint32_t
 {
     has_day_of_month = (1UL << 1UL),
     has_month_of_year = (1UL << 2UL),
@@ -102,8 +102,10 @@ enum class DateParseStatusFlag : std::uint32_t
     needs_am_pm = (1UL << 10UL),
 };
 
-[[nodiscard]] consteval std::array<FormatSpecifier, 256> format_specifier_map()
+namespace constants
 {
+
+static constexpr std::array<FormatSpecifier, 256> format_specifier_map = []{
     std::array<FormatSpecifier, 256> map = {};
     map['%'] = FormatSpecifier::percentage;
     // map['a'] = FormatSpecifier::week_day_name;
@@ -129,16 +131,15 @@ enum class DateParseStatusFlag : std::uint32_t
     map['Y'] = FormatSpecifier::year;
     map['z'] = FormatSpecifier::time_zone_offset;
     return map;
-}
+}();
 
-[[nodiscard]] consteval std::array<std::array<std::uint32_t, 12>, 2>
-days_in_year_before_month()
-{
-    return {
-        std::array<std::uint32_t, 12>{0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334},
-        std::array<std::uint32_t, 12>{0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}
-    };
-}
+static constexpr std::array<std::array<std::uint32_t, 12>, 2>
+days_in_year_before_month = {
+    std::array<std::uint32_t, 12>{0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334},
+    std::array<std::uint32_t, 12>{0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335}
+};
+
+} // namespace constants
 
 } // namespace detail
 
@@ -183,10 +184,7 @@ days_in_year_before_month(std::int32_t year, std::uint32_t month) noexcept
 {
     assert(1 <= month && month <= 12);
 
-    static constexpr std::array<std::array<std::uint32_t, 12>, 2>
-    days_before_month = detail::days_in_year_before_month();
-
-    const std::uint32_t res = days_before_month[std::size_t(is_leap_year(year))][month - 1]; 
+    const std::uint32_t res = detail::constants::days_in_year_before_month[std::size_t(is_leap_year(year))][month - 1]; 
     assert(res <= 335);
     return res;
 }
@@ -231,7 +229,7 @@ month_of_year(std::int32_t year, std::uint32_t day_of_year) noexcept
     std::uint32_t index = 1;
     for (; index < 12; ++index)
     {
-        if (days_before_month[leap_year][index] >= day_of_year) break;
+        if (detail::constants::days_in_year_before_month[leap_year][index] >= day_of_year) break;
     }
     const std::uint32_t day_of_month = day_of_year - days_before_month[leap_year][index - 1];
     const std::uint32_t month = index;
@@ -644,9 +642,6 @@ parse_date_time_impl(std::string_view input, std::string_view format)
     if (input.size() == 0 || format.size() == 0)
         return std::unexpected(DateParseStatus::unexpected_empty_string);
 
-    static constexpr std::array<FormatSpecifier, 256> format_map
-        = format_specifier_map();
-
     DateParseState parse_state = {};
     DateTime date_time = {};
 
@@ -673,7 +668,7 @@ parse_date_time_impl(std::string_view input, std::string_view format)
             return std::unexpected(DateParseStatus::incomplete_format_string);
         format = format.substr(1);
 
-        FormatSpecifier format_specifier = format_map[(unsigned char)(format.front())];
+        FormatSpecifier format_specifier = constants::format_specifier_map[(unsigned char)(format.front())];
         format = format.substr(1);
 
         switch (format_specifier)
