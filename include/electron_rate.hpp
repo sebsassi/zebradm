@@ -81,6 +81,10 @@ public:
         std::span<const Energy> energies,
         zest::DynamicMDSpan<Rate, 2> out)
     {
+        assert(max_speed > 0 && dm_mass > 0 && max_momentum_transfer > 0 && target_density > 0);
+        assert(target_response.extent(0) == energies.size());
+        assert(out.extent(0) == lab_velocities.size() && out.extent(1) == energies.size());
+
         const quantity inv_max_speed = 1.0/max_speed;
 
         // All physical units should be in the prefactor. The integration
@@ -145,10 +149,12 @@ public:
         QuantityOf<momentum_transfer> auto max_momentum_transfer,
         QuantityOf<mass> auto dm_mass)
     {
+        assert(max_momentum_transfer > 0 && dm_mass > 0);
+
         m_shell_grid.clear();
 
         const quantity inv_max_momentum = 1.0/max_momentum_transfer;
-        const quantity speed_lo = max_speed - lab_speed;
+        const quantity speed_lo = mpu::fabs(max_speed - lab_speed);
         const quantity speed_hi = max_speed + lab_speed;
         const quantity momentum_lo = dm_mass*speed_lo;
         const quantity momentum_hi = dm_mass*speed_hi;
@@ -294,6 +300,8 @@ private:
         QuantityOf<cross_section> auto dm_electron_cross_section,
         QuantityOf<momentum_transfer> auto max_momentum_transfer) noexcept
     {
+        assert(dm_mass > 0 && target_density > 0);
+
         const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
         const quantity numerator
             = (std::numbers::pi/intpow<3>(2.0*std::numbers::pi))
@@ -332,6 +340,8 @@ private:
         QuantityOf<speed> auto max_speed,
         QuantityOf<momentum_transfer> auto max_momentum_transfer) noexcept
     {
+        assert(dm_mass > 0 && max_speed > 0);
+
         const quantity inverted_half_mass = 0.5/dm_mass;
         const quantity mass_factor = max_momentum_transfer/max_speed;
 
