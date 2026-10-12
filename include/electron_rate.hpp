@@ -118,7 +118,7 @@ public:
                         target_response[j],
                         m_normalized_momentum_grid[j], m_response_grid[j]);
                 std::span<double> aiwrt = m_aiwrt_grid[j];
-                std::span<const double> interval_weights = m_interval_weights[j];
+                std::span<const double> interval_weights = m_interval_half_widths[j];
 
                 const std::size_t num_intervals = aiwrt.size()/num_nodes;
                 for (std::size_t k = 0; k < num_intervals; ++k)
@@ -180,7 +180,7 @@ public:
             if (energies[i] > kinetic_energy_hi)
             {
                 m_normalized_momentum_grid.append(0);
-                m_interval_weights.append(0);
+                m_interval_half_widths.append(0);
             }
             // Does not reach down to discontinuity; single segment
             else if (energies[i] > kinetic_energy_lo)
@@ -191,7 +191,7 @@ public:
                 if (1.0 < normalized_momentum_hi_min)
                 {
                     m_normalized_momentum_grid.append(0);
-                    m_interval_weights.append(0);
+                    m_interval_half_widths.append(0);
                     continue;
                 }
 
@@ -208,7 +208,7 @@ public:
                 std::span<double> momenta
                     = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
                 generate_momenta_on(intervals, momenta);
-                m_interval_weights.append(weights_from_intervals(intervals));
+                m_interval_half_widths.append(half_widths_from(intervals));
             }
             // Segmented integral to avoid loss of accuracy from discontinuity
             else
@@ -219,7 +219,7 @@ public:
                 if (1.0 < normalized_momentum_hi_min)
                 {
                     m_normalized_momentum_grid.append(0);
-                    m_interval_weights.append(0);
+                    m_interval_half_widths.append(0);
                     continue;
                 }
 
@@ -237,7 +237,7 @@ public:
                     std::span<double> normalized_momenta
                         = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
                     generate_momenta_on(intervals, normalized_momenta);
-                    m_interval_weights.append(weights_from_intervals(intervals));
+                    m_interval_half_widths.append(half_widths_from(intervals));
                     continue;
                 }
 
@@ -259,7 +259,7 @@ public:
                     std::span<double> normalized_momenta
                         = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
                     generate_momenta_on(intervals, normalized_momenta);
-                    m_interval_weights.append(weights_from_intervals(intervals));
+                    m_interval_half_widths.append(half_widths_from(intervals));
                     continue;
                 }
 
@@ -284,7 +284,7 @@ public:
                 std::span<double> normalized_momenta
                     = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
                 generate_momenta_on(intervals, normalized_momenta);
-                m_interval_weights.append(weights_from_intervals(intervals));
+                m_interval_half_widths.append(half_widths_from(intervals));
             }
 
         }
@@ -359,7 +359,7 @@ private:
 
     template <typename T, std::size_t N>
     [[nodiscard]] static constexpr std::array<T, N>
-    weights_from_intervals(const std::array<std::array<T, 2>, N>& intervals) noexcept
+    half_widths_from(const std::array<std::array<T, 2>, N>& intervals) noexcept
     {
         return [&]<std::size_t... I>(
             const std::array<std::array<T, 2>, N>& intervals, std::index_sequence<I...>)
@@ -371,7 +371,7 @@ private:
     std::vector<double> m_shell_glq_nodes;
     std::vector<double> m_shell_glq_weights;
     RaggedTable<double> m_normalized_momentum_grid;
-    RaggedTable<double> m_interval_weights;
+    RaggedTable<double> m_interval_half_widths;
     RaggedTable<double> m_shell_grid;
     RaggedTable<double> m_response_grid;
     RaggedTable<double> m_aiwrt_grid;
