@@ -185,6 +185,8 @@ public:
             // Does not reach down to discontinuity; single segment
             else if (energies[i] > kinetic_energy_lo)
             {
+                assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
+
                 const double normalized_momentum_hi_min
                     = normalized_momentum_hi
                         - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
@@ -213,6 +215,9 @@ public:
             // Segmented integral to avoid loss of accuracy from discontinuity
             else
             {
+                assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
+                assert(normalized_momentum_lo_sq >= normalized_mom_sq_floor);
+
                 const double normalized_momentum_hi_min
                     = normalized_momentum_hi
                         - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
@@ -325,6 +330,7 @@ private:
             std::span<double> interval_momenta = normalized_momenta.subspan(i*num_nodes, num_nodes);
             const double mid_point = 0.5*(momentum_intervals[i][1] + momentum_intervals[i][0]);
             const double half_width = 0.5*(momentum_intervals[i][1] - momentum_intervals[i][0]);
+            assert(half_width > 0);
             for (std::size_t j = 0; j < num_nodes; ++j)
             {
                 const double momentum = half_width*m_shell_glq_nodes[j] + mid_point;
@@ -348,6 +354,7 @@ private:
         m_shell_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
+            assert(energies[i] >= 0);
             std::span<const double> normalized_momenta = m_normalized_momentum_grid[i];
             std::span<double> shells = m_shell_grid[i];
             for (std::size_t j = 0; j < normalized_momenta.size(); ++i)
