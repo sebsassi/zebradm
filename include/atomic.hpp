@@ -43,9 +43,11 @@ class TinyString
 public:
     constexpr TinyString() = default;
     constexpr TinyString(std::string_view string) noexcept:
-        m_data{string[0], string[1]} {}
+    {
+        copy(string.substr(0, N));
+    }
     constexpr TinyString(const char* string) noexcept:
-        m_data{string[0], string[1]} {}
+        TinyString{std::string_view(string)} {}
 
     [[nodiscard]] constexpr operator std::string_view() noexcept
     {
@@ -58,47 +60,66 @@ public:
     }
 
 private:
+    void copy(std::string_view string) noexcept
+    {
+        std::ranges::copy(string, m_data.begin());
+    }
+
     std::array<char, N> m_data;
 };
 
 constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexcept
 {
-    static constexpr std::array<std::uint8_t, 27UL*27UL> number_table = {
-//      0  "a" "b"  "c"  "d"  "e" "f"  "g"  "h"  "i" "j""k" "l"  "m"  "n"  "o"  "p" "q""r"  "s"  "t"  "u" "v"  "w""x""y" "z"
-        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // 0
-        0,  0,  0,   89,  0,   0,  0,   47,  0,   0,  0, 0,  13,  95,  0,   0,   0,  0, 18,  33,  85,  79, 0,   0, 0, 0,  0,   // "A"
-        5,  56, 0,   0,   0,   4,  0,   0,   107, 83, 0, 97, 0,   0,   0,   0,   0,  0, 35,  0,   0,   0,  0,   0, 0, 0,  0,   // "B"
-        6,  20, 0,   0,   48,  58, 98,  0,   0,   0,  0, 0,  17,  96,  112, 27,  0,  0, 24,  55,  0,   29, 0,   0, 0, 0,  0,   // "C"
-        0,  0,  105, 0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   110, 0,   0,  0,   0, 0, 66, 0,   // "D"
-        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 68,  99,  0,   63, 0,   0, 0, 0,  0,   // "E"
-        9,  0,  0,   0,   0,   26, 0,   0,   0,   0,  0, 0,  114, 100, 0,   0,   0,  0, 87,  0,   0,   0,  0,   0, 0, 0,  0,   // "F"
-        0,  31, 0,   0,   64,  32, 0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "G"
-        1,  0,  0,   0,   0,   2,  72,  80,  0,   0,  0, 0,  0,   0,   0,   67,  0,  0, 0,   108, 0,   0,  0,   0, 0, 0,  0,   // "H"
-        53, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   49,  0,   0,  0, 77,  0,   0,   0,  0,   0, 0, 0,  0,   // "I"
-        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "J"
-        19, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 36,  0,   0,   0,  0,   0, 0, 0,  0,   // "K"
-        0,  57, 0,   0,   0,   0,  0,   0,   0,   3,  0, 0,  0,   0,   0,   0,   0,  0, 103, 0,   0,   71, 116, 0, 0, 0,  0,   // "L"
-        0,  0,  0,   115, 101, 0,  0,   12,  0,   0,  0, 0,  0,   0,   25,  42,  0,  0, 0,   0,   109, 0,  0,   0, 0, 0,  0,   // "M"
-        7,  11, 41,  0,   60,  10, 0,   0,   113, 28, 0, 0,  0,   0,   0,   102, 93, 0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "N"
-        8,  0,  0,   0,   0,   0,  0,   118, 0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   76,  0,   0,  0,   0, 0, 0,  0,   // "O"
-        15, 91, 82,  0,   46,  0,  0,   0,   0,   0,  0, 0,  0,   61,  0,   84,  0,  0, 59,  0,   78,  94, 0,   0, 0, 0,  0,   // "P"
-        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "Q"
-        0,  88, 37,  0,   0,   75, 104, 111, 45,  0,  0, 0,  0,   0,   86,  0,   0,  0, 0,   0,   0,   44, 0,   0, 0, 0,  0,   // "R"
-        16, 0,  51,  21,  0,   34, 0,   106, 0,   14, 0, 0,  0,   62,  50,  0,   0,  0, 38,  0,   0,   0,  0,   0, 0, 0,  0,   // "S"
-        0,  73, 65,  43,  0,   52, 0,   0,   90,  22, 0, 0,  81,  69,  0,   0,   0,  0, 0,   117, 0,   0,  0,   0, 0, 0,  0,   // "T"
-        92, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "U"
-        23, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "V"
-        74, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "W"
-        0,  0,  0,   0,   0,   54, 0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "X"
-        39, 0,  70,  0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0,   // "Y"
-        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   30,  0,   0,  0, 40,  0,   0,   0,  0,   0, 0, 0,  0,   // "Z"
+    // Row 0 and column 27 are left empty for mapping of invalid characters.
+    //
+    // A valid chemical element starts with a capital letter (ABCDEFGHIJKLMNOPQRSTUVWXYZ)
+    // and then either has no second letter, or the second letter is a lower
+    // case letter (abcdefghijklmnopqrstuvwxyz).
+    //
+    // All character combinations that don't correspond to an existing chemical
+    // element map to the null element with atomic number zero.
+    static constexpr std::array<std::uint8_t, 27UL*28UL> number_table = {
+//      0  "a" "b"  "c"  "d"  "e" "f"  "g"  "h"  "i" "j""k" "l"  "m"  "n"  "o"  "p" "q""r"  "s"  "t"  "u" "v"  "w""x""y" "z" ?
+        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // 0
+        0,  0,  0,   89,  0,   0,  0,   47,  0,   0,  0, 0,  13,  95,  0,   0,   0,  0, 18,  33,  85,  79, 0,   0, 0, 0,  0, 0,   // "A"
+        5,  56, 0,   0,   0,   4,  0,   0,   107, 83, 0, 97, 0,   0,   0,   0,   0,  0, 35,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "B"
+        6,  20, 0,   0,   48,  58, 98,  0,   0,   0,  0, 0,  17,  96,  112, 27,  0,  0, 24,  55,  0,   29, 0,   0, 0, 0,  0, 0,   // "C"
+        0,  0,  105, 0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   110, 0,   0,  0,   0, 0, 66, 0, 0,   // "D"
+        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 68,  99,  0,   63, 0,   0, 0, 0,  0, 0,   // "E"
+        9,  0,  0,   0,   0,   26, 0,   0,   0,   0,  0, 0,  114, 100, 0,   0,   0,  0, 87,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "F"
+        0,  31, 0,   0,   64,  32, 0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "G"
+        1,  0,  0,   0,   0,   2,  72,  80,  0,   0,  0, 0,  0,   0,   0,   67,  0,  0, 0,   108, 0,   0,  0,   0, 0, 0,  0, 0,   // "H"
+        53, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   49,  0,   0,  0, 77,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "I"
+        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "J"
+        19, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 36,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "K"
+        0,  57, 0,   0,   0,   0,  0,   0,   0,   3,  0, 0,  0,   0,   0,   0,   0,  0, 103, 0,   0,   71, 116, 0, 0, 0,  0, 0,   // "L"
+        0,  0,  0,   115, 101, 0,  0,   12,  0,   0,  0, 0,  0,   0,   25,  42,  0,  0, 0,   0,   109, 0,  0,   0, 0, 0,  0, 0,   // "M"
+        7,  11, 41,  0,   60,  10, 0,   0,   113, 28, 0, 0,  0,   0,   0,   102, 93, 0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "N"
+        8,  0,  0,   0,   0,   0,  0,   118, 0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   76,  0,   0,  0,   0, 0, 0,  0, 0,   // "O"
+        15, 91, 82,  0,   46,  0,  0,   0,   0,   0,  0, 0,  0,   61,  0,   84,  0,  0, 59,  0,   78,  94, 0,   0, 0, 0,  0, 0,   // "P"
+        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "Q"
+        0,  88, 37,  0,   0,   75, 104, 111, 45,  0,  0, 0,  0,   0,   86,  0,   0,  0, 0,   0,   0,   44, 0,   0, 0, 0,  0, 0,   // "R"
+        16, 0,  51,  21,  0,   34, 0,   106, 0,   14, 0, 0,  0,   62,  50,  0,   0,  0, 38,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "S"
+        0,  73, 65,  43,  0,   52, 0,   0,   90,  22, 0, 0,  81,  69,  0,   0,   0,  0, 0,   117, 0,   0,  0,   0, 0, 0,  0, 0,   // "T"
+        92, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "U"
+        23, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "V"
+        74, 0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "W"
+        0,  0,  0,   0,   0,   54, 0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "X"
+        39, 0,  70,  0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   0,   0,   0,  0, 0,   0,   0,   0,  0,   0, 0, 0,  0, 0,   // "Y"
+        0,  0,  0,   0,   0,   0,  0,   0,   0,   0,  0, 0,  0,   0,   30,  0,   0,  0, 40,  0,   0,   0,  0,   0, 0, 0,  0, 0,   // "Z"
     };
-    auto first_index = std::size_t(std::max(0, chemical_symbol[0] - ('A' + 1)));
-    auto second_index = std::size_t(std::max(0, chemical_symbol[1] - ('a' + 1)));
-    first_index = (first_index < 27)*first_index;
-    second_index = (second_index < 27)*second_index;
 
-    return number_table[27*first_index + second_index];
+    // Ensure that invalid symbols map to the null element.
+
+    // If first letter is not a capital letter, map to row zero.
+    const std::size_t clamped_first_index
+        = ('A' <= chemical_symbol[0] && chemical_symbol <= 'Z') ? chemical_symbol[0] : 0;
+
+    // If second index is not in range, map to column 27.
+    const std::size_t clamped_second_index
+        = (chemical_symbol[1] == 0 || 'a' <= chemical_symbol[1] && chemical_symbol[1] <= 'z') ? chemical_symbol[1] : 27;
+
+    return number_table[28*clamped_first_index + clamped_second_index];
 }
 
 constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number) noexcept
@@ -119,8 +140,8 @@ constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number) noexc
 
 } // namespace detail
 
-enum class IsotopeError { invalid_isotope };
-enum class ElementError { invalid_element };
+enum class IsotopeError: std::uint8_t { invalid_isotope };
+enum class ElementError: std::uint8_t { invalid_element };
 
 /**
     @brief Isotope of a chemical element.
