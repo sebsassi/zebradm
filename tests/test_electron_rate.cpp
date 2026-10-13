@@ -18,10 +18,10 @@ bool iso_iso_energy_differential_rate_is_correct_for_const_dist()
     constexpr zdm::quantity max_momentum_transfer = zdm::momentum_transfer(4.0*MeV/c);
     constexpr zdm::quantity target_density = zdm::mass_density(1.0*g/cm3);
 
-    std::vector<zdm::quantity<zdm::energy[eV]>, double> energies = {
+    std::vector<zdm::quantity<zdm::energy[eV], double>> energies = {
         0.0*eV, 1.0*eV, 2.0*eV, 4.0*eV, 8.0*eV
     };
-    std::vector<zdm::quantity<zdm::velocity[km/s], zdm::la::Vector<double, 3>>> lab_velocties = {
+    std::vector<zdm::quantity<zdm::velocity[km/s], zdm::la::Vector<double, 3>>> lab_velocities = {
         zdm::velocity(zdm::la::Vector<double, 3>{135.0, -24.0, 112.0}*km/s),
         zdm::velocity(zdm::la::Vector<double, 3>{218.0, 3.0, -1.0}*km/s),
     };
