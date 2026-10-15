@@ -36,7 +36,7 @@ template <typename S, typename T>
 concept subfield_of = requires (S x, T y)
 {
     { x*y } -> std::same_as<T>;
-    { x + y } -> std::same_as<T>; 
+    { x + y } -> std::same_as<T>;
 };
 
 namespace detail
@@ -63,6 +63,22 @@ horner_eval(const R& coeffs, const DomainType& x) noexcept
     for (std::size_t i = size - 1; i > 0; --i)
         res = coeffs[i - 1] + res*x;
     return res;
+}
+
+template <typename R, typename DomainType, typename ResultType>
+    requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
+[[nodiscard]] constexpr auto
+horner_eval(const R& coeffs, const DomainType& x) noexcept
+{
+    if (coeffs.size() == 0)
+        return ResultType{};
+    else
+    {
+        ResultType res{};
+        for (std::size_t i = coeffs.size(); i > 0; --i)
+            res = coeffs[i - 1] + res*x;
+        return res;
+    }
 }
 
 template <typename R, typename DomainType, typename ResultType>
@@ -97,27 +113,11 @@ estrin_eval(const R& coeffs, const DomainType& x)
         estrin_coeffs, x*x);
 }
 
-template <typename R, typename DomainType, typename ResultType>
-    requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
-[[nodiscard]] constexpr auto
-horner_eval(const R& coeffs, const DomainType& x) noexcept
-{
-    if (coeffs.size() == 0)
-        return ResultType{};
-    else
-    {
-        ResultType res{};
-        for (std::size_t i = coeffs.size(); i > 0; --i)
-            res = coeffs[i - 1] + res*x;
-        return res;
-    }
-}
-
 } // namespace detail
 
-template <std::size_t N, typename T>
-    requires (N > 0) && requires (T x) { { x*x } -> std::same_as<T>; }
-T intpow(T x)
+template <std::size_t N>
+auto intpow(auto x)
+    requires (N > 0) && requires (decltype(x) y) { { y*y }; }
 {
     if constexpr (N == 1)
         return x;
@@ -139,11 +139,10 @@ struct Monomial
     constexpr Monomial() = default;
     explicit constexpr Monomial(const value_type& coeff_): coeff(coeff_) {}
 
-    template <subfield_of<value_type> DomainType>
     [[nodiscard]] constexpr value_type
-    operator()(DomainType x) const noexcept
+    operator()(subfield_of<value_type> auto x) const noexcept
     {
-        if (order == 0)
+        if constexpr (order == 0)
             return coeff;
         else
             return coeff*intpow<order>(x);
@@ -174,17 +173,15 @@ struct Polynomial
     explicit constexpr Polynomial(const std::array<value_type, order + 1>& coeffs_):
         coeffs(coeffs_) {}
 
-    template <typename... Types>
-        requires (std::convertible_to<Types, value_type> && ...)
-    constexpr Polynomial(Types... coeffs_): coeffs{value_type(coeffs_)...} {}
+    constexpr Polynomial(std::convertible_to<value_type> auto... coeffs_):
+        coeffs{value_type(coeffs_)...} {}
 
     [[nodiscard]] constexpr bool operator==(const Polynomial& other) const noexcept = default;
 
-    template <subfield_of<value_type> DomainType>
     [[nodiscard]] constexpr value_type
-    operator()(DomainType x) const noexcept
+    operator()(subfield_of<value_type> auto x) const noexcept
     {
-        return detail::estrin_eval<container_type, DomainType, value_type>(coeffs, x);
+        return detail::estrin_eval<container_type, decltype(x), value_type>(coeffs, x);
     }
 
     [[nodiscard]] constexpr auto
