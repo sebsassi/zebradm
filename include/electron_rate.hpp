@@ -98,7 +98,7 @@ public:
         // All physical units should be in the prefactor. The integration
         // happens with dimensionless quantities.
         const quantity prefactor = scattering_rate_prefactor(
-                dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
+                max_speed, dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
                 max_momentum_transfer);
 
         zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
@@ -307,6 +307,7 @@ public:
 private:
     [[nodiscard]] static constexpr QuantityOf<energy_differential_rate_per_unit_mass> auto
     scattering_rate_prefactor(
+        QuantityOf<speed> auto max_speed,
         QuantityOf<mass> auto dm_mass,
         QuantityOf<energy_density> auto dm_energy_density,
         QuantityOf<mass_density> auto target_density,
@@ -315,14 +316,16 @@ private:
     {
         assert(dm_mass > 0 && target_density > 0);
 
-        const quantity red_mass = reduced_mass(dm_mass, (1.0*electron_mass).in(dm_mass.unit));
+        constexpr auto const_denominator
+            = 2.0*codata2022::fine_structure_constant
+                *intpow<3>(plank_constant*speed_of_light_in_vacuum);
+        constexpr quantity const_prefactor = 1.0/const_denominator;
+
+        const quantity red_mass = reduced_mass(dm_mass, (1.0*codata2022::electron_mass).in(dm_mass.unit));
         const quantity numerator
-            = (std::numbers::pi/intpow<3>(2.0*std::numbers::pi))
-                *dm_energy_density*dm_electron_cross_section*intpow<5>(max_momentum_transfer);
-        const quantity denominator
-            = intpow<3>(1.0*reduced_plank_constant*speed_of_light_in_vacuum)
-                *target_density*dm_mass*intpow<2>(red_mass);
-        return numerator/denominator;
+            = dm_energy_density*dm_electron_cross_section*intpow<4>(max_momentum_transfer);
+        const quantity denominator = target_density*dm_mass*intpow<2>(red_mass)*max_speed;
+        return const_prefactor*numerator/denominator;
     }
 
     template <std::size_t N>

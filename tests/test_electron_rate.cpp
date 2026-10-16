@@ -1,6 +1,7 @@
 #include <numbers>
 
 #include "electron_rate.hpp"
+#include "mp-units/systems/hep/constants.h"
 #include "radon_moments.hpp"
 #include "types.hpp"
 #include "units.hpp"
@@ -18,7 +19,7 @@ auto constant_dist_constant_resp_energy_differential_rate(
     zdm::QuantityOf<zdm::energy> auto energy)
 {
     const zdm::quantity top_speed = max_dm_speed + lab_speed;
-    const zdm::quantity bot_speed = zdm::fabs(max_speed - lab_speed);
+    const zdm::quantity bot_speed = zdm::abs(max_dm_speed - lab_speed);
     const zdm::quantity min_speed_sq = 2*energy/dm_mass;
 
     const zdm::quantity q_top_min = dm_mass*(top_speed - zdm::sqrt(zdm::intpow<2>(top_speed) - min_speed_sq));
@@ -26,27 +27,60 @@ auto constant_dist_constant_resp_energy_differential_rate(
     const zdm::quantity q_bot_min = dm_mass*(bot_speed - zdm::sqrt(zdm::intpow<2>(bot_speed) - min_speed_sq));
     const zdm::quantity q_bot_max = dm_mass*(bot_speed + zdm::sqrt(zdm::intpow<2>(bot_speed) - min_speed_sq));
 
-    const zdm::quantity q_top_min_norm = std::min{static_cast<double>(q_top_min/q_max), 1.0};
-    const zdm::quantity q_top_max_norm = std::min{static_cast<double>(q_top_max/q_max), 1.0};
-    const zdm::quantity q_bot_min_norm = std::min{static_cast<double>(q_bot_min/q_max), 1.0};
-    const zdm::quantity q_bot_max_norm = std::min{static_cast<double>(q_bot_max/q_max), 1.0};
+    const double q_top_min_norm = std::min(static_cast<double>(q_top_min/q_max), 1.0);
+    const double q_top_max_norm = std::min(static_cast<double>(q_top_max/q_max), 1.0);
+    const double q_bot_min_norm = std::min(static_cast<double>(q_bot_min/q_max), 1.0);
+    const double q_bot_max_norm = std::min(static_cast<double>(q_bot_max/q_max), 1.0);
+
+    const double e_norm = static_cast<double>(energy/(q_max*max_dm_speed));
+    const double m_norm = static_cast<double>(dm_mass*max_dm_speed/q_max);
+
+    const double vlab_norm = static_cast<double>(lab_speed/max_dm_speed);
 
     std::pair antiderivatives = {
-        [](double q_norm)
+        [&](double q_norm)
         {
-            return 0.0;
+            const std::array coeffs = {
+                (1.0/3.0)*zdm::intpow<3>(e_norm),
+                -0.5*zdm::intpow<2>(e_norm)*vlab_norm,
+                (e_norm/(2.0*m_norm) + zdm::intpow<2>(vlab_norm) - 1.0)*(1.0/3.0)*e_norm,
+                (2.0/3.0 + vlab_norm - zdm::intpow<3>(vlab_norm)*(1.0/4.0) - e_norm*vlab_norm/m_norm)*(1.0/3.0),
+                (zdm::intpow<2>(vlab_norm) + e_norm/(2.0*m_norm) - 1.0)*(1.0/10.0*m_norm),
+                -vlab_norm/(6*zdm::intpow<2>(2.0*m_norm)),
+                1.0/(7*zdm::intpow<3>(2.0*m_norm))
+            };
+            return *std::log(q_norm)
+                + q_norm*(
+                    coeffs[0] + q_norm*coeffs[1]
+                    + (coeffs[2] + q_norm*coeffs[3])*zdm::intpow<2>(q_norm)
+                    + (coeffs[4] + q_norm*coeffs[5]
+                        + (coeffs[6] + q_norm*coeffs[7])*zdm::intpow<2>(q_norm))*zdm::intpow<4>(q_norm));
         },
-        [](double q_norm)
+        [&](double q_norm)
         {
-            return 0.0;
+            const std::array coeffs = {
+                -zdm::intpow<2>(e_norm),
+                0.5*e_norm*vlab_norm,
+                (2.0/3.0)*e_norm*vlab_norm,
+                (1.0 - (4.0/3.0)*std::intpow<2>(vlab_norm) - e_norm/m_norm)*(1.0/4.0),
+                vlab_norm/(5.0*m_norm),
+                -1.0/(6.0*zdm::intpow<2>(2.0*m_norm))
+            };
+            if (vlab_norm < 1.0)
+                return 2.0*vlab_norm*zdm::intpow<2>(q_norm)*(
+                    coeffs[0] + q_norm*coeffs[1]
+                    + (coeffs[2] + q_norm*coeffs[3])*zdm::intpow<2>(q_norm)
+                    + (coeffs[4] + q_norm*coeffs[5])*zdm::intpow<4>(q_norm));
+            else
+                return (1.0/3.0)*zdm::intpow<4>(q_norm);
         },
     };
 
     const double integrated_weighted_radon_transform
         = (2*zdm::intpow<2>(std::numbers::pi)*zdm::intpow<3>(q_max)/lab_speed)
         *(antiderivatives.first(q_top_max) - antiderivatives.first(q_bot_max)
-        + antiderviatives.second(q_bot_max) - antiderivatives.second(q_bot_min)
-        + antiderviatives.first(q_bot_min) - antiderivatives.first(q_top_min));
+        + antiderivatives.second(q_bot_max) - antiderivatives.second(q_bot_min)
+        + antiderivatives.first(q_bot_min) - antiderivatives.first(q_top_min));
 
 }
 

@@ -66,6 +66,13 @@ inline constexpr struct reduced_plank_constant:
     mpu::named_constant<mpu::symbol_text{u8"\u210f", "hbar"}, planck_constant/(mpu::mag<2>*mpu::pi)>
 {} reduced_plank_constant;
 
+namespace codata2022
+{
+
+using namespace mp_units::hep::codata2022;
+
+} // namespace codata2022
+
 namespace unit_symbols
 {
 
