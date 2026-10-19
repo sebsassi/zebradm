@@ -316,9 +316,9 @@ private:
     {
         assert(dm_mass > 0 && target_density > 0);
 
-        constexpr auto const_denominator
+        constexpr quantity const_denominator
             = 2.0*codata2022::fine_structure_constant
-                *intpow<3>(plank_constant*speed_of_light_in_vacuum);
+                *intpow<3>(1.0*planck_constant*speed_of_light_in_vacuum);
         constexpr quantity const_prefactor = 1.0/const_denominator;
 
         const quantity red_mass = reduced_mass(dm_mass, (1.0*codata2022::electron_mass).in(dm_mass.unit));

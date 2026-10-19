@@ -39,6 +39,8 @@ namespace mpu = mp_units;
 using mp_units::quantity;
 using mp_units::QuantityOf;
 using mp_units::Quantity;
+using mp_units::one;
+
 using namespace mp_units::hep;
 
 namespace si = mp_units::si;
@@ -123,6 +125,12 @@ normalize(const Quantity auto& q) noexcept
         return (q.numerical_value_in(q.unit).normalize())*q.reference;
     else
         return normalize(q.numerical_value_in(q.unit))*q.reference;
+}
+
+[[nodiscard]] constexpr Quantity auto
+norm(const Quantity auto& q) noexcept
+{
+    return mpu::magnitude(q);
 }
 
 template <typename Q1, Quantity Q2>

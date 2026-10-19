@@ -13,9 +13,12 @@ using namespace zdm::unit_symbols;
 
 auto constant_dist_constant_resp_energy_differential_rate(
     zdm::QuantityOf<zdm::speed> auto max_dm_speed,
-    zdm::QuantityOf<zdm::speed> auto lab_speed,
-    zdm::QuantityOf<zdm::momentum_transfer> auto q_max,
     zdm::QuantityOf<zdm::mass> auto dm_mass,
+    zdm::QuantityOf<zdm::energy_density> auto dm_energy_density,
+    zdm::QuantityOf<zdm::cross_section> auto dm_electron_cross_section,
+    zdm::QuantityOf<zdm::momentum_transfer> auto q_max,
+    zdm::QuantityOf<zdm::mass_density> auto target_mass_density,
+    zdm::QuantityOf<zdm::speed> auto lab_speed,
     zdm::QuantityOf<zdm::energy> auto energy)
 {
     const zdm::quantity top_speed = max_dm_speed + lab_speed;
@@ -49,20 +52,18 @@ auto constant_dist_constant_resp_energy_differential_rate(
                 -vlab_norm/(6*zdm::intpow<2>(2.0*m_norm)),
                 1.0/(7*zdm::intpow<3>(2.0*m_norm))
             };
-            return *std::log(q_norm)
-                + q_norm*(
+            return q_norm*(
                     coeffs[0] + q_norm*coeffs[1]
                     + (coeffs[2] + q_norm*coeffs[3])*zdm::intpow<2>(q_norm)
                     + (coeffs[4] + q_norm*coeffs[5]
-                        + (coeffs[6] + q_norm*coeffs[7])*zdm::intpow<2>(q_norm))*zdm::intpow<4>(q_norm));
+                        + coeffs[6]*zdm::intpow<2>(q_norm))*zdm::intpow<4>(q_norm));
         },
         [&](double q_norm)
         {
             const std::array coeffs = {
-                -zdm::intpow<2>(e_norm),
-                0.5*e_norm*vlab_norm,
+                -0.5*zdm::intpow<2>(e_norm),
                 (2.0/3.0)*e_norm*vlab_norm,
-                (1.0 - (4.0/3.0)*std::intpow<2>(vlab_norm) - e_norm/m_norm)*(1.0/4.0),
+                (1.0 - (4.0/3.0)*zdm::intpow<2>(vlab_norm) - e_norm/m_norm)*(1.0/4.0),
                 vlab_norm/(5.0*m_norm),
                 -1.0/(6.0*zdm::intpow<2>(2.0*m_norm))
             };
@@ -70,18 +71,29 @@ auto constant_dist_constant_resp_energy_differential_rate(
                 return 2.0*vlab_norm*zdm::intpow<2>(q_norm)*(
                     coeffs[0] + q_norm*coeffs[1]
                     + (coeffs[2] + q_norm*coeffs[3])*zdm::intpow<2>(q_norm)
-                    + (coeffs[4] + q_norm*coeffs[5])*zdm::intpow<4>(q_norm));
+                    + coeffs[4]*zdm::intpow<4>(q_norm));
             else
                 return (1.0/3.0)*zdm::intpow<4>(q_norm);
         },
     };
 
+    const double iwrt_prefactor = (2*zdm::intpow<2>(std::numbers::pi)/vlab_norm);
     const double integrated_weighted_radon_transform
-        = (2*zdm::intpow<2>(std::numbers::pi)*zdm::intpow<3>(q_max)/lab_speed)
-        *(antiderivatives.first(q_top_max) - antiderivatives.first(q_bot_max)
-        + antiderivatives.second(q_bot_max) - antiderivatives.second(q_bot_min)
-        + antiderivatives.first(q_bot_min) - antiderivatives.first(q_top_min));
+        = iwrt_prefactor*(
+            antiderivatives.first(q_top_max_norm) - antiderivatives.first(q_bot_max_norm)
+            + antiderivatives.second(q_bot_max_norm) - antiderivatives.second(q_bot_min_norm)
+            + antiderivatives.first(q_bot_min_norm) - antiderivatives.first(q_top_min_norm));
 
+    const zdm::quantity event_rate_prefactor_numerator
+        = dm_energy_density*dm_electron_cross_section*zdm::intpow<4>(q_max);
+    const zdm::quantity event_rate_prefactor_denominator
+        = (1.0*zdm::planck_constant*zdm::speed_of_light_in_vacuum)*(2.0*zdm::fine_structure_constant)
+            *target_mass_density*dm_mass
+            *zdm::intpow<2>(zdm::reduced_mass(dm_mass, zdm::electron_mass))*max_dm_speed;
+    const zdm::quantity event_rate_prefactor
+        = event_rate_prefactor_numerator/event_rate_prefactor_denominator;
+
+    return event_rate_prefactor*integrated_weighted_radon_transform;
 }
 
 
@@ -102,6 +114,21 @@ bool iso_iso_energy_differential_rate_is_correct_for_const_dist()
         zdm::velocity(zdm::la::Vector<double, 3>{218.0, 3.0, -1.0}*km/s),
     };
 
+    zest::DynamicMDArray<zdm::quantity<zdm::energy_differential_rate_per_unit_mass[zdm::one/(MeV*s*kg)]>, 2>
+    reference{lab_velocities.size(), energies.size()};
+
+    for (std::size_t i = 0; i < lab_velocities.size(); ++i)
+        for (std::size_t j = 0; j < energies.size(); ++j)
+            reference[i, j] = constant_dist_constant_resp_energy_differential_rate(
+                max_speed,
+                dm_mass,
+                dm_energy_density,
+                dm_electron_cross_section,
+                max_momentum_transfer,
+                target_density,
+                zdm::la::norm(lab_velocities[i]),
+                energies[j]);
+
     constexpr std::size_t order = 1;
 
     zdm::IsotropicRadonMomentArray<double, zdm::MomentSet::identity>
@@ -114,7 +141,8 @@ bool iso_iso_energy_differential_rate_is_correct_for_const_dist()
     for (std::size_t i = 0; i < energies.size(); ++i)
         target_response[i, 0] = 1.0/std::numbers::sqrt3;
 
-    zest::DynamicMDArray<double, 2> out{lab_velocities.size(), energies.size()};
+    zest::DynamicMDArray<zdm::quantity<zdm::energy_differential_rate_per_unit_mass[zdm::one/(MeV*s*kg)]>, 2>
+    out{lab_velocities.size(), energies.size()};
 
     zdm::ElectronRateCalculator<zdm::DistType::iso, zdm::RespType::iso>{}
         .energy_differential_rate(
