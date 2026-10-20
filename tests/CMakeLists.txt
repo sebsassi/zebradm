@@ -53,6 +53,7 @@ create_test(test_zebra_radon)
 create_test(test_zernike_recursions)
 create_test(test_zebra_angle_integrator)
 create_test(test_mutual_convergence)
+create_test(test_electron_rate)
 
 create_experiment(exp_affine_legendre_integral)
 create_experiment(exp_zebra_convergence)

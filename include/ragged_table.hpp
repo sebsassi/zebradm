@@ -42,17 +42,16 @@ public:
 
     RaggedTable() = default;
 
-    template <OffsetSource>
-    [[nodiscard]] RaggedTable from(std::span<const size_type> source);
-
-    template <>
-    [[nodiscard]] RaggedTable from<size_source>(std::span<const size_type> sizes)
+    template <OffsetSource source>
+        requires (source == size_source)
+    [[nodiscard]] static RaggedTable from(std::span<const size_type> sizes)
     {
         return RaggedTable{from_sizes_tag{}, sizes};
     }
 
-    template <>
-    [[nodiscard]] RaggedTable from<offset_source>(std::span<const size_type> offsets)
+    template <OffsetSource source>
+        requires (source == offset_source)
+    [[nodiscard]] static RaggedTable from(std::span<const size_type> offsets)
     {
         return RaggedTable{from_offsets_tag{}, offsets};
     }
@@ -71,11 +70,9 @@ public:
         m_offsets.clear();
     }
 
-    template <OffsetSource>
-    void reshape(std::span<const size_type> source);
-
-    template <>
-    void reshape<size_source>(std::span<const size_type> sizes)
+    template <OffsetSource source>
+        requires (source == size_source)
+    void reshape(std::span<const size_type> sizes)
     {
         m_data.resize(std::ranges::fold_left(sizes, 0, std::plus{}));
         m_offsets.resize(sizes.size() + 1);
@@ -83,8 +80,9 @@ public:
         initialize_offsets(sizes);
     }
 
-    template <>
-    void reshape<offset_source>(std::span<const size_type> offsets)
+    template <OffsetSource source>
+        requires (source == offset_source)
+    void reshape(std::span<const size_type> offsets)
     {
         m_data.resize(offsets.back());
         m_offsets.resize(offsets.size());

@@ -97,6 +97,13 @@ bool test_vector_with_units_has_magnitude()
     return true;
 }
 
+bool test_vector_with_units_has_norm()
+{
+    const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::displacement[zdm::meter];
+    [[maybe_unused]] const auto vm = zdm::la::norm(v);
+    return true;
+}
+
 bool test_vector_with_units_can_swizzle()
 {
     const auto v = zdm::la::Vector{1.0, 2.0, 3.0}*zdm::displacement[zdm::meter];

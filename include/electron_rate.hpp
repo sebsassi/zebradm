@@ -118,7 +118,7 @@ public:
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
 
             m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
-            m_grid_evaluator.resize(target_response.order(), m_response_grid.size());
+            m_grid_evaluator.resize(target_response[0].order(), m_response_grid.size());
 
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
