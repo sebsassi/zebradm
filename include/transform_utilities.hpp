@@ -64,15 +64,18 @@ from_points(std::span<la::Vector<double, 3>> points, std::span<double> values, s
     for (auto& radius : radii)
         radius *= 1.0/max_radius;
 
-    constexpr zest::Indexing indexing_mode = zest::Indexing::zero_based;
+    using RadialNormConvention = zest::zt::norm_convention_of<ZernikeExpansion<double>>;
 
-    zest::zt::RadialZernikeExpansion<double, zest::zt::norm_convention_of<ZernikeExpansion<double>>, std::dynamic_extent>
+    zest::zt::RadialZernikeExpansion<double, RadialNormConvention, std::dynamic_extent>
     radial_zernike{order, points.size()};
 
     zest::zt::RadialZernikeRecursion{order}.generate(radii, radial_zernike);
 
-    auto spherical_harmonics = zest::st::RealSHGenerator()
-        .generate<indexing_mode, zest::st::convention_of<ZernikeExpansion<double>>>(longitudes, colatitudes, order);
+    using SphericalConvention = zest::st::convention_of<ZernikeExpansion<double>>;
+    constexpr zest::Indexing indexing = zest::indexing_of<ZernikeExpansion<double>>();
+
+    auto spherical_harmonics = zest::st::RealSHGenerator{}
+        .generate<indexing, SphericalConvention>(longitudes, colatitudes, order);
 
     ZernikeExpansion<double> expansion{order};
 
