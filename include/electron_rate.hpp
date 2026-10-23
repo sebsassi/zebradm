@@ -118,7 +118,7 @@ public:
                     m_shell_grid.flatten(), m_aiwrt_grid.flatten());
 
             m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
-            m_grid_evaluator.resize(target_response.order(), m_response_grid.size());
+            m_grid_evaluator.resize(target_response[0].order(), m_response_grid.size());
 
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
@@ -162,7 +162,7 @@ public:
         m_shell_grid.clear();
 
         const quantity inv_max_momentum = 1.0/max_momentum_transfer;
-        const quantity speed_lo = mpu::fabs(max_speed - lab_speed);
+        const quantity speed_lo = mpu::abs(max_speed - lab_speed);
         const quantity speed_hi = max_speed + lab_speed;
         const quantity momentum_lo = dm_mass*speed_lo;
         const quantity momentum_hi = dm_mass*speed_hi;

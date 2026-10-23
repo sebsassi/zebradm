@@ -119,10 +119,11 @@ template <typename Q1, typename Q2>
 
 [[nodiscard]] constexpr Quantity auto
 normalize(const Quantity auto& q) noexcept
-    requires static_vector_like<remove_unit<decltype(q)>>
+    requires static_vector_like<remove_unit<std::remove_cvref_t<decltype(q)>>>
 {
-    if constexpr (requires (typename decltype(q)::rep v) { v.swizzle(); })
-        return (q.numerical_value_in(q.unit).normalize())*q.reference;
+    using rep = remove_unit<std::remove_cvref_t<decltype(q)>>;
+    if constexpr (requires (rep v) { v.swizzle(); })
+        return q.numerical_value_in(q.unit).normalize()*q.reference;
     else
         return normalize(q.numerical_value_in(q.unit))*q.reference;
 }
