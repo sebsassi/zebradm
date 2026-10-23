@@ -52,6 +52,7 @@ class TrapezoidShape
 public:
     using size_type = std::size_t;
     using index_type = std::size_t;
+    using linear_index_type = std::size_t;
     using index_range = zest::StandardIndexRange<index_type>;
     using extent_type = std::array<size_type, 2>;
 
