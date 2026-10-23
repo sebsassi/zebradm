@@ -93,6 +93,7 @@ auto constant_dist_constant_resp_energy_differential_rate(
     const zdm::quantity event_rate_prefactor
         = event_rate_prefactor_numerator/event_rate_prefactor_denominator;
 
+    static_assert(zdm::QuantityOf<decltype(event_rate_prefactor), zdm::energy_differential_rate_per_unit_mass>);
     return event_rate_prefactor*integrated_weighted_radon_transform;
 }
 
