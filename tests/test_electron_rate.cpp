@@ -30,15 +30,15 @@ auto constant_dist_constant_resp_energy_differential_rate(
     const zdm::quantity q_bot_min = dm_mass*(bot_speed - zdm::sqrt(zdm::intpow<2>(bot_speed) - min_speed_sq));
     const zdm::quantity q_bot_max = dm_mass*(bot_speed + zdm::sqrt(zdm::intpow<2>(bot_speed) - min_speed_sq));
 
-    const double q_top_min_norm = std::min(static_cast<double>(q_top_min/q_max), 1.0);
-    const double q_top_max_norm = std::min(static_cast<double>(q_top_max/q_max), 1.0);
-    const double q_bot_min_norm = std::min(static_cast<double>(q_bot_min/q_max), 1.0);
-    const double q_bot_max_norm = std::min(static_cast<double>(q_bot_max/q_max), 1.0);
+    const double q_top_min_norm = std::min(static_cast<double>((q_top_min/q_max).in(zdm::one)), 1.0);
+    const double q_top_max_norm = std::min(static_cast<double>((q_top_max/q_max).in(zdm::one)), 1.0);
+    const double q_bot_min_norm = std::min(static_cast<double>((q_bot_min/q_max).in(zdm::one)), 1.0);
+    const double q_bot_max_norm = std::min(static_cast<double>((q_bot_max/q_max).in(zdm::one)), 1.0);
 
-    const double e_norm = static_cast<double>(energy/(q_max*max_dm_speed));
-    const double m_norm = static_cast<double>(dm_mass*max_dm_speed/q_max);
+    const double e_norm = static_cast<double>((energy/(q_max*max_dm_speed)).in(zdm::one));
+    const double m_norm = static_cast<double>((dm_mass*max_dm_speed/q_max).in(zdm::one));
 
-    const double vlab_norm = static_cast<double>(lab_speed/max_dm_speed);
+    const double vlab_norm = static_cast<double>((lab_speed/max_dm_speed).in(zdm::one));
 
     std::pair antiderivatives = {
         [&](double q_norm)
@@ -89,7 +89,7 @@ auto constant_dist_constant_resp_energy_differential_rate(
     const zdm::quantity event_rate_prefactor_denominator
         = (1.0*zdm::planck_constant*zdm::speed_of_light_in_vacuum)*(2.0*zdm::fine_structure_constant)
             *target_mass_density*dm_mass
-            *zdm::intpow<2>(zdm::reduced_mass(dm_mass, zdm::electron_mass))*max_dm_speed;
+            *zdm::intpow<2>(zdm::reduced_mass_of(dm_mass, 1.0*zdm::electron_mass))*max_dm_speed;
     const zdm::quantity event_rate_prefactor
         = event_rate_prefactor_numerator/event_rate_prefactor_denominator;
 
@@ -127,7 +127,7 @@ bool iso_iso_energy_differential_rate_is_correct_for_const_dist()
                 max_momentum_transfer,
                 target_density,
                 zdm::la::norm(lab_velocities[i]),
-                energies[j]);
+                energies[j]).in(zdm::one/(MeV*s*kg));
 
     constexpr std::size_t order = 1;
 

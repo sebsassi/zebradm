@@ -265,8 +265,6 @@ public:
                 orientation.gcs_to_reference_cs())
         } {};
 
-    [[nodiscard]] constexpr bool operator==(const GCStoICRS& other) const noexcept = default;
-
     /**
         @brief Call operator of the parametric transform.
 
@@ -577,8 +575,6 @@ public:
     constexpr ITRStoHCS(double longitude, double latitude):
         m_transform(transform(longitude, latitude)) {}
 
-    [[nodiscard]] constexpr bool operator==(const ITRStoHCS& other) const noexcept = default;
-
     /**
         @brief Call operator of the parametric transform.
 
@@ -658,8 +654,6 @@ public:
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
 
-    [[nodiscard]] constexpr bool operator==(const GCStoHCS& other) const noexcept = default;
-
     /**
         @brief Call operator of the parametric transform.
 
@@ -713,8 +707,6 @@ public:
             ICRStoGCRS(),
             GCRStoCIRS()) {}
 
-    [[nodiscard]] constexpr bool operator==(const GCStoCIRS& other) const noexcept = default;
-
     /**
         @brief Call operator of the parametric transform.
 
@@ -761,8 +753,6 @@ public:
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
 
-    [[nodiscard]] constexpr bool operator==(const CIRStoHCS& other) const noexcept = default;
-
     /**
         @brief Call operator of the parametric transform.
 
@@ -807,8 +797,6 @@ public:
         m_transform(
             TIRStoITRS(),
             ITRStoHCS(longitude, latitude)) {}
-
-    [[nodiscard]] constexpr bool operator==(const TIRStoHCS& other) const noexcept = default;
 
     /**
         @brief Call operator of the parametric transform.

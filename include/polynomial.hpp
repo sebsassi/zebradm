@@ -116,7 +116,7 @@ estrin_eval(const R& coeffs, const DomainType& x)
 } // namespace detail
 
 template <std::size_t N>
-auto intpow(auto x)
+[[nodiscard]] constexpr auto intpow(auto x) noexcept
     requires (N > 0) && requires (decltype(x) y) { { y*y }; }
 {
     if constexpr (N == 1)

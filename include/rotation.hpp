@@ -28,6 +28,7 @@ SOFTWARE.
 #include "transform_conventions.hpp"
 #include "matrix.hpp"
 #include "vector.hpp"
+#include "linalg.hpp"
 
 namespace zdm::la
 {
@@ -578,11 +579,10 @@ public:
         return m_matrix[i, j];
     }
 
-    template <static_vector_like V>
-    [[nodiscard]] constexpr V
-    operator()(const V& v)
+    [[nodiscard]] constexpr static_vector_like auto
+    operator()(const static_vector_like auto& v)
     {
-        return matmul(*this, v);
+        return m_matrix*v;
     }
 
     /**
@@ -591,7 +591,7 @@ public:
     [[nodiscard]] constexpr RotationMatrix
     operator*(const RotationMatrix& other) const noexcept
     {
-        return matmul(*this, other);
+        return RotationMatrix{m_matrix*Matrix<T, N, N, action, layout>(other)};
     }
 
     /**
@@ -600,7 +600,7 @@ public:
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
     operator*(const RotationMatrix& r, const Matrix<T, N, N, action, layout>& m)
     {
-        return matmul(r, m);
+        return Matrix<T, N, N, action, layout>(r)*m;
     }
 
     /**
@@ -609,23 +609,22 @@ public:
     [[nodiscard]] friend constexpr Matrix<T, N, N, action, layout>
     operator*(const Matrix<T, N, N, action, layout>& m, const RotationMatrix& r)
     {
-        return matmul(m, r);
+        return m*Matrix<T, N, N, action, layout>(r);
     }
 
     /**
         @brief Multiply a vector by a rotation matrix.
     */
-    template <static_vector_like V>
-    [[nodiscard]] constexpr V
-    operator*(const V& vector) const noexcept
+    [[nodiscard]] constexpr static_vector_like auto
+    operator*(const static_vector_like auto& vector) const noexcept
     {
-        return matmul(*this, vector);
+        return m_matrix*vector;
     }
 
     [[nodiscard]] constexpr RotationMatrix
     transpose() const noexcept
     {
-        return RotationMatrix(m_matrix.transpose());
+        return RotationMatrix{m_matrix.transpose()};
     }
 
     /**

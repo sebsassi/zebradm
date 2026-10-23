@@ -631,16 +631,17 @@ constexpr T& div_assign(T& a, const typename T::value_type& b) noexcept
 namespace detail
 {
 
-template <static_square_matrix_like T, static_vector_like U>
-    requires std::same_as<typename T::value_type, typename U::value_type>
-        && (tensor_extent<T, 1> == tensor_extent<U, 0>)
-[[nodiscard]] constexpr U
-matmul_(const T& mat, const U& vec) noexcept
+[[nodiscard]] constexpr auto
+matmul_(const static_square_matrix_like auto& mat, const static_vector_like auto& vec) noexcept
+    requires std::same_as<
+            typename std::remove_cvref_t<decltype(mat)>::value_type,
+            typename std::remove_cvref_t<decltype(vec)>::value_type>
+        && (tensor_extent<decltype(mat), 1> == tensor_extent<decltype(vec), 0>)
 {
-    U res{};
-    for (std::size_t i = 0; i < tensor_extent<T, 0>; ++i)
+    std::remove_cvref_t<decltype(vec)> res{};
+    for (std::size_t i = 0; i < tensor_extent<decltype(mat), 0>; ++i)
     {
-        for (std::size_t j = 0; j < tensor_extent<T, 1>; ++j)
+        for (std::size_t j = 0; j < tensor_extent<decltype(mat), 1>; ++j)
             res[i] += mat[i, j]*vec[j];
     }
 

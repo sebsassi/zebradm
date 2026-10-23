@@ -36,9 +36,9 @@ namespace zdm
 
 
 [[nodiscard]] constexpr QuantityOf<reduced_mass> auto
-reduced_mass(QuantityOf<mass> auto m1, QuantityOf<mass> auto m2) noexcept
+reduced_mass_of(QuantityOf<mass> auto m1, QuantityOf<mass> auto m2) noexcept
 {
-    return m1*m2/(m1 + m2);
+    return mpu::quantity_cast<reduced_mass>(m1*m2/(m1 + m2));
 }
 
 template <DistType dist_type, RespType resp_type>
@@ -209,7 +209,7 @@ public:
                     = normalized_momentum_hi
                         + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
 
-                const std::array intervals = {
+                const std::array<std::array<double, 2>, 1> intervals = {
                     std::array<double, 2>{
                         normalized_momentum_hi_min,
                         std::min(normalized_momentum_hi_max, 1.0),
@@ -241,7 +241,7 @@ public:
                         - std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
                 if (1.0 < normalized_momentum_lo_min)
                 {
-                    const std::array intervals = {
+                    const std::array<std::array<double, 2>, 1> intervals = {
                         std::array<double, 2>{
                             normalized_momentum_hi_min,
                             1.0,
@@ -259,7 +259,7 @@ public:
                         + std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
                 if (1.0 < normalized_momentum_lo_max)
                 {
-                    const std::array intervals = {
+                    const std::array<std::array<double, 2>, 2> intervals = {
                         std::array<double, 2>{
                             normalized_momentum_hi_min,
                             normalized_momentum_lo_min,
@@ -280,7 +280,7 @@ public:
                     = normalized_momentum_hi
                         + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
 
-                const std::array intervals = {
+                const std::array<std::array<double, 2>, 3> intervals = {
                     std::array<double, 2>{
                         normalized_momentum_hi_min,
                         normalized_momentum_lo_min,
@@ -321,7 +321,7 @@ private:
                 *intpow<3>(1.0*planck_constant*speed_of_light_in_vacuum);
         constexpr quantity const_prefactor = 1.0/const_denominator;
 
-        const quantity red_mass = reduced_mass(dm_mass, (1.0*codata2022::electron_mass).in(dm_mass.unit));
+        const quantity red_mass = reduced_mass_of(dm_mass, (1.0*codata2022::electron_mass).in(dm_mass.unit));
         const quantity numerator
             = dm_energy_density*dm_electron_cross_section*intpow<4>(max_momentum_transfer);
         const quantity denominator = target_density*dm_mass*intpow<2>(red_mass)*max_speed;
