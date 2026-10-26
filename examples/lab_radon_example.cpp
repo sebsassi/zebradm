@@ -30,8 +30,8 @@ SOFTWARE.
 #include "linalg.hpp"
 #include "matrix.hpp"
 #include "time.hpp"
-#include "zebra_angle_integrator.hpp"
 #include "units.hpp"
+#include "electron_rate.hpp"
 
 namespace
 {
@@ -93,12 +93,13 @@ void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
     }
 }
 
+using zdm::unit_symbols;
+
 template <zdm::QuantityOf<zdm::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
     std::size_t dist_order, zdm::QuantityOf<zdm::speed> auto vesc,
     zdm::QuantityOf<zdm::speed> auto vdisp, zdm::QuantityOf<zdm::mass> auto dm_mass,
-    zdm::QuantityOf<zdm::mass> auto nucleus_mass, std::span<Duration> times,
-    zdm::QuantityOf<zdm::energy> auto emax)
+    std::span<Duration> times, zdm::energy<eV> emax)
 {
     const double dist_norm = distribution_norm(vdisp, vesc);
     auto velocity_distribution = [&](double lon, double colat, zdm::QuantityOf<zdm::speed> auto v)
@@ -127,28 +128,34 @@ zest::DynamicMDArray<double, 2> radon_transform(
     for (std::size_t i = 0; i < times.size(); ++i)
         vlab[i] = zdm::celestial::transform_velocity(gcs_to_hcs, times[i]);
 
-    const std::vector<Speed> vmin
-        = calculate_vmin(nucleus_mass, dm_mass, vesc, vdisp, emax);
-
-    // zebradm
-    // zest
     const zest::zt::ZernikeExpansion dist_expansion
         = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>{}
             .forward_transform(velocity_distribution, vesc, dist_order);
 
-    zest::DynamicMDArray<double, 2> out{vlab.size(), vmin.size()};
+    const zdm::RadonMomentArray velocity_dist_moments
+        = zdm::RadonTransformer{}.evaluate_transformed_moments(dist_expansion);
 
-    zdm::zebra::AngleIntegrator<zdm::DistType::aniso, zdm::RespType::iso>
-    radon_integrator(dist_order);
+    std::vector<zdm::quantity<zdm::energy[eV]>> energies = zdm::linspace(zdm::energy(0.0*eV), emax, 30);
 
-    zdm::RadonMomentArray<double, zdm::MomentSet::identity>
-    dist_radon = zdm::RadonTransformer<zdm::DistType::aniso, zdm::MomentSet::identity>{}
-        .evaluate_transformed_moments(dist_expansion);
-
-    radon_integrator.integrate(dist_expansion, vlab, vmin, out);
+    zest::DynamicMDArray<double, 2> out{vlab.size(), energies.size()};
 
     for (auto& element : out.flatten())
         element *= vesc*vesc;
+
+    const zdm::quantity dm_energy_density = zdm::energy_density(0.3*GeV/cm3);
+    const zdm::quantity dm_electron_cross_section = zdm::cross_section(1.0e-40*cm2);
+
+    zdm::ElectronRateCalculator<zdm::DistType::iso, zdm::RespType::iso>{}
+        .energy_differential_rate(
+            velocity_dist_moments, vesc,
+            dm_mass,
+            dm_energy_density,
+            dm_electron_cross_section,
+            target_response, max_momentum_transfer,
+            target_density,
+            lab_velocities,
+            energies,
+            out);
 
     return out;
 }

@@ -28,8 +28,10 @@ SOFTWARE.
 #include <expected>
 #include <span>
 #include <string_view>
+#include <bitset>
 
 #include "units.hpp"
+#include "parse_util.hpp"
 
 namespace zdm
 {
@@ -51,12 +53,12 @@ public:
 
     [[nodiscard]] constexpr operator std::string_view() noexcept
     {
-        return std::string_view(m_data.data(), m_data.size());
+        return view();
     }
 
     [[nodiscard]] constexpr std::string_view view() const noexcept
     {
-        return std::string_view(m_data.data(), m_data.size());
+        return std::string_view(m_data.data(), N);
     }
 
 private:
@@ -113,7 +115,7 @@ constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexce
 
     // If first letter is not a capital letter, map to row zero.
     const std::size_t clamped_first_index
-        = ('A' <= chemical_symbol[0] && chemical_symbol <= 'Z') ? chemical_symbol[0] : 0;
+        = ('A' <= chemical_symbol[0] && chemical_symbol[0] <= 'Z') ? chemical_symbol[0] : 0;
 
     // If second index is not in range, map to column 27.
     const std::size_t clamped_second_index
@@ -122,7 +124,7 @@ constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexce
     return number_table[28*clamped_first_index + clamped_second_index];
 }
 
-constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number) noexcept
+constexpr std::string_view chemical_symbol_of(std::uint8_t atomic_number) noexcept
 {
     static constexpr std::array<TinyString<2>, 119> periodic_table = {
         "\x00\x00",
@@ -135,7 +137,7 @@ constexpr std::string_view chemical_symbol_of(std::uint16_t atomic_number) noexc
         "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
     };
 
-    return periodic_table[atomic_number].view();
+    return periodic_table[(atomic_number < 119) ? atomic_number : 0].view();
 }
 
 } // namespace detail
@@ -210,7 +212,7 @@ public:
     */
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
-        return m_atomic_number != 0 && m_mass_number >= m_atomic_number;
+        return 0 < m_atomic_number && m_atomic_number <= m_mass_number;
     }
 
     /**
@@ -742,6 +744,117 @@ private:
     };
 
     std::uint8_t m_atomic_number;
+};
+
+enum class FormulaParseStatus: std::uint8_t
+{
+    success,
+    empty_formula,
+    invalid_element,
+    invalid_count,
+    too_many_elements,
+    count_of_element_too_large,
+};
+
+class Material
+{
+public:
+    [[nodiscard]] static constexpr Material
+    from_list(std::span<const std::pair<Element, std::uint8_t>> elements) noexcept
+    {
+        assert(elements.size() <= 32);
+        std::array<Element, 32> element_array = {};
+        std::array<std::uint8_t, 32> count_array = {};
+        for (std::size_t i = 0; i < elements.size(); ++i)
+        {
+            element_array[i] = elements[i].first;
+            count_array[i] = elements[i].second;
+        }
+
+        return Material{element_array, count_array, elements.size()};
+    }
+
+    [[nodiscard]] static constexpr std::expected<Material, FormulaParseStatus>
+    from_chemical_formula(std::string_view formula)
+    {
+        return parse_chemical_formula(formula);
+    }
+
+private:
+    constexpr Material(const std::array<Element, 32>& elements, const std::array<std::uint8_t, 32>& counts, std::size_t element_count):
+        m_elements{elements}, m_counts{counts}, m_element_count{element_count} {}
+
+    [[nodiscard]] static constexpr std::expected<Material, FormulaParseStatus>
+    parse_chemical_formula(std::string_view formula) noexcept
+    {
+        if (formula.size() == 0)
+            return std::unexpected(FormulaParseStatus::empty_formula);
+
+        std::array<Element, 32> elements = {};
+        std::array<std::uint8_t, 32> counts = {};
+        std::size_t element_index = 0;
+        for (; element_index < 32 && formula.size() > 0; ++element_index)
+        {
+            const auto results = parse_element(formula);
+            if (!results.has_value())
+                return std::unexpected(FormulaParseStatus::invalid_element);
+            elements[element_index] = results->first;
+            formula = results->second;
+
+            if (formula.size() == 0)
+                counts[element_index] = 1;
+            else if (formula[0] < '0' || '9' < formula[0])
+                counts[element_index] = 1;
+            else
+            {
+                const auto results = parse_count(formula);
+                if (!results.has_value())
+                    return results;
+                counts[element_index] = results->first;
+                formula = results->second;
+            }
+        }
+        const std::size_t element_count = element_index;
+
+        if (formula.size() > 0)
+            return std::unexpected(FormulaParseStatus::too_many_elements);
+
+        return Material{elements, counts, element_count};
+    }
+
+    [[nodiscard]] static constexpr std::expected<std::pair<Element, std::string_view>, FormulaParseStatus>
+    parse_element(std::string_view formula) noexcept
+    {
+        assert(formula.size() > 0);
+        const std::size_t symbol_length = (('0' <= formula[1] && formula[1] <= '9') || ('A' <= formula[1] && formula[1] <= 'Z')) ? 1 : 2;
+        const auto element = Element{formula.substr(0, symbol_length)};
+        if (element.is_null())
+            return std::unexpected(FormulaParseStatus::invalid_element);
+        else
+            return std::pair{element, formula.substr(symbol_length)};
+    }
+
+    [[nodiscard]] static constexpr std::expected<std::pair<std::uint8_t, std::string_view>, FormulaParseStatus>
+    parse_count(std::string_view formula) noexcept
+    {
+        assert(formula.size() > 0);
+        assert('0' <= formula[0] && formula[0] <= '9');
+        const auto results = detail::parse_unsigned(formula);
+        assert(results.has_value());
+
+        // The formula passed to this function should always have at least one
+        // digit in front. The asserts above stop any strings that don't.
+        // Therefore the unsigned integer parse above will always work and we
+        // don't need to check if the result has value.
+        if (results->first > 255)
+            return std::unexpected(FormulaParseStatus::count_of_element_too_large);
+        else
+            return std::pair{std::uint8_t(results->first), results->second};
+    }
+
+    std::array<Element, 32> m_elements;
+    std::array<std::uint8_t, 32> m_counts;
+    std::size_t m_element_count{};
 };
 
 } // namespace zdm

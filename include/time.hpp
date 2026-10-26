@@ -33,6 +33,7 @@ SOFTWARE.
 
 #include "utility.hpp"
 #include "units.hpp"
+#include "parse_util.hpp"
 
 namespace zdm::time
 {
@@ -45,7 +46,7 @@ enum class DateParseStatus: std::uint8_t
     success,                        /// Parsing completed successfully.
     incomplete_format_string,       /// Format string ended with single '%'.
     incomplete_time_string,         /// Time string did not contain all parts specified in format string.
-    unexpected_empty_string,        /// String was unexpectedly empty.
+    empty_string,                   /// String was unexpectedly empty.
     character_mismatch,             /// Mismatch in non-format parts of time and format strings.
     unsupported_format_specifier,   /// Use of an unsupported format specifier.
     duplicate_format_specifiers,    /// Use of multiple format specifiers that match same date part.
@@ -509,56 +510,11 @@ time_since_epoch(DateTime time) noexcept
 namespace detail
 {
 
-[[nodiscard]] constexpr std::string_view
-find_next_non_whitespace(std::string_view str) noexcept
-{
-    if (str.size() == 0) return str;
-    std::size_t index = 0;
-    while (index < str.size() && std::isspace(str[index])) ++index;
-    return str.substr(index);
-}
-
-[[nodiscard]] constexpr std::expected<std::pair<std::uint64_t, std::string_view>, DateParseStatus>
-parse_unsigned(std::string_view str) noexcept
-{
-    if (str.size() == 0)
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
-    if (str[0] < '0' || '9' < str[0])
-        return std::unexpected(DateParseStatus::expected_digits);
-
-    auto value = std::uint64_t(str[0] - '0');
-    std::size_t length = 1;
-    for (; length < str.size() && '0' <= str[length] && str[length] <= '9'; ++length)
-        value = value*10 + std::uint64_t(str[length] - '0');
-
-    return std::pair{value, str.substr(length)};
-}
-
-[[nodiscard]] constexpr std::expected<std::pair<std::int64_t, std::string_view>, DateParseStatus>
-parse_signed(std::string_view str) noexcept
-{
-    if (str.size() == 0)
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
-    std::int64_t sign = 1;
-    if (str[0] == '-')
-    {
-        sign = -1;
-        str = str.substr(1);
-    }
-    if (str[0] == '+')
-        str = str.substr(1);
-
-    return parse_unsigned(str)
-        .transform([&](const auto& value) {
-            return std::pair{sign*std::int64_t(value.first), value.second};
-        });
-}
-
 [[nodiscard]] constexpr std::expected<std::pair<TimeZoneOffset, std::string_view>, DateParseStatus>
 parse_time_zone_offset(std::string_view str) noexcept
 {
     if (str.size() == 0)
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
+        return std::unexpected(DateParseStatus::empty_string);
 
     // 'Z' in ISO 8601 is short for no offset.
     if (str[0] == 'Z')
@@ -632,7 +588,7 @@ parse_month_name(std::string_view input) noexcept
 [[nodiscard]] constexpr std::expected<std::pair<std::uint16_t, std::string_view>, DateParseStatus>
 parse_day_of_month(std::string_view input) noexcept
 {
-    if (const auto results = detail::parse_unsigned(input); results.has_value())
+    if (const auto results = zdm::detail::parse_unsigned(input); results.has_value())
     {
         const std::uint64_t number = results->first;
         if (number < 1 || 31 < number)
@@ -650,7 +606,7 @@ using ParseDateTimeImplResult = std::tuple<DateTime, DateParseState, std::string
 parse_date_time_impl(std::string_view input, std::string_view format) noexcept
 {
     if (input.size() == 0 || format.size() == 0)
-        return std::unexpected(DateParseStatus::unexpected_empty_string);
+        return std::unexpected(DateParseStatus::empty_string);
 
     DateParseState parse_state = {};
     DateTime date_time = {};
@@ -662,8 +618,8 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
 
         if (std::isspace(format.front()))
         {
-            input = find_next_non_whitespace(input);
-            format = find_next_non_whitespace(format);
+            input = zdm::detail::find_next_non_whitespace(input);
+            format = zdm::detail::find_next_non_whitespace(format);
             continue;
         }
         if (format.front() != '%')
@@ -697,7 +653,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
 
             case FormatSpecifier::whitespace:
             {
-                input = find_next_non_whitespace(input);
+                input = zdm::detail::find_next_non_whitespace(input);
                 continue;
             }
 
@@ -706,7 +662,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_year))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_signed(input);
+                const auto results = zdm::detail::parse_signed(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_year);
 
@@ -722,7 +678,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_month_of_year))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_month_name(input);
+                const auto results = zdm::detail::parse_month_name(input);
                 if (!results.has_value())
                     return std::unexpected(results.error());
 
@@ -738,7 +694,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_month_of_year))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_month_of_year);
 
@@ -758,7 +714,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_day_of_month))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = detail::parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_day_of_month);
 
@@ -830,7 +786,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_hour))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_hour);
 
@@ -850,7 +806,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_hour))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_hour);
 
@@ -881,7 +837,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
             {
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_minute))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
-                const auto results = parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_minute);
 
@@ -901,7 +857,7 @@ parse_date_time_impl(std::string_view input, std::string_view format) noexcept
                 if (parse_state.flags & std::uint32_t(DateParseStatusFlag::has_second))
                     return std::unexpected(DateParseStatus::duplicate_format_specifiers);
 
-                const auto results = parse_unsigned(input);
+                const auto results = zdm::detail::parse_unsigned(input);
                 if (!results.has_value())
                     return std::unexpected(DateParseStatus::invalid_second);
 

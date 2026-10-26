@@ -218,60 +218,6 @@ void test_time_add_time_zone_offset()
     test_time_add_time_zone_offset_gives_correct_time(zdm::time::DateTime{1999, 12, 31, 19, 30, 0, 0}, zdm::time::TimeZoneOffset{+1, 4, 30}, zdm::time::DateTime{2000, 1, 1, 0, 0, 0, 0});
 }
 
-void test_find_next_non_whitespace()
-{
-    assert(zdm::time::detail::find_next_non_whitespace(""sv) == ""sv);
-    assert(zdm::time::detail::find_next_non_whitespace("      "sv) == ""sv);
-    assert(zdm::time::detail::find_next_non_whitespace(" hello"sv) == "hello"sv);
-    assert(zdm::time::detail::find_next_non_whitespace(" \f\n\r\t\v"sv) == ""sv);
-    assert(zdm::time::detail::find_next_non_whitespace(" \f\n\r\t\vhello"sv) == "hello"sv);
-}
-
-bool test_parse_unsigned_gives_correct_result(
-    std::string_view input, std::uint64_t expected_number, std::string_view expected_output)
-{
-    const auto result = zdm::time::detail::parse_unsigned(input);
-    if (!result.has_value()) return false;
-
-    const auto& [number, output] = *result;
-    return number == expected_number && output == expected_output;
-}
-
-void test_parse_unsigned()
-{
-    assert(zdm::time::detail::parse_unsigned(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
-    assert(zdm::time::detail::parse_unsigned("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-    assert(zdm::time::detail::parse_unsigned("-1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-    assert(zdm::time::detail::parse_unsigned("+1"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-
-    assert(test_parse_unsigned_gives_correct_result("237489"sv, 237489, ""sv));
-    assert(test_parse_unsigned_gives_correct_result("0000237489"sv, 237489, ""sv));
-    assert(test_parse_unsigned_gives_correct_result("237489 hello"sv, 237489, " hello"sv));
-}
-
-bool test_parse_signed_gives_correct_result(
-    std::string_view input, std::int64_t expected_number, std::string_view expected_output)
-{
-    const auto result = zdm::time::detail::parse_signed(input);
-    if (!result.has_value()) return false;
-
-    const auto& [number, output] = *result;
-    return number == expected_number && output == expected_output;
-}
-
-void test_parse_signed()
-{
-    assert(zdm::time::detail::parse_signed(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
-    assert(zdm::time::detail::parse_signed("hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-    assert(zdm::time::detail::parse_signed("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-    assert(zdm::time::detail::parse_signed("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::expected_digits));
-
-    assert(test_parse_signed_gives_correct_result("237489", 237489, ""sv));
-    assert(test_parse_signed_gives_correct_result("-237489", -237489, ""sv));
-    assert(test_parse_signed_gives_correct_result("+237489", 237489, ""sv));
-    assert(test_parse_signed_gives_correct_result("-237489 a", -237489, " a"sv));
-}
-
 bool test_parse_time_zone_offset_gives_correct_result(
     std::string_view input, zdm::time::TimeZoneOffset expected_offset,
     std::string_view expected_output)
@@ -285,7 +231,7 @@ bool test_parse_time_zone_offset_gives_correct_result(
 
 void test_parse_time_zone_offset()
 {
-    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
+    assert(zdm::time::detail::parse_time_zone_offset(""sv) == std::unexpected(zdm::time::DateParseStatus::empty_string));
     assert(zdm::time::detail::parse_time_zone_offset("hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
     assert(zdm::time::detail::parse_time_zone_offset("-hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
     assert(zdm::time::detail::parse_time_zone_offset("+hello"sv) == std::unexpected(zdm::time::DateParseStatus::invalid_time_zone_offset));
@@ -313,8 +259,8 @@ bool test_parse_time_is_correct(
 
 void test_parse_date_time()
 {
-    assert(zdm::time::parse_date_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
-    assert(zdm::time::parse_date_time("12:00"sv, ""sv) == std::unexpected(zdm::time::DateParseStatus::unexpected_empty_string));
+    assert(zdm::time::parse_date_time(""sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::empty_string));
+    assert(zdm::time::parse_date_time("12:00"sv, ""sv) == std::unexpected(zdm::time::DateParseStatus::empty_string));
     assert(zdm::time::parse_date_time("12:00"sv, "%H:%M:%S"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_time_string));
     assert(zdm::time::parse_date_time("at 12:00"sv, "At %H:%M"sv) == std::unexpected(zdm::time::DateParseStatus::character_mismatch));
     assert(zdm::time::parse_date_time("12:00"sv, "%H:%"sv) == std::unexpected(zdm::time::DateParseStatus::incomplete_format_string));
@@ -535,9 +481,6 @@ int main()
     test_days_until();
     test_time_comparison_operations();
     test_time_add_time_zone_offset();
-    test_find_next_non_whitespace();
-    test_parse_unsigned();
-    test_parse_signed();
     test_parse_time_zone_offset();
     test_parse_date_time();
 }
