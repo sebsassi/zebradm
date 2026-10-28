@@ -368,6 +368,29 @@ void test_material()
     assert(zdm::Material::from_chemical_formula("H256") == std::unexpected(zdm::FormulaParseStatus::count_of_element_too_large));
     assert(zdm::Material::from_chemical_formula(
         "Li""Be""C""H""Pb""W""Ti""F""Ne""Og""K""I""Xe""Au""U""Eu""Fm""As""Ge""Na""Zn""In""Po""Ac""Hf""Y""Ru""Yr""Os""Tc""Yb""Cs""Si" == std::unexpected(std::FormulaParseStatus::too_many_elements)));
+
+    assert(zdm::Material::from_chemical_formula("He") == zdm::Material{{{zdm::Element{"He"}, 1}}});
+    assert(zdm::Material::from_chemical_formula("H2O")
+        == zdm::Material{{
+                {zdm::Element{"H"}, 2},
+                {zdm::Element{"O"}, 1},
+            }});
+    assert(zdm::Material::from_chemical_formula("CeOFeAs")
+        == zdm::Material{{
+                {zdm::Element{"Ce"}, 1},
+                {zdm::Element{"O"}, 1},
+                {zdm::Element{"Fe"}, 1},
+                {zdm::Element{"As"}, 1},
+           }});
+    assert(zdm::Material::from_chemical_formula("Hg12Tl3Ba30Ca30Cu45O127")
+        == zdm::Material{{
+                {zdm::Element{"Hg"}, 12},
+                {zdm::Element{"Tl"}, 3},
+                {zdm::Element{"Ba"}, 30},
+                {zdm::Element{"Ca"}, 30},
+                {zdm::Element{"Cu"}, 45},
+                {zdm::Element{"O"}, 127},
+            }});
 }
 
 }

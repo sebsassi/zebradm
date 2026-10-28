@@ -36,31 +36,7 @@ SOFTWARE.
 namespace
 {
 
-[[nodiscard]] constexpr zdm::QuantityOf<zdm::mass> auto
-reduced_mass(zdm::QuantityOf<zdm::mass> auto m1, zdm::QuantityOf<zdm::mass> auto m2)
-{
-    return m1*m2/(m1 + m2);
-}
-
-auto calculate_vmin(
-    zdm::QuantityOf<zdm::mass> auto nucleus_mass, zdm::QuantityOf<zdm::mass> auto dm_mass,
-    zdm::QuantityOf<zdm::speed> auto vesc,
-    [[maybe_unused]] zdm::QuantityOf<zdm::speed> auto vdisp,
-    zdm::QuantityOf<zdm::energy> auto emax)
-{
-    const zdm::quantity emin = zdm::energy(0.0*zdm::electronvolt);
-    const zdm::quantity red_mass = reduced_mass(dm_mass, nucleus_mass);
-
-    std::size_t count = 50;
-    std::vector<decltype(vesc)> vmin(count);
-    for (std::size_t i = 0; i < count; ++i)
-    {
-        const zdm::quantity energy = emin + (emax - emin)*(double(i)/double(count - 1UL));
-        vmin[i] = zdm::sqrt(nucleus_mass*energy/(2.0*red_mass*red_mass));
-    }
-
-    return vmin;
-}
+using namespace zdm::unit_symbols;
 
 // Left distribution unnormalized in this toy example
 constexpr double distribution_norm(
@@ -69,6 +45,50 @@ constexpr double distribution_norm(
 {
     return 1.0;
 }
+
+class SHM
+{
+public:
+    constexpr SHM(
+        zdm::QuantityOf<zdm::speed> auto vdisp, zdm::QuantityOf<zdm::speed> auto vesc) noexcept:
+        m_velocity_dispersion{vdisp.template in<double>(km/s)},
+        m_escape_velocity{vesc.template in<double>(km/s)},
+        m_norm{normalization(vdisp, vesc)} {}
+
+    [[nodiscard]] constexpr double
+    operator()(zdm::QuantityOf<zdm::speed> auto v) noexcept
+    {
+        return m_norm*std::exp(-static_cast<double>((v/m_velocity_dispersion).in(zdm::one)));
+
+    }
+
+    [[nodiscard]] constexpr zdm::quantity<zdm::speed[km/s]>
+    escape_velocity() const noexcept
+    {
+        return m_escape_velocity;
+    }
+
+    [[nodiscard]] constexpr zdm::quantity<zdm::speed[km/s]>
+    velocity_dispersion() const noexcept
+    {
+        return m_velocity_dispersion;
+    }
+
+private:
+    [[nodiscard]] static constexpr double
+    normalization(zdm::QuantityOf<zdm::speed> auto vdisp, zdm::QuantityOf<zdm::speed> auto vesc) noexcept
+    {
+        const double ratio = static_cast<double>((vesc.template in<double>()/vdisp.template in<double>()).in(zdm::one));
+        constexpr double standard_gaussian_norm = zdm::intpow<3>(std::numbers::inv_sqrtpi/std::numbers::sqrt2);
+        const double gaussian_norm = standard_gaussian_norm*ratio;
+        const double trunc_term = std::erf(ratio) - (2.0*std::numbers::inv_sqrtpi)*ratio*std::exp(-zdm::intpow<2>(ratio));
+        return gaussian_norm/trunc_term;
+    }
+
+    zdm::quantity<zdm::speed[km/s]> m_velocity_dispersion;
+    zdm::quantity<zdm::speed[km/s]> m_escape_velocity;
+    double m_norm;
+};
 
 [[maybe_unused]]
 void print_to_file(const char* fname, zest::DynamicMDSpan<const double, 2> array)
@@ -93,33 +113,26 @@ void print_to_stdout(zest::DynamicMDSpan<const double, 2> array)
     }
 }
 
-using zdm::unit_symbols;
+// Arbitrary mock target response for demonstration.
+static constexpr qmax = zdm::momentum_transfer(30.0*keV/c);
+double response(zdm::quantity<zdm::energy[eV]> energy, zdm::quantity<zdm::momentum_transfer[keV/c]> q)
+{
+    const double q_norm = static_cast<double>(q/qmax);
+    const double e_norm = static_cast<double>(energy/zdm::energy(50.0*eV));
+    return std::exp(-e_norm)*zdm::intpow<2>(1.0 - q_norm);
+}
 
 template <zdm::QuantityOf<zdm::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
-    std::size_t dist_order, zdm::QuantityOf<zdm::speed> auto vesc,
-    zdm::QuantityOf<zdm::speed> auto vdisp, zdm::QuantityOf<zdm::mass> auto dm_mass,
-    std::span<Duration> times, zdm::energy<eV> emax)
+    std::size_t dist_order, SHM velocity_distribution, zdm::quantity<zdm::mass[GeV/c2]> dm_mass,
+    std::span<zdm::quantity<zdm::duration[d]>> times, zdm::quantity<zdm::energy[eV]> emax,
+    zdm::quantity<zdm::momentum_transfer[keV/c]> qmax,
+    zdm::quantity<zdm::mass_density[g/cm3]> target_density)
 {
-    const double dist_norm = distribution_norm(vdisp, vesc);
-    auto velocity_distribution = [&](double lon, double colat, zdm::QuantityOf<zdm::speed> auto v)
-    {
-        const auto direction = zdm::la::Vector{std::sin(colat)*std::cos(lon), std::sin(colat)*std::sin(lon), std::cos(colat)};
-        const zdm::quantity velocity = zdm::velocity(v)*direction;
-        const zdm::quantity inv_vdisp = 1.0/vdisp;
-        constexpr zdm::la::Matrix<double, 3, 3> sigma = {
-            3.0, 1.4, 0.5,
-            1.4, 0.3, 2.1,
-            0.5, 2.1, 1.7
-        };
-        return dist_norm*zdm::exp(-0.5*zdm::la::quadratic_form(sigma, velocity)*(inv_vdisp*inv_vdisp));
-    };
-
     const double lon = 0.0;
     const double lat = 1.5;
-    const zdm::quantity vcirc = vdisp;
 
-    zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, vcirc};
+    zdm::celestial::GCStoHCS gcs_to_hcs{lon, lat, velocity_distribution.velocity_dispersion()};
 
     using Velocity = zdm::quantity<zdm::velocity[zdm::si::kilo<zdm::meter>/zdm::second], zdm::la::Vector<double, 3>>;
     using Speed = zdm::quantity<zdm::speed[zdm::si::kilo<zdm::meter>/zdm::second]>;
@@ -128,9 +141,9 @@ zest::DynamicMDArray<double, 2> radon_transform(
     for (std::size_t i = 0; i < times.size(); ++i)
         vlab[i] = zdm::celestial::transform_velocity(gcs_to_hcs, times[i]);
 
-    const zest::zt::ZernikeExpansion dist_expansion
-        = zest::zt::ZernikeTransformer<zest::zt::NormedGeo>{}
-            .forward_transform(velocity_distribution, vesc, dist_order);
+    const zdm::IsotropicZernikeExpansion dist_expansion
+        = zdm::IsotropicZernikeTransformer{}
+            .forward_transform(velocity_distribution, velocity_distribution.escape_velocity(), dist_order);
 
     const zdm::RadonMomentArray velocity_dist_moments
         = zdm::RadonTransformer{}.evaluate_transformed_moments(dist_expansion);
@@ -139,21 +152,18 @@ zest::DynamicMDArray<double, 2> radon_transform(
 
     zest::DynamicMDArray<double, 2> out{vlab.size(), energies.size()};
 
-    for (auto& element : out.flatten())
-        element *= vesc*vesc;
-
     const zdm::quantity dm_energy_density = zdm::energy_density(0.3*GeV/cm3);
     const zdm::quantity dm_electron_cross_section = zdm::cross_section(1.0e-40*cm2);
 
     zdm::ElectronRateCalculator<zdm::DistType::iso, zdm::RespType::iso>{}
         .energy_differential_rate(
-            velocity_dist_moments, vesc,
+            velocity_dist_moments, velocity_distribution.escape_velocity(),
             dm_mass,
             dm_energy_density,
             dm_electron_cross_section,
-            target_response, max_momentum_transfer,
+            target_response, qmax,
             target_density,
-            lab_velocities,
+            vlab,
             energies,
             out);
 
@@ -170,15 +180,17 @@ int main([[maybe_unused]] int argc, char** argv)
     const zdm::quantity vdisp = zdm::speed(atof(argv[2])*km/s);
     const std::size_t dist_order = std::size_t(atoi(argv[3]));
     const zdm::quantity dm_mass = zdm::mass(atof(argv[4])*GeV/c2);
-    const zdm::quantity nucleus_mass = zdm::mass(atof(argv[5])*GeV/c2);
-    const std::string_view start_date{argv[6]};
-    const std::string_view end_date{argv[7]};
-    const std::size_t ntime = std::size_t(atoi(argv[8]));
-    const zdm::quantity emax = zdm::energy(atof(argv[9])*eV);
+    const std::string_view start_date{argv[5]};
+    const std::string_view end_date{argv[6]};
+    const std::size_t ntime = std::size_t(atoi(argv[7]));
+    const zdm::quantity emax = zdm::energy(atof(argv[8])*eV);
+    const zdm::quantity qmax = zdm::momentum_transfer(atof(argv[9])*keV/c);
+    const zdm::quantity target_density = zdm::mass_density(atof(argv[10])*g/cm3);
 
     auto times = zdm::time::ut1_interval<zdm::time::j2000_utc>(start_date, end_date, ntime, "%Y-%m-%d").value();
 
-    const auto out = radon_transform(dist_order, vmax, vdisp, dm_mass, nucleus_mass, std::span(times), emax);
+    const auto out = radon_transform(
+        dist_order, SHM{vmax, vdisp}, dm_mass, std::span(times), emax, qmax, target_density);
 
     //const char* fname = "lab_radon_example.dat";
     //print_to_file(fname, out);

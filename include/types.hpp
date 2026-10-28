@@ -163,4 +163,6 @@ template <std::floating_point ElementType, std::size_t... inner_extents>
 using IsotropicZernikeExpansionVector = zest::zt::IsotropicZernikeExpansionVector<
     ElementType, zest::zt::NormedGeo>;
 
+using IsotropicZernikeTransformer = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>;
+
 } // namespace zdm

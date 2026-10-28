@@ -759,19 +759,26 @@ enum class FormulaParseStatus: std::uint8_t
 class Material
 {
 public:
-    [[nodiscard]] static constexpr Material
-    from_list(std::span<const std::pair<Element, std::uint8_t>> elements) noexcept
+    explicit constexpr Material(std::span<const std::pair<Element, std::uint8_t>> elements):
+        m_element_count{elements.size()}
     {
         assert(elements.size() <= 32);
-        std::array<Element, 32> element_array = {};
-        std::array<std::uint8_t, 32> count_array = {};
         for (std::size_t i = 0; i < elements.size(); ++i)
         {
-            element_array[i] = elements[i].first;
-            count_array[i] = elements[i].second;
+            m_elements[i] = elements[i].first;
+            m_counts[i] = elements[i].second;
         }
+    }
 
-        return Material{element_array, count_array, elements.size()};
+    explicit constexpr Material(std::initializer_list<std::pair<Element, std::uint8_t>> elements):
+        m_element_count{elements.size()}
+    {
+        assert(elements.size() <= 32);
+        for (const auto& [i, pair] : std::ranges::views::enumerate(elements))
+        {
+            m_elements[std::size_t(i)] = pair.first;
+            m_counts[std::size_t(i)] = pair.second;
+        }
     }
 
     [[nodiscard]] static constexpr std::expected<Material, FormulaParseStatus>
@@ -809,7 +816,7 @@ private:
             {
                 const auto results = parse_count(formula);
                 if (!results.has_value())
-                    return results;
+                    return std::unexpected(results.error());
                 counts[element_index] = results->first;
                 formula = results->second;
             }
