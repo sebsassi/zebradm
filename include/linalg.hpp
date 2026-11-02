@@ -720,6 +720,20 @@ transpose(const static_matrix_like auto& matrix) noexcept
 }
 
 /**
+    @brief Scale a vector by another vector.
+
+    @param v
+    @param u
+
+    @return `v` scaled by `u`.
+*/
+[[nodiscard]] constexpr auto
+scale_by(const static_vector_like auto& v, const static_vector_like& u) noexcept
+{
+    return mul(v, u);
+}
+
+/**
     @brief Evaluatea quadratic form defined by a matrix with a vector argument.
 
     @param matrix

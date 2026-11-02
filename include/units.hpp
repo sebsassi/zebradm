@@ -92,40 +92,42 @@ constexpr auto ka = millennium;
 namespace la
 {
 
-template <std::size_t... Inds, Quantity Q>
+template <std::size_t... Inds>
+[[nodiscard]] constexpr Quantity auto swizzle(const Quantity auto& q) noexcept
     requires
-        requires (typename Q::rep v) { v.template swizzle<Inds...>(); }
-        || requires (typename Q::rep v) { swizzle<Inds...>(v); }
-[[nodiscard]] constexpr Quantity auto swizzle(const Q& q) noexcept
+        requires (typename std::remove_cvref_t<decltype(q)>::rep v) { v.template swizzle<Inds...>(); }
+        || requires (typename std::remove_cvref_t<decltype(q)>::rep v) { swizzle<Inds...>(v); }
 {
-    if constexpr (requires (typename Q::rep v) { v.template swizzle<Inds...>(); })
-        return (q.numerical_value_in(Q::unit).template swizzle<Inds...>())*Q::reference;
+    using rep = std::remove_cvref_t<decltype(q)>::rep;
+    if constexpr (requires (typename rep v) { v.template swizzle<Inds...>(); })
+        return (q.numerical_value_in(q.unit).template swizzle<Inds...>())*q.reference;
     else
-        return swizzle<Inds...>(q.numerical_value_in(Q::unit))*Q::reference;
+        return swizzle<Inds...>(q.numerical_value_in(q.unit))*q.reference;
 }
 
-template <typename Q1, typename Q2>
-    requires static_vector_like<remove_unit<Q1>> && static_vector_like<remove_unit<Q2>>
-        && (Quantity<Q1> || Quantity<Q2>)
-[[nodiscard]] constexpr Quantity auto dot(const Q1& q1, const Q2& q2) noexcept
+[[nodiscard]] constexpr Quantity auto
+dot(const static_vector_like auto& q1, const static_vector_like auto& q2) noexcept
+    requires (Quantity<std::remove_cvref_t<decltype(q1)>> || Quantity<std::remove_cvref_t<decltype(q2)>>)
 {
+    using Q1 = std::remove_cvref_t<decltype(q1)>;
+    using Q2 = std::remove_cvref_t<decltype(q2)>;
     if constexpr (Quantity<Q1> && Quantity<Q2>)
-        return dot(q1.numerical_value_in(Q1::unit), q2.numerical_value_in(Q2::unit))*Q1::unit*Q2::unit;
+        return dot(q1.numerical_value_in(q1.unit), q2.numerical_value_in(q2.unit))*q1.unit*q2.unit;
     else if constexpr (Quantity<Q1>)
-        return dot(q1, q2.numerical_value_in(Q2::unit))*Q2::unit;
+        return dot(q1, q2.numerical_value_in(q2.unit))*q2.unit;
     else
-        return dot(q1.numerical_value_in(Q1::unit), q2)*Q1::unit;
+        return dot(q1.numerical_value_in(q1.unit), q2)*q1.unit;
 }
 
 [[nodiscard]] constexpr Quantity auto
 normalize(const Quantity auto& q) noexcept
-    requires static_vector_like<remove_unit<std::remove_cvref_t<decltype(q)>>>
+    requires static_vector_like<remove_unit<decltype(q)>>
 {
-    using rep = remove_unit<std::remove_cvref_t<decltype(q)>>;
+    using rep = std::remove_cvref_t<decltype(q)>::rep;
     if constexpr (requires (rep v) { v.swizzle(); })
-        return q.numerical_value_in(q.unit).normalize()*q.reference;
+        return q.numerical_value_in(q.unit).normalize()*mpu::one;
     else
-        return normalize(q.numerical_value_in(q.unit))*q.reference;
+        return normalize(q.numerical_value_in(q.unit))*mpu::one;
 }
 
 [[nodiscard]] constexpr Quantity auto
@@ -134,9 +136,19 @@ norm(const Quantity auto& q) noexcept
     return mpu::magnitude(q);
 }
 
-template <typename Q1, Quantity Q2>
-    requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
-[[nodiscard]] constexpr Quantity auto matmul(const Q1& q1, const Q2& q2) noexcept
+[[nodiscard]] constexpr Quantity auto
+scale_by(const Quantity auto& q, const static_vector_like auto& v) noexcept
+{
+    using V = std::remove_cvref_t<decltype(v)>;
+    if constexpr (Quantity<V>)
+        return scale_by(q.numerical_value_in(q.unit), v.numerical_value_in(v.unit))*q.reference*v.reference;
+    else
+        return scale_by(q.numerical_value_in(q.unit), v)*q.reference;
+}
+
+[[nodiscard]] constexpr Quantity auto
+matmul(const static_matrix_like auto& q1, const Quantity auto& q2) noexcept
+    requires static_vector_like<remove_unit<decltype(q2)>>
 {
     return q1*q2;
 }
@@ -150,9 +162,9 @@ template <typename Q1, Quantity Q2>
 //     return transpose(q.numerical_value_in(Q::unit))*Q::reference;
 // }
 
-template <typename Q1, Quantity Q2>
-    requires static_matrix_like<Q1> && static_vector_like<remove_unit<Q2>>
-[[nodiscard]] constexpr Quantity auto quadratic_form(const Q1& q1, const Q2& q2)
+[[nodiscard]] constexpr Quantity auto
+quadratic_form(const static_matrix_like auto& q1, const Quantity auto& q2)
+    requires static_vector_like<remove_unit<decltype(q2)>>
 {
     return dot(q2, matmul(q1, q2));
 }
