@@ -39,14 +39,14 @@ void legendre_recursion_vec(zest::DynamicMDSpan<double, 2> legendre, std::span<d
 
 void legendre_recursion(std::span<double> legendre, double x);
 
-template <typename T>
+template <std::floating_point T>
 class LegendreRecursion
 {
 public:
-    LegendreRecursion() = default;
-    LegendreRecursion(T x): m_x{x} {}
+    constexpr LegendreRecursion() = default;
+    constexpr LegendreRecursion(T x): m_x{x} {}
 
-    void init(T x)
+    constexpr void init(T x) noexcept
     {
         m_x = x;
         m_second_prev = 0.0;
@@ -55,12 +55,12 @@ public:
         m_l = 0;
     }
 
-    [[nodiscard]] T second_prev() const noexcept { return m_second_prev; }
-    [[nodiscard]] T prev() const noexcept { return m_prev; }
-    [[nodiscard]] T current() const noexcept { return m_current; }
+    [[nodiscard]] constexpr T second_prev() const noexcept { return m_second_prev; }
+    [[nodiscard]] constexpr T prev() const noexcept { return m_prev; }
+    [[nodiscard]] constexpr T current() const noexcept { return m_current; }
 
     template <std::size_t N = 1>
-    void iterate() noexcept
+    constexpr void iterate() noexcept
     {
         for (std::size_t i = 0; i < N; ++i)
         {
@@ -74,14 +74,14 @@ public:
         }
     }
 
-    void iterate(std::size_t n) noexcept
+    constexpr void iterate(std::size_t n) noexcept
     {
         for (std::size_t i = 0; i < n; ++i)
             iterate<>();
     }
 
     template <std::size_t N = 1>
-    [[nodiscard]] T next() noexcept
+    [[nodiscard]] constexpr T next() noexcept
     {
         iterate<N>();
         return m_current;

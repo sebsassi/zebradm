@@ -283,6 +283,9 @@ struct TimeZoneOffset
 
 struct DateTime;
 
+/**
+    @brief Data structure representing a date.
+*/
 struct Date
 {
     std::int32_t year;
@@ -294,14 +297,28 @@ struct Date
     [[nodiscard]] explicit constexpr operator DateTime() const noexcept;
 
     /*
-        @brief Check whether object represents a valid time.
+        @brief Check whether a `Date` represents a valid date.
+
+        A date is regarded as valid if it represents a semantically valid date
+        in the proleptic Gregorian calendar. That is, the month falls in the
+        interval \f$[1, 12]\f$, and the day of month falls within the interval
+        \f$[1, d_\text{max}]\f$, where $d_\text{max}$ is 28 for February if the
+        year is not a leap year, and 29 if it is; 30 if the month is one of
+        April, June, September, or November; and 31 otherwise.
     */
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
+        static constexpr std::array<std::array<uint8_t, 12>, 2> mday_upper_limit = {
+            std::array<std::uint8_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+            std::array<std::uint8_t, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+        };
         return 1 <= mon && mon <= 12
-            && 1 <= mday && mday <= 31;
+            && 1 <= mday && mday <= mday_upper_limit[is_leap_year(year)][mon];
     }
 
+    /**
+        @brief Represent date as a duration since January 1st of year 0.
+    */
     [[nodiscard]] constexpr QuantityOf<duration> auto
     as_duration() const noexcept
     {
@@ -321,7 +338,12 @@ struct TimeOfDay
     [[nodiscard]] constexpr auto operator<=>(const TimeOfDay&) const noexcept = default;
 
     /*
-        @brief Check whether object represents a valid time.
+        @brief Check whether a `TimeOfDay` represents a valid time of day.
+
+        A time of day is regarded as valid if the hour is in the interval
+        \f$[0, 59]\f$, the minute is in the interval \f$[0, 59]\f$, the second
+        is in the intevral \f$[0, 59]\f$, and the millisecond is in the
+        interval \f$[0, 999]\f$.
     */
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
@@ -331,6 +353,9 @@ struct TimeOfDay
             && msec <= 999;
     }
 
+    /**
+        @brief Represent a time of day as a duration since 00:00:00.000.
+    */
     [[nodiscard]] constexpr QuantityOf<duration> auto
     as_duration() const noexcept
     {
@@ -377,16 +402,24 @@ seconds_since_start_of_year_in_time_zone(
 } // namespace detail
 
 /**
+    @brief Enumeration of various useful epochs.
+*/
+enum class Epoch: std::uint8_t
+{
+    calendar,   /// Zero point of a calendar.
+    j2000,      /// J2000 epoch: January 1st, 2000, 12:00:00.000.
+    unix,       /// UNIX epoch: January 1st, 1970, 00:00:00.000.
+};
+
+/**
     @brief Structure representing a point in time.
 
     This structure represents a point in time specified by a year, month, day
-    of month, hour, minute, second, and millisecond. This structure closely
-    resembles the `tm` structure found in the C standard library, but differs
-    from it in some notable ways. Most notably, the year in this structure is
-    the actual year, and not a year relative to 1900. Month numbers are (1-12)
-    instead of (0-11). Furthermore, the data layout is different, and this
-    structure doesn't have extraneous `wday`, `yday`, and `isdst` fields.
-    Instead, it has an `msec` field for millisecond precision.
+    of month, hour, minute, second, and millisecond.
+
+    @note The zero initialized value of `DateTime{}` does not represent a valid
+    date. To get the default epoch January 1st, 0, 00:00:00.000, call
+    `DateTime::epoch<>()`.
 */
 struct DateTime
 {
@@ -398,24 +431,54 @@ struct DateTime
     std::uint16_t sec;  /// Second number (0-59).
     std::uint16_t msec; /// Millisecond number (0-999).
 
+    /**
+        @brief Get date-time representing a given epoch.
+    */
+    template <Epoch epoch_label = Epoch::calendar>
+    [[nodiscard]] static constexpr DateTime epoch() noexcept
+    {
+        constexpr std::array epochs = {
+            DateTime{0, 1, 1, 0, 0, 0, 0},
+            DateTime{2000, 1, 1, 12, 0, 0, 0},
+            DateTime{1970, 1, 1, 0, 0, 0, 0},
+        };
+        return epochs[std::to_underlying(epoch_label)];
+    }
+
     [[nodiscard]] constexpr auto operator<=>(const DateTime&) const noexcept = default;
 
     [[nodiscard]] explicit constexpr operator Date() const noexcept { return date(); }
     [[nodiscard]] explicit constexpr operator TimeOfDay() const noexcept { return time_of_day(); }
 
-    /*
-        @brief Check whether object represents a valid time.
+    /**
+        @brief Check whether a `DateTime` represents a valid date and time of
+        day.
+
+        A `DateTime` is regarded as valid if both its date and time of day
+        components are valid. For detailed rules, see documentation of `Date`
+        and `TimeOfDay`. In brief, a valid `DateTime` is one that represents
+        a semantically meaningful point in time. Thus, for example, the ISO
+        8601 date-time `-38410-03-30T22:19:40.548` is valid because it
+        represents a meaningful point in the proleptic Gregorian calender, but
+        `2004-04-31T12:20:08.920` is not because April only has 30 days, and
+        `2017-02-29T15:47:17.172` is not because 2017 is not a leap year.
     */
     [[nodiscard]] constexpr bool is_valid() const noexcept
     {
         return date().is_valid() && time_of_day().is_valid();
     }
 
+    /**
+        @brief Retrieve the date component of a `DateTime`.
+    */
     [[nodiscard]] constexpr Date date() const noexcept
     {
         return Date{year, mon, mday};
     }
 
+    /**
+        @brief Retrieve the time of day component of a `DateTime`.
+    */
     [[nodiscard]] constexpr TimeOfDay time_of_day() const noexcept
     {
         return TimeOfDay{hour, min, sec, msec};
@@ -472,9 +535,10 @@ struct DateTime
     }
 
     /**
-        @brief Convert a time to milliseconds since the zero point of the time struct.
+        @brief Convert a time to milliseconds since January 1st of year 0 at
+        00:00:00.000.
 
-        @return Time in milliseconds since `Time{}`.
+        @return Time in milliseconds since null point.
     */
     [[nodiscard]] constexpr QuantityOf<duration> auto
     as_duration() const noexcept
@@ -500,11 +564,29 @@ struct DateTime
 */
 template <DateTime epoch>
     requires (epoch.is_valid())
-[[nodiscard]] constexpr mpu::QuantityOf<duration> auto
+[[nodiscard]] constexpr QuantityOf<duration> auto
 time_since_epoch(DateTime time) noexcept
 {
     assert(time.is_valid());
     return time.as_duration() - epoch.as_duration();
+}
+
+/**
+    @brief Compute the number of seconds that have passed since a given labeled
+    epoch.
+
+    @tparam epoch Reference epoch label.
+
+    @param time 
+
+    @return number of seconds since the epoch.
+*/
+template <Epoch epoch>
+[[nodiscard]] constexpr QuantityOf<duration> auto
+time_since_epoch(DateTime time) noexcept
+{
+    assert(time.is_valid());
+    return time_since_epoch<DateTime::epoch<>()>(time);
 }
 
 namespace detail
