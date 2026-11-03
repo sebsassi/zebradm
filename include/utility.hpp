@@ -41,6 +41,9 @@ namespace zdm::util
 
 /**
     @brief Largest even number less than or equal to the input.
+
+    Given a nonnegative integer \f$n \in \mathbb{N}\f$, this function returns
+    \f$n\f$ if \f$n\f$ is even and \f$n - 1\f$ if \f$n\f$ is odd.
 */
 [[nodiscard]] constexpr std::unsigned_integral auto
 even_floor(std::unsigned_integral auto n) noexcept
@@ -63,6 +66,9 @@ inline constexpr T one<T> = T{1};
 
 } // namespace detail
 
+/**
+    @brief Compute an integer power of the argument.
+*/
 template <int N>
 [[nodiscard]] constexpr auto
 intpow(auto x) noexcept

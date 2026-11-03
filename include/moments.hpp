@@ -28,13 +28,19 @@ SOFTWARE.
 namespace zdm
 {
 
+/**
+    @brief Labels corresponding to sets of polynomial moments used in Radon transforms.
+*/
 enum class MomentSet: std::uint8_t
 {
-    identity,
-    transverse,
-    full,
+    identity,   /// Set consisting of the identity moment.
+    transverse, /// Set of moments needed for representing the transverse Radon transform.
+    full,       /// Set of all quadratic monomial moments.
 };
 
+/**
+    @brief Labels for polynomial moments used in Radon transforms.
+*/
 enum class Moment: std::uint8_t
 {
     identity,
@@ -50,6 +56,9 @@ enum class Moment: std::uint8_t
     yz,
 };
 
+/**
+    @brief Labels for polynomial moments used in isotropic Radon transforms.
+*/
 enum class IsoMoment: std::uint8_t
 {
     identity,
@@ -57,6 +66,9 @@ enum class IsoMoment: std::uint8_t
     quadratic,
 };
 
+/**
+    @brief String representation of a moment set.
+*/
 [[nodiscard]] constexpr std::string_view to_string(MomentSet category) noexcept
 {
     constexpr std::array strings = {
@@ -68,6 +80,9 @@ enum class IsoMoment: std::uint8_t
     return strings[std::to_underlying(category)];
 }
 
+/**
+    @brief String representation of a moment.
+*/
 [[nodiscard]] constexpr std::string_view to_string(Moment moment) noexcept
 {
     constexpr std::array strings = {
@@ -87,6 +102,9 @@ enum class IsoMoment: std::uint8_t
     return strings[std::to_underlying(moment)];
 }
 
+/**
+    @brief String representation of an isotropic moment.
+*/
 [[nodiscard]] constexpr std::string_view to_string(IsoMoment moment) noexcept
 {
     constexpr std::array strings = {

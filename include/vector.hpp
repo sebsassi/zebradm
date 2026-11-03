@@ -67,53 +67,32 @@ struct Vector
 
     [[nodiscard]] constexpr auto operator<=>(const Vector& other) const noexcept = default;
 
-    [[nodiscard]] constexpr reference
-    operator[](size_type i) noexcept { return array[i]; }
+    [[nodiscard]] constexpr decltype(auto)
+    operator[](this auto& self, size_type i) noexcept { return self.array[i]; }
 
-    [[nodiscard]] constexpr const_reference
-    operator[](size_type i) const noexcept { return array[i]; }
+    [[nodiscard]] constexpr decltype(auto)
+    at(this auto& self, size_type i) noexcept { return self.array.at(i); }
 
-    [[nodiscard]] constexpr reference
-    at(size_type i) noexcept { return array.at(i); }
+    [[nodiscard]] constexpr decltype(auto)
+    front(this auto& self) noexcept { return self.array.front(); }
 
-    [[nodiscard]] constexpr const_reference
-    at(size_type i) const noexcept { return array.at(i); }
+    [[nodiscard]] constexpr decltype(auto)
+    back(this auto& self) noexcept { return self.array.back(); }
 
-    [[nodiscard]] constexpr reference
-    front() noexcept { return array.front(); }
+    [[nodiscard]] constexpr decltype(auto)
+    data(this auto& self) noexcept { return self.array.data(); }
 
-    [[nodiscard]] constexpr const_reference
-    front() const noexcept { return array.front(); }
+    [[nodiscard]] constexpr decltype(auto)
+    begin(this auto& self) noexcept { return self.array.begin(); }
 
-    [[nodiscard]] constexpr reference
-    back() noexcept { return array.back(); }
+    [[nodiscard]] constexpr decltype(auto)
+    cbegin(this auto& self) const noexcept { return self.array.cbegin(); }
 
-    [[nodiscard]] constexpr const_reference
-    back() const noexcept { return array.back(); }
+    [[nodiscard]] constexpr decltype(auto)
+    end(this auto& self) noexcept { return self.array.end(); }
 
-    [[nodiscard]] constexpr pointer
-    data() noexcept { return array.data(); }
-
-    [[nodiscard]] constexpr const_pointer
-    data() const noexcept { return array.data(); }
-
-    [[nodiscard]] constexpr iterator
-    begin() noexcept { return array.begin(); }
-
-    [[nodiscard]] constexpr const_iterator
-    begin() const noexcept { return array.begin(); }
-
-    [[nodiscard]] constexpr const_iterator
-    cbegin() const noexcept { return array.cbegin(); }
-
-    [[nodiscard]] constexpr iterator
-    end() noexcept { return array.end(); }
-
-    [[nodiscard]] constexpr const_iterator
-    end() const noexcept { return array.end(); }
-
-    [[nodiscard]] constexpr const_iterator
-    cend() const noexcept { return array.cend(); }
+    [[nodiscard]] constexpr decltype(auto)
+    cend(this auto& self) const noexcept { return self.array.cend(); }
 
     [[nodiscard]] constexpr bool
     empty() const noexcept { return array.empty(); }

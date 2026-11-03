@@ -155,26 +155,22 @@ template <static_vector_like T, static_vector_like U, std::size_t... idx>
 /**
     @brief Vector dot product.
 
-    @tparam T Vector type.
-
     @param a
     @param b
 
     This function evaluates the dot product \f$\vec{a}\cdot \vec{b}\f$ of two
     vectors \f$a\f$ and \f$b\f$.
 */
-template <static_vector_like T, static_vector_like U>
-    requires (std::tuple_size_v<T> == std::tuple_size_v<U>)
-[[nodiscard]] constexpr auto dot(const T& a, const U& b) noexcept
+[[nodiscard]] constexpr auto
+dot(const static_vector_like auto& a, const static_vector_like auto& b) noexcept
+    requires (std::tuple_size_v<std::remove_cvref_t<decltype(a)>>
+            == std::tuple_size_v<std::remove_cvref_t<decltype(b)>>)
 {
     return detail::dot_(a, b, std::make_index_sequence<std::tuple_size_v<T>>{});
 }
 
 /**
     @brief Vector cross product.
-
-
-    @tparam T Vector type.
 
     @param a
     @param b
@@ -186,9 +182,10 @@ template <static_vector_like T, static_vector_like U>
         \vec{a}\times\vec[b] = (a_2b_3 - a_3b2, a_3b_1 - a-1b_3, a_1b_2 - a_2b_1).
     \f]
 */
-template <static_vector_like T, static_vector_like U>
-    requires (std::tuple_size_v<T> == 2 && std::tuple_size_v<U> == 2)
-[[nodiscard]] constexpr T cross(const T& a, const U& b) noexcept
+[[nodiscard]] constexpr auto
+cross(const static_vector_like auto& a, const static_vector_like auto& b) noexcept
+    requires (std::tuple_size_v<std::remove_cvref_t<decltype(a)>> == 2
+            && std::tuple_size_v<std::remove_cvref_t<decltype(b)>> == 2)
 {
     return a[0]*b[1] - a[1]*b[0];
 }

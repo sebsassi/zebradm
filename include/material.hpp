@@ -70,6 +70,14 @@ private:
     std::array<char, N> m_data;
 };
 
+/**
+    @brief Map chemical symbols to their corresponding atomic numbers.
+
+    For a given valid chemical symbol, this function returns the atomic number
+    of the corresponding chemical element. For invalid chemical symbols, this
+    function returns the number 0, which does not correspond to any chemical
+    element.
+*/
 constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexcept
 {
     // Row 0 and column 27 are left empty for mapping of invalid characters.
@@ -115,15 +123,25 @@ constexpr std::uint8_t atomic_number_of(std::string_view chemical_symbol) noexce
 
     // If first letter is not a capital letter, map to row zero.
     const std::size_t clamped_first_index
-        = ('A' <= chemical_symbol[0] && chemical_symbol[0] <= 'Z') ? chemical_symbol[0] : 0;
+        = ('A' <= chemical_symbol[0] && chemical_symbol[0] <= 'Z') ?
+            std::size_t(chemical_symbol[0]) : 0;
 
     // If second index is not in range, map to column 27.
     const std::size_t clamped_second_index
-        = (chemical_symbol[1] == 0 || 'a' <= chemical_symbol[1] && chemical_symbol[1] <= 'z') ? chemical_symbol[1] : 27;
+        = (chemical_symbol[1] == 0 || ('a' <= chemical_symbol[1] && chemical_symbol[1] <= 'z')) ?
+            std::size_t(chemical_symbol[1]) : 27;
 
     return number_table[28*clamped_first_index + clamped_second_index];
 }
 
+/**
+    @brief Map atomic numbers to their corresponding chemical symbols.
+
+    For a given atomic number corresponding to an officially named chemical
+    element, this function returns the chemical symbol of the element. For
+    the null element with atomic number 0 and elements that are yet to be named
+    this function returns a string view of null characters.
+*/
 constexpr std::string_view chemical_symbol_of(std::uint8_t atomic_number) noexcept
 {
     static constexpr std::array<TinyString<2>, 119> periodic_table = {
@@ -154,7 +172,7 @@ enum class ElementError: std::uint8_t { invalid_element };
     Apart from isotopes that can in principle exist, this class allows for an
     additional set of isotopes with atomic number 0. The isotope with both
     atomic number 0 and mass number 0 is reserved as a special value: the null
-    isotope. It is used in instances, where no valid isotope can be returned.
+    isotope. It is used in instances where no valid isotope can be returned.
 */
 class Isotope
 {
@@ -746,16 +764,25 @@ private:
     std::uint8_t m_atomic_number;
 };
 
+/**
+    @brief Error codes for parsing errors of chemical formulas.
+*/
 enum class FormulaParseStatus: std::uint8_t
 {
-    success,
-    empty_formula,
-    invalid_element,
-    invalid_count,
-    too_many_elements,
-    count_of_element_too_large,
+    success,                    /// Success condition.
+    empty_formula,              /// Formula was an empty string.
+    invalid_element,            /// Symbol does not represent a valid element.
+    too_many_elements,          /// Formula contained too many (> 32) distinct elements.
+    count_of_element_too_large, /// Count of one element in the formula was too large (> 255).
 };
 
+/**
+    @brief Class representing a material.
+
+    A material in the context of this library is a mixture of chemical elements
+    in rational proprtions. A material can be represented by its chemical
+    formula, e.g. \f$\mathrm{Ge}\f$, \f$\mathrm{Al}_2\matrhm{O}_3\f$, and so on.
+*/
 class Material
 {
 public:

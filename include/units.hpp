@@ -92,6 +92,19 @@ constexpr auto ka = millennium;
 namespace la
 {
 
+/**
+    @brief Apply an arbitrary swizzle operation to a vector quantity.
+
+    Swizzle operations take an arbitrary sequence of vector indices and return
+    a new vector given by the components at those indices. More formally, if we
+    have a vector \f$\vec{v}\f$ with components \f$v_i\f$ for \f$i \in I\f$,
+    where \f$I\f$ is some index set, the swizzled vector \f$\vec{u}\f$ is a
+    vector with components \f$v_{\iota(j)}\f$, where \f$i : J \rightarrow I\f$
+    is a map from the swizzle index set \f$J\f$ to the vector index set \f$I\f$.
+
+    Swizzles can be used to implement a variety of operations on vectors, such
+    as permutations and projections.
+*/
 template <std::size_t... Inds>
 [[nodiscard]] constexpr Quantity auto swizzle(const Quantity auto& q) noexcept
     requires
@@ -105,6 +118,13 @@ template <std::size_t... Inds>
         return swizzle<Inds...>(q.numerical_value_in(q.unit))*q.reference;
 }
 
+/**
+    @brief Vector dot product of vector quantities.
+
+    This function evaluates the dot product \f$\vec{q}_1\cdot \vec{q}_2\f$ of
+    two vectors \f$\vec{q}_1\f$ and \f$\vec{q}_2\f$, where either one can be a
+    quantity.
+*/
 [[nodiscard]] constexpr Quantity auto
 dot(const static_vector_like auto& q1, const static_vector_like auto& q2) noexcept
     requires (Quantity<std::remove_cvref_t<decltype(q1)>> || Quantity<std::remove_cvref_t<decltype(q2)>>)
@@ -119,6 +139,14 @@ dot(const static_vector_like auto& q1, const static_vector_like auto& q2) noexce
         return dot(q1.numerical_value_in(q1.unit), q2)*q1.unit;
 }
 
+/**
+    @brief Normalize a vector quantity.
+
+    This function computes the unit vector \f$\hat{q} = \vec{q}/|\vec{q}|\f$
+    for a vector quantity \f$\vec{q}\f$. The unit vector is by definition
+    a unitless quantity, and therefore in the quantity system carries a unit of
+    `one`.
+*/
 [[nodiscard]] constexpr Quantity auto
 normalize(const Quantity auto& q) noexcept
     requires static_vector_like<remove_unit<decltype(q)>>
@@ -130,27 +158,41 @@ normalize(const Quantity auto& q) noexcept
         return normalize(q.numerical_value_in(q.unit))*mpu::one;
 }
 
+/**
+    @brief Evaluate the norm of a vector quantity.
+*/
 [[nodiscard]] constexpr Quantity auto
 norm(const Quantity auto& q) noexcept
 {
     return mpu::magnitude(q);
 }
 
+/**
+    @brief Scale the components of a vector quantity by factors from a vector.
+
+    Given a vector quantity \f$\vec{q}\f$ and a vector \f$\vec{s}\f$ of the
+    same length, this function returns the vector \f$\vec{q}'\f$ with the
+    components \f$\vec{q}'_i = s_iq_i\f$. The vector \f$\vec{s}\f$ may itself
+    be a quantity.
+*/
 [[nodiscard]] constexpr Quantity auto
-scale_by(const Quantity auto& q, const static_vector_like auto& v) noexcept
+scale_by(const Quantity auto& q, const static_vector_like auto& s) noexcept
 {
-    using V = std::remove_cvref_t<decltype(v)>;
+    using V = std::remove_cvref_t<decltype(s)>;
     if constexpr (Quantity<V>)
-        return scale_by(q.numerical_value_in(q.unit), v.numerical_value_in(v.unit))*q.reference*v.reference;
+        return scale_by(q.numerical_value_in(q.unit), s.numerical_value_in(s.unit))*q.reference*s.reference;
     else
-        return scale_by(q.numerical_value_in(q.unit), v)*q.reference;
+        return scale_by(q.numerical_value_in(q.unit), s)*q.reference;
 }
 
+/**
+    @brief Multiply a vector quantity by a matrix.
+*/
 [[nodiscard]] constexpr Quantity auto
-matmul(const static_matrix_like auto& q1, const Quantity auto& q2) noexcept
-    requires static_vector_like<remove_unit<decltype(q2)>>
+matmul(const static_matrix_like auto& matrix, const Quantity auto& q) noexcept
+    requires static_vector_like<remove_unit<decltype(q)>>
 {
-    return q1*q2;
+    return matrix*q;
 }
 
 // NOTE: disabled until mp-units supports rank-2 tensors
@@ -162,11 +204,17 @@ matmul(const static_matrix_like auto& q1, const Quantity auto& q2) noexcept
 //     return transpose(q.numerical_value_in(Q::unit))*Q::reference;
 // }
 
+/**
+    @brief Evaluate a quadratic for of a vector quantity.
+
+    Given a matrix \f$M\f$ and a vector quantity \f$\vec{q}\f$, this function
+    evaluates the quadratic form \f$Q(\vec{q}) = \vec{q}^\mathsf{T}M\vec{q}\f$.
+*/
 [[nodiscard]] constexpr Quantity auto
-quadratic_form(const static_matrix_like auto& q1, const Quantity auto& q2)
-    requires static_vector_like<remove_unit<decltype(q2)>>
+quadratic_form(const static_matrix_like auto& matrix, const Quantity auto& q)
+    requires static_vector_like<remove_unit<decltype(q)>>
 {
-    return dot(q2, matmul(q1, q2));
+    return dot(q, matmul(matrix, q));
 }
 
 } // namespace la
