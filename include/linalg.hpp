@@ -728,7 +728,7 @@ transpose(const static_matrix_like auto& matrix) noexcept
     @return `v` scaled by `u`.
 */
 [[nodiscard]] constexpr auto
-scale_by(const static_vector_like auto& v, const static_vector_like& u) noexcept
+scale_by(const static_vector_like auto& v, const static_vector_like auto& u) noexcept
 {
     return mul(v, u);
 }

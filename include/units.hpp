@@ -99,7 +99,7 @@ template <std::size_t... Inds>
         || requires (typename std::remove_cvref_t<decltype(q)>::rep v) { swizzle<Inds...>(v); }
 {
     using rep = std::remove_cvref_t<decltype(q)>::rep;
-    if constexpr (requires (typename rep v) { v.template swizzle<Inds...>(); })
+    if constexpr (requires (rep v) { v.template swizzle<Inds...>(); })
         return (q.numerical_value_in(q.unit).template swizzle<Inds...>())*q.reference;
     else
         return swizzle<Inds...>(q.numerical_value_in(q.unit))*q.reference;

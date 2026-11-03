@@ -32,6 +32,7 @@ SOFTWARE.
 #include "time.hpp"
 #include "units.hpp"
 #include "electron_rate.hpp"
+#include "velocity_distribution.hpp"
 
 namespace
 {
@@ -124,7 +125,8 @@ double response(zdm::quantity<zdm::energy[eV]> energy, zdm::quantity<zdm::moment
 
 template <zdm::QuantityOf<zdm::duration> Duration>
 zest::DynamicMDArray<double, 2> radon_transform(
-    std::size_t dist_order, SHM velocity_distribution, zdm::quantity<zdm::mass[GeV/c2]> dm_mass,
+    std::size_t dist_order, zdm::dist::StandardHaloModel velocity_distribution,
+    zdm::quantity<zdm::mass[GeV/c2]> dm_mass,
     std::span<zdm::quantity<zdm::duration[d]>> times, zdm::quantity<zdm::energy[eV]> emax,
     zdm::quantity<zdm::momentum_transfer[keV/c]> qmax,
     zdm::quantity<zdm::mass_density[g/cm3]> target_density)
@@ -142,8 +144,7 @@ zest::DynamicMDArray<double, 2> radon_transform(
         vlab[i] = zdm::celestial::transform_velocity(gcs_to_hcs, times[i]);
 
     const zdm::IsotropicZernikeExpansion dist_expansion
-        = zdm::IsotropicZernikeTransformer{}
-            .forward_transform(velocity_distribution, velocity_distribution.escape_velocity(), dist_order);
+        = zdm::dist::zernike_transform(zdm::dist::Scaled{velocity_distribution}, dist_order);
 
     const zdm::RadonMomentArray velocity_dist_moments
         = zdm::RadonTransformer{}.evaluate_transformed_moments(dist_expansion);
