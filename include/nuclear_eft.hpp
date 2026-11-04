@@ -25,8 +25,9 @@ SOFTWARE.
 #include <zest/md_span.hpp>
 
 #include "polynomial.hpp"
-#include "atomic.hpp"
+#include "material.hpp"
 #include "vector.hpp"
+#include "utility.hpp"
 
 namespace zdm::neft
 {
@@ -45,15 +46,14 @@ namespace zdm::neft
     [1] A. Liam Fitzpatrick *et al.* (2013), JCAP 2013.02, 004,
     [arXiv:1203.3542](https://arxiv.org/abs/1203.3542)
 */
-[[nodiscard]] inline double
+[[nodiscard]] inline quantity<area[square(si::femto<meter>)]>
 harmonic_oscillator_parameter_sq(std::size_t mass_number) noexcept
 {
-    constexpr double fm_as_inv_GeV = 5.06773071615646;
-    constexpr double a = 41.467*fm_as_inv_GeV*fm_as_inv_GeV;
+    constexpr double a = 41.467;
     constexpr double b1 = 45.0;
     constexpr double b2 = 25.0;
     const double cbrt_a = std::cbrt(double(mass_number));
-    return cbrt_a*cbrt_a*a/(b1*cbrt_a - b2);
+    return area(cbrt_a*cbrt_a*a/(b1*cbrt_a - b2)*square(si::femto<meter>));
 }
 
 /**
@@ -148,13 +148,13 @@ namespace detail
 struct EFTFormFactorInputData
 {
     double eft_spin_factor{};
-    double inverse_nucleus_mass{};
-    double quad_inverse_b_sq{};
+    quantity<inverse(pow<2>(mass[dalton]))> inverse_nucleus_mass_sq{};
+    quantity<inverse(area[square(si::femto<meter>)])> quad_inverse_b_sq{};
 
     EFTFormFactorInputData(ParticleSpin spin, Isotope isotope):
         eft_spin_factor(spin_factor(spin)),
-        inverse_nucleus_mass{1.0/(isotope.mass()*isotope.mass())},
-        quad_inverse_b_sq{4.0/harmonic_oscillator_parameter_sq(isotope.mass_number)} {}
+        inverse_nucleus_mass_sq{1.0/util::intpow<2>(isotope.atomic_mass())},
+        quad_inverse_b_sq{4.0/harmonic_oscillator_parameter_sq(isotope.mass_number())} {}
 };
 
 template <IsospinBasis basis, std::size_t order, std::size_t I, std::size_t J>
@@ -187,7 +187,7 @@ struct EFTFormFactorInitHelper<basis, order, 3, 3>
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
     {
         const double nontrans_coeff
-            = 0.25*input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+            = 0.25*input_data.inverse_nucleus_mass_sq*input_data.inverse_nucleus_mass_sq
                 *input_data.quad_inverse_b_sq*input_data.quad_inverse_b_sq;
         const double trans_coeff
             = 0.125*input_data.quad_inverse_b_sq;
@@ -219,7 +219,7 @@ struct EFTFormFactorInitHelper<basis, order, 5, 5>
     {
         const double nontrans_coeff
             = 0.25*input_data.eft_spin_factor
-                *input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+                *input_data.inverse_nucleus_mass_sq*input_data.inverse_nucleus_mass_sq
                 *input_data.quad_inverse_b_sq*input_data.quad_inverse_b_sq;
         const double trans_coeff 
             = 0.25*input_data.eft_spin_factor*input_data.quad_inverse_b_sq;
@@ -264,7 +264,7 @@ struct EFTFormFactorInitHelper<basis, order, 8, 8>
     {
         const double nontrans_coeff
             = 0.25*input_data.eft_spin_factor
-                *input_data.inverse_nucleus_mass*input_data.inverse_nucleus_mass
+                *input_data.inverse_nucleus_mass_sq*input_data.inverse_nucleus_mass_sq
                 *input_data.quad_inverse_b_sq;
         const double trans_coeff
             = 0.25*input_data.eft_spin_factor;
@@ -318,7 +318,7 @@ struct EFTFormFactorInitHelper<basis, order, 1, 3>
         const EFTFormFactorInputData& input_data,
         [[maybe_unused]] const NuclearResponseFormFactors<basis, order>& nuclear_form_factors) noexcept
     {
-        const double coeff = 0.5*input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+        const double coeff = 0.5*input_data.inverse_nucleus_mass_sq*input_data.quad_inverse_b_sq;
         return Monomial<double, 1>{coeff}*nuclear_form_factors.m_phi2;
     }
 };
@@ -332,7 +332,7 @@ struct EFTFormFactorInitHelper<basis, order, 4, 5>
     {
         const double coeff
             = -0.125*input_data.eft_spin_factor
-                *input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+                *input_data.inverse_nucleus_mass_sq*input_data.quad_inverse_b_sq;
         return Monomial<double, 1>{coeff}*nuclear_form_factors.delta_sigma1;
     }
 };
@@ -358,7 +358,7 @@ struct EFTFormFactorInitHelper<basis, order, 8, 9>
     {
         const double coeff
             = 0.125*input_data.eft_spin_factor
-                *input_data.inverse_nucleus_mass*input_data.quad_inverse_b_sq;
+                *input_data.inverse_nucleus_mass_sq*input_data.quad_inverse_b_sq;
         return Monomial<double, 1>{coeff}*nuclear_form_factors.delta_sigma1;
     }
 };

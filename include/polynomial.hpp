@@ -48,69 +48,71 @@ concept fma_operable = requires (T x, S y, U z)
     x + y*z;
 };
 
-template <typename R, typename DomainType, typename ResultType>
-    requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
-        && requires { std::tuple_size_v<R>; }
 [[nodiscard]] constexpr auto
-horner_eval(const R& coeffs, const DomainType& x) noexcept
+horner_eval(const std::ranges::random_access_range auto& coeffs, const auto& x) noexcept
+    requires requires { std::tuple_size_v<std::remove_cvref_t<decltype(coeffs)>>; }
 {
-    constexpr auto size = std::tuple_size_v<R>;
+    constexpr auto size = std::tuple_size_v<std::remove_cvref_t<decltype(coeffs)>>;
+
+    using CoeffType = std::ranges::range_value_t<std::remove_cvref_t<decltype(coeffs)>>;
+    using Result = decltype(std::declval<CoeffType>()*x);
 
     if constexpr (size == 0)
-        return ResultType{};
+        return Result{};
 
-    auto res = ResultType{coeffs[size - 1]};
+    auto res = Result{coeffs[size - 1]};
     for (std::size_t i = size - 1; i > 0; --i)
         res = coeffs[i - 1] + res*x;
     return res;
 }
 
-template <typename R, typename DomainType, typename ResultType>
-    requires fma_operable<std::ranges::range_value_t<R>, ResultType, DomainType>
 [[nodiscard]] constexpr auto
-horner_eval(const R& coeffs, const DomainType& x) noexcept
+horner_eval(const std::ranges::random_access_range auto& coeffs, const auto& x) noexcept
 {
+    using CoeffType = std::ranges::range_value_t<std::remove_cvref_t<decltype(coeffs)>>;
+    using Result = decltype(std::declval<CoeffType>()*x);
     if (coeffs.size() == 0)
-        return ResultType{};
+        return Result{};
     else
     {
-        ResultType res{};
+        Result res{};
         for (std::size_t i = coeffs.size(); i > 0; --i)
             res = coeffs[i - 1] + res*x;
         return res;
     }
 }
 
-template <typename R, typename DomainType, typename ResultType>
-    requires fma_operable<std::ranges::range_value_t<R>, std::ranges::range_value_t<R>, DomainType>
-        && requires { std::tuple_size_v<R>; }
 [[nodiscard]] constexpr auto
-estrin_eval(const R& coeffs, const DomainType& x)
+estrin_eval(const std::ranges::random_access_range auto& coeffs, const auto& x)
+    requires requires { std::tuple_size_v<std::remove_cvref_t<decltype(coeffs)>>; }
 {
-    constexpr std::size_t size = std::tuple_size_v<R>;
+    constexpr std::size_t size = std::tuple_size_v<std::remove_cvref_t<decltype(coeffs)>>;
+
+    using CoeffType = std::ranges::range_value_t<std::remove_cvref_t<decltype(coeffs)>>;
+    using Result = decltype(std::declval<CoeffType>()*x);
+
     if constexpr (size == 0)
-        return ResultType{};
+        return Result{};
     if constexpr (size == 1)
-        return ResultType{coeffs[0]};
+        return Result{coeffs[0]};
     if constexpr (size == 2)
-        return ResultType{coeffs[0] + coeffs[1]*x};
+        return Result{coeffs[0] + coeffs[1]*x};
 
     constexpr std::size_t order = size - 1;
     constexpr std::size_t estrin_order = order >> 1;
 
-    std::array<ResultType, estrin_order + 1> estrin_coeffs{};
+    std::array<Result, estrin_order + 1> estrin_coeffs{};
     for (std::size_t i = 0; i < estrin_order; ++i)
-        estrin_coeffs[i] = ResultType{coeffs[2*i] + coeffs[2*i + 1]*x};
+        estrin_coeffs[i] = Result{coeffs[2*i] + coeffs[2*i + 1]*x};
 
     if constexpr ((size & 1) == 0)
         estrin_coeffs[estrin_order]
-            = ResultType{coeffs[2*estrin_order] + coeffs[2*estrin_order + 1]*x};
+            = Result{coeffs[2*estrin_order] + coeffs[2*estrin_order + 1]*x};
     else
         estrin_coeffs[estrin_order]
-            = ResultType{coeffs[2*estrin_order]};
+            = Result{coeffs[2*estrin_order]};
 
-    return estrin_eval<std::array<ResultType, estrin_order + 1>, DomainType, ResultType>(
-        estrin_coeffs, x*x);
+    return estrin_eval(estrin_coeffs, x*x);
 }
 
 } // namespace detail

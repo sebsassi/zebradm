@@ -43,7 +43,7 @@ class TinyString
 {
 public:
     constexpr TinyString() = default;
-    constexpr TinyString(std::string_view string) noexcept:
+    constexpr TinyString(std::string_view string) noexcept
     {
         copy(string.substr(0, N));
     }
@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    void copy(std::string_view string) noexcept
+    constexpr void copy(std::string_view string) noexcept
     {
         std::ranges::copy(string, m_data.begin());
     }
