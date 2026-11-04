@@ -166,7 +166,8 @@ dot(const static_vector_like auto& a, const static_vector_like auto& b) noexcept
     requires (std::tuple_size_v<std::remove_cvref_t<decltype(a)>>
             == std::tuple_size_v<std::remove_cvref_t<decltype(b)>>)
 {
-    return detail::dot_(a, b, std::make_index_sequence<std::tuple_size_v<T>>{});
+    constexpr std::size_t size = std::tuple_size_v<std::remove_cvref_t<decltype(a)>>;
+    return detail::dot_(a, b, std::make_index_sequence<size>{});
 }
 
 /**

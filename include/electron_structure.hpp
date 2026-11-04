@@ -21,23 +21,12 @@ SOFTWARE.
 */
 #pragma once
 
-#include "matrix.hpp"
 #include "units.hpp"
 #include "utility.hpp"
+#include "vector.hpp"
 
 namespace zdm
 {
-
-namespace detail
-{
-
-[[nodiscard]] constexpr double
-isotropic_electron_gas_eelf(double q, double e) noexcept
-{
-
-}
-
-} // namespace detail
 
 /**
     Electron energy loss spectrum for isotropic electron gas.
@@ -77,8 +66,11 @@ isotropic_electron_gas_eels(
     QuantityOf<momentum> auto fermi_momentum,
     QuantityOf<momentum_transfer> auto q, QuantityOf<energy> auto e) noexcept
 {
-    const quantity fermi_energy = (util::intpow<2>(reduced_plank_constant)/(2.0*electron_mass))*util::intpow<2>(fermi_momentum);
-    const auto physics_prefactor = static_cast<double>((speed_of_light_in_vacuum*fermi_momentum/fermi_energy).in(zdm::one));
+    const quantity fermi_energy
+        = (util::intpow<2>(1.0*reduced_plank_constant)/(2.0*electron_mass))
+            *util::intpow<2>(fermi_momentum);
+    const auto physics_prefactor
+        = static_cast<double>((speed_of_light_in_vacuum*fermi_momentum/fermi_energy).in(zdm::one));
 
     const auto q_norm = static_cast<double>((q/fermi_momentum).in(zdm::one));
     const auto e_norm = static_cast<double>((e/fermi_energy).in(zdm::one));
@@ -108,10 +100,10 @@ anisotropic_electron_gas_eels(
         std::sqrt(static_cast<double>(mass_dos/masses[1])),
         std::sqrt(static_cast<double>(mass_dos/masses[2])),
     };
-    const quantity q_scaled = scale_by(q, scale_factors);
-    const auto rescale = static_cast<double>(dot(q, q)/dot(q_scaled, q_scaled));
+    const quantity q_scaled = la::scale_by(q, scale_factors);
+    const auto rescale = static_cast<double>(la::dot(q, q)/la::dot(q_scaled, q_scaled));
 
-    return rescale*anisotropic_electron_gas_eels(q_scaled, e);
+    return rescale*isotropic_electron_gas_eels(fermi_momentum, q_scaled, e);
 }
 
 } // namespace zdm

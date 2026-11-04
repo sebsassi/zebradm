@@ -28,7 +28,6 @@ SOFTWARE.
 #include <expected>
 #include <span>
 #include <string_view>
-#include <bitset>
 
 #include "units.hpp"
 #include "parse_util.hpp"
@@ -152,7 +151,7 @@ constexpr std::string_view chemical_symbol_of(std::uint8_t atomic_number) noexce
         "K",  "Ca",                                                                                     "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
         "Rb", "Sr",                                                                                     "Y",  "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe",
         "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",  "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn",
-        "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
+        "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
     };
 
     return periodic_table[(atomic_number < 119) ? atomic_number : 0].view();
@@ -860,7 +859,8 @@ private:
     parse_element(std::string_view formula) noexcept
     {
         assert(formula.size() > 0);
-        const std::size_t symbol_length = (('0' <= formula[1] && formula[1] <= '9') || ('A' <= formula[1] && formula[1] <= 'Z')) ? 1 : 2;
+        const std::size_t symbol_length
+            = (('0' <= formula[1] && formula[1] <= '9') || ('a' <= formula[1] && formula[1] <= 'z')) ? 1 : 2;
         const auto element = Element{formula.substr(0, symbol_length)};
         if (element.is_null())
             return std::unexpected(FormulaParseStatus::invalid_element);
