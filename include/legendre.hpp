@@ -182,4 +182,121 @@ private:
     std::size_t m_order{};
 };
 
+class LegendreGLQTransformer
+{
+public:
+    LegendreGLQTransformer() = default;
+    explicit LegendreGLQTransformer(std::size_t order):
+        m_glq_nodes(order), m_glq_weights(order), m_order{order}
+    {
+        gl::gl_nodes_and_weights<gl::UnpackedLayout, gl::GLNodeStyle::cos>(
+                m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
+    }
+
+    [[nodiscard]] std::span<const double> nodes() const noexcept
+    {
+        return m_glq_nodes;
+    }
+
+    void resize(std::size_t order)
+    {
+        m_glq_nodes.resize(order);
+        m_glq_weights.resize(order);
+        gl::gl_nodes_and_weights<gl::UnpackedLayout, gl::GLNodeStyle::cos>(
+                m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
+        m_order = order;
+    }
+
+    void forward_transform(std::span<const double> values, std::span<double> expansion)
+    {
+        resize(2*values.size());
+        m_recursion.init(m_glq_nodes);
+        for (std::size_t n = 0; n < m_order; ++n)
+        {
+            const auto legendre = m_recursion.current();
+            for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
+                expansion[n] += m_glq_weights[i]*values[i]*legendre[i];
+
+            m_recursion.iterate();
+        }
+    }
+
+    [[nodiscard]] std::vector<double> forward_transform(std::span<const double> values)
+    {
+        std::vector<double> expansion(2*values.size());
+        forward_transform(values, expansion);
+        return expansion;
+    }
+
+    void backward_transform(std::span<const double> expansion, std::span<double> values)
+    {
+        resize(2*values.size());
+        m_recursion.init(m_glq_nodes);
+        for (std::size_t n = 0; n < m_order; ++n)
+        {
+            const auto legendre = m_recursion.current();
+            for (std::size_t i = 0; i < m_glq_nodes.size(); ++i)
+                values[i] += expansion[n]*legendre[i];
+
+            m_recursion.iterate();
+        }
+    }
+
+    [[nodiscard]] std::vector<double> backward_transform(std::span<const double> expansion)
+    {
+        std::vector<double> values(expansion.size()/2);
+        backward_transform(expansion, values);
+        return values;
+    }
+
+private:
+    LegendreArrayRecursion m_recursion;
+    std::vector<double> m_glq_nodes;
+    std::vector<double> m_glq_weights;
+    std::size_t m_order;
+};
+
+class LegendreTransformer
+{
+public:
+    LegendreTransformer() = default;
+    explicit LegendreTransformer(std::size_t order):
+        m_transformer{order}, m_grid(order >> 1) {}
+
+    void resize(std::size_t order)
+    {
+        m_transformer.resize(order);
+        m_grid.resize(order >> 1);
+    }
+
+    void forward_transform(auto&& func, std::span<double> expansion)
+    {
+        resize(expansion.size());
+        for (std::size_t i = 0; i < m_grid.size(); ++i)
+            m_grid[i] = func(m_transformer.nodes()[i]);
+
+        m_transformer.forward_transform(m_grid, expansion);
+    }
+
+    [[nodiscard]] std::vector<double> forward_transform(auto&& func, std::size_t order)
+    {
+        std::vector<double> expansion(order);
+        forward_transform(func, expansion);
+        return expansion;
+    }
+
+    void backward_transform(std::span<const double> expansion, std::span<double> values)
+    {
+        m_transformer.backward_transform(expansion, values);
+    }
+
+    [[nodiscard]] std::vector<double> backward_transform(std::span<const double> expansion)
+    {
+        return m_transformer.backward_transform(expansion);
+    }
+private:
+    LegendreGLQTransformer m_transformer;
+    std::vector<double> m_grid;
+};
+
 } // namespace zdm::zebra
