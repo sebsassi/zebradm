@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "utility.hpp"
 
-namespace zdm::zebra
+namespace zdm::legendre
 {
 
 void legendre_recursion_vec(
@@ -84,16 +84,16 @@ void legendre_recursion(std::span<double> legendre, double x)
     }
 }
 
-LegendreArrayRecursion::LegendreArrayRecursion(std::size_t size):
+ArrayRecursion::ArrayRecursion(std::size_t size):
     m_swap_chain{size}, m_x(size) {}
 
-LegendreArrayRecursion::LegendreArrayRecursion(std::span<const double> x):
+ArrayRecursion::ArrayRecursion(std::span<const double> x):
     m_swap_chain{x.size()}, m_x(x.size())
 {
     init(x);
 }
 
-void LegendreArrayRecursion::resize(std::size_t size)
+void ArrayRecursion::resize(std::size_t size)
 {
     if (size != this->size())
     {
@@ -102,7 +102,7 @@ void LegendreArrayRecursion::resize(std::size_t size)
     }
 }
 
-void LegendreArrayRecursion::init(std::span<const double> x)
+void ArrayRecursion::init(std::span<const double> x)
 {
     resize(x.size());
 
@@ -112,7 +112,7 @@ void LegendreArrayRecursion::init(std::span<const double> x)
     reset();
 }
 
-void LegendreArrayRecursion::iterate() noexcept
+void ArrayRecursion::iterate() noexcept
 {
     m_swap_chain.advance();
 
@@ -127,7 +127,7 @@ void LegendreArrayRecursion::iterate() noexcept
     ++m_l;
 }
 
-void LegendreArrayRecursion::iterate(std::size_t n) noexcept
+void ArrayRecursion::iterate(std::size_t n) noexcept
 {
     if (n == 0) return;
     if (m_l == 0)
@@ -150,18 +150,18 @@ void LegendreArrayRecursion::iterate(std::size_t n) noexcept
     }
 }
 
-std::span<const double> LegendreArrayRecursion::next() noexcept
+std::span<const double> ArrayRecursion::next() noexcept
 {
     iterate();
     return current();
 }
 
-void LegendreArrayRecursion::reset() noexcept
+void ArrayRecursion::reset() noexcept
 {
     m_l = 0;
 }
 
-LegendreIntegralRecursion::LegendreIntegralRecursion(std::size_t order):
+IntegralRecursion::IntegralRecursion(std::size_t order):
     m_a(order), m_b(order), m_order(order)
 {
     for (std::size_t l = 2; l < order; ++l)
@@ -172,7 +172,7 @@ LegendreIntegralRecursion::LegendreIntegralRecursion(std::size_t order):
     }
 }
 
-void LegendreIntegralRecursion::expand(std::size_t order)
+void IntegralRecursion::expand(std::size_t order)
 {
     if (order <= m_order) return;
     m_a.resize(order);
@@ -188,4 +188,4 @@ void LegendreIntegralRecursion::expand(std::size_t order)
     m_order = order;
 }
 
-} // namespace zdm::zebra
+} // namespace zdm::legendre

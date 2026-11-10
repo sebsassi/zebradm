@@ -256,8 +256,8 @@ private:
 
     std::vector<double> m_leg_int_top;
     std::vector<double> m_leg_int_bot;
-    LegendreIntegralRecursion m_leg_int_rec;
-    LegendreArrayRecursion m_affine_legendre;
+    zdm::legendre::IntegralRecursion m_leg_int_rec;
+    zdm::legendre::ArrayRecursion m_affine_legendre;
     std::vector<double> m_glq_nodes;
     std::vector<double> m_glq_weights;
     std::vector<double> m_nodes;

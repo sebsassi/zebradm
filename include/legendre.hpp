@@ -29,10 +29,11 @@ SOFTWARE.
 #include <zest/md_array.hpp>
 #include <zest/md_span.hpp>
 #include <zest/buffer_chain.hpp>
+#include <zest/gauss_legendre.hpp>
 
 #include "utility.hpp"
 
-namespace zdm::zebra
+namespace zdm::legendre
 {
 
 void legendre_recursion_vec(zest::DynamicMDSpan<double, 2> legendre, std::span<double> x);
@@ -40,11 +41,11 @@ void legendre_recursion_vec(zest::DynamicMDSpan<double, 2> legendre, std::span<d
 void legendre_recursion(std::span<double> legendre, double x);
 
 template <std::floating_point T>
-class LegendreRecursion
+class Recursion
 {
 public:
-    constexpr LegendreRecursion() = default;
-    constexpr LegendreRecursion(T x): m_x{x} {}
+    constexpr Recursion() = default;
+    constexpr Recursion(T x): m_x{x} {}
 
     constexpr void init(T x) noexcept
     {
@@ -95,12 +96,12 @@ private:
     std::size_t m_l = 0;
 };
 
-class LegendreArrayRecursion
+class ArrayRecursion
 {
 public:
-    LegendreArrayRecursion() = default;
-    explicit LegendreArrayRecursion(std::size_t size);
-    explicit LegendreArrayRecursion(std::span<const double> x);
+    ArrayRecursion() = default;
+    explicit ArrayRecursion(std::size_t size);
+    explicit ArrayRecursion(std::span<const double> x);
 
     [[nodiscard]] std::size_t size() const noexcept
     {
@@ -149,11 +150,11 @@ private:
     std::size_t m_l = 0;
 };
 
-class LegendreIntegralRecursion
+class IntegralRecursion
 {
 public:
-    LegendreIntegralRecursion() = default;
-    explicit LegendreIntegralRecursion(std::size_t order);
+    IntegralRecursion() = default;
+    explicit IntegralRecursion(std::size_t order);
 
     [[nodiscard]] std::size_t order() const noexcept { return m_order; }
 
@@ -182,14 +183,14 @@ private:
     std::size_t m_order{};
 };
 
-class LegendreGLQTransformer
+class GLQTransformer
 {
 public:
-    LegendreGLQTransformer() = default;
-    explicit LegendreGLQTransformer(std::size_t order):
+    GLQTransformer() = default;
+    explicit GLQTransformer(std::size_t order):
         m_glq_nodes(order), m_glq_weights(order), m_order{order}
     {
-        gl::gl_nodes_and_weights<gl::UnpackedLayout, gl::GLNodeStyle::cos>(
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
     }
 
@@ -202,7 +203,7 @@ public:
     {
         m_glq_nodes.resize(order);
         m_glq_weights.resize(order);
-        gl::gl_nodes_and_weights<gl::UnpackedLayout, gl::GLNodeStyle::cos>(
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
                 m_glq_nodes, m_glq_weights, m_glq_weights.size() & 1);
         m_order = order;
     }
@@ -250,17 +251,17 @@ public:
     }
 
 private:
-    LegendreArrayRecursion m_recursion;
+    ArrayRecursion m_recursion;
     std::vector<double> m_glq_nodes;
     std::vector<double> m_glq_weights;
     std::size_t m_order;
 };
 
-class LegendreTransformer
+class Transformer
 {
 public:
-    LegendreTransformer() = default;
-    explicit LegendreTransformer(std::size_t order):
+    Transformer() = default;
+    explicit Transformer(std::size_t order):
         m_transformer{order}, m_grid(order >> 1) {}
 
     void resize(std::size_t order)
@@ -295,8 +296,8 @@ public:
         return m_transformer.backward_transform(expansion);
     }
 private:
-    LegendreGLQTransformer m_transformer;
+    GLQTransformer m_transformer;
     std::vector<double> m_grid;
 };
 
-} // namespace zdm::zebra
+} // namespace zdm::legendre

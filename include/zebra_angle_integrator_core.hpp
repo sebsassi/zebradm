@@ -119,7 +119,7 @@ public:
         double offset_len, double shell);
 
 private:
-    LegendreIntegralRecursion m_legendre_integral_recursion;
+    zdm::legendre::IntegralRecursion m_legendre_integral_recursion;
     std::vector<la::Vector<double, 2>> m_legendre_integrals;
 };
 
