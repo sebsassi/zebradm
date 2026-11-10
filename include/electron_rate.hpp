@@ -316,7 +316,7 @@ private:
             auto flat_aiwrt = m_aiwrt_grid.flatten();
             auto flat_normalized_momenta = m_normalized_momentum_grid.flatten();
             for (std::size_t k = 0; k <flat_aiwrt.size(); ++k)
-                flat_aiwrt[k] *= util::intpow<2>(flat_normalized_momenta[k]);
+                flat_aiwrt[k] *= util::intpow<3>(flat_normalized_momenta[k]);
     }
 
     [[nodiscard]] static constexpr QuantityOf<energy_differential_rate_per_unit_mass> auto
