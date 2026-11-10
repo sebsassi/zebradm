@@ -113,6 +113,7 @@ public:
                     target_response,
                     lab_speed, energies,
                     prefactor, out[i]);
+            apply_integration_measure();
 
             for (std::size_t j = 0; j < energies.size(); ++j)
                 out[i, j] = (prefactor*util::sum(m_aiwrt_grid[j])).in(Rate::unit);
@@ -160,12 +161,12 @@ public:
             const quantity lab_speed = lab_velocities[i].magnitude();
             generate_optimal_momentum_grid(
                     lab_speed, energies, max_speed, max_momentum_transfers, dm_mass);
-
             evaluate_aiwrt(
                     velocity_dist_moments, inv_max_speed, max_speed,
                     dm_mass,
                     target_response,
                     lab_speed, energies);
+            apply_integration_measure();
 
             for (std::size_t j = 0; j < energies.size(); ++j)
             {
@@ -174,6 +175,7 @@ public:
                 const quantity prefactor = scattering_rate_prefactor(
                         max_speed, dm_mass, dm_energy_density, target_density,
                         dm_electron_cross_section, max_momentum_transfers[j]);
+
                 out[i, j] = (prefactor*util::sum(m_aiwrt_grid[j])).in(Rate::unit);
             }
         }
@@ -307,7 +309,14 @@ private:
         }
 
         util::mul(m_aiwrt_grid.flatten(), m_normalized_momentum_grid.flatten());
+    }
 
+    void apply_integration_measure()
+    {
+            auto flat_aiwrt = m_aiwrt_grid.flatten();
+            auto flat_normalized_momenta = m_normalized_momentum_grid.flatten();
+            for (std::size_t k = 0; k <flat_aiwrt.size(); ++k)
+                flat_aiwrt[k] *= util::intpow<2>(flat_normalized_momenta[k]);
     }
 
     [[nodiscard]] static constexpr QuantityOf<energy_differential_rate_per_unit_mass> auto
