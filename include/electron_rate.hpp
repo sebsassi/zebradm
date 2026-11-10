@@ -64,8 +64,6 @@ public:
     }
 
     template <
-        QuantityOf<velocity> Velocity,
-        QuantityOf<energy> Energy,
         QuantityOf<energy_differential_rate_per_unit_mass> Rate
     >
     [[nodiscard]] zest::DynamicMDSpan<Rate, 2> energy_differential_rate(
@@ -77,21 +75,24 @@ public:
         IsotropicZernikeVectorSpan<const double> target_response,
         QuantityOf<momentum_transfer> auto max_momentum_transfer,
         QuantityOf<mass_density> auto target_density,
-        std::span<const Velocity> lab_velocities,
-        std::span<const Energy> energies,
+        const contiguous_quantity_range_of<velocity> auto& lab_velocities,
+        const contiguous_quantity_range_of<energy> auto& energies,
         zest::DynamicMDSpan<Rate, 2> out)
     {
         assert(
             max_speed > 0                   // distribution must have finite support
             && dm_mass > 0                  // DM must be massive and not exotic
             && dm_energy_density >= 0       // No negative energies, but zero density is fine
-            && max_momentum_transfer > 0    // respose must have finite support
+            && max_momentum_transfer > 0    // respose must have support
             && target_density > 0);         // target is ordinary matter
 
         assert(target_response.extent(0) == energies.size());
         assert(
             out.extent(0) == lab_velocities.size()
             && out.extent(1) == energies.size());
+
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
+                m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
 
         const quantity inv_max_speed = 1.0/max_speed;
 
@@ -101,45 +102,80 @@ public:
                 max_speed, dm_mass, dm_energy_density, target_density, dm_electron_cross_section,
                 max_momentum_transfer);
 
-        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
-                m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
-        const std::size_t num_nodes = m_shell_glq_nodes.size();
-
         for (std::size_t i = 0; i < lab_velocities.size(); ++i)
         {
             const quantity lab_speed = lab_velocities[i].magnitude();
             generate_optimal_momentum_grid(
                     lab_speed, energies, max_speed, max_momentum_transfer, dm_mass);
-            calculate_shells(energies, dm_mass, max_speed);
-            m_aiwrt_grid.reshape<RaggedTable<double>::offset_source>(m_shell_grid.offsets());
-            m_angle_integrator.integrate(
-                    velocity_dist_moments,
-                    static_cast<double>((lab_speed*inv_max_speed).in(mpu::one)),
-                    m_shell_grid.flatten(), m_aiwrt_grid.flatten());
-
-            m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
-            m_grid_evaluator.resize(target_response[0].order(), m_response_grid.size());
-
-            for (std::size_t j = 0; j < energies.size(); ++j)
-            {
-                m_grid_evaluator.evaluate(
-                        target_response[j],
-                        m_normalized_momentum_grid[j], m_response_grid[j]);
-                std::span<double> aiwrt = m_aiwrt_grid[j];
-                std::span<const double> interval_weights = m_interval_half_widths[j];
-
-                const std::size_t num_intervals = aiwrt.size()/num_nodes;
-                for (std::size_t k = 0; k < num_intervals; ++k)
-                {
-                    for (std::size_t l = 0; l < num_nodes; ++l)
-                        aiwrt[num_nodes*k + l] *= interval_weights[k]*m_shell_glq_weights[l];
-                }
-            }
-
-            util::mul(m_aiwrt_grid.flatten(), m_normalized_momentum_grid.flatten());
+            evaluate_aiwrt(
+                    velocity_dist_moments, inv_max_speed, max_speed,
+                    dm_mass,
+                    target_response,
+                    lab_speed, energies,
+                    prefactor, out[i]);
 
             for (std::size_t j = 0; j < energies.size(); ++j)
                 out[i, j] = (prefactor*util::sum(m_aiwrt_grid[j])).in(Rate::unit);
+        }
+    }
+
+    template <
+        QuantityOf<energy_differential_rate_per_unit_mass> Rate
+    >
+    [[nodiscard]] zest::DynamicMDSpan<Rate, 2> energy_differential_rate(
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> velocity_dist_moments,
+        QuantityOf<speed> auto max_speed,
+        QuantityOf<mass> auto dm_mass,
+        QuantityOf<energy_density> auto dm_energy_density,
+        QuantityOf<cross_section> auto dm_electron_cross_section,
+        IsotropicZernikeVectorSpan<const double> target_response,
+        const contiguous_quantity_range_of<momentum_transfer> auto& max_momentum_transfers,
+        QuantityOf<mass_density> auto target_density,
+        const contiguous_quantity_range_of<velocity> auto& lab_velocities,
+        const contiguous_quantity_range_of<energy> auto& energies,
+        zest::DynamicMDSpan<Rate, 2> out)
+    {
+        assert(
+            max_speed > 0                   // distribution must have finite support
+            && dm_mass > 0                  // DM must be massive and not exotic
+            && dm_energy_density >= 0       // No negative energies, but zero density is fine
+            && target_density > 0);         // target is ordinary matter
+
+        assert(max_momentum_transfers.size() == energies.size());
+        assert(target_response.extent(0) == energies.size());
+        assert(
+            out.extent(0) == lab_velocities.size()
+            && out.extent(1) == energies.size());
+
+        for (auto max_momentum_transfer : max_momentum_transfers)
+            assert(max_momentum_transfer > 0); // Response must have support
+
+        zest::gl::gl_nodes_and_weights<zest::gl::UnpackedLayout, zest::gl::GLNodeStyle::cos>(
+                m_shell_glq_nodes, m_shell_glq_weights, m_shell_glq_nodes.size() & 1);
+
+        const quantity inv_max_speed = 1.0/max_speed;
+
+        for (std::size_t i = 0; i < lab_velocities.size(); ++i)
+        {
+            const quantity lab_speed = lab_velocities[i].magnitude();
+            generate_optimal_momentum_grid(
+                    lab_speed, energies, max_speed, max_momentum_transfers, dm_mass);
+
+            evaluate_aiwrt(
+                    velocity_dist_moments, inv_max_speed, max_speed,
+                    dm_mass,
+                    target_response,
+                    lab_speed, energies);
+
+            for (std::size_t j = 0; j < energies.size(); ++j)
+            {
+                // All physical units should be in the prefactor. The integration
+                // happens with dimensionless quantities.
+                const quantity prefactor = scattering_rate_prefactor(
+                        max_speed, dm_mass, dm_energy_density, target_density,
+                        dm_electron_cross_section, max_momentum_transfers[j]);
+                out[i, j] = (prefactor*util::sum(m_aiwrt_grid[j])).in(Rate::unit);
+            }
         }
     }
 
@@ -149,10 +185,9 @@ public:
         at the shell parameter value `1 - vlab/vmax`. As a result, to maintain
         good convergence, the momentum integral needs to be segmented.
     */
-    template <QuantityOf<energy> Energy>
     void generate_optimal_momentum_grid(
         QuantityOf<speed> auto lab_speed,
-        std::span<const Energy> energies,
+        contiguous_quantity_range_of<energy> auto energies,
         QuantityOf<speed> auto max_speed,
         QuantityOf<momentum_transfer> auto max_momentum_transfer,
         QuantityOf<mass> auto dm_mass)
@@ -180,131 +215,101 @@ public:
         const quantity inverse_max_kinetic_energy = 2.0*dm_mass*intpow<2>(inv_max_momentum);
         for (std::size_t i = 0; i < energies.size(); ++i)
         {
-            const auto normalized_mom_sq_floor
-                = static_cast<double>(
-                    (inverse_max_kinetic_energy*energies[i]).in(mpu::one));
-
-            // Kinematically forbidden; bail out
-            if (energies[i] > kinetic_energy_hi)
-            {
-                m_normalized_momentum_grid.append(0);
-                m_interval_half_widths.append(0);
-            }
-            // Does not reach down to discontinuity; single segment
-            else if (energies[i] > kinetic_energy_lo)
-            {
-                assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
-
-                const double normalized_momentum_hi_min
-                    = normalized_momentum_hi
-                        - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
-                if (1.0 < normalized_momentum_hi_min)
-                {
-                    m_normalized_momentum_grid.append(0);
-                    m_interval_half_widths.append(0);
-                    continue;
-                }
-
-                const double normalized_momentum_hi_max
-                    = normalized_momentum_hi
-                        + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
-
-                const std::array<std::array<double, 2>, 1> intervals = {
-                    std::array<double, 2>{
-                        normalized_momentum_hi_min,
-                        std::min(normalized_momentum_hi_max, 1.0),
-                    },
-                };
-                std::span<double> momenta
-                    = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
-                generate_momenta_on(intervals, momenta);
-                m_interval_half_widths.append(half_widths_from(intervals));
-            }
-            // Segmented integral to avoid loss of accuracy from discontinuity
-            else
-            {
-                assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
-                assert(normalized_momentum_lo_sq >= normalized_mom_sq_floor);
-
-                const double normalized_momentum_hi_min
-                    = normalized_momentum_hi
-                        - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
-                if (1.0 < normalized_momentum_hi_min)
-                {
-                    m_normalized_momentum_grid.append(0);
-                    m_interval_half_widths.append(0);
-                    continue;
-                }
-
-                const double normalized_momentum_lo_min
-                    = normalized_momentum_lo
-                        - std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
-                if (1.0 < normalized_momentum_lo_min)
-                {
-                    const std::array<std::array<double, 2>, 1> intervals = {
-                        std::array<double, 2>{
-                            normalized_momentum_hi_min,
-                            1.0,
-                        },
-                    };
-                    std::span<double> normalized_momenta
-                        = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
-                    generate_momenta_on(intervals, normalized_momenta);
-                    m_interval_half_widths.append(half_widths_from(intervals));
-                    continue;
-                }
-
-                const double normalized_momentum_lo_max
-                    = normalized_momentum_lo
-                        + std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
-                if (1.0 < normalized_momentum_lo_max)
-                {
-                    const std::array<std::array<double, 2>, 2> intervals = {
-                        std::array<double, 2>{
-                            normalized_momentum_hi_min,
-                            normalized_momentum_lo_min,
-                        },
-                        std::array<double, 2>{
-                            normalized_momentum_lo_min,
-                            1.0,
-                        },
-                    };
-                    std::span<double> normalized_momenta
-                        = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
-                    generate_momenta_on(intervals, normalized_momenta);
-                    m_interval_half_widths.append(half_widths_from(intervals));
-                    continue;
-                }
-
-                const double normalized_momentum_hi_max
-                    = normalized_momentum_hi
-                        + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
-
-                const std::array<std::array<double, 2>, 3> intervals = {
-                    std::array<double, 2>{
-                        normalized_momentum_hi_min,
-                        normalized_momentum_lo_min,
-                    },
-                    std::array<double, 2>{
-                        normalized_momentum_lo_min,
-                        normalized_momentum_lo_max,
-                    },
-                    std::array<double, 2>{
-                        normalized_momentum_lo_max,
-                        std::min(normalized_momentum_hi_max, 1.0),
-                    },
-                };
-                std::span<double> normalized_momenta
-                    = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
-                generate_momenta_on(intervals, normalized_momenta);
-                m_interval_half_widths.append(half_widths_from(intervals));
-            }
-
+            generate_optimal_momentum_grid(
+                    energies[i], inverse_max_kinetic_energy,
+                    kinetic_energy_hi, kinetic_energy_lo,
+                    normalized_momentum_hi_sq, normalized_momentum_lo_sq,
+                    normalized_momentum_hi, normalized_momentum_lo);
         }
+    }
 
+    void generate_optimal_momentum_grid(
+        QuantityOf<speed> auto lab_speed,
+        contiguous_quantity_range_of<energy> auto energies,
+        QuantityOf<speed> auto max_speed,
+        contiguous_quantity_range_of<momentum_transfer> auto max_momentum_transfers,
+        QuantityOf<mass> auto dm_mass)
+    {
+        assert(energies.size() == max_momentum_transfers.size());
+        assert(dm_mass > 0);
+        for (auto max_momentum_transfer : max_momentum_transfers)
+            assert(max_momentum_transfer > 0);
+
+        m_shell_grid.clear();
+
+        const quantity speed_lo = mpu::abs(max_speed - lab_speed);
+        const quantity speed_hi = max_speed + lab_speed;
+        const quantity momentum_lo = dm_mass*speed_lo;
+        const quantity momentum_hi = dm_mass*speed_hi;
+
+        const quantity kinetic_energy_lo = 0.5*dm_mass*intpow<2>(speed_lo);
+        const quantity kinetic_energy_hi = 0.5*dm_mass*intpow<2>(speed_hi);
+
+        for (std::size_t i = 0; i < energies.size(); ++i)
+        {
+            const quantity inv_max_momentum = 1.0/max_momentum_transfers[i];
+            const quantity inverse_max_kinetic_energy = 2.0*dm_mass*intpow<2>(inv_max_momentum);
+
+            const auto normalized_momentum_lo
+                = static_cast<double>((inv_max_momentum*momentum_lo).in(mpu::one));
+            const auto normalized_momentum_hi
+                = static_cast<double>((inv_max_momentum*momentum_lo).in(mpu::one));
+
+            const double normalized_momentum_lo_sq = intpow<2>(normalized_momentum_lo);
+            const double normalized_momentum_hi_sq = intpow<2>(normalized_momentum_hi);
+
+            generate_optimal_momentum_grid(
+                    energies[i], inverse_max_kinetic_energy,
+                    kinetic_energy_hi, kinetic_energy_lo,
+                    normalized_momentum_hi_sq, normalized_momentum_lo_sq,
+                    normalized_momentum_hi, normalized_momentum_lo);
+        }
     }
 
 private:
+    template <
+        QuantityOf<energy_differential_rate_per_unit_mass> Rate
+    >
+    [[nodiscard]] zest::DynamicMDSpan<Rate, 2> evaluate_aiwrt(
+        IsotropicRadonMomentSpan<const double, MomentSet::identity> velocity_dist_moments,
+        QuantityOf<inverse(speed)> auto inv_max_speed,
+        QuantityOf<speed> auto max_speed,
+        QuantityOf<mass> auto dm_mass,
+        IsotropicZernikeVectorSpan<const double> target_response,
+        QuantityOf<speed> auto lab_speed,
+        contiguous_quantity_range_of<energy> auto energies)
+    {
+        calculate_shells(energies, dm_mass, max_speed);
+        m_aiwrt_grid.reshape<RaggedTable<double>::offset_source>(m_shell_grid.offsets());
+        m_angle_integrator.integrate(
+                velocity_dist_moments,
+                static_cast<double>((lab_speed*inv_max_speed).in(mpu::one)),
+                m_shell_grid.flatten(), m_aiwrt_grid.flatten());
+
+        m_response_grid.reshape<RaggedTable<double>::offset_source>(m_normalized_momentum_grid.offsets());
+        m_grid_evaluator.resize(target_response[0].order(), m_response_grid.size());
+
+        for (std::size_t i = 0; i < energies.size(); ++i)
+        {
+            m_grid_evaluator.evaluate(
+                    target_response[i],
+                    m_normalized_momentum_grid[i], m_response_grid[i]);
+            std::span<double> aiwrt = m_aiwrt_grid[i];
+            std::span<const double> interval_weights = m_interval_half_widths[i];
+
+            const std::size_t num_nodes = m_shell_glq_nodes.size();
+            const std::size_t num_intervals = aiwrt.size()/num_nodes;
+            for (std::size_t k = 0; k < num_intervals; ++k)
+            {
+                for (std::size_t l = 0; l < num_nodes; ++l)
+                    aiwrt[num_nodes*k + l] *= interval_weights[k]*m_shell_glq_weights[l];
+            }
+        }
+
+        util::mul(m_aiwrt_grid.flatten(), m_normalized_momentum_grid.flatten());
+
+    }
+
     [[nodiscard]] static constexpr QuantityOf<energy_differential_rate_per_unit_mass> auto
     scattering_rate_prefactor(
         QuantityOf<speed> auto max_speed,
@@ -326,6 +331,138 @@ private:
             = dm_energy_density*dm_electron_cross_section*intpow<4>(max_momentum_transfer);
         const quantity denominator = target_density*dm_mass*intpow<2>(red_mass)*max_speed;
         return const_prefactor*numerator/denominator;
+    }
+
+    void generate_optimal_momentum_grid(
+        QuantityOf<energy> auto energy_transfer,
+        QuantityOf<inverse(energy)> auto inverse_max_kinetic_energy,
+        QuantityOf<energy> auto kinetic_energy_hi,
+        QuantityOf<energy> auto kinetic_energy_lo,
+        double normalized_momentum_hi_sq,
+        double normalized_momentum_lo_sq,
+        double normalized_momentum_hi,
+        double normalized_momentum_lo)
+    {
+        const auto normalized_mom_sq_floor
+            = static_cast<double>(
+                (inverse_max_kinetic_energy*energy_transfer).in(mpu::one));
+
+        // Kinematically forbidden; bail out
+        if (energy_transfer > kinetic_energy_hi)
+        {
+            m_normalized_momentum_grid.append(0);
+            m_interval_half_widths.append(0);
+        }
+        // Does not reach down to discontinuity; single segment
+        else if (energy_transfer > kinetic_energy_lo)
+        {
+            assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
+
+            const double normalized_momentum_hi_min
+                = normalized_momentum_hi
+                    - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+            if (1.0 < normalized_momentum_hi_min)
+            {
+                m_normalized_momentum_grid.append(0);
+                m_interval_half_widths.append(0);
+                return;
+            }
+
+            const double normalized_momentum_hi_max
+                = normalized_momentum_hi
+                    + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+
+            const std::array<std::array<double, 2>, 1> intervals = {
+                std::array<double, 2>{
+                    normalized_momentum_hi_min,
+                    std::min(normalized_momentum_hi_max, 1.0),
+                },
+            };
+            std::span<double> momenta
+                = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
+            generate_momenta_on(intervals, momenta);
+            m_interval_half_widths.append(half_widths_from(intervals));
+        }
+        // Segmented integral to avoid loss of accuracy from discontinuity
+        else
+        {
+            assert(normalized_momentum_hi_sq >= normalized_mom_sq_floor);
+            assert(normalized_momentum_lo_sq >= normalized_mom_sq_floor);
+
+            const double normalized_momentum_hi_min
+                = normalized_momentum_hi
+                    - std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+            if (1.0 < normalized_momentum_hi_min)
+            {
+                m_normalized_momentum_grid.append(0);
+                m_interval_half_widths.append(0);
+                return;
+            }
+
+            const double normalized_momentum_lo_min
+                = normalized_momentum_lo
+                    - std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
+            if (1.0 < normalized_momentum_lo_min)
+            {
+                const std::array<std::array<double, 2>, 1> intervals = {
+                    std::array<double, 2>{
+                        normalized_momentum_hi_min,
+                        1.0,
+                    },
+                };
+                std::span<double> normalized_momenta
+                    = m_normalized_momentum_grid.append(m_shell_glq_nodes.size());
+                generate_momenta_on(intervals, normalized_momenta);
+                m_interval_half_widths.append(half_widths_from(intervals));
+                return;
+            }
+
+            const double normalized_momentum_lo_max
+                = normalized_momentum_lo
+                    + std::sqrt(normalized_momentum_lo_sq - normalized_mom_sq_floor);
+            if (1.0 < normalized_momentum_lo_max)
+            {
+                const std::array<std::array<double, 2>, 2> intervals = {
+                    std::array<double, 2>{
+                        normalized_momentum_hi_min,
+                        normalized_momentum_lo_min,
+                    },
+                    std::array<double, 2>{
+                        normalized_momentum_lo_min,
+                        1.0,
+                    },
+                };
+                std::span<double> normalized_momenta
+                    = m_normalized_momentum_grid.append(2*m_shell_glq_nodes.size());
+                generate_momenta_on(intervals, normalized_momenta);
+                m_interval_half_widths.append(half_widths_from(intervals));
+                return;
+            }
+
+            const double normalized_momentum_hi_max
+                = normalized_momentum_hi
+                    + std::sqrt(normalized_momentum_hi_sq - normalized_mom_sq_floor);
+
+            const std::array<std::array<double, 2>, 3> intervals = {
+                std::array<double, 2>{
+                    normalized_momentum_hi_min,
+                    normalized_momentum_lo_min,
+                },
+                std::array<double, 2>{
+                    normalized_momentum_lo_min,
+                    normalized_momentum_lo_max,
+                },
+                std::array<double, 2>{
+                    normalized_momentum_lo_max,
+                    std::min(normalized_momentum_hi_max, 1.0),
+                },
+            };
+            std::span<double> normalized_momenta
+                = m_normalized_momentum_grid.append(3*m_shell_glq_nodes.size());
+            generate_momenta_on(intervals, normalized_momenta);
+            m_interval_half_widths.append(half_widths_from(intervals));
+        }
+
     }
 
     template <std::size_t N>

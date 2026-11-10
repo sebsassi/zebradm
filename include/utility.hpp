@@ -39,6 +39,13 @@ SOFTWARE.
 namespace zdm::util
 {
 
+template <typename T>
+struct Interval
+{
+    T min;
+    T max;
+};
+
 /**
     @brief Largest even number less than or equal to the input.
 

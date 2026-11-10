@@ -88,6 +88,21 @@ constexpr auto ka = millennium;
 
 } // namespace unit_symbols
 
+template <typename QRange, auto QSpec>
+concept quantity_range_of
+    = std::ranges::range<QRange>
+        && QuantityOf<std::ranges::range_value_t<QRange>, QSpec>;
+
+template <typename QRange, auto QSpec>
+concept random_access_quantity_range_of
+    = std::ranges::random_access_range<QRange>
+        && QuantityOf<std::ranges::range_value_t<QRange>, QSpec>;
+
+template <typename QRange, auto QSpec>
+concept contiguous_quantity_range_of
+    = std::ranges::contiguous_range<QRange>
+        && QuantityOf<std::ranges::range_value_t<QRange>, QSpec>;
+
 // Linear algebra operations on vectors and matrices with units.
 namespace la
 {
