@@ -254,7 +254,7 @@ private:
     ArrayRecursion m_recursion;
     std::vector<double> m_glq_nodes;
     std::vector<double> m_glq_weights;
-    std::size_t m_order;
+    std::size_t m_order{};
 };
 
 class Transformer
@@ -298,6 +298,76 @@ public:
 private:
     GLQTransformer m_transformer;
     std::vector<double> m_grid;
+};
+
+class GridEvaluator
+{
+public:
+    GridEvaluator() = default;
+    GridEvaluator(std::size_t grid_size): m_recursion{grid_size} {}
+
+    void evaluate(
+        std::span<const double> expansion, std::span<const double> points,
+        std::span<double> values)
+    {
+        assert(points.size() == values.size());
+        for (double element : points)
+            assert(-1.0 <= element && element <= 1.0);
+
+        // We generate the values in chunks of 256 to maximize cache
+        // utilization.
+        constexpr std::size_t chunk_size = 256;
+        const std::size_t chunk_count = points.size()/chunk_size;
+
+        for (std::size_t i = 0; i < chunk_count; ++i)
+        {
+            std::span<double, chunk_size>
+            chunk{values.data() + i*chunk_size, chunk_size};
+
+            std::span<const double, chunk_size>
+            point_chunk{points.data() + i*chunk_size, chunk_size};
+
+            m_recursion.init(point_chunk);
+
+            for (std::size_t n = 0; n < expansion.size(); ++n)
+            {
+                auto legendre = m_recursion.current();
+                for (std::size_t j = 0; j < chunk_size; ++j)
+                    chunk[j] += expansion[n]*legendre[j];
+
+                m_recursion.iterate();
+            }
+        }
+
+        const std::size_t remainder = points.size() - chunk_count*chunk_size;
+        std::span<double>
+        chunk{values.data() + chunk_count*chunk_size, remainder};
+
+        std::span<const double>
+        point_chunk{points.data() + chunk_count*chunk_size, remainder};
+
+        m_recursion.init(point_chunk);
+
+        for (std::size_t n = 0; n < expansion.size(); ++n)
+        {
+            auto legendre = m_recursion.current();
+            for (std::size_t i = 0; i < remainder; ++i)
+                chunk[i] += expansion[n]*legendre[i];
+
+            m_recursion.iterate();
+        }
+    }
+
+    [[nodiscard]] std::vector<double>
+    evaluate(std::span<const double> expansion, std::span<const double> points)
+    {
+        std::vector<double> values(points.size());
+        evaluate(expansion, points, values);
+        return values;
+    }
+
+private:
+    ArrayRecursion m_recursion;
 };
 
 } // namespace zdm::legendre
