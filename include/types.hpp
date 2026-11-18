@@ -21,8 +21,9 @@ SOFTWARE.
 */
 #pragma once
 
-#include <zest/sh_expansion.hpp>
-#include <zest/zernike_expansion.hpp>
+#include <cstdint>
+
+#include <zest/zernike_glq_transformer.hpp>
 
 namespace zdm
 {
@@ -41,127 +42,6 @@ enum class RespType: std::uint8_t { iso, aniso };
     @brief Tag for type of Radon transform.
 */
 enum class RadonType: std::uint8_t { regular, transverse };
-
-/**
-    @brief Alias for spherical harmonic expansion with conventions used by
-    zebradm.
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using SHExpansion = zest::st::SHExpansion<
-    ElementType, zest::Indexing::zero_based, zest::st::Geo, inner_extents...>;
-
-/**
-    @brief Alias for a non-owning view to a spherical harmonic expansion with
-    conventions used by zebradm.
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using SHSpan = zest::st::SHSpan<
-    ElementType, zest::Indexing::zero_based, zest::st::Geo, inner_extents...>;
-
-/**
-    @brief Alias for Zernike expansion with conventions used by zebradm.
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using ZernikeExpansion = zest::zt::ZernikeExpansion<
-    double, zest::Indexing::zero_based, zest::zt::NormedGeo, inner_extents...>;
-
-/**
-    @brief Alias for a non-owning view to a Zernike expansion with conventions
-    used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-    using ZernikeSpan = zest::zt::ZernikeSpan<
-    ElementType, zest::Indexing::zero_based, zest::zt::NormedGeo, inner_extents...>;
-
-/**
-    @brief Alias for isotropic Zernike expansion with conventions used by
-    zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using IsotropicZernikeExpansion = zest::zt::IsotropicZernikeExpansion<
-    ElementType, zest::zt::NormedGeo, inner_extents...>;
-
-/**
-    @brief Alias for a non-owning view to a Zernike expansion with conventions
-    used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using IsotropicZernikeSpan = zest::zt::IsotropicZernikeSpan<
-    ElementType, zest::zt::NormedGeo, inner_extents...>;
-
-/**
-    @brief Alias for an array of spherical harmonic expansions with conventions
-    used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-*/
-template <std::floating_point ElementType>
-using SHExpansionVector = zest::st::SHExpansionVector<
-    double, zest::Indexing::zero_based, zest::st::Geo>;
-
-/**
-    @brief Alias for a non-owning view of an array of spherical harmonic
-    expansions with conventions used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-*/
-template <std::floating_point ElementType>
-using SHVectorSpan = zest::st::SHVectorSpan<
-    ElementType, zest::Indexing::zero_based, zest::st::Geo>;
-
-/**
-    @brief Alias for a non-owning view to an array of Zernike expansions with conventions
-    used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using IsotropicZernikeVectorSpan = zest::zt::IsotropicZernikeVectorSpan<
-    ElementType, zest::zt::NormedGeo>;
-
-/**
-    @brief Alias for a non-owning view to an array of Zernike expansions with conventions
-    used by zebradm.
-
-    @tparam ElementType
-
-    @tparam ElementType Type of expansion coefficients.
-    @tparam inner_extents Extents of an inner multi-dimensional array structure.
-*/
-template <std::floating_point ElementType, std::size_t... inner_extents>
-using IsotropicZernikeExpansionVector = zest::zt::IsotropicZernikeExpansionVector<
-    ElementType, zest::zt::NormedGeo>;
 
 using IsotropicZernikeTransformer = zest::zt::IsotropicZernikeTransformer<zest::zt::NormedGeo>;
 

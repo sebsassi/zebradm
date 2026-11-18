@@ -27,7 +27,7 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 #include "transform_utilities.hpp"
-#include "types.hpp"
+#include "expansions.hpp"
 
 namespace
 {

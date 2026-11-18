@@ -24,7 +24,7 @@ SOFTWARE.
 #include <zest/zernike_conventions.hpp>
 #include <zest/zernike_expansion.hpp>
 
-#include "types.hpp"
+#include "expansions.hpp"
 
 namespace zdm::zebra
 {

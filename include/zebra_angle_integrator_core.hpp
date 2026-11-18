@@ -31,6 +31,7 @@ SOFTWARE.
 #include "legendre.hpp"
 #include "affine_legendre_integral.hpp"
 #include "types.hpp"
+#include "expansions.hpp"
 #include "vector.hpp"
 #include "zonal_glq_transformer.hpp"
 #include "radon_moments.hpp"

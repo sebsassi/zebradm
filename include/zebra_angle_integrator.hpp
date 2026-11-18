@@ -34,6 +34,7 @@ SOFTWARE.
 
 #include "vector.hpp"
 #include "types.hpp"
+#include "expansions.hpp"
 #include "zebra_angle_integrator_core.hpp"
 #include "zernike_recursions.hpp"
 #include "radon_moments.hpp"

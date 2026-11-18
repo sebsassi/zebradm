@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2026 Sebastian Sassi
+Copyright (c) 2024-2026 Sebastian Sassi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
@@ -24,6 +24,9 @@ SOFTWARE.
 #include "units.hpp"
 #include "utility.hpp"
 #include "vector.hpp"
+#include "types.hpp"
+#include "expansions.hpp"
+#include "legendre.hpp"
 
 namespace zdm
 {
@@ -64,7 +67,7 @@ namespace zdm
 [[nodiscard]] constexpr double
 isotropic_electron_gas_eels(
     QuantityOf<momentum> auto fermi_momentum,
-    QuantityOf<momentum_transfer> auto q, QuantityOf<energy> auto e) noexcept
+    QuantityOf<momentum> auto q, QuantityOf<energy> auto energy_loss) noexcept
 {
     const quantity fermi_energy
         = (util::intpow<2>(1.0*reduced_plank_constant)/(2.0*electron_mass))
@@ -73,7 +76,7 @@ isotropic_electron_gas_eels(
         = static_cast<double>((speed_of_light_in_vacuum*fermi_momentum/fermi_energy).in(zdm::one));
 
     const auto q_norm = static_cast<double>((q/fermi_momentum).in(zdm::one));
-    const auto e_norm = static_cast<double>((e/fermi_energy).in(zdm::one));
+    const auto e_norm = static_cast<double>((energy_loss/fermi_energy).in(zdm::one));
 
     const double inv_q_norm = 1.0/q_norm;
 
@@ -92,7 +95,7 @@ template <Quantity Mass>
 [[nodiscard]] constexpr double
 anisotropic_electron_gas_eels(
     QuantityOf<momentum> auto fermi_momentum, std::array<Mass, 3> masses,
-    QuantityOf<momentum_transfer> auto q, QuantityOf<energy> auto e) noexcept
+    QuantityOf<linear_momentum> auto q, QuantityOf<energy> auto energy_loss) noexcept
 {
     const quantity mass_dos = mpu::cbrt(masses[0]*masses[1]*masses[2]);
     const la::Vector<double, 3> scale_factors = {
@@ -103,7 +106,54 @@ anisotropic_electron_gas_eels(
     const quantity q_scaled = la::scale_by(q, scale_factors);
     const auto rescale = static_cast<double>(la::dot(q, q)/la::dot(q_scaled, q_scaled));
 
-    return rescale*isotropic_electron_gas_eels(fermi_momentum, q_scaled, e);
+    return rescale*isotropic_electron_gas_eels(fermi_momentum, q_scaled, energy_loss);
 }
+
+template <RespType response_type>
+class EELSTransformer;
+
+template <>
+class EELSTransformer<RespType::iso>
+{
+public:
+    void forward_transform(
+        auto&& eels_function, QuantityOf<energy> auto energy_loss,
+        QuantityOf<momentum_transfer> auto qmin,
+        QuantityOf<momentum_transfer> auto qmax,
+        IsotropicLegendreShellSpan<double> expansion)
+    {
+        assert(qmax > qmin);
+        m_legendre_transformer.forward_transform(
+            [&](decltype(qmin) q){
+                return std::forward<decltype(eels_function)>(eels_function)(energy_loss, q);
+            },
+            qmin, qmax,
+            expansion.flatten());
+    };
+
+    void forward_transform(
+        auto&& eels_function, QuantityOf<energy> auto energy_loss,
+        QuantityOf<momentum_transfer> auto qmax,
+        IsotropicLegendreShellSpan<double> expansion)
+    {
+        assert(qmax > 0);
+        m_legendre_transformer.forward_transform(
+            [&](decltype(qmax) q){
+                return std::forward<decltype(eels_function)>(eels_function)(energy_loss, q);
+            },
+            qmax,
+            expansion.flatten());
+    };
+
+    void backward_transform(
+        IsotropicLegendreShellSpan<const double> expansion,
+        IsotropicLegendreShellGridSpan<double> values)
+    {
+        m_legendre_transformer.backward_transform(expansion.flatten(), values.flatten());
+    }
+private:
+    zdm::legendre::Transformer m_legendre_transformer;
+    IsotropicZernikeTransformer m_zernike_transformer;
+};
 
 } // namespace zdm

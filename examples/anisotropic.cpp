@@ -32,6 +32,7 @@ SOFTWARE.
 #include <zest/zernike_glq_transformer.hpp>
 
 #include "types.hpp"
+#include "expansions.hpp"
 #include "linalg.hpp"
 #include "transform_utilities.hpp"
 #include "zebra_angle_integrator.hpp"

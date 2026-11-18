@@ -28,6 +28,7 @@ SOFTWARE.
 #include <mp-units/systems/hep.h>
 #include <mp-units/systems/si.h>
 #include <mp-units/math.h>
+#include <mp-units/systems/isq.h>
 
 #include "concepts.hpp"
 #include "mp-units/systems/si/constants.h"
@@ -45,6 +46,7 @@ using namespace mp_units::hep;
 
 namespace si = mp_units::si;
 
+QUANTITY_SPEC(linear_momentum, momentum, mpu::quantity_tensor_order::vector);
 QUANTITY_SPEC(momentum_transfer, momentum, mpu::non_negative);
 QUANTITY_SPEC(energy_density, energy*number_density);
 QUANTITY_SPEC(mass_density, mass*number_density);

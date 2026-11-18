@@ -24,6 +24,7 @@ SOFTWARE.
 #include <utility>
 
 #include "types.hpp"
+#include "expansions.hpp"
 #include "zernike_recursions.hpp"
 #include "vector.hpp"
 #include "zebra_radon.hpp"

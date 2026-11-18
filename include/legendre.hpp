@@ -270,19 +270,47 @@ public:
         m_grid.resize(order >> 1);
     }
 
-    void forward_transform(auto&& func, std::span<double> expansion)
+    template <zest::representable_as<double> DomainType>
+    void forward_transform(
+        zest::isotropic_function<DomainType> auto&& func, DomainType begin, DomainType end,
+        std::span<double> expansion)
     {
         resize(expansion.size());
         for (std::size_t i = 0; i < m_grid.size(); ++i)
-            m_grid[i] = func(m_transformer.nodes()[i]);
+            m_grid[i] = std::forward<decltype(func)>(func)(
+                    util::SymmetricUnitInterval::map_to(m_transformer.nodes()[i], begin, end));
 
         m_transformer.forward_transform(m_grid, expansion);
     }
 
-    [[nodiscard]] std::vector<double> forward_transform(auto&& func, std::size_t order)
+    void forward_transform(
+        zest::isotropic_function<double> auto&& func, std::span<double> expansion)
+    {
+        resize(expansion.size());
+        for (std::size_t i = 0; i < m_grid.size(); ++i)
+            m_grid[i] = std::forward<decltype(func)>(func)(m_transformer.nodes()[i]);
+
+        m_transformer.forward_transform(m_grid, expansion);
+    }
+
+    template <zest::representable_as<double> DomainType>
+    [[nodiscard]] std::vector<double>
+    forward_transform(
+        zest::isotropic_function<DomainType> auto&& func, DomainType begin, DomainType end,
+        std::size_t order)
     {
         std::vector<double> expansion(order);
-        forward_transform(func, expansion);
+        forward_transform(std::forward<decltype(func)>(func), begin, end, expansion);
+        return expansion;
+    }
+
+    template <zest::representable_as<double> DomainType>
+    [[nodiscard]] std::vector<double>
+    forward_transform(
+        zest::isotropic_function<DomainType> auto&& func, std::size_t order)
+    {
+        std::vector<double> expansion(order);
+        forward_transform(std::forward<decltype(func)>(func), expansion);
         return expansion;
     }
 

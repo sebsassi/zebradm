@@ -25,7 +25,7 @@ SOFTWARE.
 
 #include "rotation.hpp"
 #include "vector.hpp"
-#include "types.hpp"
+#include "expansions.hpp"
 #include "units.hpp"
 #include "utility.hpp"
 

@@ -22,14 +22,13 @@ SOFTWARE.
 
 #include <algorithm>
 #include <cassert>
-#include <numbers>
 #include <print>
 #include <random>
 
 #include <zest/zernike_glq_transformer.hpp>
 
-#include "types.hpp"
-#include "zebra_radon.hpp"
+#include "expansions.hpp"
+#include "moments.hpp"
 #include "zernike_recursions.hpp"
 
 namespace

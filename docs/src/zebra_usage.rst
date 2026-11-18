@@ -185,14 +185,14 @@ Then we can generate the offsets and shells
     std::vector<double> shells = generate_shells(shell_count, offset_len);
 
 Now that we actually have the shells, we can compute the spherical harmonic transforms of the
-shells on the response functions. For this purpose, the header ``zebradm/types.hpp`` provides
+shells on the response functions. For this purpose, the header ``zebradm/expansions.hpp`` provides
 the container :cpp:type:`zdm::SHExpansionVector` for storing a collection of spherical harmonic
 expansions in a single buffer. The class :cpp:type:`zdm::zebra::ResponseTransformer` allows us
 to compute the spherical harmonic expansions.
 
 .. code:: cpp
 
-   #include <zebradm/types.hpp>
+   #include <zebradm/expansions.hpp>
    #include <zebradm/transform_utilities.hpp>
 
     zdm::zebra::ResponseTransformer response_transformer{};
@@ -312,6 +312,7 @@ pairs. In summary, here is the full source code of our program
     #include <zest/zernike_glq_transformer.hpp>
 
     #include "types.hpp"
+    #include "expansions.hpp"
     #include "linalg.hpp"
     #include "transform_utilities.hpp"
     #include "zebra_angle_integrator.hpp"

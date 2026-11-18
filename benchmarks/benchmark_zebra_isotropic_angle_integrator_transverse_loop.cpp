@@ -25,8 +25,10 @@ SOFTWARE.
 #include <random>
 
 #include "zebra_angle_integrator.hpp"
-#include "nanobench.h"
 #include "types.hpp"
+#include "expansions.hpp"
+
+#include "nanobench.h"
 
 namespace
 {

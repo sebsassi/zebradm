@@ -30,9 +30,6 @@ SOFTWARE.
 #include "coordinate_transforms.hpp"
 
 #include "moments.hpp"
-#include "types.hpp"
-#include "utility.hpp"
-#include "zebra_radon.hpp"
 
 namespace zdm::zebra
 {

@@ -28,6 +28,7 @@ SOFTWARE.
 #include "radon_integrator.hpp"
 #include "transform_utilities.hpp"
 #include "types.hpp"
+#include "expansions.hpp"
 #include "zebra_angle_integrator.hpp"
 
 namespace

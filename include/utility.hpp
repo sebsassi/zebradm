@@ -46,6 +46,26 @@ struct Interval
     T max;
 };
 
+struct UnitInterval
+{
+    [[nodiscard]] static constexpr auto
+    map_to(auto x, auto begin, auto end) noexcept -> decltype(begin)
+        requires std::same_as<decltype(begin), decltype(end)>
+    {
+        return begin + (end - begin)*x;
+    }
+};
+
+struct SymmetricUnitInterval
+{
+    [[nodiscard]] static constexpr auto
+    map_to(auto x, auto begin, auto end) noexcept -> decltype(begin)
+        requires std::same_as<decltype(begin), decltype(end)>
+    {
+        return (0.5*(end + begin)) + (0.5*(end - begin))*x;
+    }
+};
+
 /**
     @brief Largest even number less than or equal to the input.
 

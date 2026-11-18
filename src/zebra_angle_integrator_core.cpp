@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 #include "moments.hpp"
-#include "types.hpp"
 #include "utility.hpp"
 
 namespace zdm::zebra::detail

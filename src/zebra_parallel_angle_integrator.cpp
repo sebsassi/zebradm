@@ -25,7 +25,6 @@ SOFTWARE.
 
 #include "coordinate_transforms.hpp"
 
-#include "types.hpp"
 #include "zebra_radon.hpp"
 
 namespace zdm::zebra::parallel

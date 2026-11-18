@@ -28,6 +28,7 @@ SOFTWARE.
 #include "transform_utilities.hpp"
 #include "matrix.hpp"
 #include "types.hpp"
+#include "expansions.hpp"
 #include "vector.hpp"
 #include "zebra_angle_integrator.hpp"
 

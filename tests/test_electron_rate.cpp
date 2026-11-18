@@ -26,6 +26,7 @@ SOFTWARE.
 #include "mp-units/systems/hep/constants.h"
 #include "radon_moments.hpp"
 #include "types.hpp"
+#include "expansions.hpp"
 #include "units.hpp"
 
 namespace

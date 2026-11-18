@@ -24,6 +24,7 @@ SOFTWARE.
 #include <vector>
 
 #include "types.hpp"
+#include "expansions.hpp"
 #include "utility.hpp"
 #include "moments.hpp"
 #include "zebra_radon.hpp"

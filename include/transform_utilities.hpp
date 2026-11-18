@@ -36,7 +36,7 @@ SOFTWARE.
 
 #include "vector.hpp"
 #include "coordinate_transforms.hpp"
-#include "types.hpp"
+#include "expansions.hpp"
 
 namespace zdm
 {

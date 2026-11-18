@@ -28,7 +28,7 @@ SOFTWARE.
 #include "moments.hpp"
 #include "polynomial.hpp"
 #include "ragged_table.hpp"
-#include "types.hpp"
+#include "expansions.hpp"
 #include "zebra_angle_integrator.hpp"
 
 namespace zdm
