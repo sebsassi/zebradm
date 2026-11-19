@@ -193,6 +193,14 @@ using LegendreShellVectorSpan
     = LegendreShellTensorSpan<ElementType, std::dynamic_extent>;
 
 template <std::floating_point ElementType>
+using IsotropicLegendreShellExpansionVector
+    = IsotropicLegendreShellExpansionTensor<ElementType, std::dynamic_extent>;
+
+template <std::floating_point ElementType>
+using IsotropicLegendreShellVectorSpan
+    = IsotropicLegendreShellTensorSpan<ElementType, std::dynamic_extent>;
+
+template <std::floating_point ElementType>
 using IsotropicLegendreShellGrid
     = zest::ShapedArray<ElementType, zest::TensorShape<std::dynamic_extent>>;
 

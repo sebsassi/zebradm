@@ -69,6 +69,7 @@ isotropic_electron_gas_eels(
     QuantityOf<momentum> auto fermi_momentum,
     QuantityOf<momentum> auto q, QuantityOf<energy> auto energy_loss) noexcept
 {
+    assert(energy_loss >= 0);
     const quantity fermi_energy
         = (util::intpow<2>(1.0*reduced_plank_constant)/(2.0*electron_mass))
             *util::intpow<2>(fermi_momentum);
@@ -91,12 +92,45 @@ isotropic_electron_gas_eels(
         return prefactor*e_norm*util::intpow<3>(inv_q_norm);
 }
 
+auto isotropic_electron_gas_eels_momentum_limits(
+    QuantityOf<momentum> auto fermi_momentum, QuantityOf<energy> auto energy_loss) noexcept
+    -> std::pair<decltype(fermi_momentum), decltype(fermi_momentum)>
+{
+    const quantity fermi_energy
+        = (util::intpow<2>(1.0*reduced_plank_constant)/(2.0*electron_mass))
+            *util::intpow<2>(fermi_momentum);
+
+    const auto e_norm = static_cast<double>((energy_loss/fermi_energy).in(zdm::one));
+    const double offset = std::sqrt(1.0 + e_norm);
+    return std::pair{(-1.0 + offset)*fermi_momentum, (1.0 + offset)*fermi_momentum};
+}
+
+auto isotropic_electron_gas_eels_momentum_limits(
+    QuantityOf<momentum> auto fermi_momentum, contiguous_quantity_range_of<energy> auto energy_loss) noexcept
+    -> std::pair<std::vector<decltype(fermi_momentum)>, std::vector<decltype(fermi_momentum)>>
+{
+    const quantity fermi_energy
+        = (util::intpow<2>(1.0*reduced_plank_constant)/(2.0*electron_mass))
+            *util::intpow<2>(fermi_momentum);
+
+    auto res = std::pair{std::vector<decltype(fermi_momentum)>(energy_loss.size()), std::vector<decltype(fermi_momentum)>(energy_loss.size())};
+    for (std::size_t i = 0; i < energy_loss.size(); ++i)
+    {
+        const auto e_norm = static_cast<double>((energy_loss/fermi_energy).in(zdm::one));
+        const double offset = std::sqrt(1.0 + e_norm);
+        res.first[i] = (-1.0 + offset)*fermi_momentum;
+        res.second[i] = (1.0 + offset)*fermi_momentum;
+    }
+    return res;
+}
+
 template <Quantity Mass>
 [[nodiscard]] constexpr double
 anisotropic_electron_gas_eels(
     QuantityOf<momentum> auto fermi_momentum, std::array<Mass, 3> masses,
     QuantityOf<linear_momentum> auto q, QuantityOf<energy> auto energy_loss) noexcept
 {
+    assert(energy_loss >= 0);
     const quantity mass_dos = mpu::cbrt(masses[0]*masses[1]*masses[2]);
     const la::Vector<double, 3> scale_factors = {
         std::sqrt(static_cast<double>(mass_dos/masses[0])),
@@ -122,6 +156,7 @@ public:
         QuantityOf<momentum_transfer> auto qmax,
         IsotropicLegendreShellSpan<double> expansion)
     {
+        assert(energy_loss >= 0);
         assert(qmax > qmin);
         m_legendre_transformer.forward_transform(
             [&](decltype(qmin) q){
@@ -131,19 +166,83 @@ public:
             expansion.flatten());
     };
 
+    [[nodiscard]] IsotropicLegendreShellExpansion<double>
+    forward_transform(
+        auto&& eels_function, QuantityOf<energy> auto energy_loss,
+        QuantityOf<momentum_transfer> auto qmin,
+        QuantityOf<momentum_transfer> auto qmax,
+        std::size_t order)
+    {
+        assert(energy_loss >= 0);
+        assert(qmax > qmin);
+        IsotropicLegendreShellExpansion<double> expansion{order};
+        forward_transform(
+                std::forward<decltype(eels_function)>(eels_function),
+                energy_loss, qmin, qmax, expansion);
+        return expansion;
+    }
+
+    [[nodiscard]] IsotropicLegendreShellExpansionVector<double>
+    forward_transform(
+        auto&& eels_function, const contiguous_quantity_range_of<energy> auto& energy_loss,
+        const contiguous_quantity_range_of<momentum_transfer> auto& qmin,
+        const contiguous_quantity_range_of<momentum_transfer> auto& qmax,
+        std::size_t order)
+    {
+        assert(energy_loss.size() == qmin.size());
+        assert(qmin.size() == qmax.size());
+        IsotropicLegendreShellExpansionVector<double> expansion{energy_loss.size(), order};
+        for (std::size_t i = 0; i < energy_loss.size(); ++i)
+            forward_transform(
+                    std::forward<decltype(eels_function)>(eels_function),
+                    energy_loss[i], qmin[i], qmax[i], expansion[i]);
+        return expansion;
+    }
+
     void forward_transform(
         auto&& eels_function, QuantityOf<energy> auto energy_loss,
         QuantityOf<momentum_transfer> auto qmax,
-        IsotropicLegendreShellSpan<double> expansion)
+        IsotropicZernikeSpan<double> expansion)
     {
+        assert(energy_loss >= 0);
         assert(qmax > 0);
-        m_legendre_transformer.forward_transform(
+        m_zernike_transformer.forward_transform(
             [&](decltype(qmax) q){
                 return std::forward<decltype(eels_function)>(eels_function)(energy_loss, q);
             },
             qmax,
             expansion.flatten());
     };
+
+    [[nodiscard]] IsotropicZernikeExpansion<double>
+    forward_transform(
+        auto&& eels_function, QuantityOf<energy> auto energy_loss,
+        QuantityOf<momentum_transfer> auto qmax,
+        std::size_t order)
+    {
+        assert(energy_loss >= 0);
+        assert(qmax > 0);
+        IsotropicZernikeExpansion<double> expansion{order};
+        forward_transform(
+                std::forward<decltype(eels_function)>(eels_function),
+                energy_loss, qmax, expansion);
+        return expansion;
+    }
+
+    [[nodiscard]] IsotropicZernikeExpansionVector<double>
+    forward_transform(
+        auto&& eels_function, const contiguous_quantity_range_of<energy> auto& energy_loss,
+        const contiguous_quantity_range_of<momentum_transfer> auto& qmax,
+        std::size_t order)
+    {
+        assert(energy_loss.size() == qmax.size());
+        IsotropicZernikeExpansionVector<double> expansion{energy_loss.size(), order};
+        for (std::size_t i = 0; i < energy_loss.size(); ++i)
+            forward_transform(
+                    std::forward<decltype(eels_function)>(eels_function),
+                    energy_loss, qmax, expansion[i]);
+        return expansion;
+    }
 
     void backward_transform(
         IsotropicLegendreShellSpan<const double> expansion,
@@ -154,6 +253,14 @@ public:
 private:
     zdm::legendre::Transformer m_legendre_transformer;
     IsotropicZernikeTransformer m_zernike_transformer;
+};
+
+template <>
+class EELSTransformer<RespType::aniso>
+{
+public:
+private:
+    ZernikeTransformer m_zernike_transformer;
 };
 
 } // namespace zdm
